@@ -1,12 +1,11 @@
 #include "HelloWorld.h"
+#include <iostream>
 
 using namespace std;
 
-void HelloWorld::say() {
-    HelloWorld::HelloWorld() {}
-    HelloWorld::~HelloWorld() {}
+HelloWorld::HelloWorld() {}
+HelloWorld::~HelloWorld() {}
 
-    HelloWorld::say() {
-        cout << "Hello world!";
-    }
+void HelloWorld::say() {
+    std::cout << "Hello world!";
 }

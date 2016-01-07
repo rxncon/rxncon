@@ -1,3 +1,6 @@
+# distutils: sources = test/simulation/rule_based/cython_cpp/HelloWorld.cpp
+
+
 cdef extern from "HelloWorld.h":
     cdef cppclass HelloWorld:
         HelloWorld() except +

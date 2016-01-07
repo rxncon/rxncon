@@ -4,9 +4,12 @@
 {
     "distutils": {
         "depends": [
-            "HelloWorld.h"
+            "test/simulation/rule_based/cython_cpp/HelloWorld.h"
         ],
-        "language": "c++"
+        "language": "c++",
+        "sources": [
+            "test/simulation/rule_based/cython_cpp/HelloWorld.cpp"
+        ]
     }
 }
 END: Cython Metadata */
@@ -254,8 +257,8 @@ static CYTHON_INLINE float __PYX_NAN() {
   #endif
 #endif
 
-#define __PYX_HAVE__rxncon3__test__simulation__rule_based__cython_cpp__hello_world
-#define __PYX_HAVE_API__rxncon3__test__simulation__rule_based__cython_cpp__hello_world
+#define __PYX_HAVE__test__simulation__rule_based__cython_cpp__hello_world
+#define __PYX_HAVE_API__test__simulation__rule_based__cython_cpp__hello_world
 #include "HelloWorld.h"
 #include "ios"
 #include "new"
@@ -469,20 +472,20 @@ static const char *__pyx_filename;
 
 
 static const char *__pyx_f[] = {
-  "rxncon3/test/simulation/rule_based/cython_cpp/hello_world.pyx",
+  "test/simulation/rule_based/cython_cpp/hello_world.pyx",
 };
 
 /*--- Type declarations ---*/
-struct __pyx_obj_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld;
+struct __pyx_obj_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld;
 
-/* "rxncon3/test/simulation/rule_based/cython_cpp/hello_world.pyx":7
+/* "test/simulation/rule_based/cython_cpp/hello_world.pyx":10
  * 
  * 
  * cdef class PyHelloWorld:             # <<<<<<<<<<<<<<
  *     cdef HelloWorld *thisptr
  * 
  */
-struct __pyx_obj_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld {
+struct __pyx_obj_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld {
   PyObject_HEAD
   HelloWorld *thisptr;
 };
@@ -584,22 +587,22 @@ static int __Pyx_check_binary_version(void);
 static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 
 
-/* Module declarations from 'rxncon3.test.simulation.rule_based.cython_cpp.hello_world' */
-static PyTypeObject *__pyx_ptype_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld = 0;
-#define __Pyx_MODULE_NAME "rxncon3.test.simulation.rule_based.cython_cpp.hello_world"
-int __pyx_module_is_main_rxncon3__test__simulation__rule_based__cython_cpp__hello_world = 0;
+/* Module declarations from 'test.simulation.rule_based.cython_cpp.hello_world' */
+static PyTypeObject *__pyx_ptype_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld = 0;
+#define __Pyx_MODULE_NAME "test.simulation.rule_based.cython_cpp.hello_world"
+int __pyx_module_is_main_test__simulation__rule_based__cython_cpp__hello_world = 0;
 
-/* Implementation of 'rxncon3.test.simulation.rule_based.cython_cpp.hello_world' */
+/* Implementation of 'test.simulation.rule_based.cython_cpp.hello_world' */
 static char __pyx_k_main[] = "__main__";
 static char __pyx_k_test[] = "__test__";
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_test;
-static int __pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld___cinit__(CYTHON_UNUSED struct __pyx_obj_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *__pyx_v_self); /* proto */
-static void __pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_2__dealloc__(struct __pyx_obj_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *__pyx_v_self); /* proto */
-static PyObject *__pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_4say(struct __pyx_obj_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *__pyx_v_self); /* proto */
-static PyObject *__pyx_tp_new_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
+static int __pyx_pf_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld___cinit__(CYTHON_UNUSED struct __pyx_obj_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *__pyx_v_self); /* proto */
+static void __pyx_pf_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_2__dealloc__(struct __pyx_obj_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *__pyx_v_self); /* proto */
+static PyObject *__pyx_pf_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_4say(struct __pyx_obj_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *__pyx_v_self); /* proto */
+static PyObject *__pyx_tp_new_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 
-/* "rxncon3/test/simulation/rule_based/cython_cpp/hello_world.pyx":10
+/* "test/simulation/rule_based/cython_cpp/hello_world.pyx":13
  *     cdef HelloWorld *thisptr
  * 
  *     def __cinit__(self):             # <<<<<<<<<<<<<<
@@ -608,22 +611,22 @@ static PyObject *__pyx_tp_new_7rxncon3_4test_10simulation_10rule_based_10cython_
  */
 
 /* Python wrapper */
-static int __pyx_pw_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
-static int __pyx_pw_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+static int __pyx_pw_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static int __pyx_pw_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_1__cinit__(PyObject *__pyx_v_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__cinit__ (wrapper)", 0);
   if (unlikely(PyTuple_GET_SIZE(__pyx_args) > 0)) {
     __Pyx_RaiseArgtupleInvalid("__cinit__", 1, 0, 0, PyTuple_GET_SIZE(__pyx_args)); return -1;}
   if (unlikely(__pyx_kwds) && unlikely(PyDict_Size(__pyx_kwds) > 0) && unlikely(!__Pyx_CheckKeywordStrings(__pyx_kwds, "__cinit__", 0))) return -1;
-  __pyx_r = __pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld___cinit__(((struct __pyx_obj_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld___cinit__(((struct __pyx_obj_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static int __pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld___cinit__(CYTHON_UNUSED struct __pyx_obj_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *__pyx_v_self) {
+static int __pyx_pf_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld___cinit__(CYTHON_UNUSED struct __pyx_obj_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *__pyx_v_self) {
   int __pyx_r;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__cinit__", 0);
@@ -634,7 +637,7 @@ static int __pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hell
   return __pyx_r;
 }
 
-/* "rxncon3/test/simulation/rule_based/cython_cpp/hello_world.pyx":13
+/* "test/simulation/rule_based/cython_cpp/hello_world.pyx":16
  *         pass
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -643,21 +646,21 @@ static int __pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hell
  */
 
 /* Python wrapper */
-static void __pyx_pw_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_3__dealloc__(PyObject *__pyx_v_self); /*proto*/
-static void __pyx_pw_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_3__dealloc__(PyObject *__pyx_v_self) {
+static void __pyx_pw_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_3__dealloc__(PyObject *__pyx_v_self); /*proto*/
+static void __pyx_pw_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_3__dealloc__(PyObject *__pyx_v_self) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__dealloc__ (wrapper)", 0);
-  __pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_2__dealloc__(((struct __pyx_obj_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *)__pyx_v_self));
+  __pyx_pf_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_2__dealloc__(((struct __pyx_obj_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
 }
 
-static void __pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_2__dealloc__(struct __pyx_obj_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *__pyx_v_self) {
+static void __pyx_pf_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_2__dealloc__(struct __pyx_obj_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *__pyx_v_self) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__dealloc__", 0);
 
-  /* "rxncon3/test/simulation/rule_based/cython_cpp/hello_world.pyx":14
+  /* "test/simulation/rule_based/cython_cpp/hello_world.pyx":17
  * 
  *     def __dealloc__(self):
  *         del self.thisptr             # <<<<<<<<<<<<<<
@@ -666,7 +669,7 @@ static void __pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hel
  */
   delete __pyx_v_self->thisptr;
 
-  /* "rxncon3/test/simulation/rule_based/cython_cpp/hello_world.pyx":13
+  /* "test/simulation/rule_based/cython_cpp/hello_world.pyx":16
  *         pass
  * 
  *     def __dealloc__(self):             # <<<<<<<<<<<<<<
@@ -678,7 +681,7 @@ static void __pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hel
   __Pyx_RefNannyFinishContext();
 }
 
-/* "rxncon3/test/simulation/rule_based/cython_cpp/hello_world.pyx":16
+/* "test/simulation/rule_based/cython_cpp/hello_world.pyx":19
  *         del self.thisptr
  * 
  *     def say(self):             # <<<<<<<<<<<<<<
@@ -686,31 +689,31 @@ static void __pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hel
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_5say(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
-static PyObject *__pyx_pw_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_5say(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
+static PyObject *__pyx_pw_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_5say(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused); /*proto*/
+static PyObject *__pyx_pw_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_5say(PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *unused) {
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("say (wrapper)", 0);
-  __pyx_r = __pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_4say(((struct __pyx_obj_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *)__pyx_v_self));
+  __pyx_r = __pyx_pf_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_4say(((struct __pyx_obj_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *)__pyx_v_self));
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_4say(struct __pyx_obj_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *__pyx_v_self) {
+static PyObject *__pyx_pf_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_4say(struct __pyx_obj_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld *__pyx_v_self) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("say", 0);
 
-  /* "rxncon3/test/simulation/rule_based/cython_cpp/hello_world.pyx":17
+  /* "test/simulation/rule_based/cython_cpp/hello_world.pyx":20
  * 
  *     def say(self):
  *         self.thisptr.say()             # <<<<<<<<<<<<<<
  */
   __pyx_v_self->thisptr->say();
 
-  /* "rxncon3/test/simulation/rule_based/cython_cpp/hello_world.pyx":16
+  /* "test/simulation/rule_based/cython_cpp/hello_world.pyx":19
  *         del self.thisptr
  * 
  *     def say(self):             # <<<<<<<<<<<<<<
@@ -724,7 +727,7 @@ static PyObject *__pyx_pf_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_
   return __pyx_r;
 }
 
-static PyObject *__pyx_tp_new_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
+static PyObject *__pyx_tp_new_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld(PyTypeObject *t, CYTHON_UNUSED PyObject *a, CYTHON_UNUSED PyObject *k) {
   PyObject *o;
   if (likely((t->tp_flags & Py_TPFLAGS_IS_ABSTRACT) == 0)) {
     o = (*t->tp_alloc)(t, 0);
@@ -732,13 +735,13 @@ static PyObject *__pyx_tp_new_7rxncon3_4test_10simulation_10rule_based_10cython_
     o = (PyObject *) PyBaseObject_Type.tp_new(t, __pyx_empty_tuple, 0);
   }
   if (unlikely(!o)) return 0;
-  if (unlikely(__pyx_pw_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_1__cinit__(o, __pyx_empty_tuple, NULL) < 0)) {
+  if (unlikely(__pyx_pw_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_1__cinit__(o, __pyx_empty_tuple, NULL) < 0)) {
     Py_DECREF(o); o = 0;
   }
   return o;
 }
 
-static void __pyx_tp_dealloc_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld(PyObject *o) {
+static void __pyx_tp_dealloc_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld(PyObject *o) {
   #if PY_VERSION_HEX >= 0x030400a1
   if (unlikely(Py_TYPE(o)->tp_finalize) && (!PyType_IS_GC(Py_TYPE(o)) || !_PyGC_FINALIZED(o))) {
     if (PyObject_CallFinalizerFromDealloc(o)) return;
@@ -748,24 +751,24 @@ static void __pyx_tp_dealloc_7rxncon3_4test_10simulation_10rule_based_10cython_c
     PyObject *etype, *eval, *etb;
     PyErr_Fetch(&etype, &eval, &etb);
     ++Py_REFCNT(o);
-    __pyx_pw_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_3__dealloc__(o);
+    __pyx_pw_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_3__dealloc__(o);
     --Py_REFCNT(o);
     PyErr_Restore(etype, eval, etb);
   }
   (*Py_TYPE(o)->tp_free)(o);
 }
 
-static PyMethodDef __pyx_methods_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld[] = {
-  {"say", (PyCFunction)__pyx_pw_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_5say, METH_NOARGS, 0},
+static PyMethodDef __pyx_methods_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld[] = {
+  {"say", (PyCFunction)__pyx_pw_4test_10simulation_10rule_based_10cython_cpp_11hello_world_12PyHelloWorld_5say, METH_NOARGS, 0},
   {0, 0, 0, 0}
 };
 
-static PyTypeObject __pyx_type_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld = {
+static PyTypeObject __pyx_type_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld = {
   PyVarObject_HEAD_INIT(0, 0)
-  "rxncon3.test.simulation.rule_based.cython_cpp.hello_world.PyHelloWorld", /*tp_name*/
-  sizeof(struct __pyx_obj_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld), /*tp_basicsize*/
+  "test.simulation.rule_based.cython_cpp.hello_world.PyHelloWorld", /*tp_name*/
+  sizeof(struct __pyx_obj_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld), /*tp_basicsize*/
   0, /*tp_itemsize*/
-  __pyx_tp_dealloc_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld, /*tp_dealloc*/
+  __pyx_tp_dealloc_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld, /*tp_dealloc*/
   0, /*tp_print*/
   0, /*tp_getattr*/
   0, /*tp_setattr*/
@@ -793,7 +796,7 @@ static PyTypeObject __pyx_type_7rxncon3_4test_10simulation_10rule_based_10cython
   0, /*tp_weaklistoffset*/
   0, /*tp_iter*/
   0, /*tp_iternext*/
-  __pyx_methods_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld, /*tp_methods*/
+  __pyx_methods_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld, /*tp_methods*/
   0, /*tp_members*/
   0, /*tp_getset*/
   0, /*tp_base*/
@@ -803,7 +806,7 @@ static PyTypeObject __pyx_type_7rxncon3_4test_10simulation_10rule_based_10cython
   0, /*tp_dictoffset*/
   0, /*tp_init*/
   0, /*tp_alloc*/
-  __pyx_tp_new_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld, /*tp_new*/
+  __pyx_tp_new_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld, /*tp_new*/
   0, /*tp_free*/
   0, /*tp_is_gc*/
   0, /*tp_bases*/
@@ -930,14 +933,14 @@ PyMODINIT_FUNC PyInit_hello_world(void)
   #if PY_MAJOR_VERSION < 3 && (__PYX_DEFAULT_STRING_ENCODING_IS_ASCII || __PYX_DEFAULT_STRING_ENCODING_IS_DEFAULT)
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #endif
-  if (__pyx_module_is_main_rxncon3__test__simulation__rule_based__cython_cpp__hello_world) {
+  if (__pyx_module_is_main_test__simulation__rule_based__cython_cpp__hello_world) {
     if (PyObject_SetAttrString(__pyx_m, "__name__", __pyx_n_s_main) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   }
   #if PY_MAJOR_VERSION >= 3
   {
     PyObject *modules = PyImport_GetModuleDict(); if (unlikely(!modules)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-    if (!PyDict_GetItemString(modules, "rxncon3.test.simulation.rule_based.cython_cpp.hello_world")) {
-      if (unlikely(PyDict_SetItemString(modules, "rxncon3.test.simulation.rule_based.cython_cpp.hello_world", __pyx_m) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+    if (!PyDict_GetItemString(modules, "test.simulation.rule_based.cython_cpp.hello_world")) {
+      if (unlikely(PyDict_SetItemString(modules, "test.simulation.rule_based.cython_cpp.hello_world", __pyx_m) < 0)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
     }
   }
   #endif
@@ -949,10 +952,10 @@ PyMODINIT_FUNC PyInit_hello_world(void)
   /*--- Variable export code ---*/
   /*--- Function export code ---*/
   /*--- Type init code ---*/
-  if (PyType_Ready(&__pyx_type_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 7; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_type_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld.tp_print = 0;
-  if (PyObject_SetAttrString(__pyx_m, "PyHelloWorld", (PyObject *)&__pyx_type_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 7; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
-  __pyx_ptype_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld = &__pyx_type_7rxncon3_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld;
+  if (PyType_Ready(&__pyx_type_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_type_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld.tp_print = 0;
+  if (PyObject_SetAttrString(__pyx_m, "PyHelloWorld", (PyObject *)&__pyx_type_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld) < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 10; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
+  __pyx_ptype_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld = &__pyx_type_4test_10simulation_10rule_based_10cython_cpp_11hello_world_PyHelloWorld;
   /*--- Type import code ---*/
   /*--- Variable import code ---*/
   /*--- Function import code ---*/
@@ -961,10 +964,10 @@ PyMODINIT_FUNC PyInit_hello_world(void)
   if (__Pyx_patch_abc() < 0) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   #endif
 
-  /* "rxncon3/test/simulation/rule_based/cython_cpp/hello_world.pyx":1
- * cdef extern from "HelloWorld.h":             # <<<<<<<<<<<<<<
- *     cdef cppclass HelloWorld:
- *         HelloWorld() except +
+  /* "test/simulation/rule_based/cython_cpp/hello_world.pyx":1
+ * # distutils: sources = test/simulation/rule_based/cython_cpp/HelloWorld.cpp             # <<<<<<<<<<<<<<
+ * 
+ * 
  */
   __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) {__pyx_filename = __pyx_f[0]; __pyx_lineno = 1; __pyx_clineno = __LINE__; goto __pyx_L1_error;}
   __Pyx_GOTREF(__pyx_t_1);
@@ -978,11 +981,11 @@ PyMODINIT_FUNC PyInit_hello_world(void)
   __Pyx_XDECREF(__pyx_t_1);
   if (__pyx_m) {
     if (__pyx_d) {
-      __Pyx_AddTraceback("init rxncon3.test.simulation.rule_based.cython_cpp.hello_world", __pyx_clineno, __pyx_lineno, __pyx_filename);
+      __Pyx_AddTraceback("init test.simulation.rule_based.cython_cpp.hello_world", __pyx_clineno, __pyx_lineno, __pyx_filename);
     }
     Py_DECREF(__pyx_m); __pyx_m = 0;
   } else if (!PyErr_Occurred()) {
-    PyErr_SetString(PyExc_ImportError, "init rxncon3.test.simulation.rule_based.cython_cpp.hello_world");
+    PyErr_SetString(PyExc_ImportError, "init test.simulation.rule_based.cython_cpp.hello_world");
   }
   __pyx_L0:;
   __Pyx_RefNannyFinishContext();
