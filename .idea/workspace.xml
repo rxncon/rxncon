@@ -2,11 +2,15 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="19539257-8c28-425d-83b0-da3867cd0586" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/build/temp.macosx-10.11-x86_64-3.5/test/simulation/rule_based/cython_cpp/hello_world.o" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/hello_world.cpp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/__init__.py" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/HelloWorld.cpp" afterPath="$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/HelloWorld.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/hello_world.pyx" afterPath="$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/hello_world.pyx" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/test/core/test_component.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/util/__init__.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/util/stdout_redirector.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.cache/v/cache/lastfailed" afterPath="$PROJECT_DIR$/.cache/v/cache/lastfailed" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/component.py" afterPath="$PROJECT_DIR$/core/component.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/reaction.py" afterPath="$PROJECT_DIR$/core/reaction.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core/rxncon_system.py" afterPath="$PROJECT_DIR$/core/rxncon_system.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/input/shared/test_from_string.py" afterPath="$PROJECT_DIR$/test/input/shared/test_from_string.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/test_cython_cpp.py" afterPath="$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/test_cython_cpp.py" />
     </list>
     <ignored path="rxncon3.iws" />
@@ -28,25 +32,52 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="setup.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/setup.py">
+      <file leaf-file-name="test_cython_cpp.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/test_cython_cpp.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="3" column="23" selection-start-line="3" selection-start-column="23" selection-end-line="3" selection-end-column="23" />
+              <caret line="25" column="0" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test_component.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/core/test_component.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="9" column="43" selection-start-line="9" selection-start-column="43" selection-end-line="9" selection-end-column="43" />
               <folding>
-                <element signature="e#0#32#0" expanded="true" />
+                <element signature="e#0#28#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Dependencies.py" pinned="false" current-in-tab="false">
-        <entry file="file:///usr/local/lib/python3.5/site-packages/Cython/Build/Dependencies.py">
+      <file leaf-file-name="test_from_string.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/input/shared/test_from_string.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="712" column="49" selection-start-line="712" selection-start-column="49" selection-end-line="712" selection-end-column="49" />
+              <caret line="57" column="0" selection-start-line="57" selection-start-column="0" selection-end-line="57" selection-end-column="0" />
               <folding>
-                <element signature="e#24827#32966#0" expanded="true" />
+                <element signature="e#0#38#0" expanded="true" />
+                <element signature="e#145#416#0" expanded="true" />
+                <element signature="e#469#759#0" expanded="true" />
+                <element signature="e#826#1129#0" expanded="true" />
+                <element signature="e#1194#1500#0" expanded="true" />
+                <element signature="e#1579#1861#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="from_string.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/input/shared/from_string.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.50970876">
+              <caret line="26" column="8" selection-start-line="26" selection-start-column="8" selection-end-line="26" selection-end-column="8" />
+              <folding>
+                <element signature="e#0#9#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -72,58 +103,74 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="HelloWorld.h" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/HelloWorld.h">
+      <file leaf-file-name="reaction.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/reaction.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="test_cython_cpp.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/test_cython_cpp.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.24144869">
-              <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
+              <caret line="171" column="31" selection-start-line="171" selection-start-column="31" selection-end-line="171" selection-end-column="31" />
               <folding>
-                <element signature="e#114#221#0" expanded="true" />
+                <element signature="e#0#34#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="component.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/component.py">
+      <file leaf-file-name="rxncon_system.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/core/rxncon_system.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="17" column="0" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
-              <folding />
+              <caret line="17" column="31" selection-start-line="17" selection-start-column="31" selection-end-line="17" selection-end-column="31" />
+              <folding>
+                <element signature="e#0#23#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="contingency.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/core/contingency.py">
+      <file leaf-file-name="stdout_redirector.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/util/stdout_redirector.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="7" column="10" selection-start-line="7" selection-start-column="10" selection-end-line="7" selection-end-column="10" />
+              <folding>
+                <element signature="e#339#1708#0" expanded="true" />
+                <element signature="e#490#1085#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="tempfile.py" pinned="false" current-in-tab="false">
+        <entry file="file:///usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/tempfile.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
               <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding>
-                <element signature="e#0#29#0" expanded="true" />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
     </leaf>
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/HelloWorld.cpp" />
         <option value="$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/hello_world.pyx" />
+        <option value="$PROJECT_DIR$/util/stdout_redirector.py" />
+        <option value="$PROJECT_DIR$/core/reaction.py" />
+        <option value="$PROJECT_DIR$/core/rxncon_system.py" />
+        <option value="$PROJECT_DIR$/core/component.py" />
         <option value="$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/test_cython_cpp.py" />
+        <option value="$PROJECT_DIR$/test/input/shared/test_from_string.py" />
+        <option value="$PROJECT_DIR$/test/core/test_component.py" />
       </list>
     </option>
   </component>
@@ -204,7 +251,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="simulation" />
+              <option name="myItemId" value="input" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -222,11 +269,11 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="simulation" />
+              <option name="myItemId" value="input" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="rule_based" />
+              <option name="myItemId" value="shared" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -244,15 +291,39 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="simulation" />
+              <option name="myItemId" value="core" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon3" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="rule_based" />
+              <option name="myItemId" value="input" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon3" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="cython_cpp" />
+              <option name="myItemId" value="input" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="shared" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -444,6 +515,9 @@
     </list>
   </component>
   <component name="ShelveChangesManager" show_recycled="false" />
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
       <changelist id="19539257-8c28-425d-83b0-da3867cd0586" name="Default" comment="" />
@@ -454,39 +528,51 @@
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="rxncon3_py_test - 2016.01.07 at 12h 37m 07s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.07 at 15h 20m 52s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.07 at 13h 10m 35s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.07 at 15h 29m 13s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.07 at 14h 11m 26s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.07 at 15h 38m 06s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.07 at 14h 12m 30s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.07 at 16h 24m 03s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.07 at 14h 13m 25s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.08 at 13h 22m 18s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.07 at 14h 13m 46s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.08 at 13h 22m 19s.xml">
+      <configuration name="rxncon3 py.test" configurationId="tests" />
+    </history-entry>
+    <history-entry file="rxncon3_py_test - 2016.01.08 at 13h 22m 31s.xml">
+      <configuration name="rxncon3 py.test" configurationId="tests" />
+    </history-entry>
+    <history-entry file="rxncon3_py_test - 2016.01.08 at 13h 22m 33s.xml">
+      <configuration name="rxncon3 py.test" configurationId="tests" />
+    </history-entry>
+    <history-entry file="rxncon3_py_test - 2016.01.08 at 13h 36m 11s.xml">
+      <configuration name="rxncon3 py.test" configurationId="tests" />
+    </history-entry>
+    <history-entry file="rxncon3_py_test - 2016.01.08 at 13h 48m 41s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
   </component>
   <component name="ToolWindowManager">
     <frame x="2" y="23" width="1438" height="852" extended-state="6" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2496523" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2496523" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.32950193" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.17496808" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.17752235" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -500,7 +586,15 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="XDebuggerManager">
-    <breakpoint-manager />
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="python-line">
+          <url>file://$PROJECT_DIR$/test/core/test_component.py</url>
+          <line>29</line>
+        </line-breakpoint>
+      </breakpoints>
+      <option name="time" value="1" />
+    </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
@@ -509,7 +603,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="712" column="49" selection-start-line="712" selection-start-column="49" selection-end-line="712" selection-end-column="49" />
           <folding>
-            <element signature="e#24827#32966#0" expanded="true" />
+            <element signature="e#24827#32966#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -519,8 +613,119 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="3" column="23" selection-start-line="3" selection-start-column="23" selection-end-line="3" selection-end-column="23" />
           <folding>
-            <element signature="e#0#32#0" expanded="true" />
+            <element signature="e#0#32#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/contingency.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#29#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/simulation/rule_based/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_HOME_DIR$/helpers/pycharm/pytestrunner.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.686747">
+          <caret line="59" column="0" selection-start-line="59" selection-start-column="0" selection-end-line="59" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/lib/python3.5/site-packages/_pytest/vendored_packages/pluggy.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="723" column="0" selection-start-line="723" selection-start-column="0" selection-end-line="723" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/lib/python3.5/site-packages/_pytest/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="250" column="41" selection-start-line="250" selection-start-column="41" selection-end-line="250" selection-end-column="41" />
+          <folding>
+            <element signature="e#3292#4514#0" expanded="false" />
+            <element signature="e#4553#4587#0" expanded="false" />
+            <element signature="e#7348#7399#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Library/Caches/PyCharm50/python_stubs/1437855905/posix.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33285713">
+          <caret line="258" column="4" selection-start-line="258" selection-start-column="4" selection-end-line="258" selection-end-column="4" />
+          <folding>
+            <element signature="e#7303#7360#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Library/Caches/PyCharm50/python_stubs/1437855905/sys.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33285713">
+          <caret line="598" column="0" selection-start-line="598" selection-start-column="0" selection-end-line="598" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/os.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="1029" column="15" selection-start-line="1029" selection-start-column="15" selection-end-line="1029" selection-end-column="15" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Library/Caches/PyCharm50/python_stubs/1437855905/_io.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="333" column="39" selection-start-line="333" selection-start-column="39" selection-end-line="333" selection-end-column="39" />
+          <folding>
+            <element signature="e#1726#8467#0" expanded="true" />
+            <element signature="e#13920#13924#0" expanded="true" />
+            <element signature="e#47913#47917#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/hello_world.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-4.962963">
+          <caret line="661" column="0" selection-start-line="661" selection-start-column="0" selection-end-line="661" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util/stdout_redirector.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="7" column="10" selection-start-line="7" selection-start-column="10" selection-end-line="7" selection-end-column="10" />
+          <folding>
+            <element signature="e#339#1708#0" expanded="true" />
+            <element signature="e#490#1085#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/local/Cellar/python3/3.5.1/Frameworks/Python.framework/Versions/3.5/lib/python3.5/tempfile.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -528,6 +733,52 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/reaction.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="171" column="31" selection-start-line="171" selection-start-column="31" selection-end-line="171" selection-end-column="31" />
+          <folding>
+            <element signature="e#0#34#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/rxncon_system.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="17" column="31" selection-start-line="17" selection-start-column="31" selection-end-line="17" selection-end-column="31" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/test_cython_cpp.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="25" column="0" selection-start-line="25" selection-start-column="0" selection-end-line="25" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/core/component.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.34232366">
+          <caret line="19" column="12" selection-start-line="19" selection-start-column="12" selection-end-line="19" selection-end-column="12" />
+          <folding>
+            <element signature="e#690#694#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/HelloWorld.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.186722">
+          <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -540,38 +791,37 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/HelloWorld.h">
+    <entry file="file://$PROJECT_DIR$/test/core/test_component.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/component.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="17" column="0" selection-start-line="17" selection-start-column="0" selection-end-line="17" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/core/contingency.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <caret line="9" column="43" selection-start-line="9" selection-start-column="43" selection-end-line="9" selection-end-column="43" />
           <folding>
-            <element signature="e#0#29#0" expanded="true" />
+            <element signature="e#0#28#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/test/simulation/rule_based/cython_cpp/test_cython_cpp.py">
+    <entry file="file://$PROJECT_DIR$/test/input/shared/test_from_string.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.24144869">
-          <caret line="8" column="0" selection-start-line="8" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="57" column="0" selection-start-line="57" selection-start-column="0" selection-end-line="57" selection-end-column="0" />
           <folding>
-            <element signature="e#114#221#0" expanded="true" />
+            <element signature="e#0#38#0" expanded="true" />
+            <element signature="e#145#416#0" expanded="true" />
+            <element signature="e#469#759#0" expanded="true" />
+            <element signature="e#826#1129#0" expanded="true" />
+            <element signature="e#1194#1500#0" expanded="true" />
+            <element signature="e#1579#1861#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/input/shared/from_string.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.50970876">
+          <caret line="26" column="8" selection-start-line="26" selection-start-column="8" selection-end-line="26" selection-end-column="8" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>

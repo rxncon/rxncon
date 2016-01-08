@@ -15,3 +15,6 @@ class Component:
     def __eq__(self, other: 'Component') -> bool:
         assert isinstance(other, Component)
         return self.name == other.name and self.domain == other.domain and self.subdomain == other.subdomain and self.residue == other.residue
+
+    def is_subset_of(self, other: 'Component') -> bool:
+        pass

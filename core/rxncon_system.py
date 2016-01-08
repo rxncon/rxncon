@@ -2,6 +2,7 @@ from typing import List
 
 import core.reaction as rxn
 import core.contingency as con
+import core.component as com
 
 
 class RxnConSystem:
@@ -11,6 +12,11 @@ class RxnConSystem:
         self.states = None
         self._generate_state_list()
         self._assert_consistency()
+
+    @property
+    def constant_components(self) -> List[com.Component]:
+        # @todo implement this?
+        return []
 
     def _generate_state_list(self):
         for reaction in self.reactions:

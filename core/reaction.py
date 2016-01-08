@@ -1,6 +1,6 @@
 from collections import namedtuple
 from enum import Enum, unique
-from typing import Optional
+from typing import Optional, List
 
 import core.component as com
 import core.error as err
@@ -166,6 +166,11 @@ class Reaction:
         return self.full_name == other.full_name and self.subject == other.subject and self.verb == other.verb and \
             self.object == other.object and self.reaction_class == other.reaction_class and self.directionality == other.directionality and \
             self.influence == other.influence and self.isomerism == other.isomerism and self.modifier == other.modifier
+
+    @property
+    def constant_components(self) -> List[com.Component]:
+        # @todo implement this?
+        return []
 
     def _determine_source_product_states(self):
         self.source, self.product = states_from_reaction(self)

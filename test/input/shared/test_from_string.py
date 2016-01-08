@@ -47,6 +47,16 @@ def test_from_string_component_with_domain_and_residue():
     assert component.residue == 'H576'
 
 
+def test_from_string_component_with_domain_and_subdomain_and_residue():
+    component = fst.component_from_string('A_[B/C(D)]')
+    assert component.full_name == 'A_[B/C(D)]'
+    assert str(component) == 'A_[B/C(D)]'
+    assert component.name == 'A'
+    assert component.domain == 'B'
+    assert component.subdomain == 'C'
+    assert component.residue == 'D'
+
+
 # Reaction from string #
 def test_from_string_reaction_ppi():
     reaction = fst.reaction_from_string('Fus3_[CD]_ppi_Msg5_[n]')
