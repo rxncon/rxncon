@@ -9,37 +9,49 @@ import core.state as sta
 
 def component_from_string(component_string: str) -> com.Component:
     DOMAIN_DELIMITER = '_'
-    DOMAIN_REGEX = '^\[.*?\]'
-    DOMAIN_STRIP = '[]'
-    SUBDOMAIN_REGEX = '\/.*?($|\()'
-    SUBDOMAIN_STRIP = '/'
-    RESIDUE_REGEX = '\(.*?\)'
-    RESIDUE_STRIP = '()'
+
+    DOMAIN_SUBDOMAIN_RESIDUE_REGEX = '^[\w:-]+\/[\w:-]+\([\w:-]+\)$'
+    DOMAIN_RESIDUE_REGEX = '^[\w:-]+\([\w:-]+\)$'
+    DOMAIN_SUBDOMAIN_REGEX = '^[\w:-]+\/[\w:-]+$'
+    RESIDUE_REGEX = '^\([\w:-]+\)$'
+    DOMAIN_REGEX = '^[\w:-]+$'
 
     items = component_string.split(DOMAIN_DELIMITER, maxsplit=1)
 
     if len(items) == 1:
         return com.Component(component_string, items[0], None, None, None)
 
-    elif len(items) > 1:
+    elif len(items) == 2:
         name = items[0]
-        domain = re.match(DOMAIN_REGEX, items[1]).string.strip(DOMAIN_STRIP)
-        assert domain
+        full_domain_string = items[1].strip('[]')
 
-        subdomain = re.search(SUBDOMAIN_REGEX, domain)
+        if re.match(DOMAIN_SUBDOMAIN_RESIDUE_REGEX, full_domain_string):
+            domain = full_domain_string.split('/')[0]
+            subdomain = full_domain_string.split('/')[1].split('(')[0]
+            residue = full_domain_string.split('/')[1].split('(')[1].strip(')')
 
-        if subdomain:
-            domain = domain.replace(subdomain.group(0), '')
-            subdomain = subdomain.group(0).strip(SUBDOMAIN_STRIP)
+        elif re.match(DOMAIN_RESIDUE_REGEX, full_domain_string):
+            domain = full_domain_string.split('(')[0]
+            subdomain = None
+            residue = full_domain_string.split('(')[1].strip(')')
 
-        residue = re.search(RESIDUE_REGEX, domain)
+        elif re.match(DOMAIN_SUBDOMAIN_REGEX, full_domain_string):
+            domain = full_domain_string.split('/')[0]
+            subdomain = full_domain_string.split('/')[1]
+            residue = None
 
-        if residue:
-            domain = domain.replace(residue.group(0), '')
-            residue = residue.group(0).strip(RESIDUE_STRIP)
-
-        if domain == '':
+        elif re.match(RESIDUE_REGEX, full_domain_string):
             domain = None
+            subdomain = None
+            residue = full_domain_string.strip('()')
+
+        elif re.match(DOMAIN_REGEX, full_domain_string):
+            domain = full_domain_string
+            subdomain = None
+            residue = None
+
+        else:
+            raise AssertionError
 
         return com.Component(component_string, name, domain, subdomain, residue)
 

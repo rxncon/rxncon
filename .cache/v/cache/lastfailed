@@ -1,3 +1,3 @@
 {
-  "test/input/shared/test_from_string.py::test_from_string_component_with_domain_and_subdomain_and_residue": true
+  "test/core/test_component.py": true
 }
