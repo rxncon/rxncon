@@ -1,5 +1,4 @@
-import core.component as com
-import input.shared.from_string as cfs
+import rxncon.input.shared.from_string as cfs
 
 
 no_domain = cfs.component_from_string('A')

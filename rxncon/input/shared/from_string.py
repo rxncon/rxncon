@@ -1,10 +1,10 @@
 import re
 from typing import Tuple
 
-import core.error as err
-import core.component as com
-import core.reaction as rxn
-import core.state as sta
+import rxncon.core.component as com
+import rxncon.core.error as err
+import rxncon.core.reaction as rxn
+import rxncon.core.state as sta
 
 
 def component_from_string(component_string: str) -> com.Component:

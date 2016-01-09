@@ -1,6 +1,6 @@
 from abc import ABCMeta
 
-import core.state as sta
+import rxncon.core.state as sta
 
 
 class Effector:

@@ -1,5 +1,5 @@
-import input.shared.from_string as fst
-import core.state as sta
+import rxncon.core.state as sta
+import rxncon.input.shared.from_string as fst
 
 
 # Component from string #

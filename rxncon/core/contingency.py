@@ -1,7 +1,7 @@
 from enum import Enum, unique
 
-import core.effector as eff
-import core.reaction as rxn
+import rxncon.core.effector as eff
+import rxncon.core.reaction as rxn
 
 
 @unique

@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractproperty
 
-import core.rxncon_system as sys
+import rxncon.core.rxncon_system as sys
 
 
 class RxnConInput:

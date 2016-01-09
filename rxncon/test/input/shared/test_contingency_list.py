@@ -1,8 +1,8 @@
-import core.state as sta
-import core.contingency as con
-import core.effector as eff
-import input.shared.contingency_list as cli
-import input.shared.from_string as fst
+import rxncon.core.contingency as con
+import rxncon.core.effector as eff
+import rxncon.core.state as sta
+import rxncon.input.shared.contingency_list as cli
+import rxncon.input.shared.from_string as fst
 
 
 # ContingencyListEntry from strings

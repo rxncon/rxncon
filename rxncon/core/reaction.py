@@ -1,10 +1,10 @@
 from collections import namedtuple
 from enum import Enum, unique
-from typing import Optional, List
+from typing import List
 
-import core.component as com
-import core.error as err
-import core.state as sta
+import rxncon.core.component as com
+import rxncon.core.error as err
+import rxncon.core.state as sta
 
 
 @unique

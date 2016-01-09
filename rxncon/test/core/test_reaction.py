@@ -1,6 +1,6 @@
-import core.reaction as rxn
-import core.state as sta
-import input.shared.from_string as fst
+import rxncon.core.reaction as rxn
+import rxncon.core.state as sta
+import rxncon.input.shared.from_string as fst
 
 
 def test_states_from_reaction_ppi():

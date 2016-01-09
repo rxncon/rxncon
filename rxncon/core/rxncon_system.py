@@ -1,8 +1,8 @@
 from typing import List
 
-import core.reaction as rxn
-import core.contingency as con
-import core.component as com
+import rxncon.core.component as com
+import rxncon.core.contingency as con
+import rxncon.core.reaction as rxn
 
 
 class RxnConSystem:

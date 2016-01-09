@@ -1,6 +1,6 @@
-import input.excel_book.excel_book as exc
 import os
 
+import rxncon.input.excel_book.excel_book as exc
 
 TIGER_FILENAME = 'Tiger_et_al_TableS1.xls'
 TIGER_PATH = os.path.join(os.path.dirname(__file__), TIGER_FILENAME)

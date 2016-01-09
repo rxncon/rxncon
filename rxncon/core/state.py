@@ -1,7 +1,7 @@
 from abc import ABCMeta
 from enum import Enum, unique
 
-import core.component as com
+import rxncon.core.component as com
 
 
 @unique

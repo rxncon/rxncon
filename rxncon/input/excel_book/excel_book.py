@@ -1,15 +1,12 @@
 import os.path
-from typing import List
 
 import xlrd
 
-import core.contingency as con
-import core.error as err
-import core.reaction as rxn
-import core.rxncon_system as rxs
-import input.shared.from_string as fst
-import input.rxncon_input as inp
-import input.shared.contingency_list as cli
+import rxncon.core.error as err
+import rxncon.core.rxncon_system as rxs
+import rxncon.input.rxncon_input as inp
+import rxncon.input.shared.contingency_list as cli
+import rxncon.input.shared.from_string as fst
 
 NOT_APPLICABLE = 'N/A'
 
