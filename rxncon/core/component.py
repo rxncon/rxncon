@@ -1,16 +1,16 @@
 from typing import Optional
 
+import rxncon.syntax.string_from_rxncon as sfr
 
 class Component:
-    def __init__(self, full_name: str, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
-        self.full_name = full_name
+    def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
         self.name = name
         self.domain = domain
         self.subdomain = subdomain
         self.residue = residue
 
     def __str__(self) -> str:
-        return self.full_name
+        return sfr.string_from_component(self)
 
     def __eq__(self, other: 'Component') -> bool:
         assert isinstance(other, Component)

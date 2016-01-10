@@ -7,7 +7,7 @@ import rxncon.core.contingency as con
 import rxncon.core.effector as eff
 import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
-import rxncon.input.shared.from_string as fst
+import rxncon.syntax.rxncon_from_string as fst
 
 BOOLEAN_CONTINGENCY_REGEX = '^<.*>$'
 

@@ -2,7 +2,7 @@ import rxncon.core.contingency as con
 import rxncon.core.effector as eff
 import rxncon.core.state as sta
 import rxncon.input.shared.contingency_list as cli
-import rxncon.input.shared.from_string as fst
+import rxncon.syntax.rxncon_from_string as fst
 
 
 # ContingencyListEntry from strings
@@ -13,7 +13,7 @@ def test_contingency_list_entry_boolean_subject_state_agent():
     assert entry.subject == cli.BooleanContingencyName('<Ste11^{M/5}>')
     assert entry.predicate == cli.BooleanOperator.op_and
     assert isinstance(entry.agent, sta.InteractionState)
-    assert entry.agent.full_name == 'Ste5_[MEKK]--Ste11'
+    assert str(entry.agent) == 'Ste5_[MEKK]--Ste11'
 
 
 def test_contingency_list_entry_boolean_subject_boolean_agent():

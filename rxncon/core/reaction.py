@@ -5,6 +5,7 @@ from typing import List
 import rxncon.core.component as com
 import rxncon.core.error as err
 import rxncon.core.state as sta
+import rxncon.syntax.string_from_rxncon as sfr
 
 
 @unique
@@ -137,10 +138,9 @@ VERB_REACTION_TABLE = {
 
 
 class Reaction:
-    def __init__(self, full_name: str, subject: com.Component, verb: Verb, object: com.Component,
+    def __init__(self, subject: com.Component, verb: Verb, object: com.Component,
                  reaction_class: ReactionClass, directionality: Directionality, influence: Influence,
                  isomerism: Isomerism, modifier: CovalentReactionModifier):
-        self.full_name = full_name
         self.subject = subject
         self.verb = verb
         self.object = object
@@ -158,13 +158,13 @@ class Reaction:
         self._determine_source_product_states()
         self._determine_classification_code()
 
-    def __repr__(self) -> str:
-        return self.full_name
+    def __str__(self):
+        return sfr.string_from_reaction(self)
 
     def __eq__(self, other: 'Reaction') -> bool:
         assert isinstance(other, Reaction)
-        return self.full_name == other.full_name and self.subject == other.subject and self.verb == other.verb and \
-            self.object == other.object and self.reaction_class == other.reaction_class and self.directionality == other.directionality and \
+        return self.subject == other.subject and self.verb == other.verb and self.object == other.object and \
+            self.reaction_class == other.reaction_class and self.directionality == other.directionality and \
             self.influence == other.influence and self.isomerism == other.isomerism and self.modifier == other.modifier
 
     @property
@@ -183,15 +183,15 @@ class Reaction:
         self.classification_code = '.'.join([str(p.value) for p in properties])
 
 
-class InputReaction(Reaction):
-    def __init__(self, full_name: str):
-        self.full_name = full_name
+class OutputReaction(Reaction):
+    def __init__(self, name: str):
+        self.name = name
 
     def __eq__(self, other: Reaction) -> bool:
         assert isinstance(other, Reaction)
 
-        if isinstance(other, InputReaction):
-            return self.full_name == other.full_name
+        if isinstance(other, OutputReaction):
+            return self.name == other.name
 
         else:
             return False
@@ -201,7 +201,7 @@ SourceStateProductState = namedtuple('SourceStateProductState', ['source_state',
 
 
 def states_from_reaction(reaction: Reaction) -> SourceStateProductState:
-    if isinstance(reaction, InputReaction):
+    if isinstance(reaction, OutputReaction):
         return SourceStateProductState(None, None)
 
     elif reaction.reaction_class == ReactionClass.covalent_modification:

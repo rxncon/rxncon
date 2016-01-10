@@ -1,6 +1,6 @@
 import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
-import rxncon.input.shared.from_string as fst
+import rxncon.syntax.rxncon_from_string as fst
 
 
 def test_states_from_reaction_ppi():
@@ -9,7 +9,7 @@ def test_states_from_reaction_ppi():
 
     assert states.source_state is None
     assert isinstance(states.product_state, sta.InteractionState)
-    assert states.product_state.full_name == 'Fus3_[CD]--Msg5_[n]'
+    assert str(states.product_state) == 'Fus3_[CD]--Msg5_[n]'
 
 
 def test_states_from_reaction_p_plus():
@@ -18,7 +18,7 @@ def test_states_from_reaction_p_plus():
 
     assert states.source_state is None
     assert isinstance(states.product_state, sta.CovalentModificationState)
-    assert states.product_state.full_name == 'Sst2_[(S539)]-{P}'
+    assert str(states.product_state) == 'Sst2_[(S539)]-{P}'
 
 
 def test_states_from_reaction_p_minus():
@@ -27,7 +27,7 @@ def test_states_from_reaction_p_minus():
 
     assert states.product_state is None
     assert isinstance(states.source_state, sta.CovalentModificationState)
-    assert states.source_state.full_name == 'Slt2_[(Y192)]-{P}'
+    assert str(states.source_state) == 'Slt2_[(Y192)]-{P}'
 
 
 def test_states_from_reaction_gef():
@@ -36,7 +36,7 @@ def test_states_from_reaction_gef():
 
     assert states.source_state is None
     assert isinstance(states.product_state, sta.CovalentModificationState)
-    assert states.product_state.full_name == 'Rho1_[GnP]-{P}'
+    assert str(states.product_state) == 'Rho1_[GnP]-{P}'
 
 
 def test_states_from_reaction_gap():
@@ -45,7 +45,7 @@ def test_states_from_reaction_gap():
 
     assert states.product_state is None
     assert isinstance(states.source_state, sta.CovalentModificationState)
-    assert states.source_state.full_name == 'Rho1_[GnP]-{P}'
+    assert str(states.source_state) == 'Rho1_[GnP]-{P}'
 
 
 def test_states_from_reaction_ub_plus():
@@ -54,7 +54,7 @@ def test_states_from_reaction_ub_plus():
 
     assert states.source_state is None
     assert isinstance(states.product_state, sta.CovalentModificationState)
-    assert states.product_state.full_name == 'Tec1-{Ub}'
+    assert str(states.product_state) == 'Tec1-{Ub}'
 
 
 def test_states_from_reaction_ap():
@@ -63,7 +63,7 @@ def test_states_from_reaction_ap():
 
     assert states.source_state is None
     assert isinstance(states.product_state, sta.CovalentModificationState)
-    assert states.product_state.full_name == 'Rck2_[Ser]-{P}'
+    assert str(states.product_state) == 'Rck2_[Ser]-{P}'
 
 
 def test_states_from_reaction_cut():
@@ -72,5 +72,5 @@ def test_states_from_reaction_cut():
 
     assert states.source_state is None
     assert isinstance(states.product_state, sta.CovalentModificationState)
-    assert states.product_state.full_name == 'Msb2_[HMH/CD]-{Truncated}'
+    assert str(states.product_state) == 'Msb2_[HMH/CD]-{Truncated}'
 

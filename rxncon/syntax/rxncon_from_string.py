@@ -19,7 +19,7 @@ def component_from_string(component_string: str) -> com.Component:
     items = component_string.split(DOMAIN_DELIMITER, maxsplit=1)
 
     if len(items) == 1:
-        return com.Component(component_string, items[0], None, None, None)
+        return com.Component(items[0], None, None, None)
 
     elif len(items) == 2:
         name = items[0]
@@ -53,7 +53,7 @@ def component_from_string(component_string: str) -> com.Component:
         else:
             raise AssertionError
 
-        return com.Component(component_string, name, domain, subdomain, residue)
+        return com.Component(name, domain, subdomain, residue)
 
     else:
         raise err.RxnConParseError('Could not parse component string '.format(component_string))
@@ -63,7 +63,7 @@ def reaction_from_string(reaction_string: str) -> rxn.Reaction:
     INPUT_REGEX = '^\[.+?\]$'
 
     if re.match(INPUT_REGEX, reaction_string):
-        return rxn.InputReaction(reaction_string)
+        return rxn.OutputReaction(reaction_string)
 
     subject, verb, object = _reaction_string_to_subject_verb_object_strings(reaction_string)
 
@@ -79,7 +79,7 @@ def reaction_from_string(reaction_string: str) -> rxn.Reaction:
 
     category, directionality, influence, isomerism, modifier = reaction_definition
 
-    return rxn.Reaction(reaction_string, subject, verb, object, category, directionality, influence, isomerism, modifier)
+    return rxn.Reaction(subject, verb, object, category, directionality, influence, isomerism, modifier)
 
 
 def _reaction_string_to_subject_verb_object_strings(reaction_string: str) -> Tuple[str, str, str]:
@@ -132,7 +132,7 @@ def state_from_string(state_string: str) -> sta.State:
             return _translocation_state_from_string(state_string)
 
     elif re.match(OUTPUT_REGEX, state_string):
-        return sta.OutputState(state_string)
+        return sta.InputState(state_string)
 
     else:
         raise err.RxnConParseError('Could not parse state string {} into State'.format(state_string))

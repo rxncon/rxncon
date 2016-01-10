@@ -6,7 +6,7 @@ import rxncon.core.error as err
 import rxncon.core.rxncon_system as rxs
 import rxncon.input.rxncon_input as inp
 import rxncon.input.shared.contingency_list as cli
-import rxncon.input.shared.from_string as fst
+import rxncon.syntax.rxncon_from_string as fst
 
 NOT_APPLICABLE = 'N/A'
 
