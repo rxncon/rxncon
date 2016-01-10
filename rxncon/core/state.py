@@ -1,4 +1,4 @@
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 from enum import Enum, unique
 
 import rxncon.core.component as com
@@ -14,6 +14,14 @@ class StateModifier(Enum):
 
 class State:
     __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def is_subset_of(self, other: 'State'):
+        pass
+
+    @abstractmethod
+    def is_superset_of(self, other: 'State'):
+        pass
 
 
 class CovalentModificationState(State):

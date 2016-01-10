@@ -22,7 +22,7 @@ class Component:
     def is_equivalent_to(self, other: 'Component'):
         assert isinstance(other, Component)
 
-        if self.residue and self.residue == other.residue:
+        if (self.name == other.name) and self.residue and (self.residue == other.residue):
             return True
 
         else:
@@ -52,4 +52,4 @@ class Component:
         if self.is_equivalent_to(other):
             return True
 
-        return not self.is_subspecification_of(other)
+        return other.is_subspecification_of(self)

@@ -91,6 +91,8 @@ def test_contingencies_from_contingency_list_entries_boolean_flat():
                                              eff.AndEffector(eff.StateEffector(fst.state_from_string('A-{P}')),
                                                              eff.StateEffector(fst.state_from_string('A--B'))))]
 
+    assert contingencies[0].effector.name == '<X>'
+
 
 def test_contingencies_from_contingency_list_entries_boolean_nested():
     entries = [
@@ -107,4 +109,11 @@ def test_contingencies_from_contingency_list_entries_boolean_nested():
                                              eff.AndEffector(eff.StateEffector(fst.state_from_string('A-{P}')),
                                                              eff.OrEffector(eff.StateEffector(fst.state_from_string('A--B')),
                                                                             eff.StateEffector(fst.state_from_string('A--D')))))]
+
+    assert contingencies[0].effector.name == '<X>'
+    assert contingencies[0].effector.left_expr.name is None
+    assert contingencies[0].effector.right_expr.name == '<Y>'
+    assert contingencies[0].effector.right_expr.left_expr.name is None
+    assert contingencies[0].effector.right_expr.right_expr.name is None
+
 

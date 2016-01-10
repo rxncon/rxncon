@@ -6,6 +6,19 @@ import rxncon.core.state as sta
 class Effector:
     __metaclass__ = ABCMeta
 
+    @property
+    def name(self):
+        try:
+            return self._name
+
+        except AttributeError:
+            return None
+
+    @name.setter
+    def name(self, value: str):
+        assert isinstance(value, str)
+        self._name = value
+
 
 class StateEffector(Effector):
     def __init__(self, expr: sta.State):

@@ -113,8 +113,10 @@ class _BooleanContingencyEffector(eff.Effector):
 
 def _dereference_boolean_contingency_effectors(self: eff.Effector, lookup_table: Dict[BooleanContingencyName, eff.Effector]):
     if isinstance(self, _BooleanContingencyEffector):
+        name = self.expr.full_name
         self.__class__ = lookup_table[self.expr].__class__
         self.__dict__ = lookup_table[self.expr].__dict__
+        self.name = name
 
     elif isinstance(self, eff.StateEffector):
         pass
