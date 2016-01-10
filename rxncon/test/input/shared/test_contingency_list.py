@@ -86,12 +86,12 @@ def test_contingencies_from_contingency_list_entries_boolean_flat():
     ]
     contingencies = cli.contingencies_from_contingency_list_entries(entries)
 
+    expected_X = eff.AndEffector(eff.StateEffector(fst.state_from_string('A-{P}')), eff.StateEffector(fst.state_from_string('A--B')))
+    expected_X.name = '<X>'
+
     assert contingencies == [con.Contingency(fst.reaction_from_string('A_ppi_C'),
                                              con.ContingencyType.inhibition,
-                                             eff.AndEffector(eff.StateEffector(fst.state_from_string('A-{P}')),
-                                                             eff.StateEffector(fst.state_from_string('A--B'))))]
-
-    assert contingencies[0].effector.name == '<X>'
+                                             expected_X)]
 
 
 def test_contingencies_from_contingency_list_entries_boolean_nested():
@@ -104,16 +104,12 @@ def test_contingencies_from_contingency_list_entries_boolean_nested():
     ]
     contingencies = cli.contingencies_from_contingency_list_entries(entries)
 
+    expected_X = eff.OrEffector(eff.StateEffector(fst.state_from_string('A--B')), eff.StateEffector(fst.state_from_string('A--D')))
+    expected_X.name = '<Y>'
+
+    expected_Y = eff.AndEffector(eff.StateEffector(fst.state_from_string('A-{P}')), expected_X)
+    expected_Y.name = '<X>'
+
     assert contingencies == [con.Contingency(fst.reaction_from_string('A_ppi_C'),
                                              con.ContingencyType.inhibition,
-                                             eff.AndEffector(eff.StateEffector(fst.state_from_string('A-{P}')),
-                                                             eff.OrEffector(eff.StateEffector(fst.state_from_string('A--B')),
-                                                                            eff.StateEffector(fst.state_from_string('A--D')))))]
-
-    assert contingencies[0].effector.name == '<X>'
-    assert contingencies[0].effector.left_expr.name is None
-    assert contingencies[0].effector.right_expr.name == '<Y>'
-    assert contingencies[0].effector.right_expr.left_expr.name is None
-    assert contingencies[0].effector.right_expr.right_expr.name is None
-
-
+                                             expected_Y)]

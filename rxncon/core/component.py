@@ -4,6 +4,7 @@ import rxncon.syntax.string_from_rxncon as sfr
 
 
 class Component:
+    """Component specifies at some resolution a component of a Reaction or a State."""
     def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
         assert name
         assert isinstance(name, str)

@@ -1,6 +1,6 @@
 from collections import namedtuple
 from enum import Enum, unique
-from typing import List
+from typing import List, Optional
 
 import rxncon.core.component as com
 import rxncon.core.error as err

@@ -34,6 +34,7 @@ class CovalentModificationState(State):
 
         if isinstance(other, CovalentModificationState):
             return self.substrate == other.substrate and self.modifier == other.modifier
+
         else:
             return False
 
@@ -51,6 +52,7 @@ class InteractionState(State):
 
         if isinstance(other, InteractionState):
             return self.first_component == other.first_component and self.second_component == other.second_component
+
         else:
             return False
 
@@ -67,6 +69,7 @@ class SynthesisDegradationState(State):
 
         if isinstance(other, SynthesisDegradationState):
             return self.component == other.component
+
         else:
             return False
 
@@ -84,6 +87,7 @@ class TranslocationState(State):
 
         if isinstance(other, TranslocationState):
             return self.substrate == other.substrate and self.compartment == other.compartment
+
         else:
             return False
 

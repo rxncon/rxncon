@@ -1,3 +1,4 @@
+from typing import List
 import os.path
 
 import xlrd

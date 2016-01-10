@@ -39,16 +39,16 @@ class ContingencyListEntry:
 
 
 class BooleanContingencyName:
-    def __init__(self, full_name: str):
-        assert re.match(BOOLEAN_CONTINGENCY_REGEX, full_name)
-        self.full_name = full_name
+    def __init__(self, name: str):
+        assert re.match(BOOLEAN_CONTINGENCY_REGEX, name)
+        self.name = name
 
     def __eq__(self, other: 'BooleanContingencyName') -> bool:
         assert isinstance(other, BooleanContingencyName)
-        return self.full_name == other.full_name
+        return self.name == other.name
 
     def __hash__(self) -> int:
-        return hash(self.full_name)
+        return hash(self.name)
 
 
 def contingency_list_entry_from_subject_predicate_agent_strings(subject_string, predicate_string, agent_string) -> ContingencyListEntry:
@@ -113,7 +113,7 @@ class _BooleanContingencyEffector(eff.Effector):
 
 def _dereference_boolean_contingency_effectors(self: eff.Effector, lookup_table: Dict[BooleanContingencyName, eff.Effector]):
     if isinstance(self, _BooleanContingencyEffector):
-        name = self.expr.full_name
+        name = self.expr.name
         self.__class__ = lookup_table[self.expr].__class__
         self.__dict__ = lookup_table[self.expr].__dict__
         self.name = name
