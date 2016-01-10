@@ -1,0 +1,9 @@
+Fix the constructors for reactions states and components such that they only take as arguments their constituents and _not_ the representation string. The representation string should be generated on the fly. This can also be nicely tested.
+
+Create a method for components that checks the is_specification_gte(other), or some other fancy name. Subset inducing blahblah.
+
+Create methods for states that checks is_subset_of(other), is_superset_of(other). 
+
+Create property for RxnConSystem.implicit_contingencies
+
+Create property for RxnConSystem.implicit_reactions
