@@ -2,18 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="19539257-8c28-425d-83b0-da3867cd0586" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/rxncon/test/venntastic/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/rxncon/venntastic/__init__.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/core/component.py" afterPath="$PROJECT_DIR$/rxncon/core/component.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/core/effector.py" afterPath="$PROJECT_DIR$/rxncon/core/effector.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/core/reaction.py" afterPath="$PROJECT_DIR$/rxncon/core/reaction.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/core/state.py" afterPath="$PROJECT_DIR$/rxncon/core/state.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/input/excel_book/excel_book.py" afterPath="$PROJECT_DIR$/rxncon/input/excel_book/excel_book.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/input/shared/contingency_list.py" afterPath="$PROJECT_DIR$/rxncon/input/shared/contingency_list.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/test/input/shared/test_contingency_list.py" afterPath="$PROJECT_DIR$/rxncon/test/input/shared/test_contingency_list.py" />
     </list>
     <ignored path="rxncon3.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -291,6 +280,64 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="venntastic" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="test" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="test" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="venntastic" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
       <pane id="Scope" />
@@ -523,7 +570,13 @@
       <option name="project" value="LOCAL" />
       <updated>1452436716080</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="added venntastic. woopwoop">
+      <created>1452450142621</created>
+      <option name="number" value="00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1452450142621</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -601,7 +654,8 @@
     <MESSAGE value="tests pass again, removed full_name property, fixed constructors of component, reaction, state s.t. they do not take their string representation as argument" />
     <MESSAGE value="subspecification works + test" />
     <MESSAGE value="boolean contingencies now store their name in a self.name attribute.&#10;This is None for non-boolean contingencies." />
-    <option name="LAST_COMMIT_MESSAGE" value="boolean contingencies now store their name in a self.name attribute.&#10;This is None for non-boolean contingencies." />
+    <MESSAGE value="added venntastic. woopwoop" />
+    <option name="LAST_COMMIT_MESSAGE" value="added venntastic. woopwoop" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
