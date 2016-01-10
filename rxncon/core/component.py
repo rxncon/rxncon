@@ -2,8 +2,11 @@ from typing import Optional
 
 import rxncon.syntax.string_from_rxncon as sfr
 
+
 class Component:
     def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
+        assert name
+        assert isinstance(name, str)
         self.name = name
         self.domain = domain
         self.subdomain = subdomain
@@ -31,7 +34,17 @@ class Component:
         if self.is_equivalent_to(other):
             return True
 
-        # @todo Implement this.
+        spec_pairs = zip([self.name, self.domain, self.subdomain, self.residue],
+                         [other.name, other.domain, other.subdomain, other.residue])
+
+        for my_property, other_property in spec_pairs:
+            if my_property and other_property and my_property != other_property:
+                return False
+
+            elif not my_property and other_property:
+                return False
+
+        return True
 
     def is_superspecification_of(self, other: 'Component') -> bool:
         assert isinstance(other, Component)
@@ -39,4 +52,4 @@ class Component:
         if self.is_equivalent_to(other):
             return True
 
-        # @todo Implement this.
+        return not self.is_subspecification_of(other)
