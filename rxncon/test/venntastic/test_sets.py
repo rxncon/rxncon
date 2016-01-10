@@ -2,6 +2,7 @@ from rxncon.venntastic.sets import *
 
 import itertools as itt
 
+
 def test_property_set_construction():
     x = PropertySet()
     assert x.properties == []
@@ -41,92 +42,92 @@ def test_property_set_hashable():
 
 def test_property_set_contains_other_property_set():
     # The universal set contains itself
-    assert PropertySet().contains(PropertySet())
+    assert PropertySet().is_superset_of(PropertySet())
 
     # The universal set contains the empty set
-    assert PropertySet().contains(EmptySet())
+    assert PropertySet().is_superset_of(EmptySet())
 
     # The universal set contains any given set
-    assert PropertySet().contains(PropertySet(1, 5, 6))
+    assert PropertySet().is_superset_of(PropertySet(1, 5, 6))
 
     # Set with fewer specified properties contains one with more specified properties
-    assert PropertySet(1).contains(PropertySet(1, 2, 3))
+    assert PropertySet(1).is_superset_of(PropertySet(1, 2, 3))
 
     # Set with more specified properties does not contain one with fewer specified properties
-    assert not PropertySet(2, 3).contains(PropertySet(2))
+    assert not PropertySet(2, 3).is_superset_of(PropertySet(2))
 
     # A 'larger' set with the 'wrong' properties does not contain a more specific set
-    assert not PropertySet(1).contains(PropertySet(2, 3))
+    assert not PropertySet(1).is_superset_of(PropertySet(2, 3))
 
     # A set contains itself
-    assert PropertySet(1).contains(PropertySet(1))
+    assert PropertySet(1).is_superset_of(PropertySet(1))
 
     # Empty set definitions
-    assert PropertySet().contains(EmptySet())
-    assert PropertySet(4).contains(EmptySet())
-    assert EmptySet().contains(EmptySet())
-    assert not EmptySet().contains(PropertySet(3))
-    assert not EmptySet().contains(PropertySet())
+    assert PropertySet().is_superset_of(EmptySet())
+    assert PropertySet(4).is_superset_of(EmptySet())
+    assert EmptySet().is_superset_of(EmptySet())
+    assert not EmptySet().is_superset_of(PropertySet(3))
+    assert not EmptySet().is_superset_of(PropertySet())
 
 
 def test_simplify_complement_empty_and_universal_set():
-    assert Complement(EmptySet()).simplify() == PropertySet()
-    assert Complement(PropertySet()).simplify() == EmptySet()
+    assert Complement(EmptySet()).simplified() == PropertySet()
+    assert Complement(PropertySet()).simplified() == EmptySet()
 
 
 def test_simplify_respects_de_morgan_s_identities():
     x = PropertySet(1)
     y = PropertySet(4)
 
-    assert Intersection(Complement(x), Complement(y)) == Complement(Union(x, y)).simplify()
-    assert Union(Complement(x), Complement(y)) == Complement(Intersection(x, y)).simplify()
+    assert Intersection(Complement(x), Complement(y)) == Complement(Union(x, y)).simplified()
+    assert Union(Complement(x), Complement(y)) == Complement(Intersection(x, y)).simplified()
 
 
 def test_simplify_complement_squares_to_no_op():
-    assert PropertySet(1, 2, 3) == Complement(Complement(PropertySet(1, 2, 3))).simplify()
+    assert PropertySet(1, 2, 3) == Complement(Complement(PropertySet(1, 2, 3))).simplified()
 
-    assert EmptySet() == Complement(Complement(EmptySet())).simplify()
+    assert EmptySet() == Complement(Complement(EmptySet())).simplified()
 
-    assert PropertySet() == Complement(Complement(PropertySet())).simplify()
+    assert PropertySet() == Complement(Complement(PropertySet())).simplified()
 
 
 def test_simplify_intersection_with_complement_yields_empty_set():
     a = PropertySet(1, 2)
     b = Complement(a)
 
-    assert EmptySet() == Intersection(a, b).simplify()
-    assert EmptySet() == Intersection(b, a).simplify()
+    assert EmptySet() == Intersection(a, b).simplified()
+    assert EmptySet() == Intersection(b, a).simplified()
 
 
 def test_simplify_intersection_of_property_sets():
     # Intersection with the empty set yields the empty set
-    assert EmptySet() == Intersection(EmptySet(), PropertySet(1)).simplify()
-    assert EmptySet() == Intersection(PropertySet(1), EmptySet()).simplify()
+    assert EmptySet() == Intersection(EmptySet(), PropertySet(1)).simplified()
+    assert EmptySet() == Intersection(PropertySet(1), EmptySet()).simplified()
 
     # Intersection of a set with the universal set yields the set itself
-    assert PropertySet(2, 3, 4) == Intersection(PropertySet(), PropertySet(2, 3, 4)).simplify()
-    assert PropertySet(2, 3, 4) == Intersection(PropertySet(2, 3, 4), PropertySet()).simplify()
+    assert PropertySet(2, 3, 4) == Intersection(PropertySet(), PropertySet(2, 3, 4)).simplified()
+    assert PropertySet(2, 3, 4) == Intersection(PropertySet(2, 3, 4), PropertySet()).simplified()
 
     # Intersection of set with itself yields the set
-    assert EmptySet() == Intersection(EmptySet(), EmptySet()).simplify()
-    assert PropertySet() == Intersection(PropertySet(), PropertySet()).simplify()
-    assert PropertySet(2) == Intersection(PropertySet(2), PropertySet(2)).simplify()
+    assert EmptySet() == Intersection(EmptySet(), EmptySet()).simplified()
+    assert PropertySet() == Intersection(PropertySet(), PropertySet()).simplified()
+    assert PropertySet(2) == Intersection(PropertySet(2), PropertySet(2)).simplified()
 
     # Intersection of two property sets have combination of properties
-    assert PropertySet(1, 2) == Intersection(PropertySet(1), PropertySet(2)).simplify()
-    assert PropertySet(1, 2, 3, 4, 5) == Intersection(PropertySet(1, 2, 3), PropertySet(3, 4, 5)).simplify()
+    assert PropertySet(1, 2) == Intersection(PropertySet(1), PropertySet(2)).simplified()
+    assert PropertySet(1, 2, 3, 4, 5) == Intersection(PropertySet(1, 2, 3), PropertySet(3, 4, 5)).simplified()
 
 
 def test_simplify_intersection_of_unions():
     # Simplify should 'pull out' all unions
     assert Union(PropertySet(1, 3), PropertySet(2, 3)) == \
-           Intersection(Union(PropertySet(1), PropertySet(2)), PropertySet(3)).simplify()
+           Intersection(Union(PropertySet(1), PropertySet(2)), PropertySet(3)).simplified()
 
     assert Union(PropertySet(1, 3), PropertySet(2, 3)) == \
-           Intersection(PropertySet(3), Union(PropertySet(1), PropertySet(2))).simplify()
+           Intersection(PropertySet(3), Union(PropertySet(1), PropertySet(2))).simplified()
 
     assert Union(Union(Union(PropertySet(1, 3), PropertySet(1, 4)), PropertySet(2, 3)), PropertySet(2, 4)) == \
-           Intersection(Union(PropertySet(1), PropertySet(2)), Union(PropertySet(3), PropertySet(4))).simplify()
+           Intersection(Union(PropertySet(1), PropertySet(2)), Union(PropertySet(3), PropertySet(4))).simplified()
 
 
 def test_simplify_intersection_of_unions_with_complements():
@@ -139,11 +140,11 @@ def test_simplify_intersection_of_unions_with_complements():
     abc = Intersection(Union(a, b), c)
 
     # Test whether simplify can still guarantee basic properties of union and intersection
-    assert Union(abc, Complement(abc)).simplify() == PropertySet()
-    assert Intersection(abc, Complement(abc)).simplify() == EmptySet()
+    assert Union(abc, Complement(abc)).simplified() == PropertySet()
+    assert Intersection(abc, Complement(abc)).simplified() == EmptySet()
 
     # Test whether simplify is idempotent
-    assert abc.simplify() == abc.simplify().simplify()
+    assert abc.simplified() == abc.simplified().simplified()
 
 
 def test_simplify_difference_respects_absolute_relative_complement_identities():
@@ -158,30 +159,30 @@ def test_simplify_difference_respects_absolute_relative_complement_identities():
     ]
 
     for x, y in itt.product(xs, ys):
-        assert Intersection(x, Complement(y)).simplify() == Difference(x, y).simplify()
-        assert Union(Complement(x), y).simplify() == Complement(Difference(x, y)).simplify()
+        assert Intersection(x, Complement(y)).simplified() == Difference(x, y).simplified()
+        assert Union(Complement(x), y).simplified() == Complement(Difference(x, y)).simplified()
 
 
 def test_simplify_union_with_complement_yields_universal_set():
     a = PropertySet(1, 2)
     b = Complement(a)
 
-    assert PropertySet() == Union(a, b).simplify()
-    assert PropertySet() == Union(b, a).simplify()
+    assert PropertySet() == Union(a, b).simplified()
+    assert PropertySet() == Union(b, a).simplified()
 
 
 def test_simplify_union_of_property_sets():
-    assert PropertySet(1) == Union(EmptySet(), PropertySet(1)).simplify()
+    assert PropertySet(1) == Union(EmptySet(), PropertySet(1)).simplified()
 
-    assert PropertySet(1) == Union(PropertySet(1), EmptySet()).simplify()
+    assert PropertySet(1) == Union(PropertySet(1), EmptySet()).simplified()
 
-    assert PropertySet() == Union(PropertySet(), PropertySet(1, 2)).simplify()
+    assert PropertySet() == Union(PropertySet(), PropertySet(1, 2)).simplified()
 
 
 def test_simplify_union_of_unions():
     a = Union(PropertySet(1), Union(PropertySet(2), Union(PropertySet(3), PropertySet(4))))
 
-    assert Union(Union(Union(PropertySet(1), PropertySet(2)), PropertySet(3)), PropertySet(4)) == a.simplify()
+    assert Union(Union(Union(PropertySet(1), PropertySet(2)), PropertySet(3)), PropertySet(4)) == a.simplified()
 
 
 def test_cardinality_empty_and_universal_set():

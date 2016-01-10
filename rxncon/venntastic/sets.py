@@ -1,6 +1,6 @@
 from functools import reduce
 from itertools import combinations
-from typing import List, Dict, Callable, Iterable
+from typing import List, Dict, Callable, Iterable, Optional
 
 
 class Set:
@@ -10,7 +10,7 @@ class Set:
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def simplify(self) -> 'Set':
+    def simplified(self) -> 'Set':
         """
         Returns a simplified version of the Set, in which:
            * Complement(x) only appears for x a PropertySet
@@ -35,7 +35,7 @@ class Set:
         inclusion-exclusion principle. The return value is a dictionary in which the keys are the PropertySets and
         the values are the coefficient in which they appear in the sum.
         """
-        union_sets = self.simplify()._flatten_unions()
+        union_sets = self.simplified()._flatten_unions()
         terms = {}
 
         for i in range(len(union_sets)):
@@ -45,7 +45,7 @@ class Set:
             for t in tuples:
                 tuple_intersections.append(flat_list_to_nested_expression(t, Intersection))
 
-            tuple_intersections = map(lambda x: x.simplify(), tuple_intersections)
+            tuple_intersections = [x.simplified() for x in tuple_intersections]
 
             for t in tuple_intersections:
                 if i % 2 == 0:
@@ -55,7 +55,7 @@ class Set:
 
         return {k: v for k, v in terms.items() if v != 0}
 
-    def contains(self, other: 'Set') -> bool:
+    def is_superset_of(self, other: 'Set') -> bool:
         """
         Returns whether this set contains the other set, i.e. whether the other set is a subset of self.
         """
@@ -99,20 +99,20 @@ class Set:
         """
         return self
 
-    def _order_expand_intersections(self, visited_sets: List['Set']=[]) -> 'Set':
+    def _order_expand_intersections(self, visited_sets: Optional[List['Set']]=None) -> 'Set':
         """
         Orders a nested expression and expands all the contained Intersections. Calls _order_nodes.
         """
         return self
 
-    def _order_collapse_intersections(self, visited_sets: List['Set']=[]) -> 'Set':
+    def _order_collapse_intersections(self, visited_sets: Optional[List['Set']]=None) -> 'Set':
         """
         Orders a nested expression and collapses all the contained Intersections. Calls _order_nodes.
         """
 
         return self
 
-    def _order_collapse_unions(self, visited_sets=[]) -> 'Set':
+    def _order_collapse_unions(self, visited_sets: Optional[List['Set']]=None) -> 'Set':
         """
         Orders a nested expression and collapses all the contained Unions. Calls _order_nodes.
         """
@@ -141,10 +141,13 @@ class BinarySet(Set):
         self.left_expr = left_expr
         self.right_expr = right_expr
 
-    def __eq__(self, other) -> bool:
-        if isinstance(other, self.__class__) and (self.left_expr == other.left_expr) and \
+    def __eq__(self, other: Set) -> bool:
+        assert isinstance(other, Set)
+
+        if isinstance(other, type(self)) and (self.left_expr == other.left_expr) and \
                 (self.right_expr == other.right_expr):
             return True
+
         else:
             return False
 
@@ -152,6 +155,7 @@ class BinarySet(Set):
         if isinstance(self.left_expr, set_type):
             visited_sets.append(self.right_expr._order_nodes(set_type, [], postprocessing_func))
             return self.left_expr._order_nodes(set_type, visited_sets, postprocessing_func)
+
         else:
             visited_sets.append(self.right_expr)
             visited_sets.append(self.left_expr)
@@ -168,13 +172,13 @@ class BinarySet(Set):
             self.right_expr._expand_complements()
         )
 
-    def _order_expand_intersections(self, visited_sets: List[Set]=[]) -> Set:
+    def _order_expand_intersections(self, visited_sets: Optional[List[Set]]=None) -> Set:
         return self.__class__(
             self.left_expr._order_expand_intersections([]),
             self.right_expr._order_expand_intersections([])
         )
 
-    def _order_collapse_intersections(self, visited_sets: List[Set]=[]) -> Set:
+    def _order_collapse_intersections(self, visited_sets: Optional[List[Set]]=None) -> Set:
         return self.__class__(
             self.left_expr._order_collapse_intersections([]),
             self.right_expr._order_collapse_intersections([])
@@ -195,14 +199,17 @@ class PropertySet(UnarySet):
     def __eq__(self, other: Set) -> bool:
         if isinstance(other, PropertySet):
             return self.properties == other.properties
+
         else:
             return False
 
     def __lt__(self, other) -> bool:
         if isinstance(other, Complement):
             return True
+
         elif isinstance(other, PropertySet):
             return self.properties < other.properties
+
         else:
             return False
 
@@ -212,7 +219,7 @@ class PropertySet(UnarySet):
     def __repr__(self) -> str:
         return '(' + ','.join(map(str, self.properties)) + ')'
 
-    def contains(self, other: Set) -> bool:
+    def is_superset_of(self, other: Set) -> bool:
         if isinstance(other, EmptySet):
             return True
 
@@ -233,14 +240,12 @@ class PropertySet(UnarySet):
             return False
 
     def to_list(self) -> List['PropertySet']:
-        return list(map(PropertySet, self.properties))
+        return [PropertySet(x) for x in self.properties]
 
-    def _order_expand_intersections(self, visited_sets: List[Set]=[]) -> Set:
+    def _order_expand_intersections(self, visited_sets: Optional[List[Set]]=None) -> Set:
         if len(self.properties) > 1:
-            return flat_list_to_nested_expression(
-                list(map(PropertySet, self.properties)),
-                Intersection
-            )
+            return flat_list_to_nested_expression([PropertySet(x) for x in self.properties], Intersection)
+
         else:
             return self
 
@@ -258,6 +263,7 @@ class EmptySet(UnarySet):
     def __lt__(self, other: Set) -> bool:
         if isinstance(other, PropertySet) or isinstance(other, Complement):
             return True
+
         else:
             return False
 
@@ -267,7 +273,7 @@ class EmptySet(UnarySet):
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def contains(self, other: Set) -> bool:
+    def is_superset_of(self, other: Set) -> bool:
         return isinstance(other, EmptySet)
 
     def _partial_cardinality(self) -> Dict[PropertySet, int]:
@@ -282,14 +288,18 @@ class Complement(UnarySet):
         self.expr = expr
 
     def __eq__(self, other: Set) -> bool:
+        assert isinstance(other, Set)
+
         if isinstance(other, Complement):
             return self.expr == other.expr
+
         else:
             return False
 
     def __lt__(self, other: Set) -> bool:
         if isinstance(other, Complement):
             return self.expr < other.expr
+
         else:
             return False
 
@@ -299,8 +309,10 @@ class Complement(UnarySet):
     def __repr__(self) -> str:
         return 'Complement(' + str(self.expr) + ')'
 
-    def contains(self, other: Set) -> bool:
-        if isinstance(other, Complement) and other.expr.contains(self.expr):
+    def is_superset_of(self, other: Set) -> bool:
+        assert isinstance(other, Set)
+
+        if isinstance(other, Complement) and other.expr.is_superset_of(self.expr):
             return True
         else:
             return False
@@ -309,24 +321,30 @@ class Complement(UnarySet):
         if isinstance(self.expr, Complement):
             # Complement of complement is no-op
             return self.expr.expr._expand_complements()
+
         elif isinstance(self.expr, EmptySet):
             # Complement of empty set is universal set
             return PropertySet()
+
         elif isinstance(self.expr, PropertySet) and self.expr == PropertySet():
             # Complement of universal set is empty set
             return EmptySet()
+
         elif isinstance(self.expr, Union):
             # De Morgan's law
             return Intersection(Complement(self.expr.left_expr), Complement(self.expr.right_expr))._expand_complements()
+
         elif isinstance(self.expr, Intersection):
             # De Morgan's law
             return Union(Complement(self.expr.left_expr), Complement(self.expr.right_expr))._expand_complements()
+
         else:
             return Complement(self.expr._expand_complements())
 
     def _partial_cardinality(self) -> Dict[PropertySet, int]:
         if isinstance(self.expr, PropertySet):
             return {PropertySet(): 1, self.expr: -1}
+
         else:
             raise AssertionError('Complement._partial_cardinality was called with expr not Set')
 
@@ -338,13 +356,17 @@ class Intersection(BinarySet):
     def __lt__(self, other: Set) -> bool:
         if isinstance(other, EmptySet) or isinstance(other, PropertySet) or isinstance(other, Complement):
             return True
+
         elif isinstance(other, Intersection):
             if self.left_expr < other.left_expr:
                 return True
+
             elif not self.left_expr < other.left_expr and not other.left_expr < self.left_expr:
                 return self.right_expr < other.right_expr
+
             else:
                 return False
+
         else:
             return False
 
@@ -364,12 +386,14 @@ class Intersection(BinarySet):
                 Intersection(self.left_expr.left_expr, self.right_expr),
                 Intersection(self.left_expr.right_expr, self.right_expr)
             )._move_unions_to_left()
+
         elif isinstance(self.right_expr, Union):
             # Distributivity of intersection with respect to union
             return Union(
                 Intersection(self.left_expr, self.right_expr.left_expr),
                 Intersection(self.left_expr, self.right_expr.right_expr)
             )._move_unions_to_left()
+
         else:
             return Intersection(
                 self.left_expr._move_unions_to_left(),
@@ -380,7 +404,8 @@ class Intersection(BinarySet):
         if isinstance(self.right_expr, Intersection) and not isinstance(self.left_expr, Intersection):
             # Use commutativity to move the Intersection expressions to the left
             return Intersection(self.right_expr, self.left_expr)._move_intersections_to_left()
-        if isinstance(self.left_expr, Intersection) and isinstance(self.right_expr, Intersection):
+
+        elif isinstance(self.left_expr, Intersection) and isinstance(self.right_expr, Intersection):
             # Use associativity to move the Intersection expressions to the left
             return Intersection(Intersection(Intersection(
                 self.left_expr.left_expr, self.left_expr.right_expr), self.right_expr.left_expr),
@@ -391,12 +416,18 @@ class Intersection(BinarySet):
                 self.right_expr._move_intersections_to_left()
             )
 
-    def _order_expand_intersections(self, visited_sets: List[Set]=[]) -> Set:
+    def _order_expand_intersections(self, visited_sets: Optional[List[Set]]=None) -> Set:
+        if visited_sets is None:
+            visited_sets = []
+
         return self._order_nodes(Intersection,
                                  visited_sets,
                                  lambda x: flat_list_to_nested_expression(sorted(x), Intersection))
 
-    def _order_collapse_intersections(self, visited_sets: List[Set]=[]) -> Set:
+    def _order_collapse_intersections(self, visited_sets: Optional[List[Set]]=None) -> Set:
+        if visited_sets is None:
+            visited_sets = []
+
         return self._order_nodes(Intersection,
                                  visited_sets,
                                  lambda x: _find_total_intersection(x))
@@ -407,15 +438,17 @@ class Intersection(BinarySet):
             # |!A ^ B| = |B| - |A ^ B|
             return _add_dicts(self.right_expr._partial_cardinality(),
                               _negate_dict(Intersection(self.left_expr.expr, self.right_expr)
-                                           .simplify()
+                                           .simplified()
                                            ._partial_cardinality()))
+
         elif isinstance(self.right_expr, Complement):
             # Remove single complement using
             # |A ^ !B| = |A| - |B ^ A|
             return _add_dicts(self.left_expr._partial_cardinality(),
                               _negate_dict(Intersection(self.right_expr.expr, self.left_expr)
-                                           .simplify()
+                                           .simplified()
                                            ._partial_cardinality()))
+
         else:
             raise AssertionError('Intersection._partial_cardinality called with left_expr: ' + str(self.left_expr) +
                                  ' right_expr: ' + str(self.right_expr))
@@ -429,13 +462,17 @@ class Union(BinarySet):
         if isinstance(other, EmptySet) or isinstance(other, PropertySet) or \
                 isinstance(other, Complement) or isinstance(other, Intersection):
             return True
+
         elif isinstance(other, Union):
             if self.left_expr < other.left_expr:
                 return True
+
             elif not self.left_expr < other.left_expr and not other.left_expr < self.left_expr:
                 return self.right_expr < other.right_expr
+
             else:
                 return False
+
         else:
             raise AssertionError('Union.__lt__ non-exhaustive match')
 
@@ -451,6 +488,7 @@ class Union(BinarySet):
 
         if isinstance(self.left_expr, Union):
             left_contribution = self.left_expr._flatten_unions()
+
         else:
             left_contribution = [self.left_expr]
 
@@ -460,10 +498,12 @@ class Union(BinarySet):
         if isinstance(self.right_expr, Union) and not isinstance(self.left_expr, Union):
             # Use commutativity to move all Union expressions to the left
             return Union(self.right_expr, self.left_expr)._move_unions_to_left()
+
         elif isinstance(self.left_expr, Union) and isinstance(self.right_expr, Union):
             # Use associativity to move all Union expressions to the left
             return Union(Union(Union(self.left_expr.left_expr, self.left_expr.right_expr), self.right_expr.left_expr),
                          self.right_expr.right_expr)._move_unions_to_left()
+
         else:
             return Union(self.left_expr._move_unions_to_left(), self.right_expr._move_unions_to_left())
 
@@ -493,23 +533,27 @@ def flat_list_to_nested_expression(xs: List[Set], set_class) -> Set:
     Reduces a list of Sets to a nested expression. E.g. if set_class is Intersection:
         [a, b, c] -> Intersection(Intersection(a, b), c)
     """
-    if set_class.__name__ == Intersection.__name__:
+    if set_class == Intersection:
         unit = PropertySet()
-    elif set_class.__name__ == Union.__name__:
+
+    elif set_class == Union:
         unit = EmptySet()
+
     else:
         raise AssertionError('list_to_nested_expression can only be called with Union or Intersection')
 
     if len(xs) == 0:
         return unit
+
     elif len(xs) == 1:
         return xs[0]
+
     else:
         return reduce(set_class, xs[1:], xs[0])
 
 
 def property_difference(x: PropertySet, y: PropertySet) -> PropertySet:
-    assert y.contains(x)
+    assert y.is_superset_of(x)
     return PropertySet(*[p for p in x.properties if p not in y.properties])
 
 
@@ -613,6 +657,7 @@ def _find_total_intersection(sets: List[Set]) -> Set:
 
     if len(complements) > 0 and len(properties) == 0:
         return flat_list_to_nested_expression(sorted(complements), Intersection)
+
     else:
         return flat_list_to_nested_expression(sorted(complements + [PropertySet(*properties)]), Intersection)
 
