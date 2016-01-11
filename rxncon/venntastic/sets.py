@@ -1,5 +1,5 @@
-from functools import reduce
-from itertools import combinations
+import functools
+import itertools as itt
 from typing import List, Dict, Callable, Optional
 
 
@@ -27,7 +27,7 @@ class Set:
         terms = {}
 
         for i in range(len(union_sets)):
-            tuples = combinations(union_sets, i + 1)
+            tuples = itt.combinations(union_sets, i + 1)
             tuple_intersections = []
 
             for t in tuples:
@@ -83,40 +83,7 @@ class UnarySet(Set):
         return [self]
 
 
-class BinarySet(Set):
-    def __init__(self, left_expr: Set, right_expr: Set):
-        self.left_expr = left_expr
-        self.right_expr = right_expr
-
-    def __eq__(self, other: Set) -> bool:
-        assert isinstance(other, Set)
-
-        if isinstance(other, type(self)) and (self.left_expr == other.left_expr) and (self.right_expr == other.right_expr):
-            return True
-
-        else:
-            return False
-
-    def _nodes_ordered(self, set_type, visited_sets: List[Set], postprocessing_func: Callable[[List[Set]], Set]) -> Set:
-        if isinstance(self.left_expr, set_type):
-            visited_sets.append(self.right_expr._nodes_ordered(set_type, [], postprocessing_func))
-            return self.left_expr._nodes_ordered(set_type, visited_sets, postprocessing_func)
-
-        else:
-            visited_sets.append(self.right_expr)
-            visited_sets.append(self.left_expr)
-            visited_sets.reverse()
-
-            processed = postprocessing_func(visited_sets)
-            visited_sets.clear()
-
-            return processed
-
-    def _complements_expanded(self) -> Set:
-        return type(self)(self.left_expr._complements_expanded(), self.right_expr._complements_expanded())
-
-
-class PropertySet(Set):
+class PropertySet(UnarySet):
     def __init__(self, value):
         assert hasattr(value, '__hash__')
         self.value = value
@@ -257,6 +224,39 @@ class Complement(UnarySet):
             raise AssertionError
 
 
+class BinarySet(Set):
+    def __init__(self, left_expr: Set, right_expr: Set):
+        self.left_expr = left_expr
+        self.right_expr = right_expr
+
+    def __eq__(self, other: Set) -> bool:
+        assert isinstance(other, Set)
+
+        if isinstance(other, type(self)) and (self.left_expr == other.left_expr) and (self.right_expr == other.right_expr):
+            return True
+
+        else:
+            return False
+
+    def _nodes_ordered(self, set_type, visited_sets: List[Set], postprocessing_func: Callable[[List[Set]], Set]) -> Set:
+        if isinstance(self.left_expr, set_type):
+            visited_sets.append(self.right_expr._nodes_ordered(set_type, [], postprocessing_func))
+            return self.left_expr._nodes_ordered(set_type, visited_sets, postprocessing_func)
+
+        else:
+            visited_sets.append(self.right_expr)
+            visited_sets.append(self.left_expr)
+            visited_sets.reverse()
+
+            processed = postprocessing_func(visited_sets)
+            visited_sets.clear()
+
+            return processed
+
+    def _complements_expanded(self) -> Set:
+        return type(self)(self.left_expr._complements_expanded(), self.right_expr._complements_expanded())
+
+
 class Intersection(BinarySet):
     def __lt__(self, other: Set) -> bool:
         if isinstance(other, EmptySet) or isinstance(other, PropertySet) or isinstance(other, Complement):
@@ -387,6 +387,7 @@ class Difference(Set):
         assert len(args) == 2
         return Intersection(args[0], Complement(args[1]))
 
+
 def UniversalSet():
     return PropertySet(None)
 
@@ -412,7 +413,7 @@ def flat_list_to_nested_expression(xs: List[Set], set_class) -> Set:
         return xs[0]
 
     else:
-        return reduce(set_class, xs[1:], xs[0])
+        return functools.reduce(set_class, xs[1:], xs[0])
 
 
 def _add_dicts(x: Dict[PropertySet, int], y: Dict[PropertySet, int]) -> Dict[PropertySet, int]:
@@ -441,43 +442,10 @@ def _negate_dict(x: Dict[PropertySet, int]) -> Dict[PropertySet, int]:
     return res
 
 
-def _has_mutual_complements(sets: List[Set], set_operation):
-    """
-    Returns whether a list of Sets, combined by a certain set_operation (Intersection or Union), contains two
-    mutually complementary Sets.
-    Used to simplify A ^ !A = 0 and A u !A = U.
-    """
-    if not (set_operation.__name__ == Union.__name__ or set_operation.__name__ == Intersection.__name__):
-        raise AssertionError('_find_mutual_complements must have Union or Intersection as set_operation')
-
-    expansion_methods = [
-        METHOD_COMPLEMENTS_EXPANDED,
-        METHOD_UNIONS_MOVED_TO_LEFT,
-        METHOD_UNIONS_ORDERED_SIMPLIFIED
-    ]
-
-    for n in range(len(sets)):
-        left_combis = list(combinations(sets, n + 1))
-
-        for left_combi in left_combis:
-            rest = [x for x in sets if x not in left_combi]
-
-            for m in range(len(rest)):
-                right_combis = list(combinations(rest, m + 1))
-
-                for right_combi in right_combis:
-                    lhs = _call_method_until_stable(
-                        Complement(flat_list_to_nested_expression(left_combi, set_operation)),
-                        expansion_methods
-                    )
-
-                    rhs = _call_method_until_stable(
-                        flat_list_to_nested_expression(right_combi, set_operation),
-                        expansion_methods
-                    )
-
-                    if lhs == rhs:
-                        return True
+def _has_mutual_complements(sets: List[Set]):
+    for x, y in itt.product(sets, sets):
+        if x == Complement(y) or y == Complement(x):
+            return True
 
     return False
 
@@ -498,24 +466,10 @@ def _find_total_intersection(sets: List[Set]) -> Set:
 
     sets = [x for x in sets if x != UniversalSet()]
 
-    if _has_mutual_complements(sets, Intersection):
+    if _has_mutual_complements(sets):
         return EmptySet()
 
-    property_sets = [x for x in sets if isinstance(x, PropertySet)]
-    complements = [x for x in sets if isinstance(x, Complement)]
-
-    properties = []
-
-    for s in property_sets:
-        properties += s.properties
-
-    properties = list(set(properties))
-
-    if len(complements) > 0 and len(properties) == 0:
-        return flat_list_to_nested_expression(sorted(complements), Intersection)
-
-    else:
-        return flat_list_to_nested_expression(sorted(complements + [PropertySet(*properties)]), Intersection)
+    return flat_list_to_nested_expression(sorted(sets), Intersection)
 
 
 def _find_total_union(sets: List[Set]):
@@ -534,7 +488,7 @@ def _find_total_union(sets: List[Set]):
 
     sets = [x for x in sets if x != EmptySet()]
 
-    if _has_mutual_complements(sets, Union):
+    if _has_mutual_complements(sets):
         return UniversalSet()
 
     return flat_list_to_nested_expression(sorted(sets), Union)
