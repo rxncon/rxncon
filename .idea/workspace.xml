@@ -2,8 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="19539257-8c28-425d-83b0-da3867cd0586" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/rxncon/venntastic/sets_new.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/rxncon/test/venntastic/test_sets_new.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/test/venntastic/test_sets.py" afterPath="$PROJECT_DIR$/rxncon/test/venntastic/test_sets.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/venntastic/sets.py" afterPath="$PROJECT_DIR$/rxncon/venntastic/sets.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/venntastic/sets_new.py" afterPath="$PROJECT_DIR$/rxncon/venntastic/sets_new.py" />
     </list>
     <ignored path="rxncon3.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -23,225 +26,244 @@
     <favorites_list name="rxncon3" />
   </component>
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.5">
-      <split-first>
-        <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-          <file leaf-file-name="test_contingency_list.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/rxncon/test/input/shared/test_contingency_list.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="88" column="14" selection-start-line="88" selection-start-column="14" selection-end-line="88" selection-end-column="14" />
-                  <folding>
-                    <element signature="e#308#698#0" expanded="true" />
-                    <element signature="e#770#1110#0" expanded="true" />
-                    <element signature="e#1181#1496#0" expanded="true" />
-                    <element signature="e#4530#5601#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/rxncon/__init__.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="sets.py" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.6">
-                  <caret line="521" column="0" selection-start-line="521" selection-start-column="0" selection-end-line="527" selection-end-column="57" />
-                  <folding>
-                    <element signature="e#0#28#0" expanded="true" />
-                    <element signature="e#253#275#0" expanded="true" />
-                    <element signature="e#320#1162#0" expanded="true" />
-                    <element signature="e#2326#2467#0" expanded="true" />
-                    <element signature="e#2521#2669#0" expanded="true" />
-                    <element signature="e#2725#2910#0" expanded="true" />
-                    <element signature="e#2965#3158#0" expanded="true" />
-                    <element signature="e#3220#3366#0" expanded="true" />
-                    <element signature="e#3524#4136#0" expanded="true" />
-                    <element signature="e#4240#4375#0" expanded="true" />
-                    <element signature="e#4481#4619#0" expanded="true" />
-                    <element signature="e#4718#4848#0" expanded="true" />
-                    <element signature="e#4922#5058#0" expanded="true" />
-                    <element signature="e#5198#5211#0" expanded="true" />
-                    <element signature="e#5361#5424#0" expanded="true" />
-                    <element signature="e#5476#5712#0" expanded="true" />
-                    <element signature="e#5841#6339#0" expanded="true" />
-                    <element signature="e#6391#6523#0" expanded="true" />
-                    <element signature="e#6623#6775#0" expanded="true" />
-                    <element signature="e#6877#7033#0" expanded="true" />
-                    <element signature="e#7411#7473#0" expanded="true" />
-                    <element signature="e#7525#7654#0" expanded="true" />
-                    <element signature="e#7701#7898#0" expanded="true" />
-                    <element signature="e#7939#7961#0" expanded="true" />
-                    <element signature="e#8002#8056#0" expanded="true" />
-                    <element signature="e#8116#8752#0" expanded="true" />
-                    <element signature="e#8808#8856#0" expanded="true" />
-                    <element signature="e#8956#9130#0" expanded="true" />
-                    <element signature="e#9204#9220#0" expanded="true" />
-                    <element signature="e#9362#9396#0" expanded="true" />
-                    <element signature="e#9448#9579#0" expanded="true" />
-                    <element signature="e#9620#9634#0" expanded="true" />
-                    <element signature="e#9675#9697#0" expanded="true" />
-                    <element signature="e#9757#9791#0" expanded="true" />
-                    <element signature="e#9863#9872#0" expanded="true" />
-                    <element signature="e#10002#10018#0" expanded="true" />
-                    <element signature="e#10070#10225#0" expanded="true" />
-                    <element signature="e#10277#10392#0" expanded="true" />
-                    <element signature="e#10433#10455#0" expanded="true" />
-                    <element signature="e#10496#10539#0" expanded="true" />
-                    <element signature="e#10599#10775#0" expanded="true" />
-                    <element signature="e#10828#11738#0" expanded="true" />
-                    <element signature="e#11810#12013#0" expanded="true" />
-                    <element signature="e#12147#12636#0" expanded="true" />
-                    <element signature="e#12677#12699#0" expanded="true" />
-                    <element signature="e#12740#12820#0" expanded="true" />
-                    <element signature="e#12874#12887#0" expanded="true" />
-                    <element signature="e#12940#13751#0" expanded="true" />
-                    <element signature="e#13811#14680#0" expanded="true" />
-                    <element signature="e#14780#15029#0" expanded="true" />
-                    <element signature="e#15131#15352#0" expanded="true" />
-                    <element signature="e#15424#16473#0" expanded="true" />
-                    <element signature="e#16604#17184#0" expanded="true" />
-                    <element signature="e#17225#17247#0" expanded="true" />
-                    <element signature="e#17288#17361#0" expanded="true" />
-                    <element signature="e#17415#17773#0" expanded="true" />
-                    <element signature="e#17826#18537#0" expanded="true" />
-                    <element signature="e#18597#18702#0" expanded="true" />
-                    <element signature="e#18774#18835#0" expanded="true" />
-                    <element signature="e#18918#19061#0" expanded="true" />
-                    <element signature="e#19231#19310#0" expanded="true" />
-                    <element signature="e#19386#19920#0" expanded="true" />
-                    <element signature="e#19999#20101#0" expanded="true" />
-                    <element signature="e#20204#20502#0" expanded="true" />
-                    <element signature="e#20580#20721#0" expanded="true" />
-                    <element signature="e#20789#22207#0" expanded="true" />
-                    <element signature="e#22268#23306#0" expanded="true" />
-                    <element signature="e#23353#23925#0" expanded="true" />
-                    <element signature="e#23967#24153#0" expanded="true" />
-                    <element signature="e#24204#26114#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="sets_new.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets_new.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="test_sets.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/rxncon/test/venntastic/test_sets.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="4" column="0" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
-                  <folding>
-                    <element signature="e#0#36#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/rxncon/venntastic/__init__.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="effector.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/rxncon/core/effector.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="15" column="12" selection-start-line="15" selection-start-column="12" selection-end-line="15" selection-end-column="12" />
-                  <folding>
-                    <element signature="e#785#841#0" expanded="true" />
-                    <element signature="e#924#983#0" expanded="true" />
-                    <element signature="e#1023#1067#0" expanded="true" />
-                    <element signature="e#1124#1315#0" expanded="true" />
-                    <element signature="e#1395#1453#0" expanded="true" />
-                    <element signature="e#1493#1535#0" expanded="true" />
-                    <element signature="e#1592#1781#0" expanded="true" />
-                    <element signature="e#1920#1983#0" expanded="true" />
-                    <element signature="e#2040#2506#0" expanded="true" />
-                    <element signature="e#2582#2652#0" expanded="true" />
-                    <element signature="e#2727#2796#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="contingency_list.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/rxncon/input/shared/contingency_list.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="43" column="21" selection-start-line="43" selection-start-column="21" selection-end-line="43" selection-end-column="21" />
-                  <folding>
-                    <element signature="e#3907#4559#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="test_component.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/rxncon/test/core/test_component.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="154" column="45" selection-start-line="154" selection-start-column="45" selection-end-line="154" selection-end-column="45" />
-                  <folding>
-                    <marker date="1452430646000" expanded="true" signature="0:46" placeholder="import ..." />
-                    <marker date="1452430646000" expanded="false" signature="6794:7337" placeholder="..." />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="rxncon_system.py" pinned="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/rxncon/core/rxncon_system.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="0.0">
-                  <caret line="17" column="31" selection-start-line="17" selection-start-column="31" selection-end-line="17" selection-end-column="31" />
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-first>
-      <split-second>
-        <leaf>
-          <file leaf-file-name="sets_new.py" pinned="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets_new.py">
-              <provider selected="true" editor-type-id="text-editor">
-                <state vertical-scroll-proportion="1.536">
-                  <caret line="112" column="22" selection-start-line="112" selection-start-column="22" selection-end-line="112" selection-end-column="22" />
-                  <folding>
-                    <element signature="e#820#840#0" expanded="true" />
-                    <element signature="e#890#910#0" expanded="true" />
-                    <element signature="e#1268#1288#0" expanded="true" />
-                  </folding>
-                </state>
-              </provider>
-            </entry>
-          </file>
-        </leaf>
-      </split-second>
-    </splitter>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="test_contingency_list.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rxncon/test/input/shared/test_contingency_list.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="88" column="14" selection-start-line="88" selection-start-column="14" selection-end-line="88" selection-end-column="14" />
+              <folding>
+                <element signature="e#308#698#0" expanded="true" />
+                <element signature="e#770#1110#0" expanded="true" />
+                <element signature="e#1181#1496#0" expanded="true" />
+                <element signature="e#4530#5601#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rxncon/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="sets.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-0.19505495">
+              <caret line="498" column="50" selection-start-line="498" selection-start-column="50" selection-end-line="498" selection-end-column="50" />
+              <folding>
+                <element signature="e#0#28#0" expanded="true" />
+                <element signature="e#340#362#0" expanded="true" />
+                <element signature="e#411#646#0" expanded="true" />
+                <element signature="e#1512#1524#0" expanded="true" />
+                <element signature="e#1580#1591#0" expanded="true" />
+                <element signature="e#1649#1834#0" expanded="true" />
+                <element signature="e#1890#1901#0" expanded="true" />
+                <element signature="e#2063#2675#0" expanded="true" />
+                <element signature="e#2778#2789#0" expanded="true" />
+                <element signature="e#2863#2883#0" expanded="true" />
+                <element signature="e#2961#2974#0" expanded="true" />
+                <element signature="e#3064#3127#0" expanded="true" />
+                <element signature="e#3179#3397#0" expanded="true" />
+                <element signature="e#3528#4030#0" expanded="true" />
+                <element signature="e#4084#4182#0" expanded="true" />
+                <element signature="e#4950#4966#0" expanded="true" />
+                <element signature="e#5167#5187#0" expanded="true" />
+                <element signature="e#5237#5257#0" expanded="true" />
+                <element signature="e#5331#5347#0" expanded="true" />
+                <element signature="e#5489#5523#0" expanded="true" />
+                <element signature="e#5575#5706#0" expanded="true" />
+                <element signature="e#5747#5764#0" expanded="true" />
+                <element signature="e#5805#5827#0" expanded="true" />
+                <element signature="e#5887#5921#0" expanded="true" />
+                <element signature="e#5993#6002#0" expanded="true" />
+                <element signature="e#6076#6092#0" expanded="true" />
+                <element signature="e#6144#6299#0" expanded="true" />
+                <element signature="e#6351#6466#0" expanded="true" />
+                <element signature="e#6507#6529#0" expanded="true" />
+                <element signature="e#6570#6611#0" expanded="true" />
+                <element signature="e#6671#6847#0" expanded="true" />
+                <element signature="e#6897#6917#0" expanded="true" />
+                <element signature="e#6972#7635#0" expanded="true" />
+                <element signature="e#7707#7847#0" expanded="true" />
+                <element signature="e#7931#8420#0" expanded="true" />
+                <element signature="e#8461#8483#0" expanded="true" />
+                <element signature="e#8524#8595#0" expanded="true" />
+                <element signature="e#8651#8664#0" expanded="true" />
+                <element signature="e#8718#9431#0" expanded="true" />
+                <element signature="e#9503#10403#0" expanded="true" />
+                <element signature="e#10480#11023#0" expanded="true" />
+                <element signature="e#11064#11086#0" expanded="true" />
+                <element signature="e#11127#11191#0" expanded="true" />
+                <element signature="e#11247#11550#0" expanded="true" />
+                <element signature="e#11604#12319#0" expanded="true" />
+                <element signature="e#12391#12411#0" expanded="true" />
+                <element signature="e#12510#12653#0" expanded="true" />
+                <element signature="e#12823#12902#0" expanded="true" />
+                <element signature="e#12928#12952#0" expanded="true" />
+                <element signature="e#13028#13488#0" expanded="true" />
+                <element signature="e#13591#13772#0" expanded="true" />
+                <element signature="e#13850#13991#0" expanded="true" />
+                <element signature="e#14059#15464#0" expanded="true" />
+                <element signature="e#16615#17192#0" expanded="true" />
+                <element signature="e#17249#17795#0" expanded="true" />
+                <element signature="e#17869#18340#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="sets_new.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets_new.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="60" column="0" selection-start-line="60" selection-start-column="0" selection-end-line="60" selection-end-column="0" />
+              <folding>
+                <element signature="e#0#33#0" expanded="true" />
+                <element signature="e#123#296#0" expanded="true" />
+                <element signature="e#347#353#0" expanded="true" />
+                <element signature="e#409#459#0" expanded="true" />
+                <element signature="e#513#563#0" expanded="true" />
+                <element signature="e#615#665#0" expanded="true" />
+                <element signature="e#721#741#0" expanded="true" />
+                <element signature="e#797#817#0" expanded="true" />
+                <element signature="e#879#899#0" expanded="true" />
+                <element signature="e#949#969#0" expanded="true" />
+                <element signature="e#1035#1095#0" expanded="true" />
+                <element signature="e#1147#1305#0" expanded="true" />
+                <element signature="e#1339#1396#0" expanded="true" />
+                <element signature="e#1737#1753#0" expanded="true" />
+                <element signature="e#1786#1902#0" expanded="true" />
+                <element signature="e#1954#1974#0" expanded="true" />
+                <element signature="e#2024#2044#0" expanded="true" />
+                <element signature="e#2091#2102#0" expanded="true" />
+                <element signature="e#2149#2160#0" expanded="true" />
+                <element signature="e#2213#2226#0" expanded="true" />
+                <element signature="e#2276#2289#0" expanded="true" />
+                <element signature="e#2345#2349#0" expanded="true" />
+                <element signature="e#2401#2535#0" expanded="true" />
+                <element signature="e#2569#2595#0" expanded="true" />
+                <element signature="e#2634#2747#0" expanded="true" />
+                <element signature="e#2781#2797#0" expanded="true" />
+                <element signature="e#2830#2847#0" expanded="true" />
+                <element signature="e#2899#2919#0" expanded="true" />
+                <element signature="e#2969#2989#0" expanded="true" />
+                <element signature="e#3036#3047#0" expanded="true" />
+                <element signature="e#3094#3105#0" expanded="true" />
+                <element signature="e#3158#3171#0" expanded="true" />
+                <element signature="e#3221#3234#0" expanded="true" />
+                <element signature="e#3303#3319#0" expanded="true" />
+                <element signature="e#3371#3526#0" expanded="true" />
+                <element signature="e#3560#3614#0" expanded="true" />
+                <element signature="e#3653#3878#0" expanded="true" />
+                <element signature="e#3912#3928#0" expanded="true" />
+                <element signature="e#3961#4002#0" expanded="true" />
+                <element signature="e#4054#4248#0" expanded="true" />
+                <element signature="e#4298#4493#0" expanded="true" />
+                <element signature="e#4540#5325#0" expanded="true" />
+                <element signature="e#5372#5424#0" expanded="true" />
+                <element signature="e#5477#5490#0" expanded="true" />
+                <element signature="e#5540#5553#0" expanded="true" />
+                <element signature="e#5642#5705#0" expanded="true" />
+                <element signature="e#5757#5993#0" expanded="true" />
+                <element signature="e#6040#6138#0" expanded="true" />
+                <element signature="e#6204#6292#0" expanded="true" />
+                <element signature="e#6326#6342#0" expanded="true" />
+                <element signature="e#6375#6446#0" expanded="true" />
+                <element signature="e#6498#6689#0" expanded="true" />
+                <element signature="e#6757#6965#0" expanded="true" />
+                <element signature="e#7019#7732#0" expanded="true" />
+                <element signature="e#7785#7798#0" expanded="true" />
+                <element signature="e#7848#7941#0" expanded="true" />
+                <element signature="e#8000#8081#0" expanded="true" />
+                <element signature="e#8115#8131#0" expanded="true" />
+                <element signature="e#8164#8228#0" expanded="true" />
+                <element signature="e#8280#8492#0" expanded="true" />
+                <element signature="e#8542#8712#0" expanded="true" />
+                <element signature="e#8766#9474#0" expanded="true" />
+                <element signature="e#9540#9907#0" expanded="true" />
+                <element signature="e#9957#9977#0" expanded="true" />
+                <element signature="e#10057#10136#0" expanded="true" />
+                <element signature="e#10197#11295#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="__init__.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rxncon/venntastic/__init__.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="effector.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rxncon/core/effector.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="15" column="12" selection-start-line="15" selection-start-column="12" selection-end-line="15" selection-end-column="12" />
+              <folding>
+                <element signature="e#785#841#0" expanded="true" />
+                <element signature="e#924#983#0" expanded="true" />
+                <element signature="e#1023#1067#0" expanded="true" />
+                <element signature="e#1124#1315#0" expanded="true" />
+                <element signature="e#1395#1453#0" expanded="true" />
+                <element signature="e#1493#1535#0" expanded="true" />
+                <element signature="e#1592#1781#0" expanded="true" />
+                <element signature="e#1920#1983#0" expanded="true" />
+                <element signature="e#2040#2506#0" expanded="true" />
+                <element signature="e#2582#2652#0" expanded="true" />
+                <element signature="e#2727#2796#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="contingency_list.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rxncon/input/shared/contingency_list.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="43" column="21" selection-start-line="43" selection-start-column="21" selection-end-line="43" selection-end-column="21" />
+              <folding>
+                <element signature="e#3907#4559#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test_component.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rxncon/test/core/test_component.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="154" column="45" selection-start-line="154" selection-start-column="45" selection-end-line="154" selection-end-column="45" />
+              <folding>
+                <marker date="1452430646000" expanded="true" signature="0:46" placeholder="import ..." />
+                <marker date="1452430646000" expanded="false" signature="6794:7337" placeholder="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="rxncon_system.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/rxncon/core/rxncon_system.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="17" column="31" selection-start-line="17" selection-start-column="31" selection-end-line="17" selection-end-column="31" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -282,9 +304,10 @@
         <option value="$PROJECT_DIR$/rxncon/core/effector.py" />
         <option value="$PROJECT_DIR$/rxncon/test/input/shared/test_contingency_list.py" />
         <option value="$PROJECT_DIR$/rxncon/test/venntastic/sets_test.py" />
-        <option value="$PROJECT_DIR$/rxncon/venntastic/sets.py" />
         <option value="$PROJECT_DIR$/rxncon/test/venntastic/test_sets.py" />
         <option value="$PROJECT_DIR$/rxncon/venntastic/sets_new.py" />
+        <option value="$PROJECT_DIR$/rxncon/test/venntastic/test_sets_new.py" />
+        <option value="$PROJECT_DIR$/rxncon/venntastic/sets.py" />
       </list>
     </option>
   </component>
@@ -403,6 +426,28 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="test" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="rxncon" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="test" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="venntastic" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -644,38 +689,44 @@
       <option name="project" value="LOCAL" />
       <updated>1452450142621</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="started rewriting sets&#10;">
+      <created>1452505126840</created>
+      <option name="number" value="00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1452505126840</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="rxncon3_py_test - 2016.01.10 at 15h 35m 40s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.11 at 18h 18m 25s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.10 at 15h 37m 57s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.11 at 18h 18m 59s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.10 at 15h 38m 04s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.11 at 18h 20m 21s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.10 at 15h 41m 31s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.11 at 18h 20m 58s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.10 at 15h 45m 01s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.11 at 18h 21m 45s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.10 at 16h 02m 43s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.11 at 18h 26m 15s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.10 at 19h 21m 37s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.11 at 18h 27m 53s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.10 at 19h 21m 52s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.11 at 18h 28m 03s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.10 at 20h 41m 49s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.11 at 18h 28m 33s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.10 at 20h 51m 24s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.11 at 18h 31m 02s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
   </component>
@@ -683,14 +734,14 @@
     <frame x="2" y="23" width="1433" height="852" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.047452897" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.17794836" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32950193" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1660281" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3358876" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -723,49 +774,16 @@
     <MESSAGE value="subspecification works + test" />
     <MESSAGE value="boolean contingencies now store their name in a self.name attribute.&#10;This is None for non-boolean contingencies." />
     <MESSAGE value="added venntastic. woopwoop" />
-    <option name="LAST_COMMIT_MESSAGE" value="added venntastic. woopwoop" />
+    <MESSAGE value="started rewriting sets&#10;" />
+    <option name="LAST_COMMIT_MESSAGE" value="started rewriting sets&#10;" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="2" />
+      <option name="time" value="3" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/rxncon/input/excel_book/excel_book.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/rxncon/test/core/test_component.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="16" column="1" selection-start-line="16" selection-start-column="1" selection-end-line="16" selection-end-column="1" />
-          <folding>
-            <marker date="1452430646000" expanded="true" signature="0:46" placeholder="import ..." />
-            <marker date="1452430646000" expanded="false" signature="6794:7337" placeholder="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/rxncon/core/reaction.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="143" column="0" selection-start-line="143" selection-start-column="0" selection-end-line="143" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#34#0" expanded="false" />
-            <element signature="e#7080#7117#0" expanded="false" />
-            <element signature="e#7176#7551#0" expanded="false" />
-            <element signature="e#7633#7674#0" expanded="false" />
-            <element signature="e#8151#8167#0" expanded="false" />
-            <element signature="e#8224#8388#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/rxncon/core/contingency.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1148,19 +1166,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rxncon/test/input/shared/test_contingency_list.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="88" column="14" selection-start-line="88" selection-start-column="14" selection-end-line="88" selection-end-column="14" />
-          <folding>
-            <element signature="e#308#698#0" expanded="true" />
-            <element signature="e#770#1110#0" expanded="true" />
-            <element signature="e#1181#1496#0" expanded="true" />
-            <element signature="e#4530#5601#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/rxncon/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1177,103 +1182,196 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rxncon/test/venntastic/test_sets.py">
+    <entry file="file://$USER_HOME$/Library/Caches/PyCharm50/python_stubs/1437855905/builtins.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="4" column="0" selection-start-line="4" selection-start-column="0" selection-end-line="4" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.7168">
+          <caret line="740" column="8" selection-start-line="740" selection-start-column="8" selection-end-line="740" selection-end-column="8" />
           <folding>
-            <element signature="e#0#36#0" expanded="true" />
+            <element signature="e#26171#26263#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets.py">
+    <entry file="file://$PROJECT_DIR$/rxncon/test/input/shared/test_contingency_list.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6">
-          <caret line="521" column="0" selection-start-line="521" selection-start-column="0" selection-end-line="527" selection-end-column="57" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="88" column="14" selection-start-line="88" selection-start-column="14" selection-end-line="88" selection-end-column="14" />
           <folding>
-            <element signature="e#0#28#0" expanded="true" />
-            <element signature="e#253#275#0" expanded="true" />
-            <element signature="e#320#1162#0" expanded="true" />
-            <element signature="e#2326#2467#0" expanded="true" />
-            <element signature="e#2521#2669#0" expanded="true" />
-            <element signature="e#2725#2910#0" expanded="true" />
-            <element signature="e#2965#3158#0" expanded="true" />
-            <element signature="e#3220#3366#0" expanded="true" />
-            <element signature="e#3524#4136#0" expanded="true" />
-            <element signature="e#4240#4375#0" expanded="true" />
-            <element signature="e#4481#4619#0" expanded="true" />
-            <element signature="e#4718#4848#0" expanded="true" />
-            <element signature="e#4922#5058#0" expanded="true" />
-            <element signature="e#5198#5211#0" expanded="true" />
-            <element signature="e#5361#5424#0" expanded="true" />
-            <element signature="e#5476#5712#0" expanded="true" />
-            <element signature="e#5841#6339#0" expanded="true" />
-            <element signature="e#6391#6523#0" expanded="true" />
-            <element signature="e#6623#6775#0" expanded="true" />
-            <element signature="e#6877#7033#0" expanded="true" />
-            <element signature="e#7411#7473#0" expanded="true" />
-            <element signature="e#7525#7654#0" expanded="true" />
-            <element signature="e#7701#7898#0" expanded="true" />
-            <element signature="e#7939#7961#0" expanded="true" />
-            <element signature="e#8002#8056#0" expanded="true" />
-            <element signature="e#8116#8752#0" expanded="true" />
-            <element signature="e#8808#8856#0" expanded="true" />
-            <element signature="e#8956#9130#0" expanded="true" />
-            <element signature="e#9204#9220#0" expanded="true" />
-            <element signature="e#9362#9396#0" expanded="true" />
-            <element signature="e#9448#9579#0" expanded="true" />
-            <element signature="e#9620#9634#0" expanded="true" />
-            <element signature="e#9675#9697#0" expanded="true" />
-            <element signature="e#9757#9791#0" expanded="true" />
-            <element signature="e#9863#9872#0" expanded="true" />
-            <element signature="e#10002#10018#0" expanded="true" />
-            <element signature="e#10070#10225#0" expanded="true" />
-            <element signature="e#10277#10392#0" expanded="true" />
-            <element signature="e#10433#10455#0" expanded="true" />
-            <element signature="e#10496#10539#0" expanded="true" />
-            <element signature="e#10599#10775#0" expanded="true" />
-            <element signature="e#10828#11738#0" expanded="true" />
-            <element signature="e#11810#12013#0" expanded="true" />
-            <element signature="e#12147#12636#0" expanded="true" />
-            <element signature="e#12677#12699#0" expanded="true" />
-            <element signature="e#12740#12820#0" expanded="true" />
-            <element signature="e#12874#12887#0" expanded="true" />
-            <element signature="e#12940#13751#0" expanded="true" />
-            <element signature="e#13811#14680#0" expanded="true" />
-            <element signature="e#14780#15029#0" expanded="true" />
-            <element signature="e#15131#15352#0" expanded="true" />
-            <element signature="e#15424#16473#0" expanded="true" />
-            <element signature="e#16604#17184#0" expanded="true" />
-            <element signature="e#17225#17247#0" expanded="true" />
-            <element signature="e#17288#17361#0" expanded="true" />
-            <element signature="e#17415#17773#0" expanded="true" />
-            <element signature="e#17826#18537#0" expanded="true" />
-            <element signature="e#18597#18702#0" expanded="true" />
-            <element signature="e#18774#18835#0" expanded="true" />
-            <element signature="e#18918#19061#0" expanded="true" />
-            <element signature="e#19231#19310#0" expanded="true" />
-            <element signature="e#19386#19920#0" expanded="true" />
-            <element signature="e#19999#20101#0" expanded="true" />
-            <element signature="e#20204#20502#0" expanded="true" />
-            <element signature="e#20580#20721#0" expanded="true" />
-            <element signature="e#20789#22207#0" expanded="true" />
-            <element signature="e#22268#23306#0" expanded="true" />
-            <element signature="e#23353#23925#0" expanded="true" />
-            <element signature="e#23967#24153#0" expanded="true" />
-            <element signature="e#24204#26114#0" expanded="true" />
+            <element signature="e#308#698#0" expanded="true" />
+            <element signature="e#770#1110#0" expanded="true" />
+            <element signature="e#1181#1496#0" expanded="true" />
+            <element signature="e#4530#5601#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/Library/Caches/PyCharm50/python_stubs/1437855905/itertools.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="525" column="8" selection-start-line="525" selection-start-column="8" selection-end-line="525" selection-end-column="8" />
+          <folding>
+            <element signature="e#17729#17817#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rxncon/test/venntastic/test_sets.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="4" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="239" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rxncon/test/venntastic/test_sets_new.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.9085366">
+          <caret line="50" column="83" selection-start-line="50" selection-start-column="83" selection-end-line="50" selection-end-column="83" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+            <element signature="e#147#235#0" expanded="true" />
+            <element signature="e#294#1113#0" expanded="true" />
+            <element signature="e#1171#1218#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets_new.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.536">
-          <caret line="112" column="22" selection-start-line="112" selection-start-column="22" selection-end-line="112" selection-end-column="22" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="60" column="0" selection-start-line="60" selection-start-column="0" selection-end-line="60" selection-end-column="0" />
           <folding>
-            <element signature="e#820#840#0" expanded="true" />
-            <element signature="e#890#910#0" expanded="true" />
-            <element signature="e#1268#1288#0" expanded="true" />
+            <element signature="e#0#33#0" expanded="true" />
+            <element signature="e#123#296#0" expanded="true" />
+            <element signature="e#347#353#0" expanded="true" />
+            <element signature="e#409#459#0" expanded="true" />
+            <element signature="e#513#563#0" expanded="true" />
+            <element signature="e#615#665#0" expanded="true" />
+            <element signature="e#721#741#0" expanded="true" />
+            <element signature="e#797#817#0" expanded="true" />
+            <element signature="e#879#899#0" expanded="true" />
+            <element signature="e#949#969#0" expanded="true" />
+            <element signature="e#1035#1095#0" expanded="true" />
+            <element signature="e#1147#1305#0" expanded="true" />
+            <element signature="e#1339#1396#0" expanded="true" />
+            <element signature="e#1737#1753#0" expanded="true" />
+            <element signature="e#1786#1902#0" expanded="true" />
+            <element signature="e#1954#1974#0" expanded="true" />
+            <element signature="e#2024#2044#0" expanded="true" />
+            <element signature="e#2091#2102#0" expanded="true" />
+            <element signature="e#2149#2160#0" expanded="true" />
+            <element signature="e#2213#2226#0" expanded="true" />
+            <element signature="e#2276#2289#0" expanded="true" />
+            <element signature="e#2345#2349#0" expanded="true" />
+            <element signature="e#2401#2535#0" expanded="true" />
+            <element signature="e#2569#2595#0" expanded="true" />
+            <element signature="e#2634#2747#0" expanded="true" />
+            <element signature="e#2781#2797#0" expanded="true" />
+            <element signature="e#2830#2847#0" expanded="true" />
+            <element signature="e#2899#2919#0" expanded="true" />
+            <element signature="e#2969#2989#0" expanded="true" />
+            <element signature="e#3036#3047#0" expanded="true" />
+            <element signature="e#3094#3105#0" expanded="true" />
+            <element signature="e#3158#3171#0" expanded="true" />
+            <element signature="e#3221#3234#0" expanded="true" />
+            <element signature="e#3303#3319#0" expanded="true" />
+            <element signature="e#3371#3526#0" expanded="true" />
+            <element signature="e#3560#3614#0" expanded="true" />
+            <element signature="e#3653#3878#0" expanded="true" />
+            <element signature="e#3912#3928#0" expanded="true" />
+            <element signature="e#3961#4002#0" expanded="true" />
+            <element signature="e#4054#4248#0" expanded="true" />
+            <element signature="e#4298#4493#0" expanded="true" />
+            <element signature="e#4540#5325#0" expanded="true" />
+            <element signature="e#5372#5424#0" expanded="true" />
+            <element signature="e#5477#5490#0" expanded="true" />
+            <element signature="e#5540#5553#0" expanded="true" />
+            <element signature="e#5642#5705#0" expanded="true" />
+            <element signature="e#5757#5993#0" expanded="true" />
+            <element signature="e#6040#6138#0" expanded="true" />
+            <element signature="e#6204#6292#0" expanded="true" />
+            <element signature="e#6326#6342#0" expanded="true" />
+            <element signature="e#6375#6446#0" expanded="true" />
+            <element signature="e#6498#6689#0" expanded="true" />
+            <element signature="e#6757#6965#0" expanded="true" />
+            <element signature="e#7019#7732#0" expanded="true" />
+            <element signature="e#7785#7798#0" expanded="true" />
+            <element signature="e#7848#7941#0" expanded="true" />
+            <element signature="e#8000#8081#0" expanded="true" />
+            <element signature="e#8115#8131#0" expanded="true" />
+            <element signature="e#8164#8228#0" expanded="true" />
+            <element signature="e#8280#8492#0" expanded="true" />
+            <element signature="e#8542#8712#0" expanded="true" />
+            <element signature="e#8766#9474#0" expanded="true" />
+            <element signature="e#9540#9907#0" expanded="true" />
+            <element signature="e#9957#9977#0" expanded="true" />
+            <element signature="e#10057#10136#0" expanded="true" />
+            <element signature="e#10197#11295#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-0.19505495">
+          <caret line="498" column="50" selection-start-line="498" selection-start-column="50" selection-end-line="498" selection-end-column="50" />
+          <folding>
+            <element signature="e#0#28#0" expanded="true" />
+            <element signature="e#340#362#0" expanded="true" />
+            <element signature="e#411#646#0" expanded="true" />
+            <element signature="e#1512#1524#0" expanded="true" />
+            <element signature="e#1580#1591#0" expanded="true" />
+            <element signature="e#1649#1834#0" expanded="true" />
+            <element signature="e#1890#1901#0" expanded="true" />
+            <element signature="e#2063#2675#0" expanded="true" />
+            <element signature="e#2778#2789#0" expanded="true" />
+            <element signature="e#2863#2883#0" expanded="true" />
+            <element signature="e#2961#2974#0" expanded="true" />
+            <element signature="e#3064#3127#0" expanded="true" />
+            <element signature="e#3179#3397#0" expanded="true" />
+            <element signature="e#3528#4030#0" expanded="true" />
+            <element signature="e#4084#4182#0" expanded="true" />
+            <element signature="e#4950#4966#0" expanded="true" />
+            <element signature="e#5167#5187#0" expanded="true" />
+            <element signature="e#5237#5257#0" expanded="true" />
+            <element signature="e#5331#5347#0" expanded="true" />
+            <element signature="e#5489#5523#0" expanded="true" />
+            <element signature="e#5575#5706#0" expanded="true" />
+            <element signature="e#5747#5764#0" expanded="true" />
+            <element signature="e#5805#5827#0" expanded="true" />
+            <element signature="e#5887#5921#0" expanded="true" />
+            <element signature="e#5993#6002#0" expanded="true" />
+            <element signature="e#6076#6092#0" expanded="true" />
+            <element signature="e#6144#6299#0" expanded="true" />
+            <element signature="e#6351#6466#0" expanded="true" />
+            <element signature="e#6507#6529#0" expanded="true" />
+            <element signature="e#6570#6611#0" expanded="true" />
+            <element signature="e#6671#6847#0" expanded="true" />
+            <element signature="e#6897#6917#0" expanded="true" />
+            <element signature="e#6972#7635#0" expanded="true" />
+            <element signature="e#7707#7847#0" expanded="true" />
+            <element signature="e#7931#8420#0" expanded="true" />
+            <element signature="e#8461#8483#0" expanded="true" />
+            <element signature="e#8524#8595#0" expanded="true" />
+            <element signature="e#8651#8664#0" expanded="true" />
+            <element signature="e#8718#9431#0" expanded="true" />
+            <element signature="e#9503#10403#0" expanded="true" />
+            <element signature="e#10480#11023#0" expanded="true" />
+            <element signature="e#11064#11086#0" expanded="true" />
+            <element signature="e#11127#11191#0" expanded="true" />
+            <element signature="e#11247#11550#0" expanded="true" />
+            <element signature="e#11604#12319#0" expanded="true" />
+            <element signature="e#12391#12411#0" expanded="true" />
+            <element signature="e#12510#12653#0" expanded="true" />
+            <element signature="e#12823#12902#0" expanded="true" />
+            <element signature="e#12928#12952#0" expanded="true" />
+            <element signature="e#13028#13488#0" expanded="true" />
+            <element signature="e#13591#13772#0" expanded="true" />
+            <element signature="e#13850#13991#0" expanded="true" />
+            <element signature="e#14059#15464#0" expanded="true" />
+            <element signature="e#16615#17192#0" expanded="true" />
+            <element signature="e#17249#17795#0" expanded="true" />
+            <element signature="e#17869#18340#0" expanded="true" />
           </folding>
         </state>
       </provider>
