@@ -52,19 +52,37 @@
       <file leaf-file-name="sets.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="1.4185431">
-              <caret line="257" column="0" selection-start-line="257" selection-start-column="0" selection-end-line="257" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.37483445">
+              <caret line="393" column="41" selection-start-line="393" selection-start-column="41" selection-end-line="393" selection-end-column="41" />
               <folding>
                 <element signature="e#0#16#0" expanded="true" />
-                <element signature="e#12915#12939#0" expanded="true" />
-                <element signature="e#13015#13485#0" expanded="true" />
-                <element signature="e#13588#13769#0" expanded="true" />
-                <element signature="e#13847#13988#0" expanded="true" />
-                <element signature="e#14041#14172#0" expanded="true" />
-                <element signature="e#14233#14817#0" expanded="true" />
-                <element signature="e#14864#15434#0" expanded="true" />
-                <element signature="e#15491#16037#0" expanded="true" />
-                <element signature="e#16111#16582#0" expanded="true" />
+                <element signature="e#1429#1483#0" expanded="true" />
+                <element signature="e#1555#1566#0" expanded="true" />
+                <element signature="e#1636#1647#0" expanded="true" />
+                <element signature="e#1772#1973#0" expanded="true" />
+                <element signature="e#2917#2928#0" expanded="true" />
+                <element signature="e#2994#3019#0" expanded="true" />
+                <element signature="e#4739#4755#0" expanded="true" />
+                <element signature="e#4795#4812#0" expanded="true" />
+                <element signature="e#4984#4995#0" expanded="true" />
+                <element signature="e#5408#5450#0" expanded="true" />
+                <element signature="e#5658#5674#0" expanded="true" />
+                <element signature="e#5807#5986#0" expanded="true" />
+                <element signature="e#6036#6216#0" expanded="true" />
+                <element signature="e#8955#9043#0" expanded="true" />
+                <element signature="e#9077#9093#0" expanded="true" />
+                <element signature="e#9267#9443#0" expanded="true" />
+                <element signature="e#9511#9704#0" expanded="true" />
+                <element signature="e#12166#12247#0" expanded="true" />
+                <element signature="e#14586#14610#0" expanded="true" />
+                <element signature="e#14686#15156#0" expanded="true" />
+                <element signature="e#15259#15440#0" expanded="true" />
+                <element signature="e#15518#15659#0" expanded="true" />
+                <element signature="e#15712#15843#0" expanded="true" />
+                <element signature="e#15904#16488#0" expanded="true" />
+                <element signature="e#16535#17105#0" expanded="true" />
+                <element signature="e#17162#17708#0" expanded="true" />
+                <element signature="e#17782#18253#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -74,7 +92,7 @@
         <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets_new.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="60" column="0" selection-start-line="60" selection-start-column="0" selection-end-line="60" selection-end-column="0" />
+              <caret line="309" column="0" selection-start-line="309" selection-start-column="0" selection-end-line="327" selection-end-column="24" />
               <folding>
                 <element signature="e#0#33#0" expanded="true" />
                 <element signature="e#123#296#0" expanded="true" />
@@ -89,6 +107,7 @@
                 <element signature="e#1035#1095#0" expanded="true" />
                 <element signature="e#1147#1305#0" expanded="true" />
                 <element signature="e#1339#1396#0" expanded="true" />
+                <element signature="e#1440#1703#0" expanded="true" />
                 <element signature="e#1737#1753#0" expanded="true" />
                 <element signature="e#1786#1902#0" expanded="true" />
                 <element signature="e#1954#1974#0" expanded="true" />
@@ -652,7 +671,13 @@
       <option name="project" value="LOCAL" />
       <updated>1452542018313</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="refaaaaaactoring">
+      <created>1452543106045</created>
+      <option name="number" value="00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1452543106045</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -733,7 +758,8 @@
     <MESSAGE value="added venntastic. woopwoop" />
     <MESSAGE value="started rewriting sets&#10;" />
     <MESSAGE value="refactoring set" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactoring set" />
+    <MESSAGE value="refaaaaaactoring" />
+    <option name="LAST_COMMIT_MESSAGE" value="refaaaaaactoring" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1197,7 +1223,7 @@
     <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets_new.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="60" column="0" selection-start-line="60" selection-start-column="0" selection-end-line="60" selection-end-column="0" />
+          <caret line="309" column="0" selection-start-line="309" selection-start-column="0" selection-end-line="327" selection-end-column="24" />
           <folding>
             <element signature="e#0#33#0" expanded="true" />
             <element signature="e#123#296#0" expanded="true" />
@@ -1212,6 +1238,7 @@
             <element signature="e#1035#1095#0" expanded="true" />
             <element signature="e#1147#1305#0" expanded="true" />
             <element signature="e#1339#1396#0" expanded="true" />
+            <element signature="e#1440#1703#0" expanded="true" />
             <element signature="e#1737#1753#0" expanded="true" />
             <element signature="e#1786#1902#0" expanded="true" />
             <element signature="e#1954#1974#0" expanded="true" />
@@ -1271,19 +1298,37 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.4185431">
-          <caret line="257" column="0" selection-start-line="257" selection-start-column="0" selection-end-line="257" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.37483445">
+          <caret line="393" column="41" selection-start-line="393" selection-start-column="41" selection-end-line="393" selection-end-column="41" />
           <folding>
             <element signature="e#0#16#0" expanded="true" />
-            <element signature="e#12915#12939#0" expanded="true" />
-            <element signature="e#13015#13485#0" expanded="true" />
-            <element signature="e#13588#13769#0" expanded="true" />
-            <element signature="e#13847#13988#0" expanded="true" />
-            <element signature="e#14041#14172#0" expanded="true" />
-            <element signature="e#14233#14817#0" expanded="true" />
-            <element signature="e#14864#15434#0" expanded="true" />
-            <element signature="e#15491#16037#0" expanded="true" />
-            <element signature="e#16111#16582#0" expanded="true" />
+            <element signature="e#1429#1483#0" expanded="true" />
+            <element signature="e#1555#1566#0" expanded="true" />
+            <element signature="e#1636#1647#0" expanded="true" />
+            <element signature="e#1772#1973#0" expanded="true" />
+            <element signature="e#2917#2928#0" expanded="true" />
+            <element signature="e#2994#3019#0" expanded="true" />
+            <element signature="e#4739#4755#0" expanded="true" />
+            <element signature="e#4795#4812#0" expanded="true" />
+            <element signature="e#4984#4995#0" expanded="true" />
+            <element signature="e#5408#5450#0" expanded="true" />
+            <element signature="e#5658#5674#0" expanded="true" />
+            <element signature="e#5807#5986#0" expanded="true" />
+            <element signature="e#6036#6216#0" expanded="true" />
+            <element signature="e#8955#9043#0" expanded="true" />
+            <element signature="e#9077#9093#0" expanded="true" />
+            <element signature="e#9267#9443#0" expanded="true" />
+            <element signature="e#9511#9704#0" expanded="true" />
+            <element signature="e#12166#12247#0" expanded="true" />
+            <element signature="e#14586#14610#0" expanded="true" />
+            <element signature="e#14686#15156#0" expanded="true" />
+            <element signature="e#15259#15440#0" expanded="true" />
+            <element signature="e#15518#15659#0" expanded="true" />
+            <element signature="e#15712#15843#0" expanded="true" />
+            <element signature="e#15904#16488#0" expanded="true" />
+            <element signature="e#16535#17105#0" expanded="true" />
+            <element signature="e#17162#17708#0" expanded="true" />
+            <element signature="e#17782#18253#0" expanded="true" />
           </folding>
         </state>
       </provider>

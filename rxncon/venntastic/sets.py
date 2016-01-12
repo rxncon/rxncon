@@ -9,9 +9,6 @@ METHOD_UNIONS_ORDERED_SIMPLIFIED = '_unions_ordered_simplified'
 
 
 class Set:
-    def __hash__(self) -> int:
-        return hash(str(self))
-
     def canonical_form(self) -> 'Set':
         simplification_methods = [
             METHOD_COMPLEMENTS_EXPANDED,
@@ -19,7 +16,7 @@ class Set:
             METHOD_UNIONS_ORDERED_SIMPLIFIED
         ]
 
-        return _call_method_until_stable(self, simplification_methods)
+        return _call_method_list_until_stable(self, simplification_methods)
 
     @property
     def cardinality(self) -> Dict['PropertySet', int]:
@@ -43,8 +40,14 @@ class Set:
 
         return {k: v for k, v in terms.items() if v != 0}
 
-    def is_superset_of(self, other: 'Set') -> bool:
-        return False
+    def is_equivalent_to(self, other: 'Set'):
+        return self.canonical_form() == other.canonical_form()
+
+    def is_superset_of(self, other: 'Set') -> Optional[bool]:
+        return None
+
+    def is_subset_of(self, other: 'Set') -> Optional[bool]:
+        return None
 
     def _complements_expanded(self) -> 'Set':
         return self
@@ -54,7 +57,7 @@ class Set:
         Returns a flattened list given a left-simplified nested Union expression, for example:
             Union(Union(Union(a,b),c),d) -> [a, b, c, d]
         """
-        return []
+        raise NotImplementedError
 
     def _unions_moved_to_left(self) -> 'Set':
         return self
@@ -74,8 +77,8 @@ class Set:
     def _unions_ordered_simplified(self, visited_sets: Optional[List['Set']]=None) -> 'Set':
         return self
 
-    def _partial_cardinality(self) -> Dict['PropertySet', int]:
-        raise AssertionError
+    def _partial_cardinality(self) -> Dict['Set', int]:
+        raise NotImplementedError
 
 
 class UnarySet(Set):
@@ -129,7 +132,7 @@ class PropertySet(UnarySet):
     def is_subset_of(self, other: Set):
         return self == other
 
-    def _partial_cardinality(self) -> Dict['PropertySet', int]:
+    def _partial_cardinality(self) -> Dict['Set', int]:
         return {self: 1}
 
 
@@ -140,6 +143,9 @@ class EmptySet(UnarySet):
     def __eq__(self, other: Set) -> bool:
         return isinstance(other, EmptySet)
 
+    def __hash__(self) -> int:
+        return hash('*empty-set*')
+
     def __lt__(self, other: Set) -> bool:
         if isinstance(other, PropertySet) or isinstance(other, Complement):
             return True
@@ -148,15 +154,18 @@ class EmptySet(UnarySet):
             return False
 
     def __repr__(self) -> str:
+        return str(self)
+
+    def __str__(self) -> str:
         return 'EmptySet'
 
-    def __hash__(self) -> int:
-        return hash(str(self))
-
-    def is_superset_of(self, other: Set) -> bool:
+    def is_superset_of(self, other: Set) -> Optional[bool]:
         return isinstance(other, EmptySet)
 
-    def _partial_cardinality(self) -> Dict[PropertySet, int]:
+    def is_subset_of(self, other: Set) -> Optional[bool]:
+        return True
+
+    def _partial_cardinality(self) -> Dict['Set', int]:
         return {}
 
 
@@ -173,6 +182,9 @@ class Complement(UnarySet):
         else:
             return False
 
+    def __hash__(self) -> int:
+        return '*complement-{}*'.format(self.expr)
+
     def __lt__(self, other: Set) -> bool:
         if isinstance(other, Complement):
             return self.expr < other.expr
@@ -180,22 +192,31 @@ class Complement(UnarySet):
         else:
             return False
 
-    def __hash__(self) -> int:
-        return hash(str(self))
-
     def __repr__(self) -> str:
+        return str(self)
+
+    def __str__(self) -> str:
         return 'Complement({})'.format(self.expr)
 
-    def is_superset_of(self, other: Set) -> bool:
-        assert isinstance(other, Set)
-
-        if isinstance(other, Complement) and other.expr.is_superset_of(self.expr):
+    def is_superset_of(self, other: Set):
+        if self == other:
             return True
+
+        elif isinstance(other, Complement):
+            return self.expr.is_subset_of(other.expr)
+
         else:
-            return False
+            return None
 
     def is_subset_of(self, other: Set):
-        return self == other
+        if self == other:
+            return True
+
+        elif self.is_superset_of(other) is None:
+            return None
+
+        else:
+            return not self.is_superset_of(other)
 
     def _complements_expanded(self) -> bool:
         if isinstance(self.expr, Complement):
@@ -216,7 +237,7 @@ class Complement(UnarySet):
         else:
             return Complement(self.expr._complements_expanded())
 
-    def _partial_cardinality(self) -> Dict[PropertySet, int]:
+    def _partial_cardinality(self) -> Dict['Set', int]:
         if isinstance(self.expr, PropertySet):
             return {UniversalSet(): 1, self.expr: -1}
 
@@ -275,11 +296,34 @@ class Intersection(BinarySet):
         else:
             return False
 
-    def __hash__(self) -> int:
-        return hash(str(self))
+    def __hash__(self):
+        return hash('*intersection-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
 
-    def __repr__(self) -> str:
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
         return 'Intersection({0}, {1})'.format(self.left_expr, self.right_expr)
+
+    def is_superset_of(self, other: Set) -> Optional[bool]:
+        if self == other:
+            return True
+
+        elif self.is_subset_of(other) is None:
+            return None
+
+        else:
+            return not self.is_subset_of(other)
+
+    def is_subset_of(self, other: Set) -> Optional[bool]:
+        if self == other:
+            return True
+
+        elif self.left_expr.is_subset_of(other) or self.right_expr.is_subset_of(other):
+            return True
+
+        else:
+            return None
 
     def _unions_flattened(self) -> List[Set]:
         return [self]
@@ -338,11 +382,34 @@ class Union(BinarySet):
         else:
             raise AssertionError
 
-    def __hash__(self) -> int:
-        return hash(str(self))
+    def __hash__(self):
+        return hash('*union-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
 
-    def __repr__(self) -> str:
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
         return 'Union({0}, {1})'.format(self.left_expr, self.right_expr)
+
+    def is_superset_of(self, other: Set):
+        if self == other:
+            return True
+
+        elif self.left_expr.is_superset_of(other) or self.right_expr.is_superset_of(other):
+            return True
+
+        else:
+            return None
+
+    def is_subset_of(self, other: Set):
+        if self == other:
+            return True
+
+        elif self.is_superset_of(other) is None:
+            return None
+
+        else:
+            return False
 
     def _unions_flattened(self) -> List[Set]:
         if isinstance(self.right_expr, Union):
