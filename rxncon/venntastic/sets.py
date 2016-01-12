@@ -1,19 +1,18 @@
 import functools
 import itertools as itt
-from typing import List, Dict, Callable, Optional
+from typing import List, Dict, Optional
 
 
 METHOD_COMPLEMENTS_EXPANDED = '_complements_expanded'
 METHOD_UNIONS_MOVED_TO_LEFT = '_unions_moved_to_left'
-METHOD_UNIONS_ORDERED_SIMPLIFIED = '_unions_ordered_simplified'
-
+METHOD_INTERSECTIONS_SIMPLIFIED = '_intersections_simplified'
+METHOD_UNIONS_SIMPLIFIED = '_unions_simplified'
 
 class Set:
     def canonical_form(self) -> 'Set':
         simplification_methods = [
             METHOD_COMPLEMENTS_EXPANDED,
-            METHOD_UNIONS_MOVED_TO_LEFT,
-            METHOD_UNIONS_ORDERED_SIMPLIFIED
+            METHOD_UNIONS_MOVED_TO_LEFT
         ]
 
         return _call_method_list_until_stable(self, simplification_methods)
@@ -40,8 +39,13 @@ class Set:
 
         return {k: v for k, v in terms.items() if v != 0}
 
+    def equivalent_forms(self):
+        return [self]
+
     def is_equivalent_to(self, other: 'Set'):
-        return self.canonical_form() == other.canonical_form()
+        assert isinstance(other, Set)
+
+        return self in other.equivalent_forms() or other in self.equivalent_forms()
 
     def is_superset_of(self, other: 'Set') -> Optional[bool]:
         return None
@@ -52,29 +56,7 @@ class Set:
     def _complements_expanded(self) -> 'Set':
         return self
 
-    def _unions_flattened(self) -> List['Set']:
-        """
-        Returns a flattened list given a left-simplified nested Union expression, for example:
-            Union(Union(Union(a,b),c),d) -> [a, b, c, d]
-        """
-        raise NotImplementedError
-
     def _unions_moved_to_left(self) -> 'Set':
-        return self
-
-    def _nodes_ordered(self, set_type, visited_sets: List['Set'],
-                       postprocessing_func: Callable[[List['Set']], 'Set']) -> 'Set':
-        """
-        Recursively orders the nodes in a nested expression. If set_type is Union, the expression is of the form
-        Union(Union(...)), if set_type is Intersection it is of the form Intersection(Intersection(...)).
-        This works by first unpacking the nested expression into a list: elements to visited_sets are recursively added.
-
-        The postprocessing_func maps the list of Sets to resultant Set. This allows us to use this method both in the
-        case when we want to collapse all sub-expressions and in the case when we want to expand all sub-expressions.
-        """
-        return self
-
-    def _unions_ordered_simplified(self, visited_sets: Optional[List['Set']]=None) -> 'Set':
         return self
 
     def _partial_cardinality(self) -> Dict['Set', int]:
@@ -88,7 +70,7 @@ class UnarySet(Set):
 
 class PropertySet(UnarySet):
     def __init__(self, value):
-        assert hasattr(value, '__hash__')
+        assert hash(value)
         self.value = value
 
     def __eq__(self, other: Set) -> bool:
@@ -103,19 +85,6 @@ class PropertySet(UnarySet):
     def __hash__(self):
         return hash('*property-set-{}*'.format(hash(self.value)))
 
-    def __lt__(self, other: Set):
-        if isinstance(other, PropertySet):
-            return self.value < other.value
-
-        elif isinstance(other, Complement):
-            return True
-
-        elif isinstance(other, EmptySet):
-            return False
-
-        else:
-            raise AssertionError
-
     def __repr__(self):
         return str(self)
 
@@ -127,31 +96,32 @@ class PropertySet(UnarySet):
             return 'UniversalSet'
 
     def is_superset_of(self, other: Set):
-        return self == other
+        if self.value is None:
+            return True
+
+        elif isinstance(other, EmptySet):
+            return True
+
+        else:
+            return self == other
 
     def is_subset_of(self, other: Set):
-        return self == other
+        if self == other:
+            return True
+
+        else:
+            return other.is_superset_of(self)
 
     def _partial_cardinality(self) -> Dict['Set', int]:
         return {self: 1}
 
 
 class EmptySet(UnarySet):
-    """
-    The empty set, which contains no elements.
-    """
     def __eq__(self, other: Set) -> bool:
         return isinstance(other, EmptySet)
 
     def __hash__(self) -> int:
         return hash('*empty-set*')
-
-    def __lt__(self, other: Set) -> bool:
-        if isinstance(other, PropertySet) or isinstance(other, Complement):
-            return True
-
-        else:
-            return False
 
     def __repr__(self) -> str:
         return str(self)
@@ -183,20 +153,33 @@ class Complement(UnarySet):
             return False
 
     def __hash__(self) -> int:
-        return '*complement-{}*'.format(self.expr)
-
-    def __lt__(self, other: Set) -> bool:
-        if isinstance(other, Complement):
-            return self.expr < other.expr
-
-        else:
-            return False
+        return hash('*complement-{}*'.format(self.expr))
 
     def __repr__(self) -> str:
         return str(self)
 
     def __str__(self) -> str:
         return 'Complement({})'.format(self.expr)
+
+    def equivalent_forms(self):
+        forms = [self]
+
+        if isinstance(self.expr, Complement):
+            forms += self.expr.expr.equivalent_forms()
+
+        elif isinstance(self.expr, Union):
+            forms += Intersection(Complement(self.expr.left_expr), Complement(self.expr.right_expr)).equivalent_forms()
+
+        elif isinstance(self.expr, Intersection):
+            forms += Union(Complement(self.expr.left_expr), Complement(self.expr.right_expr)).equivalent_forms()
+
+        elif isinstance(self.expr, EmptySet):
+            forms += [UniversalSet()]
+
+        elif self.expr == UniversalSet():
+            forms += [EmptySet()]
+
+        return forms
 
     def is_superset_of(self, other: Set):
         if self == other:
@@ -259,43 +242,69 @@ class BinarySet(Set):
         else:
             return False
 
-    def _nodes_ordered(self, set_type, visited_sets: List[Set], postprocessing_func: Callable[[List[Set]], Set]) -> Set:
-        if isinstance(self.left_expr, set_type):
-            visited_sets.append(self.right_expr._nodes_ordered(set_type, [], postprocessing_func))
-            return self.left_expr._nodes_ordered(set_type, visited_sets, postprocessing_func)
+    def flip(self):
+        return type(self)(self.right_expr, self.left_expr)
 
-        else:
-            visited_sets.append(self.right_expr)
-            visited_sets.append(self.left_expr)
-            visited_sets.reverse()
+    def equivalent_forms(self):
+        X = type(self)
 
-            processed = postprocessing_func(visited_sets)
-            visited_sets.clear()
+        if X == Union:
+            Y = Intersection
+            U = UniversalSet()
 
-            return processed
+        elif X == Intersection:
+            Y = Union
+            U = EmptySet()
+
+        forms = []
+
+        for left, right in itt.product(self.left_expr.equivalent_forms(), self.right_expr.equivalent_forms()):
+            forms += [X(left, right),
+                      X(left, right).flip()]
+
+            if left in Complement(right).equivalent_forms() or right in Complement(left).equivalent_forms():
+                return [U]
+
+            if isinstance(left, X):
+                forms += [X(left.left_expr, X(left.right_expr, right)),
+                          X(left.left_expr, X(left.right_expr, right)).flip(),
+                          X(left.left_expr, X(left.right_expr, right).flip()),
+                          X(left.left_expr, X(left.right_expr, right).flip()).flip()]
+
+            if isinstance(right, X):
+                forms += [X(X(left, right.left_expr), right.right_expr),
+                          X(X(left, right.left_expr), right.right_expr).flip(),
+                          X(X(left, right.left_expr).flip(), right.right_expr),
+                          X(X(left, right.left_expr).flip(), right.right_expr).flip()]
+
+            if isinstance(left, Y):
+                forms += [Y(X(left.left_expr, right), X(left.right_expr, right)),
+                          Y(X(left.left_expr, right).flip(), X(left.right_expr, right)),
+                          Y(X(left.left_expr, right), X(left.right_expr, right).flip()),
+                          Y(X(left.left_expr, right).flip(), X(left.right_expr, right).flip()),
+                          Y(X(left.left_expr, right), X(left.right_expr, right)).flip(),
+                          Y(X(left.left_expr, right).flip(), X(left.right_expr, right)).flip(),
+                          Y(X(left.left_expr, right), X(left.right_expr, right).flip()).flip(),
+                          Y(X(left.left_expr, right).flip(), X(left.right_expr, right).flip()).flip()]
+
+            if isinstance(right, Y):
+                forms += [Y(X(left, right.left_expr), X(left, right.right_expr)),
+                          Y(X(left, right.left_expr).flip(), X(left, right.right_expr)),
+                          Y(X(left, right.left_expr), X(left, right.right_expr).flip()),
+                          Y(X(left, right.left_expr).flip(), X(left, right.right_expr).flip()),
+                          Y(X(left, right.left_expr), X(left, right.right_expr)).flip(),
+                          Y(X(left, right.left_expr).flip(), X(left, right.right_expr)).flip(),
+                          Y(X(left, right.left_expr), X(left, right.right_expr).flip()).flip(),
+                          Y(X(left, right.left_expr).flip(), X(left, right.right_expr).flip()).flip()]
+
+        return list(set(forms))
+
 
     def _complements_expanded(self) -> Set:
         return type(self)(self.left_expr._complements_expanded(), self.right_expr._complements_expanded())
 
 
 class Intersection(BinarySet):
-    def __lt__(self, other: Set) -> bool:
-        if isinstance(other, EmptySet) or isinstance(other, PropertySet) or isinstance(other, Complement):
-            return True
-
-        elif isinstance(other, Intersection):
-            if self.left_expr < other.left_expr:
-                return True
-
-            elif not self.left_expr < other.left_expr and not other.left_expr < self.left_expr:
-                return self.right_expr < other.right_expr
-
-            else:
-                return False
-
-        else:
-            return False
-
     def __hash__(self):
         return hash('*intersection-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
 
@@ -324,9 +333,6 @@ class Intersection(BinarySet):
 
         else:
             return None
-
-    def _unions_flattened(self) -> List[Set]:
-        return [self]
 
     def _unions_moved_to_left(self) -> Set:
         if isinstance(self.left_expr, Union):
@@ -364,24 +370,6 @@ class Intersection(BinarySet):
 
 
 class Union(BinarySet):
-    def __lt__(self, other: Set) -> bool:
-        if isinstance(other, EmptySet) or isinstance(other, PropertySet) or \
-                isinstance(other, Complement) or isinstance(other, Intersection):
-            return True
-
-        elif isinstance(other, Union):
-            if self.left_expr < other.left_expr:
-                return True
-
-            elif not self.left_expr < other.left_expr and not other.left_expr < self.left_expr:
-                return self.right_expr < other.right_expr
-
-            else:
-                return False
-
-        else:
-            raise AssertionError
-
     def __hash__(self):
         return hash('*union-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
 
@@ -411,18 +399,6 @@ class Union(BinarySet):
         else:
             return False
 
-    def _unions_flattened(self) -> List[Set]:
-        if isinstance(self.right_expr, Union):
-            raise AssertionError
-
-        if isinstance(self.left_expr, Union):
-            left_contribution = self.left_expr._unions_flattened()
-
-        else:
-            left_contribution = [self.left_expr]
-
-        return left_contribution + [self.right_expr]
-
     def _unions_moved_to_left(self) -> Set:
         if isinstance(self.right_expr, Union) and not isinstance(self.left_expr, Union):
             # Use commutativity to move all Union expressions to the left
@@ -439,17 +415,8 @@ class Union(BinarySet):
     def _partial_cardinality(self) -> Dict[PropertySet, int]:
         raise AssertionError
 
-    def _unions_ordered_simplified(self, visited_sets: Optional[List[Set]]=None) -> Set:
-        if visited_sets is None:
-            visited_sets = []
-
-        return self._nodes_ordered(Union, visited_sets, lambda x: _find_total_union(x))
-
 
 class Difference(Set):
-    """
-    The difference of two Set expressions, by the identity A \ B = A ^ !B
-    """
     def __new__(cls, *args, **kwargs) -> Set:
         assert len(args) == 2
         return Intersection(args[0], Complement(args[1]))
@@ -460,10 +427,6 @@ def UniversalSet():
 
 
 def flat_list_to_nested_expression(xs: List[Set], set_class) -> Set:
-    """
-    Reduces a list of Sets to a nested expression. E.g. if set_class is Intersection:
-        [a, b, c] -> Intersection(Intersection(a, b), c)
-    """
     if set_class == Intersection:
         unit = UniversalSet()
 
@@ -499,66 +462,11 @@ def _add_dicts(x: Dict[PropertySet, int], y: Dict[PropertySet, int]) -> Dict[Pro
 
 
 def _negate_dict(x: Dict[PropertySet, int]) -> Dict[PropertySet, int]:
-    """
-    Flips the sign of the values of a dictionary.
-    """
     res = {}
     for k, v in x.items():
         res[k] = -1 * v
 
     return res
-
-
-def _has_mutual_complements(sets: List[Set]):
-    for x, y in itt.product(sets, sets):
-        if x == Complement(y) or y == Complement(x):
-            return True
-
-    return False
-
-
-def _find_total_intersection(sets: List[Set]) -> Set:
-    """
-    Returns the total intersection of a list of Sets.
-    @todo We can simplify this even further by looking at subsets of sub-expressions:
-          Intersection(a, b) = b if a.contains(b)
-    """
-    if EmptySet() in sets:
-        return EmptySet()
-
-    # Filter out the universal set and duplicates
-    sets = list(set(sets))
-    if sets == [UniversalSet()]:
-        return UniversalSet()
-
-    sets = [x for x in sets if x != UniversalSet()]
-
-    if _has_mutual_complements(sets):
-        return EmptySet()
-
-    return flat_list_to_nested_expression(sorted(sets), Intersection)
-
-
-def _find_total_union(sets: List[Set]):
-    """
-    Returns the total union of a list of Set expressions.
-    @todo We can simplify this even further by looking at subsets of sub-expressions:
-          Union(a, b) = a if a.contains(b)
-    """
-    if UniversalSet() in sets:
-        return UniversalSet()
-
-    # Filter out the Empty set and duplicates
-    sets = list(set(sets))
-    if sets == [EmptySet()]:
-        return EmptySet()
-
-    sets = [x for x in sets if x != EmptySet()]
-
-    if _has_mutual_complements(sets):
-        return UniversalSet()
-
-    return flat_list_to_nested_expression(sorted(sets), Union)
 
 
 def _call_method_until_stable(expr: Set, method):
