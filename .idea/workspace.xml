@@ -4,7 +4,6 @@
     <list default="true" id="19539257-8c28-425d-83b0-da3867cd0586" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/test/venntastic/test_sets.py" afterPath="$PROJECT_DIR$/rxncon/test/venntastic/test_sets.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/test/venntastic/test_sets_new.py" afterPath="$PROJECT_DIR$/rxncon/test/venntastic/test_sets_new.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/venntastic/sets.py" afterPath="$PROJECT_DIR$/rxncon/venntastic/sets.py" />
     </list>
     <ignored path="rxncon3.iws" />
@@ -26,11 +25,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="test_sets.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="test_sets.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/rxncon/test/venntastic/test_sets.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.9227468">
-              <caret line="71" column="81" selection-start-line="71" selection-start-column="81" selection-end-line="71" selection-end-column="81" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="165" column="20" selection-start-line="165" selection-start-column="20" selection-end-line="165" selection-end-column="20" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
                 <element signature="e#120#265#0" expanded="true" />
@@ -39,24 +38,30 @@
                 <element signature="e#749#1506#0" expanded="true" />
                 <element signature="e#1572#1701#0" expanded="true" />
                 <element signature="e#1764#1998#0" expanded="true" />
-                <element signature="e#4344#5195#0" expanded="true" />
+                <element signature="e#2057#2293#0" expanded="true" />
+                <element signature="e#2370#2529#0" expanded="true" />
+                <element signature="e#2590#3308#0" expanded="true" />
+                <element signature="e#3365#4188#0" expanded="true" />
+                <element signature="e#5222#5718#0" expanded="true" />
+                <element signature="e#5789#5942#0" expanded="true" />
+                <element signature="e#5987#6315#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="sets.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="sets.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="179" column="33" selection-start-line="179" selection-start-column="33" selection-end-line="179" selection-end-column="33" />
+            <state vertical-scroll-proportion="1.4308426">
+              <caret line="313" column="31" selection-start-line="313" selection-start-column="31" selection-end-line="313" selection-end-column="31" />
               <folding>
                 <element signature="e#1473#1587#0" expanded="true" />
                 <element signature="e#2004#2067#0" expanded="false" />
-                <element signature="e#6806#9637#0" expanded="true" />
-                <element signature="e#9828#12344#0" expanded="false" />
-                <element signature="e#12375#13946#0" expanded="false" />
-                <element signature="e#13976#14105#0" expanded="false" />
+                <element signature="e#6806#9950#0" expanded="true" />
+                <element signature="e#10141#12657#0" expanded="false" />
+                <element signature="e#12688#14259#0" expanded="false" />
+                <element signature="e#14289#14418#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -261,8 +266,8 @@
         <option value="$PROJECT_DIR$/rxncon/test/venntastic/sets_test.py" />
         <option value="$PROJECT_DIR$/rxncon/venntastic/sets_new.py" />
         <option value="$PROJECT_DIR$/rxncon/test/venntastic/test_sets_new.py" />
-        <option value="$PROJECT_DIR$/rxncon/test/venntastic/test_sets.py" />
         <option value="$PROJECT_DIR$/rxncon/venntastic/sets.py" />
+        <option value="$PROJECT_DIR$/rxncon/test/venntastic/test_sets.py" />
       </list>
     </option>
   </component>
@@ -744,38 +749,44 @@
       <option name="project" value="LOCAL" />
       <updated>1452585091726</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="completely reworked the shit. now we test for equivalence of expressions using &#10;is_equivalent_to()&#10;&#10;">
+      <created>1452615440517</created>
+      <option name="number" value="00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1452615440517</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 06m 11s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 33m 29s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 08m 20s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 34m 40s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 08m 36s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 37m 47s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 09m 07s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 39m 49s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 09m 20s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 40m 07s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 09m 31s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 42m 49s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 09m 58s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 43m 41s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 13m 09s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 45m 23s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 15m 28s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 45m 43s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 16m 36s.xml">
+    <history-entry file="rxncon3_py_test - 2016.01.12 at 17h 47m 34s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
   </component>
@@ -790,7 +801,7 @@
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32950193" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.36909324" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16091955" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -827,7 +838,8 @@
     <MESSAGE value="refactoring set" />
     <MESSAGE value="refaaaaaactoring" />
     <MESSAGE value="fixed is_superset / is_subset" />
-    <option name="LAST_COMMIT_MESSAGE" value="fixed is_superset / is_subset" />
+    <MESSAGE value="completely reworked the shit. now we test for equivalence of expressions using &#10;is_equivalent_to()&#10;&#10;" />
+    <option name="LAST_COMMIT_MESSAGE" value="completely reworked the shit. now we test for equivalence of expressions using &#10;is_equivalent_to()&#10;&#10;" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1323,25 +1335,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="179" column="33" selection-start-line="179" selection-start-column="33" selection-end-line="179" selection-end-column="33" />
-          <folding>
-            <element signature="e#1473#1587#0" expanded="true" />
-            <element signature="e#2004#2067#0" expanded="false" />
-            <element signature="e#6806#9637#0" expanded="true" />
-            <element signature="e#9828#12344#0" expanded="false" />
-            <element signature="e#12375#13946#0" expanded="false" />
-            <element signature="e#13976#14105#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/rxncon/test/venntastic/test_sets.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.9227468">
-          <caret line="71" column="81" selection-start-line="71" selection-start-column="81" selection-end-line="71" selection-end-column="81" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="165" column="20" selection-start-line="165" selection-start-column="20" selection-end-line="165" selection-end-column="20" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
             <element signature="e#120#265#0" expanded="true" />
@@ -1350,7 +1347,28 @@
             <element signature="e#749#1506#0" expanded="true" />
             <element signature="e#1572#1701#0" expanded="true" />
             <element signature="e#1764#1998#0" expanded="true" />
-            <element signature="e#4344#5195#0" expanded="true" />
+            <element signature="e#2057#2293#0" expanded="true" />
+            <element signature="e#2370#2529#0" expanded="true" />
+            <element signature="e#2590#3308#0" expanded="true" />
+            <element signature="e#3365#4188#0" expanded="true" />
+            <element signature="e#5222#5718#0" expanded="true" />
+            <element signature="e#5789#5942#0" expanded="true" />
+            <element signature="e#5987#6315#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.4308426">
+          <caret line="313" column="31" selection-start-line="313" selection-start-column="31" selection-end-line="313" selection-end-column="31" />
+          <folding>
+            <element signature="e#1473#1587#0" expanded="true" />
+            <element signature="e#2004#2067#0" expanded="false" />
+            <element signature="e#6806#9950#0" expanded="true" />
+            <element signature="e#10141#12657#0" expanded="false" />
+            <element signature="e#12688#14259#0" expanded="false" />
+            <element signature="e#14289#14418#0" expanded="false" />
           </folding>
         </state>
       </provider>

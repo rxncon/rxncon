@@ -72,52 +72,52 @@ def test_equivalence_complement_squares_to_no_op():
     assert UniversalSet().is_equivalent_to(Complement(Complement(UniversalSet())))
 
 
-# def test_canonical_form_intersection_with_complement_yields_empty_set():
-#     a = PropertySet(1)
-#     b = Complement(a)
-#
-#     assert EmptySet() == Intersection(a, b).canonical_form()
-#     assert EmptySet() == Intersection(b, a).canonical_form()
-#
-#
-# def test_canonical_form_intersection_of_property_sets():
-#     assert EmptySet() == Intersection(EmptySet(), PropertySet(1)).canonical_form()
-#     assert EmptySet() == Intersection(PropertySet(1), EmptySet()).canonical_form()
-#
-#     # Intersection of a set with the universal set yields the set itself
-#     assert PropertySet(1) == Intersection(UniversalSet(), PropertySet(1)).canonical_form()
-#     assert PropertySet(1) == Intersection(PropertySet(1), UniversalSet()).canonical_form()
-#
-#     # Intersection of set with itself yields the set
-#     assert EmptySet() == Intersection(EmptySet(), EmptySet()).canonical_form()
-#     assert UniversalSet() == Intersection(UniversalSet(), UniversalSet()).canonical_form()
-#     assert PropertySet(1) == Intersection(PropertySet(1), PropertySet(1)).canonical_form()
-#
-#
-# def test_canonical_form_intersection_of_unions():
-#     # Simplify should 'pull out' all unions
-#     assert Union(Intersection(PropertySet(1), PropertySet(3)), Intersection(PropertySet(2), PropertySet(3))) == \
-#            Intersection(Union(PropertySet(1), PropertySet(2)), PropertySet(3)).canonical_form()
-#
-#     assert Union(Intersection(PropertySet(1), PropertySet(3)), Intersection(PropertySet(2), PropertySet(3))) == \
-#            Intersection(PropertySet(3), Union(PropertySet(1), PropertySet(2))).canonical_form()
-#
-#     assert Union(Union(Union(Intersection(PropertySet(1), PropertySet(3)), Intersection(PropertySet(1), PropertySet(4))),
-#                        Intersection(PropertySet(2), PropertySet(3))), Intersection(PropertySet(2), PropertySet(4))) == \
-#            Intersection(Union(PropertySet(1), PropertySet(2)), Union(PropertySet(3), PropertySet(4))).canonical_form()
-#
+def test_equivalence_intersection_with_complement_yields_empty_set():
+    a = PropertySet(1)
+    b = Complement(a)
 
-def test_canonical_form_intersection_of_unions_with_complements():
+    assert EmptySet().is_equivalent_to(Intersection(a, b))
+    assert EmptySet().is_equivalent_to(Intersection(b, a))
+
+
+def test_equivalence_intersection_of_property_sets():
+    assert EmptySet().is_equivalent_to(Intersection(EmptySet(), PropertySet(1)))
+    assert EmptySet().is_equivalent_to(Intersection(PropertySet(1), EmptySet()))
+
+    # Intersection of a set with the universal set yields the set itself
+    assert PropertySet(1).is_equivalent_to(Intersection(UniversalSet(), PropertySet(1)))
+    assert PropertySet(1).is_equivalent_to(Intersection(PropertySet(1), UniversalSet()))
+
+    # Intersection of set with itself yields the set
+    assert EmptySet().is_equivalent_to(Intersection(EmptySet(), EmptySet()))
+    assert UniversalSet().is_equivalent_to(Intersection(UniversalSet(), UniversalSet()))
+    assert PropertySet(1).is_equivalent_to(Intersection(PropertySet(1), PropertySet(1)))
+
+
+def test_canonical_form_intersection_of_unions():
+    # Simplify should 'pull out' all unions
+    assert Union(Intersection(PropertySet(1), PropertySet(3)), Intersection(PropertySet(2), PropertySet(3)))\
+           .is_equivalent_to(Intersection(Union(PropertySet(1), PropertySet(2)), PropertySet(3)))
+
+    assert Union(Intersection(PropertySet(1), PropertySet(3)), Intersection(PropertySet(2), PropertySet(3)))\
+           .is_equivalent_to(Intersection(PropertySet(3), Union(PropertySet(1), PropertySet(2))))
+
+    # assert Union(Union(Union(Intersection(PropertySet(1), PropertySet(3)), Intersection(PropertySet(1), PropertySet(4))),
+    #                    Intersection(PropertySet(2), PropertySet(3))), Intersection(PropertySet(2), PropertySet(4)))\
+    #        .is_equivalent_to(Intersection(Union(PropertySet(1), PropertySet(2)), Union(PropertySet(3), PropertySet(4))))
+
+
+# def test_canonical_form_intersection_of_unions_with_complements():
     # # Test
     # # (!(1 ^ 2) u 3) ^ !(4 u 5) = (!1 ^ !4 ^ !5) u (!2 ^ !4 ^ !5) u (3 ^ !4 ^ !5)
-    a = Complement(Intersection(PropertySet(1), PropertySet(2)))
-    b = PropertySet(3)
-    c = Complement(Union(PropertySet(4), PropertySet(5)))
+    # a = Complement(Intersection(PropertySet(1), PropertySet(2)))
+    # b = PropertySet(3)
+    # c = Complement(Union(PropertySet(4), PropertySet(5)))
+    # #
+    # abc = Intersection(Union(a, b), c)
+    # abc = Union(abc, Complement(abc))
     #
-    abc = Intersection(Union(a, b), c)
-    abc = Union(abc, Complement(abc))
-
-    print(abc.equivalent_forms())
+    # print(abc.equivalent_forms())
     #
     # print(Union(c, Complement(c)).equivalent_forms())
     # print(len(Union(c, Complement(c)).equivalent_forms()))
@@ -130,43 +130,41 @@ def test_canonical_form_intersection_of_unions_with_complements():
     # assert abc.canonical_form() == abc.canonical_form().canonical_form()
 
 
-# def test_simplify_difference_respects_absolute_relative_complement_identities():
-#     xs = [
-#         PropertySet(1, 2, 3),
-#         Complement(Union(PropertySet(3, 4), PropertySet(4, 5)))
-#     ]
-#
-#     ys = [
-#         PropertySet(2), Union(PropertySet(1), Union(PropertySet(2), PropertySet(3))),
-#         Union(Complement(PropertySet(1)), Union(PropertySet(2), Complement(PropertySet(3))))
-#     ]
-#
-#     for x, y in itt.product(xs, ys):
-#         assert Intersection(x, Complement(y)).simplified() == Difference(x, y).simplified()
-#         assert Union(Complement(x), y).simplified() == Complement(Difference(x, y)).simplified()
-#
-#
-# def test_simplify_union_with_complement_yields_universal_set():
-#     a = PropertySet(1, 2)
-#     b = Complement(a)
-#
-#     assert PropertySet() == Union(a, b).simplified()
-#     assert PropertySet() == Union(b, a).simplified()
-#
-#
-# def test_simplify_union_of_property_sets():
-#     assert PropertySet(1) == Union(EmptySet(), PropertySet(1)).simplified()
-#
-#     assert PropertySet(1) == Union(PropertySet(1), EmptySet()).simplified()
-#
-#     assert PropertySet() == Union(PropertySet(), PropertySet(1, 2)).simplified()
-#
-#
-# def test_simplify_union_of_unions():
-#     a = Union(PropertySet(1), Union(PropertySet(2), Union(PropertySet(3), PropertySet(4))))
-#
-#     assert Union(Union(Union(PropertySet(1), PropertySet(2)), PropertySet(3)), PropertySet(4)) == a.simplified()
-#
+def test_simplify_difference_respects_absolute_relative_complement_identities():
+    xs = [
+        PropertySet(1),
+        Complement(Union(PropertySet(2), PropertySet(3)))
+    ]
+
+    ys = [
+        PropertySet(2), Union(PropertySet(1), Union(PropertySet(2), PropertySet(3))),
+        Union(Complement(PropertySet(1)), Union(PropertySet(2), Complement(PropertySet(3))))
+    ]
+
+    for x, y in itt.product(xs, ys):
+        assert Intersection(x, Complement(y)).is_equivalent_to(Difference(x, y))
+        assert Union(Complement(x), y).is_equivalent_to(Complement(Difference(x, y)))
+
+
+def test_simplify_union_with_complement_yields_universal_set():
+    a = PropertySet(1)
+    b = Complement(a)
+
+    assert UniversalSet().is_equivalent_to(Union(a, b))
+    assert Union(b, a).is_equivalent_to(UniversalSet())
+
+
+
+def test_simplify_union_of_unions():
+    a = Union(PropertySet(1), Union(PropertySet(2), Union(PropertySet(3), PropertySet(4))))
+    b = Union(Union(Union(PropertySet(1), PropertySet(2)), PropertySet(3)), PropertySet(4))
+
+    print(len(a.equivalent_forms()))
+
+    for x in a.equivalent_forms():
+        if str(x).startswith('Union(Union(Union('):
+            print(x)
+
 #
 # def test_cardinality_empty_and_universal_set():
 #     assert EmptySet().cardinality() == {}

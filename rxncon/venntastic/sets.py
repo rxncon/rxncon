@@ -251,10 +251,12 @@ class BinarySet(Set):
         if X == Union:
             Y = Intersection
             U = UniversalSet()
+            S = EmptySet()
 
         elif X == Intersection:
             Y = Union
             U = EmptySet()
+            S = UniversalSet()
 
         forms = []
 
@@ -263,7 +265,19 @@ class BinarySet(Set):
                       X(left, right).flip()]
 
             if left in Complement(right).equivalent_forms() or right in Complement(left).equivalent_forms():
-                return [U]
+                forms += [U]
+
+            if left == U or right == U:
+                forms += [U]
+
+            if left == S:
+                forms += [right]
+
+            if right == S:
+                forms += [left]
+
+            if left == right:
+                forms += [left]
 
             if isinstance(left, X):
                 forms += [X(left.left_expr, X(left.right_expr, right)),
