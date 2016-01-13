@@ -15,7 +15,14 @@ class Set:
         ]
 
         nested_list = _call_method_list_until_stable(self, simplification_methods)._to_nested_list()
+
+        print()
+        print(nested_list)
+
         cleaned_list = _cleaned_nested_list(nested_list)
+
+        print()
+        print(cleaned_list)
 
         return _set_from_cleaned_nested_list(cleaned_list)
 
@@ -89,6 +96,9 @@ class PropertySet(UnarySet):
 
     def __lt__(self, other: Set):
         if isinstance(other, PropertySet):
+            if self.value is None:
+                return True
+
             return self.value < other.value
 
         elif isinstance(other, EmptySet):
@@ -116,6 +126,9 @@ class PropertySet(UnarySet):
 
         elif isinstance(other, EmptySet):
             return True
+
+        elif isinstance(other, Intersection):
+            return self.is_superset_of(other.left_expr) or self.is_superset_of(other.right_expr)
 
         else:
             return self == other
@@ -288,18 +301,19 @@ class Intersection(BinarySet):
         if self == other:
             return True
 
-        elif self.is_subset_of(other) is None:
-            return None
-
         else:
-            return not self.is_subset_of(other)
+            return other.is_subset_of(self)
 
     def is_subset_of(self, other: Set) -> Optional[bool]:
         if self == other:
             return True
 
-        elif self.left_expr.is_subset_of(other) or self.right_expr.is_subset_of(other):
-            return True
+        elif isinstance(other, Intersection):
+            return self.left_expr.is_subset_of(other.left_expr) or self.right_expr.is_subset_of(other.right_expr) or\
+                   self.right_expr.is_subset_of(other.left_expr) or self.left_expr.is_subset_of(other.right_expr)
+
+        elif isinstance(other, PropertySet):
+            return other.is_superset_of(self)
 
         else:
             return None
@@ -369,25 +383,26 @@ class Union(BinarySet):
     def __str__(self):
         return 'Union({0}, {1})'.format(self.left_expr, self.right_expr)
 
-    def is_superset_of(self, other: Set):
+    def is_superset_of(self, other: Set) -> Optional[bool]:
         if self == other:
             return True
 
-        elif self.left_expr.is_superset_of(other) or self.right_expr.is_superset_of(other):
-            return True
+        elif isinstance(other, Union):
+            return self.left_expr.is_superset_of(other.left_expr) or self.right_expr.is_superset_of(other.right_expr) or\
+                   self.right_expr.is_superset_of(other.left_expr) or self.left_expr.is_superset_of(other.right_expr)
+
+        elif isinstance(other, PropertySet):
+            return self.left_expr.is_superset_of(other) or self.right_expr.is_superset_of(other)
 
         else:
             return None
 
-    def is_subset_of(self, other: Set):
+    def is_subset_of(self, other: Set) -> Optional[bool]:
         if self == other:
             return True
 
-        elif self.is_superset_of(other) is None:
-            return None
-
         else:
-            return False
+            return other.is_superset_of(self)
 
     def _unions_moved_to_left(self) -> Set:
         if isinstance(self.right_expr, Union) and not isinstance(self.left_expr, Union):
@@ -496,7 +511,12 @@ def _cleaned_nested_list(nested_list):
     if [UniversalSet()] in cleaned:
         return [[UniversalSet()]]
 
+    elif all([x == [EmptySet()] for x in cleaned]):
+        return [[EmptySet()]]
+
     cleaned = [x for x in cleaned if x != [EmptySet()]]
+    cleaned = _double_entries_removed(cleaned)
+    cleaned = _subsets_of_any_removed(cleaned)
 
     if _is_boolean_tautology(cleaned):
         return [[UniversalSet()]]
@@ -509,6 +529,9 @@ def _cleaned_intersection_term(term):
 
     if EmptySet() in term:
         return [EmptySet()]
+
+    elif term == [UniversalSet()]:
+        return [UniversalSet()]
 
     term = [x for x in term if x != UniversalSet()]
 
@@ -554,17 +577,58 @@ def _is_boolean_tautology(terms):
     counter_term = [counter_set_from_set(x) for x in shortest_term]
     remaining_terms = []
 
+    simplification_success = False
+
     for term in terms:
         if term == shortest_term:
             continue
 
         elif all([x in term for x in counter_term]):
+            simplification_success = True
             remaining_terms.append([x for x in term if x not in counter_term])
 
         else:
             remaining_terms.append(term)
 
-    return _is_boolean_tautology(remaining_terms)
+    if simplification_success:
+        return _is_boolean_tautology(remaining_terms)
+
+    else:
+        return False
+
+
+def _double_entries_removed(xs):
+    result = []
+
+    while xs:
+        item = xs.pop()
+        result.append(item)
+        xs = [x for x in xs if x != item]
+
+    return result
+
+
+def _subsets_of_any_removed(terms):
+    if len(terms) == 1:
+        return terms
+
+    def is_strict_subset_of(x, y):
+        if len(x) <= len(y):
+            return False
+
+        return all([i in x for i in y])
+
+    result = []
+    while terms:
+        term = terms.pop()
+
+        if not any([is_strict_subset_of(term, x) for x in result + terms]):
+            result.append(term)
+
+    return result
+
+
+itt.product()
 
 
 
