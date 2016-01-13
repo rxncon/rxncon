@@ -8,27 +8,20 @@ METHOD_UNIONS_MOVED_TO_LEFT = '_unions_moved_to_left'
 
 
 class Set:
-    def canonical_form(self) -> 'Set':
+    def cardinality_form(self) -> 'Set':
         simplification_methods = [
             METHOD_COMPLEMENTS_EXPANDED,
             METHOD_UNIONS_MOVED_TO_LEFT
         ]
 
-        nested_list = _call_method_list_until_stable(self, simplification_methods)._to_nested_list()
+        return _call_method_list_until_stable(self, simplification_methods)
 
-        print()
-        print(nested_list)
-
-        cleaned_list = _cleaned_nested_list(nested_list)
-
-        print()
-        print(cleaned_list)
-
-        return _set_from_cleaned_nested_list(cleaned_list)
+    def nested_list_form(self):
+        return self.cardinality_form()._to_nested_list()
 
     @property
     def cardinality(self) -> Dict['PropertySet', int]:
-        union_sets = self.canonical_form()._unions_flattened()
+        union_sets = self.cardinality_form()._unions_flattened()
         terms = {}
 
         for i in range(len(union_sets)):
@@ -38,7 +31,7 @@ class Set:
             for t in tuples:
                 tuple_intersections.append(flat_list_to_nested_expression(t, Intersection))
 
-            tuple_intersections = [x.canonical_form() for x in tuple_intersections]
+            tuple_intersections = [x.cardinality_form() for x in tuple_intersections]
 
             for t in tuple_intersections:
                 if i % 2 == 0:
@@ -51,7 +44,7 @@ class Set:
     def is_equivalent_to(self, other: 'Set'):
         assert isinstance(other, Set)
 
-        return self.canonical_form() == other.canonical_form()
+        return self.cardinality_form() == other.cardinality_form()
 
     def is_superset_of(self, other: 'Set') -> Optional[bool]:
         return None
@@ -341,7 +334,7 @@ class Intersection(BinarySet):
             # |!A ^ B| = |B| - |A ^ B|
             return _add_dicts(self.right_expr._partial_cardinality(),
                               _negate_dict(Intersection(self.left_expr.expr, self.right_expr)
-                                           .canonical_form()
+                                           .cardinality_form()
                                            ._partial_cardinality()))
 
         elif isinstance(self.right_expr, Complement):
@@ -349,7 +342,7 @@ class Intersection(BinarySet):
             # |A ^ !B| = |A| - |B ^ A|
             return _add_dicts(self.left_expr._partial_cardinality(),
                               _negate_dict(Intersection(self.right_expr.expr, self.left_expr)
-                                           .canonical_form()
+                                           .cardinality_form()
                                            ._partial_cardinality()))
 
         else:
@@ -628,7 +621,10 @@ def _subsets_of_any_removed(terms):
     return result
 
 
-itt.product()
+
+
+
+
 
 
 
