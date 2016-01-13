@@ -17,8 +17,6 @@ class Set:
         nested_list = _call_method_list_until_stable(self, simplification_methods)._to_nested_list()
         cleaned_list = _cleaned_nested_list(nested_list)
 
-        print(cleaned_list)
-
         return _set_from_cleaned_nested_list(cleaned_list)
 
     @property
@@ -500,11 +498,8 @@ def _cleaned_nested_list(nested_list):
 
     cleaned = [x for x in cleaned if x != [EmptySet()]]
 
-    for term in cleaned:
-        counter_terms = [x for x in cleaned if len(x) <= len(term)]
-
-        if _is_term_matched_by_counter_terms(term, counter_terms):
-            return [[UniversalSet()]]
+    if _is_boolean_tautology(cleaned):
+        return [[UniversalSet()]]
 
     return sorted(cleaned)
 
@@ -533,8 +528,8 @@ def _set_from_cleaned_nested_list(nested_list):
     return flat_list_to_nested_expression(intersections, Union)
 
 
-def _is_term_matched_by_counter_terms(term, counter_terms):
-    if not term:
+def _is_boolean_tautology(terms):
+    if terms == [[]]:
         return True
 
     def counter_set_from_set(x):
@@ -547,21 +542,29 @@ def _is_term_matched_by_counter_terms(term, counter_terms):
         else:
             raise AssertionError
 
-    for counter_term in counter_terms:
-        if all([counter_set_from_set(x) in term for x in counter_term]):
-            remaining_term = [x for x in term if not counter_set_from_set(x) in counter_term]
-            remaining_counter_terms = [x for x in counter_terms if x != counter_term]
-            return _is_term_matched_by_counter_terms(remaining_term, remaining_counter_terms)
+    def shortest_sublist(lists):
+        result = lists[0]
+        for x in lists:
+            if len(x) < len(result):
+                result = x
 
-    return False
+        return result
 
+    shortest_term = shortest_sublist(terms)
+    counter_term = [counter_set_from_set(x) for x in shortest_term]
+    remaining_terms = []
 
+    for term in terms:
+        if term == shortest_term:
+            continue
 
+        elif all([x in term for x in counter_term]):
+            remaining_terms.append([x for x in term if x not in counter_term])
 
+        else:
+            remaining_terms.append(term)
 
-
-
-
+    return _is_boolean_tautology(remaining_terms)
 
 
 

@@ -117,7 +117,7 @@ def test_canonical_form_intersection_of_unions_with_complements():
     abc = Intersection(Union(a, b), c)
     ab = Union(a, c)
     print()
-    print(Union(ab, Complement(ab)).canonical_form())
+    print(Union(abc, Complement(abc)).canonical_form())
     # print(len(Union(c, Complement(c)).equivalent_forms()))
 #
 #     # Test whether simplify can still guarantee basic properties of union and intersection
