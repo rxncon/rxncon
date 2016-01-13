@@ -5,8 +5,7 @@ from typing import List, Dict, Optional
 
 METHOD_COMPLEMENTS_EXPANDED = '_complements_expanded'
 METHOD_UNIONS_MOVED_TO_LEFT = '_unions_moved_to_left'
-METHOD_INTERSECTIONS_SIMPLIFIED = '_intersections_simplified'
-METHOD_UNIONS_SIMPLIFIED = '_unions_simplified'
+
 
 class Set:
     def canonical_form(self) -> 'Set':
@@ -15,7 +14,12 @@ class Set:
             METHOD_UNIONS_MOVED_TO_LEFT
         ]
 
-        return _call_method_list_until_stable(self, simplification_methods)
+        nested_list = _call_method_list_until_stable(self, simplification_methods)._to_nested_list()
+        cleaned_list = _cleaned_nested_list(nested_list)
+
+        print(cleaned_list)
+
+        return _set_from_cleaned_nested_list(cleaned_list)
 
     @property
     def cardinality(self) -> Dict['PropertySet', int]:
@@ -39,13 +43,10 @@ class Set:
 
         return {k: v for k, v in terms.items() if v != 0}
 
-    def equivalent_forms(self):
-        return [self]
-
     def is_equivalent_to(self, other: 'Set'):
         assert isinstance(other, Set)
 
-        return self in other.equivalent_forms() or other in self.equivalent_forms()
+        return self.canonical_form() == other.canonical_form()
 
     def is_superset_of(self, other: 'Set') -> Optional[bool]:
         return None
@@ -59,13 +60,16 @@ class Set:
     def _unions_moved_to_left(self) -> 'Set':
         return self
 
+    def _to_nested_list(self):
+        pass
+
     def _partial_cardinality(self) -> Dict['Set', int]:
         raise NotImplementedError
 
 
 class UnarySet(Set):
-    def _unions_flattened(self) -> List[Set]:
-        return [self]
+    def _to_nested_list(self):
+        return [[self]]
 
 
 class PropertySet(UnarySet):
@@ -84,6 +88,19 @@ class PropertySet(UnarySet):
 
     def __hash__(self):
         return hash('*property-set-{}*'.format(hash(self.value)))
+
+    def __lt__(self, other: Set):
+        if isinstance(other, PropertySet):
+            return self.value < other.value
+
+        elif isinstance(other, EmptySet):
+            return False
+
+        elif isinstance(other, Complement) or isinstance(other, BinarySet):
+            return True
+
+        else:
+            raise AssertionError
 
     def __repr__(self):
         return str(self)
@@ -123,6 +140,10 @@ class EmptySet(UnarySet):
     def __hash__(self) -> int:
         return hash('*empty-set*')
 
+    def __lt__(self, other: Set) -> bool:
+        assert isinstance(other, Set)
+        return False if isinstance(other, EmptySet) else True
+
     def __repr__(self) -> str:
         return str(self)
 
@@ -155,31 +176,21 @@ class Complement(UnarySet):
     def __hash__(self) -> int:
         return hash('*complement-{}*'.format(self.expr))
 
+    def __lt__(self, other: Set) -> bool:
+        if isinstance(other, Complement):
+            return self.expr < other.expr
+
+        elif isinstance(other, EmptySet) or isinstance(other, PropertySet):
+            return False
+
+        else:
+            return True
+
     def __repr__(self) -> str:
         return str(self)
 
     def __str__(self) -> str:
         return 'Complement({})'.format(self.expr)
-
-    def equivalent_forms(self):
-        forms = [self]
-
-        if isinstance(self.expr, Complement):
-            forms += self.expr.expr.equivalent_forms()
-
-        elif isinstance(self.expr, Union):
-            forms += Intersection(Complement(self.expr.left_expr), Complement(self.expr.right_expr)).equivalent_forms()
-
-        elif isinstance(self.expr, Intersection):
-            forms += Union(Complement(self.expr.left_expr), Complement(self.expr.right_expr)).equivalent_forms()
-
-        elif isinstance(self.expr, EmptySet):
-            forms += [UniversalSet()]
-
-        elif self.expr == UniversalSet():
-            forms += [EmptySet()]
-
-        return forms
 
     def is_superset_of(self, other: Set):
         if self == other:
@@ -242,83 +253,30 @@ class BinarySet(Set):
         else:
             return False
 
-    def flip(self):
-        return type(self)(self.right_expr, self.left_expr)
-
-    def equivalent_forms(self):
-        X = type(self)
-
-        if X == Union:
-            Y = Intersection
-            U = UniversalSet()
-            S = EmptySet()
-
-        elif X == Intersection:
-            Y = Union
-            U = EmptySet()
-            S = UniversalSet()
-
-        forms = []
-
-        for left, right in itt.product(self.left_expr.equivalent_forms(), self.right_expr.equivalent_forms()):
-            forms += [X(left, right),
-                      X(left, right).flip()]
-
-            if left in Complement(right).equivalent_forms() or right in Complement(left).equivalent_forms():
-                forms += [U]
-
-            if left == U or right == U:
-                forms += [U]
-
-            if left == S:
-                forms += [right]
-
-            if right == S:
-                forms += [left]
-
-            if left == right:
-                forms += [left]
-
-            if isinstance(left, X):
-                forms += [X(left.left_expr, X(left.right_expr, right)),
-                          X(left.left_expr, X(left.right_expr, right)).flip(),
-                          X(left.left_expr, X(left.right_expr, right).flip()),
-                          X(left.left_expr, X(left.right_expr, right).flip()).flip()]
-
-            if isinstance(right, X):
-                forms += [X(X(left, right.left_expr), right.right_expr),
-                          X(X(left, right.left_expr), right.right_expr).flip(),
-                          X(X(left, right.left_expr).flip(), right.right_expr),
-                          X(X(left, right.left_expr).flip(), right.right_expr).flip()]
-
-            if isinstance(left, Y):
-                forms += [Y(X(left.left_expr, right), X(left.right_expr, right)),
-                          Y(X(left.left_expr, right).flip(), X(left.right_expr, right)),
-                          Y(X(left.left_expr, right), X(left.right_expr, right).flip()),
-                          Y(X(left.left_expr, right).flip(), X(left.right_expr, right).flip()),
-                          Y(X(left.left_expr, right), X(left.right_expr, right)).flip(),
-                          Y(X(left.left_expr, right).flip(), X(left.right_expr, right)).flip(),
-                          Y(X(left.left_expr, right), X(left.right_expr, right).flip()).flip(),
-                          Y(X(left.left_expr, right).flip(), X(left.right_expr, right).flip()).flip()]
-
-            if isinstance(right, Y):
-                forms += [Y(X(left, right.left_expr), X(left, right.right_expr)),
-                          Y(X(left, right.left_expr).flip(), X(left, right.right_expr)),
-                          Y(X(left, right.left_expr), X(left, right.right_expr).flip()),
-                          Y(X(left, right.left_expr).flip(), X(left, right.right_expr).flip()),
-                          Y(X(left, right.left_expr), X(left, right.right_expr)).flip(),
-                          Y(X(left, right.left_expr).flip(), X(left, right.right_expr)).flip(),
-                          Y(X(left, right.left_expr), X(left, right.right_expr).flip()).flip(),
-                          Y(X(left, right.left_expr).flip(), X(left, right.right_expr).flip()).flip()]
-
-        return list(set(forms))
-
-
     def _complements_expanded(self) -> Set:
         return type(self)(self.left_expr._complements_expanded(), self.right_expr._complements_expanded())
 
 
 class Intersection(BinarySet):
+    def __lt__(self, other: Set) -> bool:
+        if isinstance(other, EmptySet) or isinstance(other, PropertySet) or isinstance(other, Complement):
+            return False
+
+        elif isinstance(other, Intersection):
+            if self.left_expr < other.left_expr:
+                return True
+
+            elif self.left_expr == other.left_expr:
+                return self.right_expr < other.right_expr
+
+            return False
+
+        elif isinstance(other, Union):
+            return True
+
+        else:
+            raise AssertionError
+
     def __hash__(self):
         return hash('*intersection-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
 
@@ -362,6 +320,9 @@ class Intersection(BinarySet):
         else:
             return Intersection(self.left_expr._unions_moved_to_left(), self.right_expr._unions_moved_to_left())
 
+    def _to_nested_list(self):
+        return [self.left_expr._to_nested_list()[0] + self.right_expr._to_nested_list()[0]]
+
     def _partial_cardinality(self) -> Dict[PropertySet, int]:
         if isinstance(self.left_expr, Complement):
             # Remove single complement using
@@ -386,6 +347,23 @@ class Intersection(BinarySet):
 class Union(BinarySet):
     def __hash__(self):
         return hash('*union-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
+
+    def __lt__(self, other: Set) -> bool:
+        if isinstance(other, EmptySet) or isinstance(other, PropertySet) or \
+                isinstance(other, Complement) or isinstance(other, Intersection):
+            return False
+
+        elif isinstance(other, Union):
+            if self.left_expr < other.left_expr:
+                return True
+
+            elif self.left_expr == other.left_expr:
+                return self.right_expr < other.right_expr
+
+            return False
+
+        else:
+            raise AssertionError
 
     def __repr__(self):
         return str(self)
@@ -425,6 +403,9 @@ class Union(BinarySet):
 
         else:
             return Union(self.left_expr._unions_moved_to_left(), self.right_expr._unions_moved_to_left())
+
+    def _to_nested_list(self):
+        return self.left_expr._to_nested_list() + self.right_expr._to_nested_list()
 
     def _partial_cardinality(self) -> Dict[PropertySet, int]:
         raise AssertionError
@@ -483,7 +464,7 @@ def _negate_dict(x: Dict[PropertySet, int]) -> Dict[PropertySet, int]:
     return res
 
 
-def _call_method_until_stable(expr: Set, method):
+def _call_method_list_until_stable(expr: Set, methods: List[str]):
     max_simplifications = 100
     i = 0
 
@@ -496,25 +477,8 @@ def _call_method_until_stable(expr: Set, method):
         if i > max_simplifications:
             raise RecursionError
 
-        current_simplification = getattr(current_simplification, method)()
-
-        if current_simplification == previous_simplification:
-            simplification_done = True
-
-        else:
-            previous_simplification = current_simplification
-
-    return current_simplification
-
-
-def _call_method_list_until_stable(expr: Set, methods: List[str]):
-    previous_simplification = expr
-    current_simplification = expr
-    simplification_done = False
-
-    while not simplification_done:
         for method in methods:
-            current_simplification = _call_method_until_stable(current_simplification, method)
+            current_simplification = getattr(current_simplification, method)()
 
         if current_simplification == previous_simplification:
             simplification_done = True
@@ -523,3 +487,81 @@ def _call_method_list_until_stable(expr: Set, methods: List[str]):
             previous_simplification = current_simplification
 
     return current_simplification
+
+
+def _cleaned_nested_list(nested_list):
+    cleaned = []
+
+    for intersection_term in nested_list:
+        cleaned.append(_cleaned_intersection_term(intersection_term))
+
+    if [UniversalSet()] in cleaned:
+        return [[UniversalSet()]]
+
+    cleaned = [x for x in cleaned if x != [EmptySet()]]
+
+    for term in cleaned:
+        counter_terms = [x for x in cleaned if len(x) <= len(term)]
+
+        if _is_term_matched_by_counter_terms(term, counter_terms):
+            return [[UniversalSet()]]
+
+    return sorted(cleaned)
+
+
+def _cleaned_intersection_term(term):
+    assert all([isinstance(x, UnarySet) for x in term])
+
+    if EmptySet() in term:
+        return [EmptySet()]
+
+    term = [x for x in term if x != UniversalSet()]
+
+    for x in term:
+        if Complement(x) in term:
+            return [EmptySet()]
+
+    return sorted(list(set(term)))
+
+
+def _set_from_cleaned_nested_list(nested_list):
+    intersections = []
+
+    for x in nested_list:
+        intersections.append(flat_list_to_nested_expression(x, Intersection))
+
+    return flat_list_to_nested_expression(intersections, Union)
+
+
+def _is_term_matched_by_counter_terms(term, counter_terms):
+    if not term:
+        return True
+
+    def counter_set_from_set(x):
+        if isinstance(x, Complement):
+            return x.expr
+
+        elif isinstance(x, PropertySet):
+            return Complement(x)
+
+        else:
+            raise AssertionError
+
+    for counter_term in counter_terms:
+        if all([counter_set_from_set(x) in term for x in counter_term]):
+            remaining_term = [x for x in term if not counter_set_from_set(x) in counter_term]
+            remaining_counter_terms = [x for x in counter_terms if x != counter_term]
+            return _is_term_matched_by_counter_terms(remaining_term, remaining_counter_terms)
+
+    return False
+
+
+
+
+
+
+
+
+
+
+
