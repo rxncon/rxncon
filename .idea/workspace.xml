@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="19539257-8c28-425d-83b0-da3867cd0586" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.cache/v/cache/lastfailed" afterPath="$PROJECT_DIR$/.cache/v/cache/lastfailed" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/test/venntastic/test_sets_new.py" afterPath="$PROJECT_DIR$/rxncon/test/venntastic/test_sets_new.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/rxncon/venntastic/sets.py" afterPath="$PROJECT_DIR$/rxncon/venntastic/sets.py" />
     </list>
     <ignored path="rxncon3.iws" />
@@ -34,44 +36,42 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="test_sets_new.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="test_sets_new.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/rxncon/test/venntastic/test_sets_new.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="184" column="0" selection-start-line="184" selection-start-column="0" selection-end-line="184" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.6993318">
+              <caret line="230" column="15" selection-start-line="230" selection-start-column="15" selection-end-line="230" selection-end-column="15" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
-                <element signature="e#7859#8256#0" expanded="true" />
+                <element signature="e#8609#9006#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="sets.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="sets.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.8013245">
-              <caret line="626" column="0" selection-start-line="626" selection-start-column="0" selection-end-line="626" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="489" column="36" selection-start-line="489" selection-start-column="36" selection-end-line="489" selection-end-column="36" />
               <folding>
-                <element signature="e#1405#1502#0" expanded="true" />
-                <element signature="e#1999#2014#0" expanded="true" />
-                <element signature="e#3085#3390#0" expanded="true" />
-                <element signature="e#3440#3542#0" expanded="true" />
-                <element signature="e#3856#3947#0" expanded="true" />
-                <element signature="e#5163#5342#0" expanded="true" />
-                <element signature="e#5392#5572#0" expanded="true" />
-                <element signature="e#6356#6496#0" expanded="true" />
-                <element signature="e#7997#8097#0" expanded="true" />
-                <element signature="e#8165#8616#0" expanded="true" />
-                <element signature="e#11370#11873#0" expanded="true" />
-                <element signature="e#11941#12043#0" expanded="true" />
-                <element signature="e#13050#13179#0" expanded="false" />
-                <element signature="e#14755#15287#0" expanded="true" />
-                <element signature="e#15332#15682#0" expanded="true" />
-                <element signature="e#16046#16224#0" expanded="true" />
-                <element signature="e#16267#16395#0" expanded="true" />
-                <element signature="e#17219#17579#0" expanded="true" />
-                <element signature="e#17304#17390#0" expanded="true" />
+                <element signature="e#1416#1513#0" expanded="true" />
+                <element signature="e#2010#2025#0" expanded="true" />
+                <element signature="e#3096#3401#0" expanded="true" />
+                <element signature="e#3451#3553#0" expanded="true" />
+                <element signature="e#3867#3958#0" expanded="true" />
+                <element signature="e#5174#5353#0" expanded="true" />
+                <element signature="e#5403#5583#0" expanded="true" />
+                <element signature="e#6367#6507#0" expanded="true" />
+                <element signature="e#8008#8108#0" expanded="true" />
+                <element signature="e#8176#8627#0" expanded="true" />
+                <element signature="e#11381#11884#0" expanded="true" />
+                <element signature="e#11952#12054#0" expanded="true" />
+                <element signature="e#13061#13190#0" expanded="false" />
+                <element signature="e#13703#14658#0" expanded="true" />
+                <element signature="e#14729#14834#0" expanded="true" />
+                <element signature="e#15041#15259#0" expanded="true" />
+                <element signature="e#15310#15553#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -188,8 +188,8 @@
         <option value="$PROJECT_DIR$/rxncon/test/venntastic/sets_test.py" />
         <option value="$PROJECT_DIR$/rxncon/venntastic/sets_new.py" />
         <option value="$PROJECT_DIR$/rxncon/test/venntastic/test_sets.py" />
-        <option value="$PROJECT_DIR$/rxncon/test/venntastic/test_sets_new.py" />
         <option value="$PROJECT_DIR$/rxncon/venntastic/sets.py" />
+        <option value="$PROJECT_DIR$/rxncon/test/venntastic/test_sets_new.py" />
       </list>
     </option>
   </component>
@@ -683,25 +683,16 @@
       <option name="project" value="LOCAL" />
       <updated>1452683657924</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="before equivalence redo">
+      <created>1452714568585</created>
+      <option name="number" value="00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1452714568585</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="TestHistory">
-    <history-entry file="rxncon3_py_test - 2016.01.13 at 16h 11m 52s.xml">
-      <configuration name="rxncon3 py.test" configurationId="tests" />
-    </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.13 at 16h 13m 02s.xml">
-      <configuration name="rxncon3 py.test" configurationId="tests" />
-    </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.13 at 16h 13m 18s.xml">
-      <configuration name="rxncon3 py.test" configurationId="tests" />
-    </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.13 at 16h 14m 29s.xml">
-      <configuration name="rxncon3 py.test" configurationId="tests" />
-    </history-entry>
-    <history-entry file="rxncon3_py_test - 2016.01.13 at 16h 15m 02s.xml">
-      <configuration name="rxncon3 py.test" configurationId="tests" />
-    </history-entry>
     <history-entry file="rxncon3_py_test - 2016.01.13 at 16h 16m 28s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
@@ -717,6 +708,21 @@
     <history-entry file="rxncon3_py_test - 2016.01.13 at 16h 20m 06s.xml">
       <configuration name="rxncon3 py.test" configurationId="tests" />
     </history-entry>
+    <history-entry file="rxncon3_py_test - 2016.01.13 at 21h 35m 54s.xml">
+      <configuration name="rxncon3 py.test" configurationId="tests" />
+    </history-entry>
+    <history-entry file="rxncon3_py_test - 2016.01.13 at 21h 37m 00s.xml">
+      <configuration name="rxncon3 py.test" configurationId="tests" />
+    </history-entry>
+    <history-entry file="rxncon3_py_test - 2016.01.13 at 21h 37m 35s.xml">
+      <configuration name="rxncon3 py.test" configurationId="tests" />
+    </history-entry>
+    <history-entry file="rxncon3_py_test - 2016.01.13 at 21h 39m 57s.xml">
+      <configuration name="rxncon3 py.test" configurationId="tests" />
+    </history-entry>
+    <history-entry file="rxncon3_py_test - 2016.01.13 at 21h 40m 53s.xml">
+      <configuration name="rxncon3 py.test" configurationId="tests" />
+    </history-entry>
   </component>
   <component name="ToolWindowManager">
     <frame x="2" y="23" width="1433" height="852" extended-state="6" />
@@ -729,7 +735,7 @@
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32950193" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.24393359" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.3908046" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -768,7 +774,8 @@
     <MESSAGE value="fixed is_superset / is_subset" />
     <MESSAGE value="completely reworked the shit. now we test for equivalence of expressions using &#10;is_equivalent_to()&#10;&#10;" />
     <MESSAGE value="equivalence works" />
-    <option name="LAST_COMMIT_MESSAGE" value="equivalence works" />
+    <MESSAGE value="before equivalence redo" />
+    <option name="LAST_COMMIT_MESSAGE" value="before equivalence redo" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1190,17 +1197,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rxncon/test/core/test_component.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="154" column="45" selection-start-line="154" selection-start-column="45" selection-end-line="154" selection-end-column="45" />
-          <folding>
-            <element signature="e#6799#7337#0" expanded="true" />
-            <marker date="1452430646000" expanded="true" signature="0:46" placeholder="import ..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/rxncon/core/reaction.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1228,14 +1224,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rxncon/test/venntastic/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/rxncon/input/excel_book/excel_book.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1257,17 +1245,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/rxncon/test/venntastic/test_sets_new.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="184" column="0" selection-start-line="184" selection-start-column="0" selection-end-line="184" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#13#0" expanded="true" />
-            <element signature="e#7859#8256#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/rxncon/test/venntastic/test_sets.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -1276,30 +1253,58 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/rxncon/test/venntastic/__init__.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rxncon/test/core/test_component.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="154" column="45" selection-start-line="154" selection-start-column="45" selection-end-line="154" selection-end-column="45" />
+          <folding>
+            <element signature="e#6799#7337#0" expanded="true" />
+            <marker date="1452430646000" expanded="true" signature="0:46" placeholder="import ..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/rxncon/venntastic/sets.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.8013245">
-          <caret line="626" column="0" selection-start-line="626" selection-start-column="0" selection-end-line="626" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="489" column="36" selection-start-line="489" selection-start-column="36" selection-end-line="489" selection-end-column="36" />
           <folding>
-            <element signature="e#1405#1502#0" expanded="true" />
-            <element signature="e#1999#2014#0" expanded="true" />
-            <element signature="e#3085#3390#0" expanded="true" />
-            <element signature="e#3440#3542#0" expanded="true" />
-            <element signature="e#3856#3947#0" expanded="true" />
-            <element signature="e#5163#5342#0" expanded="true" />
-            <element signature="e#5392#5572#0" expanded="true" />
-            <element signature="e#6356#6496#0" expanded="true" />
-            <element signature="e#7997#8097#0" expanded="true" />
-            <element signature="e#8165#8616#0" expanded="true" />
-            <element signature="e#11370#11873#0" expanded="true" />
-            <element signature="e#11941#12043#0" expanded="true" />
-            <element signature="e#13050#13179#0" expanded="false" />
-            <element signature="e#14755#15287#0" expanded="true" />
-            <element signature="e#15332#15682#0" expanded="true" />
-            <element signature="e#16046#16224#0" expanded="true" />
-            <element signature="e#16267#16395#0" expanded="true" />
-            <element signature="e#17219#17579#0" expanded="true" />
-            <element signature="e#17304#17390#0" expanded="true" />
+            <element signature="e#1416#1513#0" expanded="true" />
+            <element signature="e#2010#2025#0" expanded="true" />
+            <element signature="e#3096#3401#0" expanded="true" />
+            <element signature="e#3451#3553#0" expanded="true" />
+            <element signature="e#3867#3958#0" expanded="true" />
+            <element signature="e#5174#5353#0" expanded="true" />
+            <element signature="e#5403#5583#0" expanded="true" />
+            <element signature="e#6367#6507#0" expanded="true" />
+            <element signature="e#8008#8108#0" expanded="true" />
+            <element signature="e#8176#8627#0" expanded="true" />
+            <element signature="e#11381#11884#0" expanded="true" />
+            <element signature="e#11952#12054#0" expanded="true" />
+            <element signature="e#13061#13190#0" expanded="false" />
+            <element signature="e#13703#14658#0" expanded="true" />
+            <element signature="e#14729#14834#0" expanded="true" />
+            <element signature="e#15041#15259#0" expanded="true" />
+            <element signature="e#15310#15553#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/rxncon/test/venntastic/test_sets_new.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.6993318">
+          <caret line="230" column="15" selection-start-line="230" selection-start-column="15" selection-end-line="230" selection-end-column="15" />
+          <folding>
+            <element signature="e#0#13#0" expanded="true" />
+            <element signature="e#8609#9006#0" expanded="true" />
           </folding>
         </state>
       </provider>

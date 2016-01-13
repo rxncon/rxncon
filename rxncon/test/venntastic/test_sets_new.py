@@ -4,6 +4,7 @@ from typing import List
 
 from rxncon.venntastic.sets import *
 
+
 # # Test the basic properties of the Set datastructure
 # def test_property_set_construction():
 #     assert PropertySet('a')
@@ -180,9 +181,9 @@ from rxncon.venntastic.sets import *
 #         assert x.is_equivalent_to(Intersection(x, x))
 #
 
-def test_union_properties(sets):
-    for x in sets:
-        assert UniversalSet().is_equivalent_to(Union(x, Complement(x)))
+# def test_union_properties(sets):
+#     for x in sets:
+#         assert UniversalSet().is_equivalent_to(Union(x, Complement(x)))
         # assert UniversalSet().is_equivalent_to(Union(Complement(x), x))
         #
         # assert x.is_equivalent_to(Union(EmptySet(), x))
@@ -210,6 +211,28 @@ def test_union_properties(sets):
 #     for x, y in itt.product(sets, sets):
 #         assert x.is_equivalent_to(Union(x, Intersection(x, y)))
 #         assert x.is_equivalent_to(Intersection(x, Union(x, y)))
+
+
+def test_boolean_function():
+    # A nontrivial boolean function with one AND clause
+    bool_func = BooleanFunction([BooleanAndClause(required_true=[0, 2], required_false=[1, 3])])
+
+    assert bool_func(True, False, True, False)
+    assert not bool_func(True, True, True, True)
+    assert not bool_func(False, True, False, True)
+
+    # A boolean function that evaluates to true when the arguments are opposite
+    bool_func = BooleanFunction([BooleanAndClause(required_true=[0], required_false=[1]),
+                                 BooleanAndClause(required_true=[1], required_false=[0])])
+
+    assert not bool_func(True, True)
+    assert bool_func(True, False)
+    assert bool_func(False, True)
+    assert not bool_func(False, False)
+
+
+
+
 
 
 @pytest.fixture

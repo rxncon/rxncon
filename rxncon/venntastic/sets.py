@@ -29,7 +29,7 @@ class Set:
             tuple_intersections = []
 
             for t in tuples:
-                tuple_intersections.append(flat_list_to_nested_expression(t, Intersection))
+                tuple_intersections.append(nested_expression_from_list_and_binary_op(t, Intersection))
 
             tuple_intersections = [x.cardinality_form() for x in tuple_intersections]
 
@@ -427,11 +427,11 @@ def UniversalSet():
     return PropertySet(None)
 
 
-def flat_list_to_nested_expression(xs: List[Set], set_class) -> Set:
-    if set_class == Intersection:
+def nested_expression_from_list_and_binary_op(xs: List[Set], binary_op) -> Set:
+    if binary_op == Intersection:
         unit = UniversalSet()
 
-    elif set_class == Union:
+    elif binary_op == Union:
         unit = EmptySet()
 
     else:
@@ -444,7 +444,69 @@ def flat_list_to_nested_expression(xs: List[Set], set_class) -> Set:
         return xs[0]
 
     else:
-        return functools.reduce(set_class, xs[1:], xs[0])
+        return functools.reduce(binary_op, xs[1:], xs[0])
+
+
+def boolean_function_from_nested_list_form(nested_list):
+    set_to_argument_num = {}
+
+    argument_num = 0
+    and_clauses = []
+
+    for term in nested_list:
+        required_true = []
+        required_false = []
+
+        for item in term:
+            if isinstance(item, PropertySet) and not item in set_to_argument_num.keys():
+                set_to_argument_num[item] = argument_num
+                argument_num += 1
+
+            elif isinstance(item, Complement) and not item.expr in set_to_argument_num.keys():
+                set_to_argument_num[item.expr] = argument_num
+                argument_num += 1
+
+
+            if isinstance(item, PropertySet):
+                required_true.append(set_to_argument_num[item])
+
+            elif isinstance(item, Complement):
+                required_false.append(set_to_argument_num[item.expr])
+
+            else:
+                raise AssertionError
+
+        and_clauses.append(BooleanAndClause(required_true, required_false))
+
+    return BooleanFunction(and_clauses)
+
+
+class BooleanFunction:
+    def __init__(self, and_clauses):
+        assert all([isinstance(x, BooleanAndClause) for x in and_clauses])
+        self.and_clauses = and_clauses
+
+    def __call__(self, *args, **kwargs):
+        return any([and_clause(*args) for and_clause in self.and_clauses])
+
+
+class BooleanAndClause:
+    def __init__(self, required_true, required_false):
+        assert not any([x in required_false for x in required_true])
+        assert not any([x in required_true for x in required_false])
+
+        self.required_true = required_true
+        self.required_false = required_false
+
+    def __call__(self, *args, **kwargs):
+        for arg_num, arg_val in enumerate(args):
+            if arg_val and arg_num in self.required_false:
+                return False
+
+            elif not arg_val and arg_num in self.required_true:
+                return False
+
+        return True
 
 
 def _add_dicts(x: Dict[PropertySet, int], y: Dict[PropertySet, int]) -> Dict[PropertySet, int]:
@@ -495,130 +557,6 @@ def _call_method_list_until_stable(expr: Set, methods: List[str]):
     return current_simplification
 
 
-def _cleaned_nested_list(nested_list):
-    cleaned = []
-
-    for intersection_term in nested_list:
-        cleaned.append(_cleaned_intersection_term(intersection_term))
-
-    if [UniversalSet()] in cleaned:
-        return [[UniversalSet()]]
-
-    elif all([x == [EmptySet()] for x in cleaned]):
-        return [[EmptySet()]]
-
-    cleaned = [x for x in cleaned if x != [EmptySet()]]
-    cleaned = _double_entries_removed(cleaned)
-    cleaned = _subsets_of_any_removed(cleaned)
-
-    if _is_boolean_tautology(cleaned):
-        return [[UniversalSet()]]
-
-    return sorted(cleaned)
-
-
-def _cleaned_intersection_term(term):
-    assert all([isinstance(x, UnarySet) for x in term])
-
-    if EmptySet() in term:
-        return [EmptySet()]
-
-    elif term == [UniversalSet()]:
-        return [UniversalSet()]
-
-    term = [x for x in term if x != UniversalSet()]
-
-    for x in term:
-        if Complement(x) in term:
-            return [EmptySet()]
-
-    return sorted(list(set(term)))
-
-
-def _set_from_cleaned_nested_list(nested_list):
-    intersections = []
-
-    for x in nested_list:
-        intersections.append(flat_list_to_nested_expression(x, Intersection))
-
-    return flat_list_to_nested_expression(intersections, Union)
-
-
-def _is_boolean_tautology(terms):
-    if terms == [[]]:
-        return True
-
-    def counter_set_from_set(x):
-        if isinstance(x, Complement):
-            return x.expr
-
-        elif isinstance(x, PropertySet):
-            return Complement(x)
-
-        else:
-            raise AssertionError
-
-    def shortest_sublist(lists):
-        result = lists[0]
-        for x in lists:
-            if len(x) < len(result):
-                result = x
-
-        return result
-
-    shortest_term = shortest_sublist(terms)
-    counter_term = [counter_set_from_set(x) for x in shortest_term]
-    remaining_terms = []
-
-    simplification_success = False
-
-    for term in terms:
-        if term == shortest_term:
-            continue
-
-        elif all([x in term for x in counter_term]):
-            simplification_success = True
-            remaining_terms.append([x for x in term if x not in counter_term])
-
-        else:
-            remaining_terms.append(term)
-
-    if simplification_success:
-        return _is_boolean_tautology(remaining_terms)
-
-    else:
-        return False
-
-
-def _double_entries_removed(xs):
-    result = []
-
-    while xs:
-        item = xs.pop()
-        result.append(item)
-        xs = [x for x in xs if x != item]
-
-    return result
-
-
-def _subsets_of_any_removed(terms):
-    if len(terms) == 1:
-        return terms
-
-    def is_strict_subset_of(x, y):
-        if len(x) <= len(y):
-            return False
-
-        return all([i in x for i in y])
-
-    result = []
-    while terms:
-        term = terms.pop()
-
-        if not any([is_strict_subset_of(term, x) for x in result + terms]):
-            result.append(term)
-
-    return result
 
 
 
