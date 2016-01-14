@@ -214,8 +214,8 @@ def test_absorption_properties(sets):
 
 # Test the cardinality calculator
 def test_cardinality_of_intersection_term():
-    print(_cardinality_of_intersection_term([1, 2, 3]))
-
+    print(cardinality_of_intersection_term([Complement(PropertySet(2))]))
+    print(Union(PropertySet(1), Union(PropertySet(2), PropertySet(3))).cardinality)
 
 
 

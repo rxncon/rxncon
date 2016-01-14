@@ -26,7 +26,9 @@ class Set:
     def cardinality(self):
         list_of_intersections = self.nested_list_form()
 
-        terms = {}
+        print(list_of_intersections)
+
+        cardinality = {}
 
         for i in range(len(list_of_intersections)):
             tuples = itt.combinations(list_of_intersections, i + 1)
@@ -35,11 +37,17 @@ class Set:
             for t in tuples:
                 intersection += list(t)
 
-            intersection = _cleaned_intersection_term(intersection)
+            print(intersection)
 
+            partial_cardinality = cardinality_of_intersection_term(_cleaned_intersection_term(intersection))
 
+            if i % 2:
+                cardinality = _add_dicts(cardinality, _negate_dict(partial_cardinality))
 
-        return {k: v for k, v in terms.items() if v != 0}
+            else:
+                cardinality = _add_dicts(cardinality, partial_cardinality)
+
+        return {k: v for k, v in cardinality.items() if v != 0}
 
     def is_equivalent_to(self, other: 'Set'):
         assert isinstance(other, Set)
@@ -544,7 +552,7 @@ def _negate_dict(x):
     return res
 
 
-def _cardinality_of_intersection_term(term):
+def cardinality_of_intersection_term(term):
     if not any(isinstance(x, Complement) for x in term):
         return {tuple(sorted(term)): 1}
 
@@ -553,8 +561,8 @@ def _cardinality_of_intersection_term(term):
         x = term.pop()
         if isinstance(x, Complement):
             rest_of_list = head_of_list + term
-            return _add_dicts(_cardinality_of_intersection_term(rest_of_list),
-                              _negate_dict(_cardinality_of_intersection_term(rest_of_list + [x.expr])))
+            return _add_dicts(cardinality_of_intersection_term(rest_of_list),
+                              _negate_dict(cardinality_of_intersection_term(rest_of_list + [x.expr])))
 
         elif isinstance(x, PropertySet):
             head_of_list.append(x)
