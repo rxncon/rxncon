@@ -120,9 +120,6 @@ def test_superset_subset_for_nested_intersections():
 
 
 def test_superset_subset_for_flat_unions():
-
-
-
     assert Union(PropertySet(1), PropertySet(2)).is_superset_of(PropertySet(1))
     assert Union(PropertySet(1), PropertySet(2)).is_superset_of(PropertySet(2))
 
@@ -155,7 +152,6 @@ def test_superset_subset_for_nested_unions():
     assert xy.is_subset_of(xyz)
     assert yz.is_subset_of(xyz)
     assert xz.is_subset_of(xyz)
-
 
 
 # Test basic set-theoretic identities for a generated pool of set expressions
@@ -216,6 +212,23 @@ def test_absorption_properties(sets):
         assert x.is_equivalent_to(Intersection(x, Union(x, y)))
 
 
+# # Test the cardinality calculator
+# def test_cardinality_empty_and_universal_set():
+#     assert EmptySet().cardinality == {}
+#     assert UniversalSet().cardinality == {UniversalSet(): 1}
+#
+# def test_cardinality_respects_complement_properties(sets):
+#     for x in sets:
+#         print(Intersection(x, Complement(x)).nested_list_form())
+#         print(Intersection(x, Complement(x)).cardinality)
+#         assert Intersection(x, Complement(x)).cardinality == {}
+#         assert Union(x, Complement(x)).cardinality == {UniversalSet(): 1}
+#
+
+
+
+
+# Test the boolean functions that are used to determine super/subset relations
 def test_boolean_function_single_and_clause():
     bool_func = BooleanFunction([BooleanAndClause(required_true=[0, 2], required_false=[1, 3])])
 
@@ -319,7 +332,7 @@ def test_boolean_function_implies_subset():
 
 @pytest.fixture
 def sets():
-    sets = [
+    return [
         EmptySet(),
         PropertySet(1),
         UniversalSet(),
@@ -328,10 +341,6 @@ def sets():
         Union(Intersection(PropertySet(1), PropertySet(2)), PropertySet(3)),
         Union(Intersection(PropertySet(1), PropertySet(2)), Intersection(PropertySet(3), PropertySet(4)))
     ]
-
-
-
-    return sets
 
 
 

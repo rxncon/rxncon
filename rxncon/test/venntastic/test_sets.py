@@ -22,11 +22,7 @@
 # # #     assert PropertySet().cardinality() == {PropertySet(): 1}
 # # #
 # # #
-# # # def test_cardinality_respects_complement_properties():
-# # #     assert Intersection(PropertySet(1, 2, 3, 4), Complement(PropertySet(1, 2, 3, 4))).cardinality() == {}
-# # #
-# # #     assert Union(PropertySet(1, 2, 3, 4), Complement(PropertySet(1, 2, 3, 4))).cardinality() == {PropertySet(): 1}
-# # #
+
 # # #
 # # # def test_cardinality_inclusion_exclusion_principle():
 # # #     # Test the standard examples of the inclusion-exclusion principle:

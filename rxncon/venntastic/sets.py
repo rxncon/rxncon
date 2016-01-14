@@ -8,7 +8,7 @@ METHOD_UNIONS_MOVED_TO_LEFT = '_unions_moved_to_left'
 
 
 class Set:
-    def cardinality_form(self) -> 'Set':
+    def simplified_form(self) -> 'Set':
         simplification_methods = [
             METHOD_COMPLEMENTS_EXPANDED,
             METHOD_UNIONS_MOVED_TO_LEFT
@@ -16,27 +16,27 @@ class Set:
 
         return _call_method_list_until_stable(self, simplification_methods)
 
-    def nested_list_form(self):
-        return self.cardinality_form()._to_nested_list()
+    def nested_list_form(self) -> List[List['Set']]:
+        return _cleaned_nested_list_form(self.simplified_form()._to_nested_list())
 
     def boolean_function(self):
         return boolean_function_from_nested_list_form(self.nested_list_form())
 
     @property
-    def cardinality(self) -> Dict['PropertySet', int]:
-        union_sets = self.cardinality_form()._unions_flattened()
+    def cardinality(self):
+        union_terms = self.nested_list_form()
         terms = {}
 
-        for i in range(len(union_sets)):
-            tuples = itt.combinations(union_sets, i + 1)
-            tuple_intersections = []
+        for i in range(len(union_terms)):
+            tuples = itt.combinations(union_terms, i + 1)
+            intersection = []
 
             for t in tuples:
-                tuple_intersections.append(nested_expression_from_list_and_binary_op(t, Intersection))
+                intersection += list(t)
 
-            tuple_intersections = [x.cardinality_form() for x in tuple_intersections]
+            intersection = _cleaned_intersection_term(intersection)
 
-            for t in tuple_intersections:
+            for t in intersection:
                 if i % 2 == 0:
                     terms = _add_dicts(terms, t._partial_cardinality())
                 else:
@@ -63,9 +63,6 @@ class Set:
 
     def _to_nested_list(self):
         pass
-
-    def _partial_cardinality(self) -> Dict['Set', int]:
-        raise NotImplementedError
 
 
 class UnarySet(Set):
@@ -116,9 +113,6 @@ class PropertySet(UnarySet):
         else:
             return 'UniversalSet'
 
-    def _partial_cardinality(self) -> Dict['Set', int]:
-        return {self: 1}
-
 
 class EmptySet(UnarySet):
     def __eq__(self, other: Set) -> bool:
@@ -139,9 +133,6 @@ class EmptySet(UnarySet):
 
     def is_subset_of(self, other: 'Set'):
         return True
-
-    def _partial_cardinality(self) -> Dict['Set', int]:
-        return {}
 
 
 class Complement(UnarySet):
@@ -194,13 +185,6 @@ class Complement(UnarySet):
 
         else:
             return Complement(self.expr._complements_expanded())
-
-    def _partial_cardinality(self) -> Dict['Set', int]:
-        if isinstance(self.expr, PropertySet):
-            return {UniversalSet(): 1, self.expr: -1}
-
-        else:
-            raise AssertionError
 
 
 class BinarySet(Set):
@@ -267,26 +251,6 @@ class Intersection(BinarySet):
     def _to_nested_list(self):
         return [self.left_expr._to_nested_list()[0] + self.right_expr._to_nested_list()[0]]
 
-    def _partial_cardinality(self) -> Dict[PropertySet, int]:
-        if isinstance(self.left_expr, Complement):
-            # Remove single complement using
-            # |!A ^ B| = |B| - |A ^ B|
-            return _add_dicts(self.right_expr._partial_cardinality(),
-                              _negate_dict(Intersection(self.left_expr.expr, self.right_expr)
-                                           .cardinality_form()
-                                           ._partial_cardinality()))
-
-        elif isinstance(self.right_expr, Complement):
-            # Remove single complement using
-            # |A ^ !B| = |A| - |B ^ A|
-            return _add_dicts(self.left_expr._partial_cardinality(),
-                              _negate_dict(Intersection(self.right_expr.expr, self.left_expr)
-                                           .cardinality_form()
-                                           ._partial_cardinality()))
-
-        else:
-            raise AssertionError
-
 
 class Union(BinarySet):
     def __hash__(self):
@@ -330,9 +294,6 @@ class Union(BinarySet):
 
     def _to_nested_list(self):
         return self.left_expr._to_nested_list() + self.right_expr._to_nested_list()
-
-    def _partial_cardinality(self) -> Dict[PropertySet, int]:
-        raise AssertionError
 
 
 class Difference(Set):
@@ -433,12 +394,6 @@ class BooleanFunction:
             my_evaluation = self(true=true_statements, false=false_statements)
             other_evaluation = other(true=[statement for statement in true_statements if other.is_valid_statement(statement)],
                                      false=[statement for statement in false_statements if other.is_valid_statement(statement)])
-
-            # print()
-            # print(true_statements)
-            # print(false_statements)
-            # print(my_evaluation)
-            # print(other_evaluation)
 
             if my_evaluation and not other_evaluation:
                 return False
@@ -552,6 +507,44 @@ def _call_method_list_until_stable(expr: Set, methods: List[str]):
     return current_simplification
 
 
+def _cleaned_nested_list_form(nested_list):
+    cleaned = []
+
+    for term in nested_list:
+        cleaned_term = _cleaned_intersection_term(term)
+        cleaned.append(cleaned_term)
+
+    if all(cleaned_term == [EmptySet()] for cleaned_term in cleaned):
+        return [[EmptySet()]]
+
+    else:
+        return cleaned
+
+
+def _cleaned_intersection_term(term):
+    cleaned_term = []
+
+    if all(item == UniversalSet() for item in term):
+        return [UniversalSet()]
+
+    for item in term:
+        if item == EmptySet():
+            cleaned_term = [EmptySet()]
+            break
+
+        elif item == UniversalSet():
+            continue
+
+        elif Complement(item) in cleaned_term or item in [Complement(x) for x in cleaned_term]:
+            cleaned_term = [EmptySet()]
+
+        elif item not in cleaned_term:
+            cleaned_term.append(item)
+
+        else:
+            continue
+
+    return cleaned_term
 
 
 
