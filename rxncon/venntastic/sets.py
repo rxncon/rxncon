@@ -485,28 +485,39 @@ class BooleanFunction:
     def __init__(self, and_clauses):
         assert all([isinstance(x, BooleanAndClause) for x in and_clauses])
         self.and_clauses = and_clauses
+        self.valid_statements = list(set([statement for and_clause in self.and_clauses for statement in and_clause.valid_statements]))
 
     def __call__(self, *args, **kwargs):
-        return any([and_clause(*args) for and_clause in self.and_clauses])
+        actual_true = kwargs.get('true', [])
+        actual_false = kwargs.get('false', [])
+
+        if any([statements not in self.valid_statements for statements in actual_true + actual_false]):
+            raise NameError
+
+        return any([and_clause(**{'true': actual_true, 'false': actual_false} ) for and_clause in self.and_clauses])
 
 
 class BooleanAndClause:
-    def __init__(self, required_true, required_false):
+    def __init__(self, required_true=None, required_false=None):
+        if required_true is None:
+            required_true = []
+
+        if required_false is None:
+            required_false = []
+
         assert not any([x in required_false for x in required_true])
         assert not any([x in required_true for x in required_false])
 
         self.required_true = required_true
         self.required_false = required_false
+        self.valid_statements = list(set(required_true + required_false))
 
     def __call__(self, *args, **kwargs):
-        for arg_num, arg_val in enumerate(args):
-            if arg_val and arg_num in self.required_false:
-                return False
+        if any([x in self.required_false for x in kwargs['true']]) or any([x in self.required_true for x in kwargs['false']]):
+            return False
 
-            elif not arg_val and arg_num in self.required_true:
-                return False
-
-        return True
+        else:
+            return True
 
 
 def _add_dicts(x: Dict[PropertySet, int], y: Dict[PropertySet, int]) -> Dict[PropertySet, int]:

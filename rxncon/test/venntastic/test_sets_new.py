@@ -213,24 +213,36 @@ from rxncon.venntastic.sets import *
 #         assert x.is_equivalent_to(Intersection(x, Union(x, y)))
 
 
-def test_boolean_function():
-    # A nontrivial boolean function with one AND clause
+def test_boolean_function_single_and_clause():
     bool_func = BooleanFunction([BooleanAndClause(required_true=[0, 2], required_false=[1, 3])])
 
-    assert bool_func(True, False, True, False)
-    assert not bool_func(True, True, True, True)
-    assert not bool_func(False, True, False, True)
+    assert bool_func(true=[0, 2], false=[1, 3])
+    assert not bool_func(true=[0, 1, 2, 3])
+    assert not bool_func(true=[1, 3], false=[0, 2])
 
-    # A boolean function that evaluates to true when the arguments are opposite
+
+def test_boolean_function_multiple_and_clauses():
     bool_func = BooleanFunction([BooleanAndClause(required_true=[0], required_false=[1]),
                                  BooleanAndClause(required_true=[1], required_false=[0])])
 
-    assert not bool_func(True, True)
-    assert bool_func(True, False)
-    assert bool_func(False, True)
-    assert not bool_func(False, False)
+    assert not bool_func(true=[0, 1])
+    assert bool_func(true=[0], false=[1])
+    assert not bool_func(false=[0, 1])
+    assert bool_func(true=[1], false=[0])
+
+    bool_func = BooleanFunction([BooleanAndClause(required_true=['a']),
+                                 BooleanAndClause(required_false=['a'])])
+
+    assert bool_func(true=['a'])
+    assert bool_func(false=['a'])
 
 
+def test_boolean_function_called_with_wrong_arguments():
+    bool_func = BooleanFunction([BooleanAndClause(required_true=['a']),
+                                 BooleanAndClause(required_false=['a'])])
+
+    with pytest.raises(NameError):
+        bool_func(true=['b'])
 
 
 
