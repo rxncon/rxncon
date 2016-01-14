@@ -13,9 +13,9 @@ BOOLEAN_CONTINGENCY_REGEX = '^<.*>$'
 
 
 class BooleanOperator(Enum):
-    op_and = 'AND'
-    op_or  = 'OR'
-    op_not = 'NOT'
+    op_and = 'and'
+    op_or  = 'or'
+    op_not = 'not'
 
 
 class ContingencyListEntry:

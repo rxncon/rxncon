@@ -136,7 +136,7 @@ def test_rxncon_from_string_reaction_p_plus():
     assert reaction.object.residue == 'S539'
 
     assert reaction.source is None
-    assert str(reaction.product) == 'Sst2_[(S539)]-{P}'
+    assert str(reaction.product) == 'Sst2_[(S539)]-{p}'
 
 
 def test_rxncon_from_string_reaction_p_minus():
@@ -154,7 +154,7 @@ def test_rxncon_from_string_reaction_p_minus():
     assert reaction.object.subdomain is None
     assert reaction.object.residue == 'Y192'
 
-    assert str(reaction.source) == 'Slt2_[(Y192)]-{P}'
+    assert str(reaction.source) == 'Slt2_[(Y192)]-{p}'
     assert reaction.product is None
 
 
@@ -174,7 +174,7 @@ def test_rxncon_from_string_reaction_gef():
     assert reaction.object.residue is None
 
     assert reaction.source is None
-    assert str(reaction.product) == 'Rho1_[GnP]-{P}'
+    assert str(reaction.product) == 'Rho1_[GnP]-{p}'
 
 
 def test_rxncon_from_string_reaction_gap():
@@ -192,7 +192,7 @@ def test_rxncon_from_string_reaction_gap():
     assert reaction.object.subdomain is None
     assert reaction.object.residue is None
 
-    assert str(reaction.source) == 'Rho1_[GnP]-{P}'
+    assert str(reaction.source) == 'Rho1_[GnP]-{p}'
     assert reaction.product is None
 
 
@@ -212,7 +212,7 @@ def test_rxncon_from_string_reaction_ub_plus():
     assert reaction.object.residue is None
 
     assert reaction.source is None
-    assert str(reaction.product) == 'Tec1-{Ub}'
+    assert str(reaction.product) == 'Tec1-{ub}'
 
 
 def test_rxncon_from_string_reaction_ap():
@@ -231,7 +231,7 @@ def test_rxncon_from_string_reaction_ap():
     assert reaction.object.residue is None
 
     assert reaction.source is None
-    assert str(reaction.product) == 'Rck2_[Ser]-{P}'
+    assert str(reaction.product) == 'Rck2_[Ser]-{p}'
 
 
 def test_rxncon_from_string_reaction_pt():
@@ -249,8 +249,8 @@ def test_rxncon_from_string_reaction_pt():
     assert reaction.object.subdomain is None
     assert reaction.object.residue == 'D1144'
 
-    assert str(reaction.source) == 'Sln1_[HK(H576)]-{P}'
-    assert str(reaction.product) == 'Sln1_[RR(D1144)]-{P}'
+    assert str(reaction.source) == 'Sln1_[HK(H576)]-{p}'
+    assert str(reaction.product) == 'Sln1_[RR(D1144)]-{p}'
 
 
 def test_rxncon_from_string_reaction_deg():
@@ -288,7 +288,7 @@ def test_rxncon_from_string_reaction_cut():
     assert reaction.object.residue is None
 
     assert reaction.source is None
-    assert str(reaction.product) == 'Msb2_[HMH/CD]-{Truncated}'
+    assert str(reaction.product) == 'Msb2_[HMH/CD]-{truncated}'
 
 
 # State from string
@@ -302,9 +302,9 @@ def test_rxncon_from_string_state_interaction():
 
 
 def test_rxncon_from_string_state_phosphorylation():
-    state = fst.state_from_string('Slt2_[(Y192)]-{P}')
+    state = fst.state_from_string('Slt2_[(Y192)]-{p}')
 
     assert isinstance(state, sta.CovalentModificationState)
-    assert str(state) == 'Slt2_[(Y192)]-{P}'
+    assert str(state) == 'Slt2_[(Y192)]-{p}'
     assert str(state.substrate) == 'Slt2_[(Y192)]'
     assert state.modifier == sta.StateModifier.phosphor

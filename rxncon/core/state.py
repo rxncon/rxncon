@@ -7,9 +7,9 @@ import rxncon.syntax.string_from_rxncon as sfr
 @unique
 class StateModifier(Enum):
     undefined = None
-    phosphor  = 'P'
-    ubiquitin = 'Ub'
-    truncated = 'Truncated'
+    phosphor  = 'p'
+    ubiquitin = 'ub'
+    truncated = 'truncated'
 
 
 class State:

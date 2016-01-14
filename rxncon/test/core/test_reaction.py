@@ -18,7 +18,7 @@ def test_states_from_reaction_p_plus():
 
     assert states.source_state is None
     assert isinstance(states.product_state, sta.CovalentModificationState)
-    assert str(states.product_state) == 'Sst2_[(S539)]-{P}'
+    assert str(states.product_state) == 'Sst2_[(S539)]-{p}'
 
 
 def test_states_from_reaction_p_minus():
@@ -27,7 +27,7 @@ def test_states_from_reaction_p_minus():
 
     assert states.product_state is None
     assert isinstance(states.source_state, sta.CovalentModificationState)
-    assert str(states.source_state) == 'Slt2_[(Y192)]-{P}'
+    assert str(states.source_state) == 'Slt2_[(Y192)]-{p}'
 
 
 def test_states_from_reaction_gef():
@@ -36,7 +36,7 @@ def test_states_from_reaction_gef():
 
     assert states.source_state is None
     assert isinstance(states.product_state, sta.CovalentModificationState)
-    assert str(states.product_state) == 'Rho1_[GnP]-{P}'
+    assert str(states.product_state) == 'Rho1_[GnP]-{p}'
 
 
 def test_states_from_reaction_gap():
@@ -45,7 +45,7 @@ def test_states_from_reaction_gap():
 
     assert states.product_state is None
     assert isinstance(states.source_state, sta.CovalentModificationState)
-    assert str(states.source_state) == 'Rho1_[GnP]-{P}'
+    assert str(states.source_state) == 'Rho1_[GnP]-{p}'
 
 
 def test_states_from_reaction_ub_plus():
@@ -54,7 +54,7 @@ def test_states_from_reaction_ub_plus():
 
     assert states.source_state is None
     assert isinstance(states.product_state, sta.CovalentModificationState)
-    assert str(states.product_state) == 'Tec1-{Ub}'
+    assert str(states.product_state) == 'Tec1-{ub}'
 
 
 def test_states_from_reaction_ap():
@@ -63,7 +63,7 @@ def test_states_from_reaction_ap():
 
     assert states.source_state is None
     assert isinstance(states.product_state, sta.CovalentModificationState)
-    assert str(states.product_state) == 'Rck2_[Ser]-{P}'
+    assert str(states.product_state) == 'Rck2_[Ser]-{p}'
 
 
 def test_states_from_reaction_cut():
@@ -72,5 +72,5 @@ def test_states_from_reaction_cut():
 
     assert states.source_state is None
     assert isinstance(states.product_state, sta.CovalentModificationState)
-    assert str(states.product_state) == 'Msb2_[HMH/CD]-{Truncated}'
+    assert str(states.product_state) == 'Msb2_[HMH/CD]-{truncated}'
 

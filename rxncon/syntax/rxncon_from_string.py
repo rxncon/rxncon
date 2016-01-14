@@ -68,7 +68,7 @@ def reaction_from_string(reaction_string: str) -> rxn.Reaction:
     subject, verb, object = _reaction_string_to_subject_verb_object_strings(reaction_string)
 
     subject = component_from_string(subject)
-    verb = rxn.Verb(verb)
+    verb = rxn.Verb(verb.lower())
     object = component_from_string(object)
 
     try:
@@ -87,10 +87,10 @@ def _reaction_string_to_subject_verb_object_strings(reaction_string: str) -> Tup
     delimiters = ['_' + verb + '_' for verb in known_verbs]
 
     matches = 0
-    subject_string, verb_string, object_string = None, None, None
+    verb_position, object_position = 0, 0
 
     for delimiter in delimiters:
-        splitted = reaction_string.split(delimiter)
+        splitted = reaction_string.lower().split(delimiter)
 
         if len(splitted) > 1:
             matches += 1
@@ -98,13 +98,19 @@ def _reaction_string_to_subject_verb_object_strings(reaction_string: str) -> Tup
             if len(splitted) != 2:
                 raise err.RxnConParseError('Incorrect S-V-O in reaction string {}'.format(reaction_string))
 
-            subject_string, verb_string, object_string = splitted[0], delimiter.strip('_'), splitted[1]
+            verb_position = len(splitted[0]) + 1
+            object_position = verb_position + len(delimiter) - 1
 
     if matches == 0:
         raise err.RxnConParseError('Unknown verb in reaction string {}'.format(reaction_string))
 
     elif matches > 1:
         raise err.RxnConParseError('Ambiguous verb in reaction string {}'.format(reaction_string))
+
+    subject_string = reaction_string[0:verb_position-1]
+    verb_string = reaction_string[verb_position:object_position-1]
+    object_string = reaction_string[object_position:]
+
 
     return subject_string, verb_string, object_string
 
@@ -121,7 +127,7 @@ def state_from_string(state_string: str) -> sta.State:
         return _interaction_state_from_string(state_string)
 
     elif re.match(MODIFIER_REGEX, state_string):
-        modifier_string = re.search(MODIFIER_VALUE_REGEX, state_string).group(0).strip('{}')
+        modifier_string = re.search(MODIFIER_VALUE_REGEX, state_string).group(0).strip('{}').lower()
 
         # @todo Maybe this is a bit dirty.
         try:

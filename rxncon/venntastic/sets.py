@@ -24,11 +24,12 @@ class Set:
 
     @property
     def cardinality(self):
-        union_terms = self.nested_list_form()
+        list_of_intersections = self.nested_list_form()
+
         terms = {}
 
-        for i in range(len(union_terms)):
-            tuples = itt.combinations(union_terms, i + 1)
+        for i in range(len(list_of_intersections)):
+            tuples = itt.combinations(list_of_intersections, i + 1)
             intersection = []
 
             for t in tuples:
@@ -36,11 +37,7 @@ class Set:
 
             intersection = _cleaned_intersection_term(intersection)
 
-            for t in intersection:
-                if i % 2 == 0:
-                    terms = _add_dicts(terms, t._partial_cardinality())
-                else:
-                    terms = _add_dicts(terms, _negate_dict(t._partial_cardinality()))
+
 
         return {k: v for k, v in terms.items() if v != 0}
 
@@ -459,29 +456,6 @@ def generate_boolean_value_lists(statements):
         yield list(itt.compress(statements, selector)), list(itt.compress(statements, [not x for x in selector]))
 
 
-def _add_dicts(x: Dict[PropertySet, int], y: Dict[PropertySet, int]) -> Dict[PropertySet, int]:
-    res = {}
-    for k, v in x.items():
-        res[k] = v
-
-    for k, v in y.items():
-        if k in res:
-            res[k] += v
-
-        else:
-            res[k] = v
-
-    return res
-
-
-def _negate_dict(x: Dict[PropertySet, int]) -> Dict[PropertySet, int]:
-    res = {}
-    for k, v in x.items():
-        res[k] = -1 * v
-
-    return res
-
-
 def _call_method_list_until_stable(expr: Set, methods: List[str]):
     max_simplifications = 100
     i = 0
@@ -546,6 +520,44 @@ def _cleaned_intersection_term(term):
 
     return cleaned_term
 
+
+def _add_dicts(x, y):
+    res = {}
+    for k, v in x.items():
+        res[k] = v
+
+    for k, v in y.items():
+        if k in res:
+            res[k] += v
+
+        else:
+            res[k] = v
+
+    return res
+
+
+def _negate_dict(x):
+    res = {}
+    for k, v in x.items():
+        res[k] = -1 * v
+
+    return res
+
+
+def _cardinality_of_intersection_term(term):
+    if not any(isinstance(x, Complement) for x in term):
+        return {tuple(sorted(term)): 1}
+
+    head_of_list = []
+    while term:
+        x = term.pop()
+        if isinstance(x, Complement):
+            rest_of_list = head_of_list + term
+            return _add_dicts(_cardinality_of_intersection_term(rest_of_list),
+                              _negate_dict(_cardinality_of_intersection_term(rest_of_list + [x.expr])))
+
+        elif isinstance(x, PropertySet):
+            head_of_list.append(x)
 
 
 

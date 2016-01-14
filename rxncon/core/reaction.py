@@ -11,20 +11,20 @@ import rxncon.syntax.string_from_rxncon as sfr
 # @todo lower case.
 @unique
 class Verb(Enum):
-    phosphorylation             = 'P+'
-    dephosphorylation           = 'P-'
-    autophosphorylation         = 'AP'
-    phosphotransfer             = 'PT'
-    guanine_nucleotide_exchange = 'GEF'
-    gtpase_activation           = 'GAP'
-    ubiquination                = 'Ub+'
-    proteolytic_cleavage        = 'CUT'
+    phosphorylation             = 'p+'
+    dephosphorylation           = 'p-'
+    autophosphorylation         = 'ap'
+    phosphotransfer             = 'pt'
+    guanine_nucleotide_exchange = 'gef'
+    gtpase_activation           = 'gap'
+    ubiquination                = 'ub+'
+    proteolytic_cleavage        = 'cut'
     protein_protein_interaction = 'ppi'
     intra_protein_interaction   = 'ipi'
     non_protein_interaction     = 'i'
-    binding_to_dna              = 'BIND'
-    degradation                 = 'DEG'
-    synthesis                   = 'SYN'
+    binding_to_dna              = 'bind'
+    degradation                 = 'deg'
+    synthesis                   = 'syn'
 
 
 @unique

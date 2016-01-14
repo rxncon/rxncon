@@ -212,7 +212,13 @@ def test_absorption_properties(sets):
         assert x.is_equivalent_to(Intersection(x, Union(x, y)))
 
 
-# # Test the cardinality calculator
+# Test the cardinality calculator
+def test_cardinality_of_intersection_term():
+    print(_cardinality_of_intersection_term([1, 2, 3]))
+
+
+
+
 # def test_cardinality_empty_and_universal_set():
 #     assert EmptySet().cardinality == {}
 #     assert UniversalSet().cardinality == {UniversalSet(): 1}
