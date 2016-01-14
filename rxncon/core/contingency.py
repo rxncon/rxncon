@@ -9,8 +9,8 @@ class ContingencyType(Enum):
     undefined   = None
     requirement = '!'
     inhibition  = 'x'
-    positive    = 'K+'
-    negative    = 'K-'
+    positive    = 'k+'
+    negative    = 'k-'
     no_effect   = '0'
     unknown     = '?'
 

@@ -8,6 +8,7 @@ import rxncon.core.state as sta
 import rxncon.syntax.string_from_rxncon as sfr
 
 
+# @todo lower case.
 @unique
 class Verb(Enum):
     phosphorylation             = 'P+'
@@ -53,7 +54,6 @@ class Isomerism(Enum):
     undefined = None
     trans     = 1
     cis       = 2
-
 
 @unique
 class CovalentReactionModifier(Enum):

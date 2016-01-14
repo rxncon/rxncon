@@ -53,6 +53,8 @@ class BooleanContingencyName:
 
 def contingency_list_entry_from_subject_predicate_agent_strings(subject_string, predicate_string, agent_string) -> ContingencyListEntry:
     # @todo Input/output states, raise Exception when sub-pred-ag is inconsistent triple.
+    predicate_string = predicate_string.lower()
+
     if re.match(BOOLEAN_CONTINGENCY_REGEX, subject_string):
         subject = BooleanContingencyName(subject_string)
         predicate = BooleanOperator(predicate_string)
