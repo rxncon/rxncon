@@ -245,6 +245,37 @@ def test_boolean_function_called_with_wrong_arguments():
         bool_func(true=['b'])
 
 
+def test_boolean_function_from_nested_list_form():
+    bool_func = boolean_function_from_nested_list_form([[PropertySet(1), Complement(PropertySet(2))],
+                                                        [PropertySet(2), Complement(PropertySet(1))]])
+
+    assert bool_func(true=[PropertySet(1)], false=[PropertySet(2)])
+    assert bool_func(true=[PropertySet(2)], false=[PropertySet(1)])
+
+    assert not bool_func(true=[PropertySet(1), PropertySet(2)])
+    assert not bool_func(false=[PropertySet(1), PropertySet(2)])
+
+    assert not bool_func(true=[PropertySet(1)])
+    assert not bool_func(true=[PropertySet(2)])
+    assert not bool_func(false=[PropertySet(1)])
+    assert not bool_func(false=[PropertySet(2)])
+
+
+def test_boolean_function_from_nested_list_form_corner_cases():
+    bool_func = boolean_function_from_nested_list_form([[]])
+    assert bool_func()
+
+    with pytest.raises(AssertionError):
+        boolean_function_from_nested_list_form([[PropertySet(1), Complement(PropertySet(1))]])
+
+    with pytest.raises(Exception):
+        boolean_function_from_nested_list_form([])
+
+    with pytest.raises(Exception):
+        boolean_function_from_nested_list_form('a')
+
+
+
 
 
 @pytest.fixture

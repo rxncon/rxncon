@@ -448,30 +448,22 @@ def nested_expression_from_list_and_binary_op(xs: List[Set], binary_op) -> Set:
 
 
 def boolean_function_from_nested_list_form(nested_list):
-    set_to_argument_num = {}
+    assert isinstance(nested_list, list)
+    assert len(nested_list) > 0
 
-    argument_num = 0
     and_clauses = []
 
     for term in nested_list:
+        assert isinstance(term, list)
         required_true = []
         required_false = []
 
         for item in term:
-            if isinstance(item, PropertySet) and not item in set_to_argument_num.keys():
-                set_to_argument_num[item] = argument_num
-                argument_num += 1
-
-            elif isinstance(item, Complement) and not item.expr in set_to_argument_num.keys():
-                set_to_argument_num[item.expr] = argument_num
-                argument_num += 1
-
-
             if isinstance(item, PropertySet):
-                required_true.append(set_to_argument_num[item])
+                required_true.append(item)
 
             elif isinstance(item, Complement):
-                required_false.append(set_to_argument_num[item.expr])
+                required_false.append(item.expr)
 
             else:
                 raise AssertionError
@@ -517,7 +509,7 @@ class BooleanAndClause:
             return False
 
         else:
-            return True
+            return all([x in kwargs['true'] for x in self.required_true] + [x in kwargs['false'] for x in self.required_false])
 
 
 def _add_dicts(x: Dict[PropertySet, int], y: Dict[PropertySet, int]) -> Dict[PropertySet, int]:
