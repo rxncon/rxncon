@@ -26,26 +26,30 @@ class Set:
     def cardinality(self):
         list_of_intersections = self.nested_list_form()
 
-        print(list_of_intersections)
-
         cardinality = {}
 
         for i in range(len(list_of_intersections)):
-            tuples = itt.combinations(list_of_intersections, i + 1)
-            intersection = []
+            intersections = list(itt.combinations(list_of_intersections, i + 1))
 
-            for t in tuples:
-                intersection += list(t)
+            for intersection_parts in intersections:
+                intersection = []
 
-            print(intersection)
+                for part in intersection_parts:
+                    intersection += part
 
-            partial_cardinality = cardinality_of_intersection_term(_cleaned_intersection_term(intersection))
+                partial_cardinality = cardinality_of_intersection_term(_cleaned_intersection_term(intersection))
 
-            if i % 2:
-                cardinality = _add_dicts(cardinality, _negate_dict(partial_cardinality))
+                if i % 2:
+                    cardinality = _add_dicts(cardinality, _negate_dict(partial_cardinality))
 
-            else:
-                cardinality = _add_dicts(cardinality, partial_cardinality)
+                else:
+                    cardinality = _add_dicts(cardinality, partial_cardinality)
+
+        if () in cardinality.keys() and UniversalSet() in cardinality.keys():
+            cardinality[(UniversalSet(),)] += cardinality.pop(())
+
+        elif () in cardinality.keys():
+            cardinality[(UniversalSet(),)] = cardinality.pop(())
 
         return {k: v for k, v in cardinality.items() if v != 0}
 
@@ -553,19 +557,27 @@ def _negate_dict(x):
 
 
 def cardinality_of_intersection_term(term):
+    if any(isinstance(x, EmptySet) for x in term):
+        return {}
+
     if not any(isinstance(x, Complement) for x in term):
         return {tuple(sorted(term)): 1}
 
+    term_copy = term.copy()
+
     head_of_list = []
-    while term:
-        x = term.pop()
+    while term_copy:
+        x = term_copy.pop()
         if isinstance(x, Complement):
-            rest_of_list = head_of_list + term
+            rest_of_list = head_of_list + term_copy
             return _add_dicts(cardinality_of_intersection_term(rest_of_list),
                               _negate_dict(cardinality_of_intersection_term(rest_of_list + [x.expr])))
 
         elif isinstance(x, PropertySet):
             head_of_list.append(x)
+
+        else:
+            raise AssertionError
 
 
 

@@ -213,31 +213,23 @@ def test_absorption_properties(sets):
 
 
 # Test the cardinality calculator
-def test_cardinality_of_intersection_term():
-    print(cardinality_of_intersection_term([Complement(PropertySet(2))]))
-    print(Union(PropertySet(1), Union(PropertySet(2), PropertySet(3))).cardinality)
+
+def test_cardinality_empty_and_universal_set():
+    assert EmptySet().cardinality == {}
+    assert UniversalSet().cardinality == {(UniversalSet(),): 1}
+
+def test_cardinality_respects_complement_properties(sets):
+    for x in sets:
+        assert Intersection(x, Complement(x)).cardinality == {}
+        assert Union(x, Complement(x)).cardinality == {(UniversalSet(),): 1}
 
 
-
-# def test_cardinality_empty_and_universal_set():
-#     assert EmptySet().cardinality == {}
-#     assert UniversalSet().cardinality == {UniversalSet(): 1}
-#
-# def test_cardinality_respects_complement_properties(sets):
-#     for x in sets:
-#         print(Intersection(x, Complement(x)).nested_list_form())
-#         print(Intersection(x, Complement(x)).cardinality)
-#         assert Intersection(x, Complement(x)).cardinality == {}
-#         assert Union(x, Complement(x)).cardinality == {UniversalSet(): 1}
-#
-
-#
-# def test_cardinality_inclusion_exclusion_principle():
-#     # Test the standard examples of the inclusion-exclusion principle:
-#     # |A u (B u C)| = |A| + |B| + |C| - |A^B| - |A^C| - |B^C| + |A^B^C|
-#     assert Union(PropertySet(1), Union(PropertySet(2), PropertySet(3))).cardinality() == \
-#         {PropertySet(1): 1, PropertySet(2): 1, PropertySet(3): 1, PropertySet(1, 2): -1, PropertySet(1, 3): -1,
-#          PropertySet(2, 3): -1, PropertySet(1, 2, 3): 1}
+def test_cardinality_inclusion_exclusion_principle():
+    # Test the standard examples of the inclusion-exclusion principle:
+    # |A u (B u C)| = |A| + |B| + |C| - |A^B| - |A^C| - |B^C| + |A^B^C|
+    assert Union(PropertySet(1), Union(PropertySet(2), PropertySet(3))).cardinality == \
+        {(PropertySet(1),): 1, (PropertySet(2),): 1, (PropertySet(3),): 1, (PropertySet(1), PropertySet(2)): -1, (PropertySet(1), PropertySet(3)): -1,
+         (PropertySet(2), PropertySet(3)): -1, (PropertySet(1), PropertySet(2), PropertySet(3)): 1}
 #
 #     # |(A u B) u C| = same
 #     assert Union(Union(PropertySet(1), PropertySet(2)), PropertySet(3)).cardinality() == \
