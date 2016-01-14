@@ -19,6 +19,9 @@ class Set:
     def nested_list_form(self):
         return self.cardinality_form()._to_nested_list()
 
+    def boolean_function(self):
+        return boolean_function_from_nested_list_form(self.nested_list_form())
+
     @property
     def cardinality(self) -> Dict['PropertySet', int]:
         union_sets = self.cardinality_form()._unions_flattened()
@@ -44,13 +47,13 @@ class Set:
     def is_equivalent_to(self, other: 'Set'):
         assert isinstance(other, Set)
 
-        return self.cardinality_form() == other.cardinality_form()
+        return self.is_superset_of(other) and self.is_subset_of(other)
 
     def is_superset_of(self, other: 'Set') -> Optional[bool]:
-        return None
+        return other.boolean_function().implies(self.boolean_function())
 
     def is_subset_of(self, other: 'Set') -> Optional[bool]:
-        return None
+        return self.boolean_function().implies(other.boolean_function())
 
     def _complements_expanded(self) -> 'Set':
         return self
@@ -113,26 +116,6 @@ class PropertySet(UnarySet):
         else:
             return 'UniversalSet'
 
-    def is_superset_of(self, other: Set):
-        if self.value is None:
-            return True
-
-        elif isinstance(other, EmptySet):
-            return True
-
-        elif isinstance(other, Intersection):
-            return self.is_superset_of(other.left_expr) or self.is_superset_of(other.right_expr)
-
-        else:
-            return self == other
-
-    def is_subset_of(self, other: Set):
-        if self == other:
-            return True
-
-        else:
-            return other.is_superset_of(self)
-
     def _partial_cardinality(self) -> Dict['Set', int]:
         return {self: 1}
 
@@ -154,10 +137,7 @@ class EmptySet(UnarySet):
     def __str__(self) -> str:
         return 'EmptySet'
 
-    def is_superset_of(self, other: Set) -> Optional[bool]:
-        return isinstance(other, EmptySet)
-
-    def is_subset_of(self, other: Set) -> Optional[bool]:
+    def is_subset_of(self, other: 'Set'):
         return True
 
     def _partial_cardinality(self) -> Dict['Set', int]:
@@ -195,26 +175,6 @@ class Complement(UnarySet):
 
     def __str__(self) -> str:
         return 'Complement({})'.format(self.expr)
-
-    def is_superset_of(self, other: Set):
-        if self == other:
-            return True
-
-        elif isinstance(other, Complement):
-            return self.expr.is_subset_of(other.expr)
-
-        else:
-            return None
-
-    def is_subset_of(self, other: Set):
-        if self == other:
-            return True
-
-        elif self.is_superset_of(other) is None:
-            return None
-
-        else:
-            return not self.is_superset_of(other)
 
     def _complements_expanded(self) -> bool:
         if isinstance(self.expr, Complement):
@@ -290,27 +250,6 @@ class Intersection(BinarySet):
     def __str__(self):
         return 'Intersection({0}, {1})'.format(self.left_expr, self.right_expr)
 
-    def is_superset_of(self, other: Set) -> Optional[bool]:
-        if self == other:
-            return True
-
-        else:
-            return other.is_subset_of(self)
-
-    def is_subset_of(self, other: Set) -> Optional[bool]:
-        if self == other:
-            return True
-
-        elif isinstance(other, Intersection):
-            return self.left_expr.is_subset_of(other.left_expr) or self.right_expr.is_subset_of(other.right_expr) or\
-                   self.right_expr.is_subset_of(other.left_expr) or self.left_expr.is_subset_of(other.right_expr)
-
-        elif isinstance(other, PropertySet):
-            return other.is_superset_of(self)
-
-        else:
-            return None
-
     def _unions_moved_to_left(self) -> Set:
         if isinstance(self.left_expr, Union):
             # Distributivity of intersection with respect to union
@@ -376,27 +315,6 @@ class Union(BinarySet):
     def __str__(self):
         return 'Union({0}, {1})'.format(self.left_expr, self.right_expr)
 
-    def is_superset_of(self, other: Set) -> Optional[bool]:
-        if self == other:
-            return True
-
-        elif isinstance(other, Union):
-            return self.left_expr.is_superset_of(other.left_expr) or self.right_expr.is_superset_of(other.right_expr) or\
-                   self.right_expr.is_superset_of(other.left_expr) or self.left_expr.is_superset_of(other.right_expr)
-
-        elif isinstance(other, PropertySet):
-            return self.left_expr.is_superset_of(other) or self.right_expr.is_superset_of(other)
-
-        else:
-            return None
-
-    def is_subset_of(self, other: Set) -> Optional[bool]:
-        if self == other:
-            return True
-
-        else:
-            return other.is_superset_of(self)
-
     def _unions_moved_to_left(self) -> Set:
         if isinstance(self.right_expr, Union) and not isinstance(self.left_expr, Union):
             # Use commutativity to move all Union expressions to the left
@@ -451,15 +369,28 @@ def boolean_function_from_nested_list_form(nested_list):
     assert isinstance(nested_list, list)
     assert len(nested_list) > 0
 
+    if all(isinstance(item, EmptySet) for term in nested_list for item in term):
+        return BooleanFunctionAlwaysFalse()
+
     and_clauses = []
 
     for term in nested_list:
         assert isinstance(term, list)
+
+        if all(item == UniversalSet() for item in term):
+            return BooleanFunctionAlwaysTrue()
+
+        if any(isinstance(item, EmptySet) for item in term):
+            continue
+
         required_true = []
         required_false = []
 
         for item in term:
-            if isinstance(item, PropertySet):
+            if item == UniversalSet():
+                continue
+
+            elif isinstance(item, PropertySet):
                 required_true.append(item)
 
             elif isinstance(item, Complement):
@@ -468,9 +399,16 @@ def boolean_function_from_nested_list_form(nested_list):
             else:
                 raise AssertionError
 
+        if any(x in required_false for x in required_true) or any(x in required_true for x in required_false):
+            continue
+
         and_clauses.append(BooleanAndClause(required_true, required_false))
 
-    return BooleanFunction(and_clauses)
+    if not and_clauses:
+        return BooleanFunctionAlwaysFalse()
+
+    else:
+        return BooleanFunction(and_clauses)
 
 
 class BooleanFunction:
@@ -487,6 +425,55 @@ class BooleanFunction:
             raise NameError
 
         return any([and_clause(**{'true': actual_true, 'false': actual_false} ) for and_clause in self.and_clauses])
+
+    def implies(self, other):
+        assert isinstance(other, BooleanFunction)
+
+        for true_statements, false_statements in generate_boolean_value_lists(self.valid_statements):
+            my_evaluation = self(true=true_statements, false=false_statements)
+            other_evaluation = other(true=[statement for statement in true_statements if other.is_valid_statement(statement)],
+                                     false=[statement for statement in false_statements if other.is_valid_statement(statement)])
+
+            # print()
+            # print(true_statements)
+            # print(false_statements)
+            # print(my_evaluation)
+            # print(other_evaluation)
+
+            if my_evaluation and not other_evaluation:
+                return False
+
+        return True
+
+    def is_valid_statement(self, statement):
+        return statement in self.valid_statements
+
+
+class BooleanFunctionAlwaysFalse(BooleanFunction):
+    def __init__(self):
+        self.valid_statements = []
+        self.and_clauses = []
+
+    def __call__(self, *args, **kwargs):
+        return False
+
+    def is_valid_statement(self, statement):
+        return True
+
+
+class BooleanFunctionAlwaysTrue(BooleanFunction):
+    def __init__(self):
+        self.valid_statements = []
+        self.and_clauses = []
+
+    def __call__(self, *args, **kwargs):
+        return True
+
+    def implies(self, other):
+        return True
+
+    def is_valid_statement(self, statement):
+        return True
 
 
 class BooleanAndClause:
@@ -510,6 +497,11 @@ class BooleanAndClause:
 
         else:
             return all([x in kwargs['true'] for x in self.required_true] + [x in kwargs['false'] for x in self.required_false])
+
+
+def generate_boolean_value_lists(statements):
+    for selector in itt.product([True, False], repeat=len(statements)):
+        yield list(itt.compress(statements, selector)), list(itt.compress(statements, [not x for x in selector]))
 
 
 def _add_dicts(x: Dict[PropertySet, int], y: Dict[PropertySet, int]) -> Dict[PropertySet, int]:
