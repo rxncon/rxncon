@@ -2,4 +2,5 @@ syntax: glob
 
 .idea/
 *.pyc
+__pycache__*
 
