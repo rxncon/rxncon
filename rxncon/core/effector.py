@@ -47,6 +47,7 @@ class StateEffector(Effector):
         else:
             return False
 
+    @property
     def states(self):
         return [self.expr]
 
@@ -68,6 +69,7 @@ class NotEffector(Effector):
         else:
             return False
 
+    @property
     def states(self):
         return self.expr.states
 
@@ -90,6 +92,7 @@ class BinaryEffector(Effector):
         else:
             return False
 
+    @property
     def states(self):
         return self.left_expr.states + self.right_expr.states
 
