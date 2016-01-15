@@ -19,22 +19,20 @@ class BNGLSystem:
     def __init__(self, rule_based_system: List[Rule]):
         self.rule_based_system = rule_based_system
 
-        self.molecues = []  # type: List[Molecule]
+        self.molecules = []  # type: List[Molecule]
         self.parameters = []  # type: List[Parameter]
 
-        #self.molecule_type_section = MoleculeTypeSection()
-        #self.seeded_species_section = SeededSpeciesSection()
-        #self.parameter_section = ParameterSection()
-        #self.rule_section = RuleSection()
 
     def bngl_from_rule_based_model(self):
-        self.rule_section._create_rule_section()
+        rule_section = RuleSection(self.rule_based_system)
+        bngl = rule_section._create_rule_section()
+        self.molecules = bngl.molecules
+        self.parameters = bngl.parameters
 
     def write_to_file(self):
-        pass
         self._write_molecule_type_section()
-        self.seeded_species_section.write_to_file()
-        self.parameter_section.write_to_file()
+        self._write_seeded_species_section()
+        self._write_parameter_section()
         self.rule_section.write_to_file()
 
     def _write_molecule_type_section(self):
@@ -61,6 +59,13 @@ class BNGLSystem:
         """
         pass
 
+    def has_molecule(self, other: str):
+        for mol in self.moleculs:
+            if mol.name == other:
+                return True
+        return False
+
+
 class Molecule:
     def __init__(self):
         self.name = None
@@ -69,6 +74,7 @@ class Molecule:
         self.occupied_modification_domain = []
         self.free_modification_domain = []
         self.relocalisation = []
+
 
 class Parameter:
     def __init__(self, forward_name: Optional[str], reverse_name: Optional[str]):
@@ -80,10 +86,20 @@ class Parameter:
 
 class RuleSection:
 
-    def __init__(self, rules: ):
+    def __init__(self, rules: List[Rule], molecules: List[Molecule], parmeters: List[Parameter]):
+        self.rules = rules  # type: List[Rule]
+        self.molecules = []  # type: List[Molecule]
+        self.parameters = []  # type: List[Parameter]
+
         self._create_rule_section()
 
     def _create_rule_section(self):
+        pass
+
+    def source_to_str(self):
+        pass
+
+    def product_to_str(self):
         pass
 
     def reactant_to_str(self):
@@ -92,7 +108,7 @@ class RuleSection:
         # 2. modification domains
         # 3. Binding domains
 
-        A(1,2,3) +
+        A(1,2,3) + B(1,2,3) <-> A(1,2,3!0).B(1,2,3!0)
 
         """
         pass
@@ -104,4 +120,3 @@ class RuleSection:
             return '->'
         elif self.rule.directionality == 1:  # reversible
             return '<->'
-class
