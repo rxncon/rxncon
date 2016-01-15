@@ -12,3 +12,5 @@ def test_excel_book_tiger_network():
     assert isinstance(excel_book, exc.ExcelBook)
     assert len(excel_book._reactions) == 222
     assert len(excel_book._contingencies) == 279
+
+    print(len(excel_book.rxncon_system.reactions))

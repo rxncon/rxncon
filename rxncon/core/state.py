@@ -4,6 +4,7 @@ from enum import Enum, unique
 import rxncon.core.component as com
 import rxncon.syntax.string_from_rxncon as sfr
 
+
 @unique
 class StateModifier(Enum):
     undefined = None
@@ -16,11 +17,11 @@ class State:
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def is_subset_of(self, other: 'State'):
+    def is_subset_of(self, other: 'State') -> bool:
         pass
 
     @abstractmethod
-    def is_superset_of(self, other: 'State'):
+    def is_superset_of(self, other: 'State') -> bool:
         pass
 
 
