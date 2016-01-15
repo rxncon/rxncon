@@ -1,8 +1,6 @@
 syntax: glob
 
 .idea/
-.idea/*
 .cache/
-.cache/*
 *.pyc
 .DS_Store
