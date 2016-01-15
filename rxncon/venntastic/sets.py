@@ -1,6 +1,6 @@
 import functools
 import itertools as itt
-from typing import List, Dict, Optional
+from typing import List, Dict
 
 
 METHOD_COMPLEMENTS_EXPANDED = '_complements_expanded'
@@ -58,10 +58,10 @@ class Set:
 
         return self.is_superset_of(other) and self.is_subset_of(other)
 
-    def is_superset_of(self, other: 'Set') -> Optional[bool]:
+    def is_superset_of(self, other: 'Set') -> bool:
         return other.boolean_function().implies(self.boolean_function())
 
-    def is_subset_of(self, other: 'Set') -> Optional[bool]:
+    def is_subset_of(self, other: 'Set') -> bool:
         return self.boolean_function().implies(other.boolean_function())
 
     def _complements_expanded(self) -> 'Set':
@@ -70,7 +70,7 @@ class Set:
     def _unions_moved_to_left(self) -> 'Set':
         return self
 
-    def _to_nested_list(self):
+    def _to_nested_list(self) -> List[List['Set']]:
         pass
 
 
@@ -93,10 +93,10 @@ class PropertySet(UnarySet):
         else:
             return False
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash('*property-set-{}*'.format(hash(self.value)))
 
-    def __lt__(self, other: Set):
+    def __lt__(self, other: Set) -> bool:
         if isinstance(other, PropertySet):
             if self.value is None:
                 return True
@@ -112,10 +112,10 @@ class PropertySet(UnarySet):
         else:
             raise AssertionError
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.value:
             return 'Property({})'.format(self.value)
 
@@ -140,7 +140,7 @@ class EmptySet(UnarySet):
     def __str__(self) -> str:
         return 'EmptySet'
 
-    def is_subset_of(self, other: 'Set'):
+    def is_subset_of(self, other: 'Set') -> bool:
         return True
 
 
@@ -176,7 +176,7 @@ class Complement(UnarySet):
     def __str__(self) -> str:
         return 'Complement({})'.format(self.expr)
 
-    def _complements_expanded(self) -> bool:
+    def _complements_expanded(self) -> Set:
         if isinstance(self.expr, Complement):
             return self.expr.expr._complements_expanded()
 
@@ -234,13 +234,13 @@ class Intersection(BinarySet):
         else:
             raise AssertionError
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash('*intersection-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'Intersection({0}, {1})'.format(self.left_expr, self.right_expr)
 
     def _unions_moved_to_left(self) -> Set:
@@ -257,12 +257,12 @@ class Intersection(BinarySet):
         else:
             return Intersection(self.left_expr._unions_moved_to_left(), self.right_expr._unions_moved_to_left())
 
-    def _to_nested_list(self):
+    def _to_nested_list(self) -> List[List[Set]]:
         return [self.left_expr._to_nested_list()[0] + self.right_expr._to_nested_list()[0]]
 
 
 class Union(BinarySet):
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash('*union-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
 
     def __lt__(self, other: Set) -> bool:
@@ -282,10 +282,10 @@ class Union(BinarySet):
         else:
             raise AssertionError
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'Union({0}, {1})'.format(self.left_expr, self.right_expr)
 
     def _unions_moved_to_left(self) -> Set:
@@ -301,7 +301,7 @@ class Union(BinarySet):
         else:
             return Union(self.left_expr._unions_moved_to_left(), self.right_expr._unions_moved_to_left())
 
-    def _to_nested_list(self):
+    def _to_nested_list(self) -> List[List[Set]]:
         return self.left_expr._to_nested_list() + self.right_expr._to_nested_list()
 
 
@@ -323,7 +323,7 @@ def nested_expression_from_list_and_binary_op(xs: List[Set], binary_op) -> Set:
         unit = EmptySet()
 
     else:
-        raise AssertionError
+        raise TypeError
 
     if len(xs) == 0:
         return unit
@@ -335,7 +335,7 @@ def nested_expression_from_list_and_binary_op(xs: List[Set], binary_op) -> Set:
         return functools.reduce(binary_op, xs[1:], xs[0])
 
 
-def boolean_function_from_nested_list_form(nested_list):
+def boolean_function_from_nested_list_form(nested_list: List[List[Set]]) -> 'BooleanFunction':
     assert isinstance(nested_list, list)
     assert len(nested_list) > 0
 
@@ -387,7 +387,7 @@ class BooleanFunction:
         self.and_clauses = and_clauses
         self.valid_statements = list(set([statement for and_clause in self.and_clauses for statement in and_clause.valid_statements]))
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> bool:
         actual_true = kwargs.get('true', [])
         actual_false = kwargs.get('false', [])
 
@@ -396,7 +396,7 @@ class BooleanFunction:
 
         return any([and_clause(**{'true': actual_true, 'false': actual_false} ) for and_clause in self.and_clauses])
 
-    def implies(self, other):
+    def implies(self, other) -> bool:
         assert isinstance(other, BooleanFunction)
 
         for true_statements, false_statements in generate_boolean_value_lists(self.valid_statements):
@@ -409,7 +409,7 @@ class BooleanFunction:
 
         return True
 
-    def is_valid_statement(self, statement):
+    def is_valid_statement(self, statement) -> bool:
         return statement in self.valid_statements
 
 
@@ -418,10 +418,10 @@ class BooleanFunctionAlwaysFalse(BooleanFunction):
         self.valid_statements = []
         self.and_clauses = []
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> bool:
         return False
 
-    def is_valid_statement(self, statement):
+    def is_valid_statement(self, statement) -> bool:
         return True
 
 
@@ -430,13 +430,13 @@ class BooleanFunctionAlwaysTrue(BooleanFunction):
         self.valid_statements = []
         self.and_clauses = []
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> bool:
         return True
 
-    def implies(self, other):
+    def implies(self, other) -> bool:
         return True
 
-    def is_valid_statement(self, statement):
+    def is_valid_statement(self, statement) -> bool:
         return True
 
 
@@ -455,7 +455,7 @@ class BooleanAndClause:
         self.required_false = required_false
         self.valid_statements = list(set(required_true + required_false))
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> bool:
         if any([x in self.required_false for x in kwargs['true']]) or any([x in self.required_true for x in kwargs['false']]):
             return False
 
@@ -493,7 +493,7 @@ def _call_method_list_until_stable(expr: Set, methods: List[str]):
     return current_simplification
 
 
-def _cleaned_nested_list_form(nested_list):
+def _cleaned_nested_list_form(nested_list: List[List[Set]]) -> List[List[Set]]:
     cleaned = []
 
     for term in nested_list:
@@ -507,7 +507,7 @@ def _cleaned_nested_list_form(nested_list):
         return cleaned
 
 
-def _cleaned_intersection_term(term):
+def _cleaned_intersection_term(term: List[Set]) -> List[Set]:
     cleaned_term = []
 
     if all(item == UniversalSet() for item in term):
@@ -533,7 +533,7 @@ def _cleaned_intersection_term(term):
     return cleaned_term
 
 
-def _add_dicts(x, y):
+def _add_dicts(x: Dict, y: Dict) -> Dict:
     res = {}
     for k, v in x.items():
         res[k] = v
@@ -548,7 +548,7 @@ def _add_dicts(x, y):
     return res
 
 
-def _negate_dict(x):
+def _negate_dict(x: Dict) -> Dict:
     res = {}
     for k, v in x.items():
         res[k] = -1 * v
@@ -556,7 +556,7 @@ def _negate_dict(x):
     return res
 
 
-def cardinality_of_intersection_term(term):
+def cardinality_of_intersection_term(term: List[Set]) -> Dict:
     if any(isinstance(x, EmptySet) for x in term):
         return {}
 
@@ -578,11 +578,3 @@ def cardinality_of_intersection_term(term):
 
         else:
             raise AssertionError
-
-
-
-
-
-
-
-
