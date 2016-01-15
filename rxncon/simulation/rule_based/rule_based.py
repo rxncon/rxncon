@@ -1,16 +1,17 @@
 from typing import List, Optional
-
+import rxncon.simulation.rule_based.bngl_export as bngle
 
 class RuleBasedModel:
     def __init__(self):
         self.rules = []  # type: List[Rule]
 
     def export_to_bngl(self):
-        bngl = bngl_export.bngl_file_from_rule_based_model(self)
-        bngl.export()
+        bngl_export = bngle.BNGLSystem(self.rules)
+        bngl_export.bngl_file_from_rule_based_model()
+        bngl_export.write_to_file()
 
 
-class LocalRule:
+class Rule:
     def __init__(self, reaction: object):
         self.name = None  # name of the reaction
 
@@ -18,6 +19,8 @@ class LocalRule:
         self.left_reactant = None  # type: Reactant
         self.right_reactant = None  # type: Reactant
         self.rate = 1.0     # type: float
+        self.forward_rate = None
+        self.reverse_rate = None
 
         self.reaction_class = reaction.reaction_class
         self.directionality = reaction.directionality
@@ -26,20 +29,27 @@ class LocalRule:
         self.isomerism = reaction.isomerism
         self.modifier = reaction.modifier
 
-        self.source = None
-        self.product = None
+        self.source = reaction.source
+        self.product = reaction.product
 
     def __eq__(self, other) -> bool:
-        assert isinstance(other, LocalRule)
+        assert isinstance(other, Rule)
 
         if self.name == other.name and \
                         self.left_reactant == other.left_reactant and \
                         self.right_reactant == other.right_reactant:
-
             return True
         else:
             return False
 
+    @property
+    def rate(self):
+        if self.directionality == 1:
+            self.forward_rate = True
+            self.reverse_rate = True
+        elif self.directionality == 1:
+            self.forward_rate = True
+            self.reverse_rate = False
 
 class Reactant:
     def __init__(self, name: str):
