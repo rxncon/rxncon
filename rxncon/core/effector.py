@@ -1,4 +1,5 @@
-from abc import ABCMeta
+from abc import ABCMeta, abstractproperty
+from typing import List
 
 import rxncon.core.state as sta
 
@@ -24,6 +25,10 @@ class Effector:
         assert isinstance(value, str)
         self._name = value
 
+    @abstractproperty
+    def states(self) -> List[sta.State]:
+        pass
+
 
 class StateEffector(Effector):
     def __init__(self, expr: sta.State):
@@ -42,6 +47,9 @@ class StateEffector(Effector):
         else:
             return False
 
+    def states(self):
+        return [self.expr]
+
 
 class NotEffector(Effector):
     def __init__(self, expr: Effector):
@@ -59,6 +67,9 @@ class NotEffector(Effector):
 
         else:
             return False
+
+    def states(self):
+        return self.expr.states
 
 
 class BinaryEffector(Effector):
@@ -79,6 +90,8 @@ class BinaryEffector(Effector):
         else:
             return False
 
+    def states(self):
+        return self.left_expr.states + self.right_expr.states
 
 class AndEffector(BinaryEffector):
     def __str__(self) -> str:
