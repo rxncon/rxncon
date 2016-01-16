@@ -1,0 +1,55 @@
+!!SBtab TableType='Definition' TableName='rxncon definitions table'
+!Component	!ComponentType	!IsPartOf	!Format	!Description
+%
+% Definitions for table type 'ReactionID'
+%
+ReactionID	Column	ReactionID	string	ReactionID
+ComponentA:Name	Column	ReactionID	string	ComponentA:Name
+ComponentA:Domain	Column	ReactionID	string	ComponentA:Domain
+ComponentA:Subdomain	Column	ReactionID	string	ComponentA:Subdomain
+ComponentA:Residue	Column	ReactionID	string	ComponentA:Residue
+Reaction	Column	ReactionID	string	Reaction
+ComponentB:Name	Column	ReactionID	string	ComponentB:Name
+ComponentB:Domain	Column	ReactionID	string	ComponentB:Domain
+ComponentB:Subdomain	Column	ReactionID	string	ComponentB:Subdomain
+ComponentB:Residue	Column	ReactionID	string	ComponentB:Residue
+Quality	Column	ReactionID	string	Quality
+PubMedIdentifiers	Column	ReactionID	string	PubMedIdentifiers
+Comment	Column	ReactionID	string	Comment
+%
+% Definitions for table type 'Reaction'
+%
+Reaction	Column	Reaction	string	Reaction
+Category:Type	Column	Reaction	string	Category:Type
+Category	Column	Reaction	string	Category
+SubclassID	Column	Reaction	string	SubclassID
+Subclass	Column	Reaction	string	Subclass
+ModifierOrBoundary	Column	Reaction	string	ModifierOrBoundary
+ReactionType:ID	Column	Reaction	string	ReactionType:ID
+ReactionType	Column	Reaction	string	ReactionType
+Reaction:Name	Column	Reaction	string	Reaction:Name
+Reversibility	Column	Reaction	string	Reversibility
+Directionality	Column	Reaction	string	Directionality
+SourceState:Component	Column	Reaction	string	SourceState:Component
+SourceState:Modification	Column	Reaction	string	SourceState:Modification
+ProductState:Component	Column	Reaction	string	ProductState:Component
+ProductState:Modification	Column	Reaction	string	ProductState:Modification
+coSubstrates	Column	Reaction	string	coSubstrates
+coProducts	Column	Reaction	string	coProducts
+Comment	Column	Reaction	string	Comment
+%
+% Definitions for table type 'ContingencyID'
+%
+ContingencyID	Column	ContingencyID	string	ContingencyID
+Target	Column	ContingencyID	string	Target
+Contingency	Column	ContingencyID	string	Contingency
+Modifier	Column	ContingencyID	string	Modifier
+PubMedIdentifiers	Column	ContingencyID	string	PubMedIdentifiers
+Quality	Column	ContingencyID	string	Quality
+Comment	Column	ContingencyID	string	Comment
+%
+% Definitions for table type 'Gene'
+%
+Gene	Column	Gene	string	Gene
+Name	Column	Gene	string	Gene name
+LocusName	Column	Gene	string	Gene locus name

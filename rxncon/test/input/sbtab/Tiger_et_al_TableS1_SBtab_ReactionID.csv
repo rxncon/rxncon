@@ -1,0 +1,224 @@
+!!SBtab  TableType='ReactionID' TableName='Reaction list'													
+!ReactionID	!ComponentA:Name	!ComponentA:Domain	ComponentA:Subdomain	!ComponentA:Residue	!Reaction	!ComponentB:Name	ComponentB:Domain	!ComponentB:Subdomain	!ComponentB:Residue	!Quality	!PubMedIdentifiers	!Comment	
+1	Fus3	CD			ppi	Msg5	n			CoIP, Co-Crystallization structure determination, competition fluorescence polarization binding assay	16364919	Fus3_[CD]=CD+ABC-pockets.  SEQ:Msg5_[n]:28-36	
+2	Fus3	KD			P+	Sst2			S539	In vitro phosphorylation, mass spec detection of S539-p	15924435		
+3	Fus3	KD			P+	Ste5				In vitro phosphorylation	8314085, 15322134		
+4	MFalpha				ppi	Ste2	Receptor			radiolabel detection of crosslinked complex, binding in recombinant expression in mammalian cells	2839507, 16313173		
+5	Msg5	PD			P-	Fus3			T180	in vitro dephosphorylation	8306972		
+6	Msg5	PD			P-	Fus3			Y182	in vitro dephosphorylation	8306972		
+7	Bem2				GAP	Rho1	GnP			In vitro GTPase assay	7962098		
+8	Lrg1	GAP			GAP	Rho1	GnP			In vitro GTPase assay	15514049	SEQ:Lrg1_[GAP]:755-910	
+9	Mid2	CyT			ppi	Rom2				Two-hybrid	11113201	Domain tested in two hybrid=Mid2_[(252-376)]. May enhance GEF activity of Rom2 (11113201 in extracts from slg1delta, GTP incorporation in Rho1 is lowered, even more so in slg1delta/mid2delta). Weaker interaction and enhancement than for Slg1.  ??Perhaps requireing pheromones??	
+10	Mid2	CyT			ppi	Zeo1				Two-hybrid	12949174	Domain tested in two hybrid=Mid2_[(250-343)]	
+11	Mkk1				ppi	Pkc1				Two-hybrid	8757399		
+12	Mkk2	n			ppi	Slt2	n			CoIP, Two-hybrid	8596433, 8757399		
+13	Mlp1				ppi	Rlm1	c			Two-hybrid	9111331	SEQ:Rlm1_[c]:246-445	
+14	Msg5	PD			P-	Slt2			T190	in vitro dephosphorylation	14703512	Dephosphorylation detected by using anti-phosphp-p42p44 antibody (can still be single phosphorylated?)	
+15	Msg5	PD			P-	Slt2			Y192	in vitro dephosphorylation	14703512	Dephosphorylation detected by using anti-phosphp-p42p44 antibody (can still be single phosphorylated?)	
+16	Msg5	n			ppi	Slt2	n			Two hybrid, CoIP	14703512	SEQ:Msg5_[n]:1-228;Slt2_[n]:1-395	
+17	Pkc1				i	PS				co-factor activity shown for in vitro kinase assay	8621575		
+18	Pkc1	HR1			ppi	Rho1				Two hybrid	11994162		
+19	Pkh2	KD			P+	Pkc1	AL		T983	In vitro kinase assay	10567559, 11726514		
+20	Pkc1	C1			ppi	Rho1	ED			Two-hybrid, suppression, Co-IP, Bck1 phosphorylation in vitro	8621575, 8846785	Rho1_[T42] important.  SEQ:Pkc1_[C1]:378-640	
+21	Rho1				ppi	Ste4				CoIP	12660244		
+22	Rlm1	c			ppi	Slt2				Two-hybrid	9111331	SEQ:Rlm1_[c]:246-445	
+23	Rlm1				ppi	Smp1				CoIP	9121433	Hetero-dimer binds DNA (9121433 gel mobility shift, competetive binding assays)//	
+24	Rom2	DH			GEF	Rho1	GnP			Two-hybrid, In vitro GTP binding, In vitro GDP release	8641285	requires lipid modification of Rho1//	
+25	Rom2	n			ppi	Slg1	CyT			Two-hybrid	11113201	May enhance GEF activity of Rom2 (11113201 in extracts from slg1delta, GTP incorporation in Rho1 is lowered, even more so in slg1delta/mid2delta)//  SEQ:Rom2_[n]:1-660;Slg1_[CyT]:298-378	
+26	Rom2				ppi	Wsc2				Protein-fragment complementation assay (PCA)	18467557		
+27	Sac7	GAP			GAP	Rho1	GnP			In vitro GTPase assay	9038344		
+28	Sdp1	PD			P-	Slt2			T190	In vitro dephosphorylation	11923319		
+29	Sdp1	PD			P-	Slt2			Y192	In vitro dephosphorylation	11923319		
+30	Sdp1				ppi	Slt2				Two-hybrid, CoIP,  Affinity Capture-MS (high throughput)	11923319, 12220658, 11805837		
+31	Slt2	KD			P+	Msg5				in vitro kinase assay	14703512	Showed in vitro using phosphatase inactive mutant Msg5-C319A	
+32	Slt2	KD			P+	Rlm1	c		S427	In vitro kinase assay	9111331, 12410835	In vitro kinase assay (9111331) indicate S427 and/or S374 to be phosphorylated. Mutagenesis studies in (12410835) shows that S427 is regulatory but S374 is not.//	
+33	Slt2	KD			P+	Rlm1	c		T439	In vitro kinase assay	9111331		
+34	Slt2	KD			P+	Sir3			S275	In vitro kinase assay	12504006		
+35	Slt2	KD			P+	Swi4				In vitro kinase assay	9065400		
+36	Slt2	DB			ppi	Swi4	c			Reconstituted complex, CoIP, Two-hybrid	11533240, 9065400, 19805511		
+37	Slt2	KD			P+	Swi6			S238	In vitro kinase assay (9065400). Mutant study identified S238 as in vivo phosphorylated in a Slt2 dependent manner (20219973)	9065400, 20219973	Western blot. No Slt2 phosphorylation dependet shift in S238 mutant.	
+38	Swi4	c			ppi	Swi6	c			Reconstituted complex, CoIP	1465410, 8649372, 10490612	SEQ:Swi4_[c]:1017-1095;Swi6_[c]:663-787	
+39	Tus1	DH			GEF	Rho1	GnP			Two-hybrid, In vitro GTP binding	11839800	DH = Dbl homology domain	
+40	Bem3				GAP	Cdc42	GnP			In vitro GTPase assay, Two-hybrid, In vitro GTP hydrolysis	8300560, 12455995		
+41	Cdc24	GEF			GEF	Cdc42	GnP			In vitro GDP release, In vitro GTPgS binding	8300560		
+42	Cdc42	ED			ppi	Ste20	CRIB			p21 overlay, Co-IP, Two hybrid, GFP, mating, Fus1-LacZ, mating efficiency	7651520, 7565673, 9003780, 11940652, 12455995	CRIB = Cdc42/Rac interaction binding. Ste20-CRIB=(327-370). Binding to Cdc42-GTP is  "!" (11940652, 9003780). Inhibited by Cdc42_[T35A] effector domain mutant (9003780). Required for release of autoinhibition and localisation of Ste20.	
+43	Cdc42				ppi	Ste50	RA			CoIP	16428446	Binds both Cdc42-GDP/GTP	
+44	Hog1	n			ppi	Hot1	m			Two hybrid	10409737	Hog1_[(1-343)] ppi Hot1_[(140-645)] tested. Note: CoIP approach failed	
+45	Hog1	CD			ppi	Pbs2	HBD-1			Co-IP	18212044	Co-IP of detailed mutants and deletions	
+46	Hog1	PBD-2			ppi	Pbs2	HBD-1			Co-IP	18212044		
+47	Hog1	CD			ppi	Ptp2				Co-IP	10817757, 18212044		
+48	Hog1	CD			ppi	Ptp3				Co-IP	10817757	Hog1_[D310] required. Catalytic activity or Y176-phosphorylation is not required.	
+49	Hog1	KD			P+	Rck2	c		S519	in vitro kinase assay, in vivo phosphorylation	10805732		
+50	Hog1	CD			ppi	Rck2	c			Co-IP	10805732, 18212044	SEQ:Rck2_[c]:466-610	
+51	Hog1	KD			P+	Sic1			T173	in vitro kinase assay, site mutants	15448699		
+52	Hog1				ppi	Sic1				CoIP	15448699		
+53	Hog1	KD			P+	Sko1	n		S108	in vitro kinase assay, site mutants	11230135		
+54	Hog1	KD			P+	Sko1	n		S113	in vitro kinase assay, site mutants	11230135		
+55	Hog1	KD			P+	Sko1	n		S126	in vitro kinase assay, site mutants	11230135		
+56	Hog1				ppi	Sko1	n			CoIP	11230135, 12086627	SEQ:Sko1_[n]:1-315	
+57	Hog1				ppi	Smp1				CoIP, Two-hybrid	12482976		
+58	Nbp2	SH3			ppi	Pbs2	SIM2			CoIP crude, CoIP recombinant purified	14685261	SEQ:Pbs2_[SIM2]:187-190	
+59	Nbp2	n			ppi	Ptc1				CoIP crude, CoIP recombinant purified	14685261		
+60	Nbp2	SH3			ppi	Ste20	PR			Two hybrid, Co-IP	15743816	Nbp2 domain not tested, but the Ste20_[PR/(427-480)] domain is consensus binding site for SH3 domains, and Nbp2_[SH3] has been shown to bind similar domains (RXXPXXP)11743162. SEQ:Ste20_[PR]:427-480	
+61	Opy2	BD:Ste50			ppi	Ste50	RA			Two hybrid, CoIP	16543225	Opy2 essential for membrane targetting of Ste50; membrane anchored Ste50 overrules the need for Opy2 in osmotic induction (17627274). Req for Ste11 activation in osmotic stress; Ste50-RA, or even a myristoylation domain, fused to Ste11 bypasses the need for Ste50 and thus the SAM domains. Causes a growth defect (morphological abberation) relieved by deletion of Ste5. SEQ:Opy2_[BD:Ste50]:266-345;Ste50_[RA]:187-346	
+62	Pbs2	KD			P+	Hog1			T174	in vitro phosphorylation recombinant hyperactive Pbs2EE	11113180		
+63	Pbs2	KD			P+	Hog1			Y176	in vitro phosphorylation recombinant hyperactive Pbs2EE	11113180		
+64	Pbs2	RSD2	PR		ppi	Sho1	CyT	SH3		GFP, fusion protien phenotypes, Hog1-P westerns, Two hybrid	10970855, 7624781	PR=Proline rich (91-101) subdomain of RSD-II. Recruits Pbs2 to areas of polarised growth. SEQ:Pbs2_[RSD2/PR]:91-101	
+65	Pbs2	RSD1			ppi	Ssk2	KD			CoIP, Osmotolerance, Hog1 phosphorylation, Two-hybrid interaction, Pbs(1-67)-Ste7 hybrid	12853477	RSD-I=regulatory sub-domain-I (46-56), Ssk2_[KD]-tested=(1233-1579)	
+66	Pbs2	KD			ppi	Ssk2	KD			CoIP	12853477	Only for Ssk2-delta-N-domain!	
+67	Pbs2	RSD1			ppi	Ssk22	KD			Osmotolerance, Hog1 phosphorylation, Two-hybrid interaction	12853477	RSD-I=regulatory sub-domain-I (46-56), Ssk22_[KD]-tested=(998-1331)	
+68	Pbs2	RSD2			ppi	Ste11	n			Osmotolerance, Hog1 phosphorylation, Co-IP	15200959, 12853477, 9180081	RSD-II=regulatory sub-domain-II (55-107) req for activation, contains Sho1 binding PR. Pbs2_(2-162) binds Ste11_(1-200) CoIP in #15200959.	
+69	Ptc1	PD			P-	Hog1			T174	In vitro kinase assay - MBP phosphorylation, in vitro phosphatase assay	11113180	Decreases Hog1 kinase activity (But not Pbs2). Affects basal levels, induction pattern and downregulation.	
+70	Ptc2	PD			P-	Hog1			T174	In vitro kinase assay - MBP phosphorylation, in vitro phosphatase assay	12477803	Decreases Hog1 kinase activity (But not Pbs2). Affects induction level.	
+71	Rck2				AP	Rck2	Ser			in vitro kinase assay	8939941, 10805732	Multiple undefined serine residues.	
+72	Rga1				GAP	Cdc42	GnP			Two-hybrid, In vitro GTP hydrolysis	12455995		
+73	Rga2				GAP	Cdc42	GnP			Genetic interactions, two hybrid, In vitro GTP hydrolysis	12455995		
+74	Sho1	CyT			ppi	Ste11	BD:Sho1			CoIP	16778768	Only showed for Sho1 activation mutants R342G/G346S. Activated Sho1 is therefore likely to be a requirement.  SEQ:Ste11_[BD:Sho1]:340-413	
+75	Sho1	CyT			ppi	Ste50	m			co-IP	16778768	Ste50_[m/central domain] suggested, but SAM has not been excluded experimentally.	
+76	Sln1	HK			P+	Sln1	HK		H576	In vitro kinase assay	8808622, 11985722	Indications that the phosphorylation is done in trans within a dimer. sln1 mutants lacking a dimer interaction-coil-domain lacks in vitro auto-phosphorylation 11985722)	
+77	Sln1	BD:Sln1			ppi	Sln1	BD:Sln1			CoIP, two-hybrid	11985722	aa 527-568 needed for interaction in two-hybrid.  SEQ:Sln1_[BD:Sln1]:356-1077;Sln1_[BD:Sln1]:356-1077	
+78	Sln1	HK		H576	PT	Sln1	RR		D1144	suppression, In vitro phosphorylation	8808622	phosphotransfer shown in trans	
+79	Sln1	RR			ppi	Ypd1				two-hybrid	8808622	SEQ:Sln1_[RR]:1019-1220	
+80	Sln1	RR		D1144	PT	Ypd1			H64	Two-hybrid, mutant phenotype, In vitro phosphorylation	8808622		
+81	Ssk1	RR			ppi	Ssk2	BD:Ssk1			Two hybrid, CoIP	9482735, 12853477, 18573873	Ssk1_[RR]-tested=(475-670). SEQ:Ssk2_[BD:Ssk1]:294-413	
+82	Ssk1				ppi	Ssk22				Two hybrid	12853477		
+83	Ssk1	RR			ppi	Ypd1				two-hybrid	8808622	SEQ:Ssk1_[RR]:427-712	
+84	Ssk2	KD			P+	Pbs2	AL		S514	Hog1-P westerns, In vitro kinase assay	9180081, 9482735		
+85	Ssk2	KD			P+	Pbs2	AL		T518	Hog1-P westerns, In vitro kinase assay	9180081, 9482735		
+86	Ssk2	KD			AP	Ssk2			T1460	In vitro kinase assay	9482735	T1460 only SUGGESTED to be the AP-residue (although it is required for KD-activity). Autophosphorylation (no Trans-phosphorylation seen using in vitro kinase assay)	
+87	Ssk22	KD			P+	Pbs2	AL		S514	Hog1-P westerns	9180081, 7624781	7624781_using hyperactive ssk22-delta-N	
+88	Ssk22	KD			P+	Pbs2	AL		T518	Hog1-P westerns	9180081, 7624781		
+89	Ste11	KD			P+	Pbs2	AL		S514	In vitro kinase assay, GST-pulldown (P32 labelling),Hog1-p westerns	9180081		
+90	Ste11	KD			P+	Pbs2	AL		T518	In vitro kinase assay, GST-pulldown (P32 labelling),Hog1-p westerns	9180081		
+91	Ste11	CBD			ppi	Ste11	KD			CoIP	10837245		
+92	Ste11	SAM			ppi	Ste50	SAM			Co-IP, Hog1-P westerns, Mating test, Two-hybrid,halo-assay, streak out: mating or osmostress	9742096, 10397774, 16543225	Req. for Hog pathway activation (suppressed by additional deletion of EE domain in Ste11) but expendable for mating; SAM domains can be switched but need to be "hetero-pair" Ste11(26(85)-(129)137)-Ste50_(1(68)-(115)118)	
+93	Ste20	KD			P+	Ste11	CBD		S302	in vitro phosphorylation	10837245		
+94	Ste20	KD			P+	Ste11	CBD		S306	in vitro phosphorylation	10837245		
+95	Ste20	KD			P+	Ste11	CBD		T307	in vitro phosphorylation	10837245		
+96	Ypd1			H64	PT	Ssk1	RR		D544	Two-hybrid, mutant phenotype	8808622		
+97	Hkr1	TMD			ppi	Sho1	TMD			CoIP	17627274	"Mode 1" activation of the Sho branch.	
+98	Msb2	TMD			ppi	Sho1	TMD			CoIP	15256499, 17627274 	"Mode 1" activation of the Sho branch. Msb2-Sho1 CoIP stronger under FG induced conditions (15256499).	
+99	Msb2	CyT			ppi	Sho1	CyT			CoIP. Genetic. Pathway activation works with myristoylated Sho1_[CyT], but only with intact Msb2_[CyT]	15256499, 17627274 	Msb2_[CyT]-tested=(1289-1303). "Mode 1" activation of the Sho branch. Msb2-Sho1 CoIP stronger under FG induced conditions (15256499)//	
+100	Bar1	PepD			DEG	MFalpha			L6-K7	in vitro cleaving	1812704, 3124102	Cleaves and inactivates Mfalpha_[L6-K7].	
+101	Cdc24				ppi	Far1	c			Two hybrid, Co-IP	9822386, 10087263	SEQ:Far1_[c]:532-830	
+102	Cdc24				ppi	Ste4				Co-IP	15657049		
+103	Cdc24				ppi	Ste5	c			Co-IP	15657049	SEQ:Ste5_[c]:585-917	
+104	Cdc42				ppi	Msb2	CyT			Two-hybrid, Co-IP	15256499	Msb2_[CyT]-tested=(1209-1306). FG activation but appears stronger with the active Cdc42-G12V.	
+105	Dig1	Dsite			ppi	Fus3	CD	7m		Co-IP	9094309, 14734536		
+106	Dig1	Dsite			ppi	Kss1	CD	7m		Two hybrid, Co-IP	8918885, 14734536		
+107	Dig1				ppi	Ste12	c			Co-IP	9094309, 10825185	SEQ:Ste12_[c]:262-594	
+108	Dig2	Dsite			ppi	Fus3	CD	7m		Co-IP	9094309, 14734536		
+109	Dig2	Dsite			ppi	Kss1	CD	7m		Two hybrid, Co-IP	8918885, 14734536		
+110	Dig2				ppi	Ste12	n	DBD		Co-IP	9094309, 10825185	SEQ:Ste12_[n/DBD]:21-195	
+111	Far1	n	BD:Fus3		ppi	Fus3	CD			CoIP, Co-Crystallization structure determination, competition fluorescence polarization binding assays, 	16364919	Fus3_[CD+ABC-pockets]; SEQ:Far1_[n/BD:Fus3]:72-82	
+112	Far1	n	RING-H2		ppi	Ste4				Two hybrid, Co-IP	9822386, 10087263	Required for schmoo formation. SEQ:Far1_[n/RING-H2]:174-285	
+113	Fus3	KD			P+	Dig1				in vitro kinase assay	9094309, 11525741		
+114	Fus3	KD			P+	Dig2				in vitro kinase assay	9094309, 11525741		
+115	Fus3	KD			P+	Far1			T306	In vitro kinase assay	8334305, 9148934, 9632750	Required for cell cycle inhibition and interaction with Cln2; dependent on pheromones.	
+116	Fus3	n			ppi	Gpa1	n			CoIP in vivo, CoIP in vitro	12029138	Binding is strongly stimulated by Fus3-P and Gpa1-GTP (12029138 CoIP), Fus3 kinase activity in vitro is inhibited by binding (12029138 in vitro kinase assay on myelin basic protein substrate)//	
+117	Fus3	KD			P+	Msg5				in vitro kinase assay	8306972	Showed in vitro using phosphatase inactive mutant Msg5-C319A.	
+118	Fus3	CD			ppi	Ptp3	CH2			CoIP in vivo, CoIP in vitro purified proteins	10557209	Impaired binding decrease Fus3-P dephosphorylation in vivo. Binding not dependent on phosphorylation state of Fus3.	
+119	Fus3	KD			P+	Ste12				in vitro kinase assay	11525741		
+120	Fus3				ppi	Ste12				Co-IP	8334305, 9094309	req. Dig1 and Dig2; indirect? Dep. on pheromones.//	
+121	Fus3				ppi	Ste5	MAPK			Co-IP	9335587		
+122	Fus3	KD			P+	Ste7				In vitro kinase assay, Western blot, phosphatase treatments	8455599, 8668180		
+123	Fus3	CD			ppi	Ste7	BD:MAPK			CoIP, Co-Crystallization structure determination, competition fluorescence polarization binding assays, 	8668180, 16364919	Fus3_[CD+ABC-pockets]; SEQ:Ste7_[BD:MAPK]:9-17,62-71	
+124	Fus3	KD			P+	Tec1			T273	Western blot, Co-IP, In vitro kinase assay	15620357, 15620356, 15558284	Causes its degradation via ubiquitination (Cdc34 and Cdc53 (and Cdc4 (not Dia2), see 15620356); see also 15620356 and 15558284//	
+125	Fus3				ppi	Tec1	n			Co-IP	15558284	SEQ:Tec1_[n]:1-208	
+126	Gpa1				ppi	Ste4	BD:Gpa1			Two-hybrid	9671029, 9832519, 8417317	SEQ:Ste4_[BD:Gpa1]:310-346	
+127	Kss1	KD			P+	Dig1				in vitro kinase assay on IP-complex	8918885, 11525741		
+128	Kss1	KD			P+	Dig2				in vitro kinase assay using IP-complex	11525741		
+129	Kss1	KD			P+	Ste12				in vitro kinase assay using IP-complex	9393860, 11525741		
+130	Kss1				ppi	Ste12				Co-IP (both in vitro translated proteins and cell extracts)	9393860, 9744865		
+131	Kss1	KD			P+	Ste7				In vitro kinase assay, Western blot, phosphatase treatments	8455599, 8668180	aa 1-172; stimulated by pheromones.	
+132	Kss1	CD			ppi	Ste7	BD:MAPK			CoIP, competition fluorescence polarization binding assays, 	8668180, 16364919	Does not require activation loop or phermone treatment. Kss1_ [CD]domain assigned based on similarity to Fus3. SEQ:Ste7_[BD:MAPK]:9-17,62-71	
+133	Kss1				ppi	Tec1	c			Co-IP	15558284	Via Ste12 (req)//  SEQ:Tec1_[c]:281-486	
+134	Ptp3	PD			P-	Fus3			Y182	in vitro dephosphorylation	9224718	(Removes all pY from activated Fus3)//	
+135	Sst2	RGS			GAP	Gpa1	GnP			In vitro GTPase assay	9537998	>=20-fold activation//	
+136	Ste11	KD			P+	Ste7	AL		S359	Western blot, phosphatase treatments, Ste7-[S359E+T363E] phosphomimic is active in in vitro kinase assay. Ste7_[S359A] mutant is not activatable (genetic 8131746))	8455599, 15456892, 8131746		
+137	Ste11	KD			P+	Ste7	AL		T363	In vitro kinase assay	8159759		
+138	Ste12	n	DB		ppi	Tec1				CoIP	16782869		
+139	Ste2	CyT			ppi	Sst2	n	DEP		CoIP, split ubiquitin two-hybrid	16990133		
+140	Ste20	KD			AP	Ste20	SerThr			In vitro kinase assay	7608157	Autophosphorylation increase KD activity (7608157)//T777 is regulatory, T777A abolish kinase activity	
+141	Ste20	KD			ppi	Ste20	CRIB			Two hybrid	11940652	Actual tested is Ste20_[CRIB/(1-439)], CRIB is 327-370, and Ste20_[KD/(580-939)], KD is smaller. K- by Ste20 AP ,Ste20_[Ser/Thr]-P ?? (7608157 indicate higher KD activity by autophosphorylated Ste20)//K- by Ste20 AP ,Ste20_[Ser/Thr]-P ?? (7608157 indicate higher KD activity by autophosphorylated Ste20)  SEQ:Ste20_[CRIB]:327-370;Ste20_[KD]:580-939	
+142	Ste4				ppi	Ste18				Two-hybrid	9832519		
+143	Ste4				ppi	Ste20	c			Co-IP, mating efficiency, Fus1-LacZ, G1 arrest, Schmoo formation	9428767	Req. for mating. Cla4 binds only weakly, if at all. SEQ:Ste20_[c]:876-939	
+144	Ste4	BD:Ste5			ppi	Ste5	n	RING-H2		Two-hybrid, Co-IP, Interallelic complementation	9311911, 9335587, 9501067, 9832519	Enhanced by Ste4 phosphorylation; Ste5_[n/RING-H2] = 177-229 (C177, C180); Req. Ste18; SEQ:Ste4_[BD:Ste5]:L49,L65	
+145	Ste5	MEKK			ppi	Ste11				 Co-IP, Two-hybrid	9335587	Ste5_[MEKK]=(463-514(F514)). Required for pheromone signal transduction; Req. for efficient mating, auxilary domain 57-71; see also 9501067//	
+146	Ste5				ppi	Ste20				CoIP	7502048	Mutual CoIP, Bem1 also found in the complex (interactions seems to be independent between the three components).	
+147	Ste5	BD:Ste5			ppi	Ste5	BD:Ste5			 Co-IP, Two-hybrid, Interallelic complementation	8943027, 9335587	Co-expression of a Ste11 and a Ste7 binding deficient allele can restore mating in a ste5 deletion mutant, indicating Ste5 to function as a oligomer 9335587	
+148	Ste5	MEK			ppi	Ste7				 Co-IP, Two-hybrid	9335587	Ste5_[MEK]=(744-895(V763, S861)). Required for pheromone signal transduction to Fus3; Req. for efficient mating, but weak binding suffice for full mating ability; see also 9501067.	
+149	Ste7	KD			P+	Fus3			T180	In vitro kinase assay, WT and residue mutant	1628831, 8384702, 8455599		
+150	Ste7	KD			P+	Fus3			Y182	In vitro kinase assay, WT and residue mutant	1628831, 8384702, 8455599		
+151	Ste7	KD			P+	Kss1			T183	In vitro kinase assay, Western blot, phosphatase treatments	1628831, 8668180		
+152	Ste7	KD			P+	Kss1			Y185	In vitro kinase assay, Western blot, phosphatase treatments	1628831, 8668180		
+153	Bag7				GAP	Rho1	GnP			In vitro GTPase assay	12207708		
+154	Pkh1				i	PHS				In vitro kinase assay, using Pkc1 (11726514) and Ypk1 + Ypk2 + Sch9 as substrates (15840588)	11726514, 15840588	activates Pkh1	
+155	Pkh2				i	PHS				In vitro kinase assay, using Pkc1 as substrates.	11726514	activates Pkh2	
+156	Pkc1	KD			P+	Bck1			S939	In vitro kinase assay with Bck1 fragment	8207005	In addition to the Bck1_S939 site, T1119 and S1134 has been suggested to be phosphorylation regulated by Pkc1 based on PKC-recognition site sequence and phosphoprotein analysis (data not shown) PMID 7874200. Hyperactivating mutants has been found for T1119P, I1120K/T, G1146V, A1174P (PMID 1729597) further supporting this to be a regulated domain.	
+157	Pkh1	KD			P+	Pkc1	AL		T983	In vitro kinase assay (11726514). It can be assumed that the Pkc1 phosphorylation site is T938 since Pkh2 is shown to phosphorylate Pkc1 at T983 and this Thr is required for heat-shock activation (10567559).	11726514, 10567559		
+158	Ptp2	PD			P-	Slt2			Y192	In vitro phosphatase assay	10523653		
+159	Kss1				ppi	Msg5	n			CoIP, competition fluorescence polarization binding assay	16364919	SEQ:Msg5_[n]:28-36	
+160	Ssk1	BD:Ssk1			ppi	Ssk1	BD:Ssk1			CoIP	18573873	Non Ssk2 interacting ssk1-mutant is dominant negative for Ssk2 activation 18573873 indicating Ssk1 to form an oligomer in vivo.	
+161	Hog1	KD			P+	Smp1			S348	in vitro kinase assay, site mutants	12482976		
+162	Hog1	KD			P+	Smp1			S357	in vitro kinase assay, site mutants	12482976		
+163	Hog1	KD			P+	Smp1			T365	in vitro kinase assay, site mutants	12482976		
+164	Hog1	KD			P+	Smp1			S376	in vitro kinase assay, site mutants	12482976		
+165	Hog1	KD			P+	Hot1			S30	Putative phosphorylation sites, mutations into alanine abolish in vitro phosphorylation by Hog1	12743037		
+166	Hog1	KD			P+	Hot1			S70	Putative phosphorylation sites, mutations into alanine abolish in vitro phosphorylation by Hog1	12743037		
+167	Hog1	KD			P+	Hot1			S153	Putative phosphorylation sites, mutations into alanine abolish in vitro phosphorylation by Hog1	12743037		
+168	Hog1	KD			P+	Hot1			S360	Putative phosphorylation sites, mutations into alanine abolish in vitro phosphorylation by Hog1	12743037		
+169	Hog1	KD			P+	Hot1			S410	Putative phosphorylation sites, mutations into alanine abolish in vitro phosphorylation by Hog1	12743037		
+170	Gpa1	BD:Rec			ppi	Ste2	CyT			CoIP	15197187	BD:Rec includes N388. Gpa1_[N388D] mutant (in nucleotide binding site) binds very strong.	
+171	Ste2	TMD			ppi	Ste2	TMD			CoIP, FRET, cross-linking	10982387, 15352875, 19588927	Forms a dimer 15352875, 19588927.	
+172	Slt2	KD			P+	Rom2				In vitro kinase assay	19564916	Rom2-{P} redistributes from bud to periphery. Decrease the signal from Pkc1 to MAPK module (i.e negative feedback).	
+173	Bck1	n			ppi	Bck1	n			Two-hybrid	8757399	SEQ:Bck1_[n]:1-946;Bck1_[n]:1-946	
+174	Bck1				ppi	Mkk1				Two-hybrid	8757399		
+175	Bck1				ppi	Mkk2				Two-hybrid	8757399		
+176	Mkk1	n			ppi	Slt2	n			CoIP, Two hybrid	8596433		
+177	Swi4	n			ipi	Swi4	c			Reconstituted complex, CoIP	10490612	Glycerol gradient sedimentation indicate Swi4 to exist as a monomer. SEQ:Swi4_[n]:1-197;Swi4_[c]:950-1093	
+178	MFa				g_ppi	Ste3	Receptor			Genetic evidence. Ste3 is an absolute requirement for response to a-factor. Ectopic expression of Ste3 makes cells responsive to a-factor.	3006051, 3022943		
+179	Ste3	CyT			g_ppi	Sst2	n	DEP		Genetic. Spontaneous shmooing in MATalpha sst2delta cells (same as for MATa sst2delta).	12598904		
+180	Gpa1	BD:Rec			g_ppi	Ste3	CyT			assigned function derived from similariy to Ste2 (see evidence Ste2)	15197187		
+181	Kss1				g_ppi	Ste5	MAPK			[POS] in 14734536 CoIP of in-vitro-translated Kss1 with bacterial produced GST-purified Ste5_[241-336] (putative MAPK interactin domain) is positive (similar to Fus3), [NEG] in 11525741 CoIP in vitro of recombinant (insect cells) produced and purified full-length-proteins, Kss1-ppi-Ste5 requires addition of Ste7 and is increased by Ste11-4. Indirect binding through Ste7 ?? Or conformational effects on Ste5 when all are bound ??	14734536, 11525741	[POS] in 14734536 CoIP of in-vitro-translated Kss1 with bacterial produced GST-purified Ste5_[241-336] (putative MAPK interactin domain) is positive (similar to Fus3), [NEG] in 11525741 CoIP in vitro of recombinant (insect cells) produced and purified full-length-proteins, Kss1-ppi-Ste5 requires addition of Ste7 and is increased by Ste11-4. Indirect binding through Ste7 ?? Or conformational effects on Ste5 when all are bound ??//Ambiguous! Evidence pointing in different directions, see ref commens	
+182	Msg5	PD			g_P-	Kss1			T183	Genetic only. (10545444) Msg5 overexpression (but not Ptp2 or Ptp3) rescues pbs2-3 cells under hyperosmosis. It also prevents Kss1-hyperphosphorylation under these conditions (cross-talk).	10545444		
+183	Msg5	PD			g_P-	Kss1			Y185	Genetic only. (10545444) Msg5 overexpression (but not Ptp2 or Ptp3) rescues pbs2-3 cells under hyperosmosis. It also prevents Kss1-hyperphosphorylation under these conditions (cross-talk).	10545444		
+184	Ptc3	PD			g_P-	Hog1			T174	Genetic interaction, in vivo hog1-phosphorylation, sequence similarity	12477803		
+185	Ptp2	PD			g_P-	Hog1			Y176	Genetic interaction, in vivo hog1-phosphorylation	9032256, 9211927		
+186	Ptp3	PD			g_P-	Hog1			Y176	Genetic interaction, in vivo hog1-phosphorylation	9032256, 9211927		
+187	Ptp2	PD			g_P-	Fus3			Y182	Genetic. Ptp2-delta cells show increased Fus3-phosphorylation and growth inhibition after pheromone treatment. Ptp2 overexpression decrease PRE-LacZ reporter output in under hyper active Ste11 (STE11-4). In both cases the compared effect by Ptp3 is stronger. Further strengthened by the notes that there are no known "upstream" components regulated by tyrosine-phosphorylation, giving the MAPK's as the only likely substrate.	9224718		
+188	Kss1	KD			g_P+	Sst2			S539	Genetic. Ser539 is within a MAPK phosphorylation consensus site (Pro-X-Ser-Pro). It gets phosphorylated when the pheromone pathway is activated. It requires Fus3 or Kss1, plus upstream activators. Phosphorylation of Sst2-Ser539 has been shown in vitro for Fus3 (15924435).	10593933	Kss1="Kinase-suppressor of Sst2". Ser539-P Sst2 is more stable and has a longer cellular half-life (10593933)	
+189	Kss1	KD			g_P+	Ste5				Genetic. In 15322134 Fus3 is shown to phosphorylate Ste5 in vitro, but only deletion of upstream kinases or Fu3 in combination with Kss1 will block the phosphorylation in vivo 	15322134		
+190	Ste2				g_GEF	Gpa1	GnP			Genetic. See comments.	2839507, 3022943, 3113739, 8702760, 9405353	The following evidence support Ste2 acting as a GEF for Gpa1 in an alpha-factor dependent manner. (A)The mating signal is dependent on alpha-factor binding Ste2 (2839507, 3022943). (B) Gpa1 is the G-alpha-protein acting downstream of Ste2 (3113739) and regulates its beta-gamma-binding through GTP/GDP-binding (8702760). (C) Chimeric fusion-proteins of Ste2 and Gpa1 functionally fully restores function in gpa1delta ste2delta cells, supplying both pheromone regulation and regulated beta-gamma dissociation (9405353).	
+191	Ste3				g_GEF	Gpa1	GnP			Genetic. See comments.	2839507, 3022943, 3113739, 8702760, 9405353	Ste3 can functionally replace Ste2 in mating signalling but will react on a-factor instead of alpha-factor (3022943), thus supplying pheromone regulated GEF-activity in the same manner as is assigned for Ste2 based on (A)The mating signal is dependent on alpha-factor binding Ste2 (2839507, 3022943). (B) Gpa1 is the G-alpha-protein acting downstream of Ste2 (3113739) and regulates its beta-gamma-binding through GTP/GDP-binding (8702760). (C) Chimeric fusion-proteins of Ste2 and Gpa1 functionally fully restores function in gpa1delta ste2delta cells, supplying both pheromone regulation and regulated beta-gamma dissociation (9405353).	
+192	Rom1	DH			g_GEF	Rho1	GnP			Sequence similarity to Rom2. Contains GEF motif. Delta-rom1-delta-rom2 lethal (similar phenotype as delta-rho1). Rom1 is a multicopy suppressor of Rho1(G22S,D125N) dominant negative TS-mutant.	8641285		
+193	Mtl1				g_ppi	Rom2				Genetic. Mtl1 is shown to act upstream of Pkc1, and is likely to be a cell surface receptor, sensing oxidative stress.	15637049		
+194	Bck1	KD			g_P+	Mkk1			S377	Epistasis experiments indicate Mkk1 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Hyperactive allele Mkk1-386 in (7565726). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	8386320, 7565726, 10625705		
+195	Bck1	KD			g_P+	Mkk1			T381	Epistasis experiments indicate Mkk1 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Hyperactive allele Mkk1-386 in (7565726). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	8386320, 7565726, 10625705		
+196	Bck1	KD			g_P+	Mkk2			S370	Epistasis experiments indicate Mkk2 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	8386320, 10625705		
+197	Bck1	KD			g_P+	Mkk2			T374	Epistasis experiments indicate Mkk2 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	8386320, 10625705		
+198	Mkk1	KD			g_P+	Slt2			T190	Epistasis experiments indicate Mkk1 acting between Bck1 and Slt2. Heat stress tolerance in mutants(8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	8386320, 10625705		
+199	Mkk1	KD			g_P+	Slt2			Y192	Epistasis experiments indicate Mkk1 acting between Bck1 and Slt2. Heat stress tolerance in mutants(8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	8386320, 10625705		
+200	Mkk2	KD			g_P+	Slt2			T190	Epistasis experiments indicate Mkk2 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	8386320, 10625705		
+201	Mkk2	KD			g_P+	Slt2			Y192	Epistasis experiments indicate Mkk2 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	8386320, 10625705		
+202	Ste7				ppi	Ste11				CoIP	15456892		
+203	Fus3				ppi	Ste5	Unlock			in vitro kinase assay. Interaction needed for Fus3 phosphorylation.	19303851	Also reported to interact with Ste5's MAPK domain (9335587)	
+204	Slt2	KD			P+	Sir3			S282	In vitro kinase assay	12504006		
+205	Slt2	KD			P+	Sir3			S289	In vitro kinase assay	12504006		
+206	Slt2	KD			P+	Sir3			S295	In vitro kinase assay	12504006		
+207	Ste20	BR			i	PIP2				CoIP	17914055	BR domain linked to efficient plasma membrane localisation	
+208	Yps1				g_CUT	Msb2	HMH	CD		Genetic. Loss of Msb2 processing in yps1delta strains.	18591427	Removes inhibitory domain; activates signalling; CD = cleavage domain overlaps with HMH = Hkr1-Msb2 homology domain	
+209	Tec1	n	TEA		BIND	TCS				Electrophoretic mobility shift assays	20118212		
+210	SCF				Ub+	Tec1				Genetic. Intact binding of Tec1 to Cdc4 is linked to Tec1 ubiquitylation and degradation. 	19897738, 15620356	SCF="Skp1-Cullin-F-box ubiquitin ligase complex"	
+211	Sko1	bZIP			BIND	CRE				EMSA pure protein, ChIP-chip-array	1437546, 16087739		
+212	Sko1	n			ppi	Tup1				CoIP	11500510		
+213	Cyc8	TPR1-3			ppi	Tup1	n			Reconstituted complex in vitro	8943325	1:4 Cyc8:Tup1	
+214	Hot1				BIND	Hot1Site				ChIP	11336700, 12743037		
+215	Ste12	n	HTH		BIND	PRE				ChIP,  Binding in vitro, DNA footprinting	2668945, 12732146, 1944269		
+216	Rlm1				BIND	Rlm1Site				Gel mobility shift, binding competetition	9121433		
+217	Smp1				BIND	Smp1Site				Gel mobility shift, binding competetition	9121433		
+218	Swi4				BIND	SCBG1				Gel mobility shift, binding competetition	1832338, 8423776		
+219	Swi4				BIND	SCBFKS2				ChIP	18268013	Swi4 complex with phosphorylated Slt2 is needed for binding. Swi4-DNA-Binding is Swi6 independent but Swi6 is still reqruited to form a transcriptionally active complex.	
+220	Cdc4	WD40			ppi	Tec1	CPD			Fluorescence anisotropy	19897738	WD40="CPD="Cdc4-phosphodegron", Tec1_[T273]-{P}, Tec1_[T276]-{P} K+ for binding (in vitro) and for degradation (genetic in vivo)	
+221	Fus3	KD			P+	Tec1			T276	In vitro kinase assay	15620357	Causes its degradation via ubiquitination	
+222	Cdc4				ppi	SCF				In vitro reconstituted complex	9346238		
