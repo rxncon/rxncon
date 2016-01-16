@@ -16,6 +16,9 @@ class StateModifier(Enum):
 class State:
     __metaclass__ = ABCMeta
 
+    def __repr__(self):
+        return str(self)
+
     @abstractmethod
     def is_subset_of(self, other: 'State') -> bool:
         pass
@@ -39,6 +42,9 @@ class CovalentModificationState(State):
         else:
             return False
 
+    def __hash__(self):
+        return hash('*cov-mod-state-{}-{}*'.format(self.substrate, self.modifier))
+
     def __str__(self) -> str:
         return sfr.string_from_covalent_modification_state(self)
 
@@ -57,6 +63,9 @@ class InteractionState(State):
         else:
             return False
 
+    def __hash__(self):
+        return hash('*int-state-{}-{}*'.format(self.first_component, self.second_component))
+
     def __str__(self) -> str:
         return sfr.string_from_interaction_state(self)
 
@@ -73,6 +82,9 @@ class SynthesisDegradationState(State):
 
         else:
             return False
+
+    def __hash__(self):
+        return hash('*synth-deg-state-{}*'.format(self.component))
 
     def __str__(self) -> str:
         return sfr.string_from_synthesis_degradation_state(self)
@@ -92,6 +104,9 @@ class TranslocationState(State):
         else:
             return False
 
+    def __hash__(self):
+        return hash('*transloc-state-{}-{}*'.format(self.substrate, self.compartment))
+
     def __str__(self) -> str:
         return sfr.string_from_translocation_state(self)
 
@@ -99,3 +114,6 @@ class TranslocationState(State):
 class InputState(State):
     def __init__(self, name: str):
         self.name = name
+
+    def __hash__(self):
+        return hash('*input-state-{}*'.format(self.name))

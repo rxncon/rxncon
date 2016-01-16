@@ -5,7 +5,8 @@ import rxncon.core.reaction as rxn
 
 
 class RxnConSystem:
-    def __init__(self, contingencies: List[con.Contingency]):
+    def __init__(self, reactions: List[rxn.Reaction], contingencies: List[con.Contingency]):
+        self.reactions = reactions
         self.implicit_reactions = []  # type: List[rxn.Reaction]
         self.contingencies = contingencies
         self.implicit_contingencies = []  # type: List[con.Contingency]
@@ -14,47 +15,20 @@ class RxnConSystem:
         self._assert_consistency()
 
     @property
-    def reactions(self):
-        rxns = []
-        for contingency in self.contingencies:
-            if contingency.target not in rxns:
-                rxns.append(contingency.target)
-
-        return rxns
-
-    @property
     def source_states(self):
-        states = []
-        for reaction in self.reactions:
-            if reaction.source and reaction.source not in states:
-                states.append(reaction.source)
-
-        return states
+        return list({reaction.source for reaction in self.reactions if reaction.source})
 
     @property
     def product_states(self):
-        states = []
-        for reaction in self.reactions:
-            if reaction.product and reaction.product not in states:
-                states.append(reaction.source)
-
-        return states
+        return list({reaction.product for reaction in self.reactions if reaction.product})
 
     @property
     def effector_states(self):
-        states = []
-        for contingency in self.contingencies:
-            effector_states = contingency.effector.states
-
-            for state in effector_states:
-                if state not in states:
-                    states.append(state)
-
-        return states
+        return list({state for contingency in self.contingencies for state in contingency.effector.states})
 
     @property
     def states(self):
-        return self.source_states + self.product_states + self.effector_states
+        return list({state for state in self.source_states + self.product_states + self.effector_states})
 
     def _generate_implicit_reactions_contingencies(self):
         # generate reaction-contingency pairs implied by the explicitly passed reactions and contingencies.
