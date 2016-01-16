@@ -13,8 +13,14 @@ def test_simple_rxncon_system(simple_system):
     expected_product_states = [rfs.state_from_string('B--C'), rfs.state_from_string('B-{p}')]
     expected_effector_states = [rfs.state_from_string('B-{p}')]
 
-    assert all(state in expected_source_states for state in simple_system.source_states)
-    assert all(state in simple_system.source_states for state in expected_source_states)
+    for actual, expected in zip([simple_system.source_states, simple_system.product_states, simple_system.effector_states],
+                                [expected_source_states, expected_product_states, expected_effector_states]):
+        assert all(state in expected for state in actual)
+        assert all(state in actual for state in expected)
+
+
+
+
 
 
 @pytest.fixture

@@ -16,15 +16,15 @@ class Set:
 
         return _call_method_list_until_stable(self, simplification_methods)
 
-    def nested_list_form(self) -> List[List['Set']]:
+    def to_nested_list_form(self) -> List[List['Set']]:
         return _cleaned_nested_list_form(self.simplified_form()._to_nested_list())
 
-    def boolean_function(self):
-        return boolean_function_from_nested_list_form(self.nested_list_form())
+    def to_boolean_function(self):
+        return boolean_function_from_nested_list_form(self.to_nested_list_form())
 
     @property
     def cardinality(self):
-        list_of_intersections = self.nested_list_form()
+        list_of_intersections = self.to_nested_list_form()
 
         cardinality = {}
 
@@ -59,10 +59,10 @@ class Set:
         return self.is_superset_of(other) and self.is_subset_of(other)
 
     def is_superset_of(self, other: 'Set') -> bool:
-        return other.boolean_function().implies(self.boolean_function())
+        return other.to_boolean_function().implies(self.to_boolean_function())
 
     def is_subset_of(self, other: 'Set') -> bool:
-        return self.boolean_function().implies(other.boolean_function())
+        return self.to_boolean_function().implies(other.to_boolean_function())
 
     def _complements_expanded(self) -> 'Set':
         return self
