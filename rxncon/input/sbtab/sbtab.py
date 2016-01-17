@@ -1,5 +1,8 @@
 from typing import List, Optional
 
+import re
+
+
 
 class SBtabData:
     def __init__(self, input: List[List[str]]):
@@ -19,28 +22,27 @@ class SBtabData:
         self._parse_entries()
 
     def _parse_header(self):
+        REGEX_VERSION    = 'SBtabVersion (\'|\").+?(\'|\")'
+        REGEX_DOCUMENT   = 'Document=(\'|\").+?(\'|\")'
+        REGEX_TABLE_TYPE = 'TableType=(\'|\").+?(\'|\")'
+        REGEX_TABLE_NAME = 'TableName=(\'|\").+?(\'|\")'
+
         for col in self._input[0][1:]:
             assert not col.strip('\n')
 
         header = self._input[0][0]
 
         assert header.startswith('!!SBtab')
-        fields = header.split(' ')
 
-        while fields:
-            field = fields.pop()
+        match = re.search(REGEX_VERSION, header)
+        if match:
+            setattr(self, 'version', _unquote(match.group(0).split(' ')[1]))
 
-            if field == 'SBtabVersion':
-                self.version = _unquote(fields.pop())
-
-            elif field.startswith('Document='):
-                self.document_name = _header_value(field)
-
-            elif field.startswith('TableType='):
-                self.table_type = _header_value(field)
-
-            elif field.startswith('TableName='):
-                self.table_name = _header_value(field)
+        for regex, attr in zip([REGEX_DOCUMENT, REGEX_TABLE_TYPE, REGEX_TABLE_NAME],
+                               ['document_name', 'table_type', 'table_name']):
+            match = re.search(regex, header)
+            if match:
+                setattr(self, attr, _header_value(match.group(0)))
 
     def _parse_column_names(self):
         columns = self._input[1]
@@ -161,4 +163,3 @@ def _field_postprocessor_for_type_string(type_string: str):
 
     else:
         raise TypeError
-

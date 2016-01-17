@@ -8,9 +8,11 @@ import rxncon.input.sbtab.sbtab as sbt
 TIGER_FILENAME = 'Tiger_et_al_TableS1_SBtab_ContingencyID.tsv'
 TIGER_PATH = os.path.join(os.path.dirname(__file__), TIGER_FILENAME)
 
-
 DEFINITIONS_FILENAME = 'definitions.tsv'
 DEFINITIONS_PATH = os.path.join(os.path.dirname(__file__), DEFINITIONS_FILENAME)
+
+RXNCON_DEFINITIONS_FILENAME = 'rxncon_Definition.tsv'
+RXNCON_DEFINITIONS_PATH = os.path.join(os.path.dirname(__file__), RXNCON_DEFINITIONS_FILENAME)
 
 
 def test_sbtab_definition_from_file():
@@ -29,6 +31,11 @@ def test_validated_sbtab_from_list_of_lists():
 
     definitions = sbt.sbtab_data_from_file(DEFINITIONS_PATH)
     sbtab = sbt.ValidatedSBtabData(sbtab_input, definitions)
+
+    assert sbtab.version == '0.8'
+    assert sbtab.document_name == 'Hynne_2001'
+    assert sbtab.table_type == 'Quantity'
+    assert sbtab.table_name == 'Quantity-parameters'
 
     assert len(sbtab.entries) == 3
 
@@ -57,7 +64,12 @@ def test_validated_sbtab_raises_value_error_wrong_type():
         sbtab = sbt.ValidatedSBtabData(sbtab_input, definitions)
 
 
-def test_sbtab_tiger_contingencies():
-    sbtab = sbt.sbtab_data_from_file(TIGER_PATH)
-
-    assert len(sbtab.entries) == 313
+# def test_validated_sbtab_tiger_contingencies():
+#     definitions = sbt.sbtab_data_from_file(RXNCON_DEFINITIONS_PATH)
+#
+#     print(definitions.entries[0].field_names)
+#     print(type(definitions.entries[0]))
+#
+#     sbtab = sbt.sbtab_data_from_file(TIGER_PATH, definitions=definitions)
+#
+#     assert len(sbtab.entries) == 313
