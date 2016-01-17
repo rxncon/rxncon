@@ -36,3 +36,4 @@ def test_sbtab_tiger_contingencies():
     sbtab = sbt.sbtab_data_from_file(TIGER_PATH)
 
     assert len(sbtab.entries) == 313
+    print(dir(sbtab.entries[0]))

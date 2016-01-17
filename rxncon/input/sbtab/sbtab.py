@@ -63,8 +63,8 @@ class SBtabData:
 
     def _construct_entry_class(self):
         self._entry_class = type(_class_name_from_table_name(self.table_name), (EntryBase,),
-                                 {'validation_functions': self._validation_functions,
-                                  'field_names': self._column_names})
+                                 {'validation_functions': {_field_name_from_column_name(col): func for col, func in self._validation_functions.items()},
+                                  'field_names': [_field_name_from_column_name(col) for col in self._column_names]})
 
     def _parse_entries(self):
         for row in self._input[2:]:
@@ -115,4 +115,4 @@ def _class_name_from_table_name(table_name: str):
 
 
 def _field_name_from_column_name(column_name: str):
-    return column_name
+    return column_name.strip()
