@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 
 class SBtabData:
@@ -19,7 +19,9 @@ class SBtabData:
         self._parse_entries()
 
     def _parse_header(self):
-        assert len(self._input[0]) == 1
+        for col in self._input[0][1:]:
+            assert not col.strip('\n')
+
         header = self._input[0][0]
 
         assert header.startswith('!!SBtab')
@@ -63,7 +65,7 @@ class SBtabData:
 class ValidatedSBtabData(SBtabData):
     def __init__(self, input: List[List[str]], definition: SBtabData):
         super().__init__(input)
-        
+
         self._definition = definition
         self._field_postprocessors = {}
         self._construct_field_postprocessors()
@@ -76,27 +78,31 @@ class ValidatedSBtabData(SBtabData):
                             if def_entry.IsPartOf == self.table_type}
 
         for column in self._column_names:
-            self._field_postprocessors[column] = _field_parser_for_type_string(type_definitions[column])
+            self._field_postprocessors[column] = _field_postprocessor_for_type_string(type_definitions[column])
 
     def _postprocess_entries(self):
         for entry in self.entries:
             entry.postprocess()
 
 
-def sbtab_data_from_file(filename: str, separator='\t'):
+def sbtab_data_from_file(filename: str, separator='\t', definitions: Optional[SBtabData]=None):
     sbtab_input = []
 
     with open(filename) as f:
         for row in f:
             sbtab_input.append(row.split(separator))
 
-    return SBtabData(sbtab_input)
+    if definitions:
+        return ValidatedSBtabData(sbtab_input, definitions)
+
+    else:
+        return SBtabData(sbtab_input)
 
 
 class EntryBase:
     def postprocess(self):
         for field_name in self.field_names:
-            setattr(self, field_name, self.field_parsers[field_name](getattr(self, field_name)))
+            setattr(self, field_name, self.field_postprocessors[field_name](getattr(self, field_name)))
 
 
 def _unquote(x: str):
@@ -124,7 +130,7 @@ def _field_name_from_column_name(column_name: str):
     return column_name.strip()
 
 
-def _field_parser_for_type_string(type_string: str):
+def _field_postprocessor_for_type_string(type_string: str):
     if type_string is None or type_string == 'string':
         return lambda value: value
 
