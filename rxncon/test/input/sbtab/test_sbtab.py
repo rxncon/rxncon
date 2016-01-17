@@ -64,12 +64,16 @@ def test_validated_sbtab_raises_value_error_wrong_type():
         sbtab = sbt.ValidatedSBtabData(sbtab_input, definitions)
 
 
-# def test_validated_sbtab_tiger_contingencies():
-#     definitions = sbt.sbtab_data_from_file(RXNCON_DEFINITIONS_PATH)
-#
-#     print(definitions.entries[0].field_names)
-#     print(type(definitions.entries[0]))
-#
-#     sbtab = sbt.sbtab_data_from_file(TIGER_PATH, definitions=definitions)
-#
-#     assert len(sbtab.entries) == 313
+def test_validated_sbtab_tiger_contingencies():
+    definitions = sbt.sbtab_data_from_file(RXNCON_DEFINITIONS_PATH)
+
+    assert len(definitions.entries) > 0
+    assert definitions.entries[0].__class__.__name__ == 'RxnconDefinitionsTable'
+
+    print(definitions.entries[0].field_names)
+    print(type(definitions.entries[0]))
+
+
+    # sbtab = sbt.sbtab_data_from_file(TIGER_PATH, definitions=definitions)
+    #
+    # assert len(sbtab.entries) == 313
