@@ -11,19 +11,12 @@ class SBtabData:
 
         self._input = input
         self._column_names = []
-        self._field_parsers = {}
         self._entry_class = None
 
         self._parse_header()
         self._parse_column_names()
-        self._construct_field_parser()
         self._construct_entry_class()
         self._parse_entries()
-
-        del self._input
-        del self._column_names
-        del self._field_parsers
-        del self._entry_class
 
     def _parse_header(self):
         assert len(self._input[0]) == 1
@@ -53,14 +46,9 @@ class SBtabData:
 
         self._column_names = [_cleaned_column_name(name) for name in columns]
 
-    def _construct_field_parser(self):
-        for column in self._column_names:
-            self._field_parsers[column] = lambda value: value
-
     def _construct_entry_class(self):
         self._entry_class = type(_class_name_from_table_name(self.table_name), (EntryBase,),
-                                 {'field_parsers': {_field_name_from_column_name(col): func for col, func in self._field_parsers.items()},
-                                  'field_names': [_field_name_from_column_name(col) for col in self._column_names]})
+                                 {'field_names': [_field_name_from_column_name(col) for col in self._column_names]})
 
     def _parse_entries(self):
         for row in self._input[2:]:
@@ -69,8 +57,25 @@ class SBtabData:
             for i, column_value in enumerate(row):
                 setattr(entry, _field_name_from_column_name(self._column_names[i]), column_value)
 
-            entry.validate()
             self.entries.append(entry)
+
+
+class ValidatedSBtabData(SBtabData):
+    def __init__(self, input: List[List[str]], definition: SBtabData):
+        super().__init__(input)
+        self._field_postprocessors = {}
+        self._construct_field_postprocessors()
+        self._entry_class.field_postprocessors = {_field_name_from_column_name(col): func
+                                                  for col, func in self._field_postprocessors.items()}
+        self._postprocess_entries()
+
+    def _construct_field_postprocessors(self):
+        for column in self._column_names:
+            self._field_postprocessors[column] = lambda value: value
+
+    def _postprocess_entries(self):
+        for entry in self.entries:
+            entry.postprocess()
 
 
 def sbtab_data_from_file(filename: str, separator='\t'):
@@ -84,7 +89,7 @@ def sbtab_data_from_file(filename: str, separator='\t'):
 
 
 class EntryBase:
-    def validate(self):
+    def postprocess(self):
         for field_name in self.field_names:
             setattr(self, field_name, self.field_parsers[field_name](getattr(self, field_name)))
 
@@ -145,10 +150,4 @@ def _field_parser_for_type_string(type_string: str):
 
     else:
         raise TypeError
-
-
-
-
-
-
 
