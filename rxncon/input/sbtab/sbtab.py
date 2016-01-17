@@ -62,7 +62,7 @@ class SBtabData:
             self._validation_functions[column] = lambda value: True
 
     def _construct_entry_class(self):
-        self._entry_class = type(self.table_name, (EntryBase,),
+        self._entry_class = type(_class_name_from_table_name(self.table_name), (EntryBase,),
                                  {'validation_functions': self._validation_functions,
                                   'field_names': self._column_names})
 
@@ -71,16 +71,26 @@ class SBtabData:
             entry = self._entry_class()
 
             for i, column_value in enumerate(row):
-                setattr(entry, self._column_names[i], column_value)
+                setattr(entry, _field_name_from_column_name(self._column_names[i]), column_value)
 
             entry.validate()
             self.entries.append(entry)
 
 
+def sbtab_data_from_file(filename: str, separator='\t'):
+    sbtab_input = []
+
+    with open(filename) as f:
+        for row in f:
+            sbtab_input.append(row.split(separator))
+
+    return SBtabData(sbtab_input)
+
+
 class EntryBase:
     def validate(self):
         for field_name in self.field_names:
-            assert self.validation_functions[field_name](field_name)
+            assert self.validation_functions[field_name](getattr(self, field_name))
 
 
 def _unquote(x: str):
@@ -94,3 +104,15 @@ def _header_value(header_definition: str):
 def _cleaned_column_name(raw_name: str):
     assert raw_name.startswith('!') and not raw_name.startswith('!!')
     return raw_name[1:]
+
+
+def _class_name_from_table_name(table_name: str):
+    for separator in [' ', '-', '_']:
+        if separator in table_name:
+            table_name = ''.join(x.capitalize() for x in table_name.split(separator))
+
+    return table_name
+
+
+def _field_name_from_column_name(column_name: str):
+    return column_name

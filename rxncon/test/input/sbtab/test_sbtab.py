@@ -1,5 +1,8 @@
-
 import rxncon.input.sbtab.sbtab as sbt
+
+
+TIGER_FILENAME = 'Tiger_et_al_TableS1.xls'
+TIGER_PATH = os.path.join(os.path.dirname(__file__), TIGER_FILENAME)
 
 
 def test_sbtab_from_list_of_lists():
@@ -11,4 +14,21 @@ def test_sbtab_from_list_of_lists():
         ['Par3', 'Vm', '', 'vHK', 'cytosol', '2.14', 'mM/s', 'SBO:0000153', 'forward rate constant']
     ]
 
-    sbtan = sbt.SBtabData(sbtab_input)
+    sbtab = sbt.SBtabData(sbtab_input)
+
+    assert len(sbtab.entries) == 3
+
+    entry = sbtab.entries[0]
+    assert entry.Quantity == 'Par1'
+    assert entry.Name == 'k1'
+    assert entry.Compound == ''
+    assert entry.Reaction == 'vGlcTrans'
+    assert entry.Location == 'plasmamembrane'
+    assert entry.Value == '0.14'
+    assert entry.Unit == '1/s'
+    assert entry.SBOTerm == 'SBO:0000022'
+    assert entry.QuantityType == 'forward unimolecular rate constant'
+
+
+def test_sbtab_tiger_contingencies():
+    filename =
