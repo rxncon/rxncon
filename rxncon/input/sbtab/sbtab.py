@@ -11,19 +11,19 @@ class SBtabData:
 
         self._input = input
         self._column_names = []
-        self._validation_functions = {}
+        self._field_parsers = {}
         self._entry_class = None
 
         self._validate_input()
         self._parse_header()
         self._parse_column_names()
-        self._construct_validation_functions()
+        self._construct_field_parser()
         self._construct_entry_class()
         self._parse_entries()
 
         del self._input
         del self._column_names
-        del self._validation_functions
+        del self._field_parsers
         del self._entry_class
 
     def _validate_input(self):
@@ -57,13 +57,13 @@ class SBtabData:
 
         self._column_names = [_cleaned_column_name(name) for name in columns]
 
-    def _construct_validation_functions(self):
+    def _construct_field_parser(self):
         for column in self._column_names:
-            self._validation_functions[column] = lambda value: True
+            self._field_parsers[column] = lambda value: True
 
     def _construct_entry_class(self):
         self._entry_class = type(_class_name_from_table_name(self.table_name), (EntryBase,),
-                                 {'validation_functions': {_field_name_from_column_name(col): func for col, func in self._validation_functions.items()},
+                                 {'field_parsers': {_field_name_from_column_name(col): func for col, func in self._field_parsers.items()},
                                   'field_names': [_field_name_from_column_name(col) for col in self._column_names]})
 
     def _parse_entries(self):
@@ -90,7 +90,7 @@ def sbtab_data_from_file(filename: str, separator='\t'):
 class EntryBase:
     def validate(self):
         for field_name in self.field_names:
-            assert self.validation_functions[field_name](getattr(self, field_name))
+            setattr(self, field_name, self.field_parsers[field_name](getattr(self, field_name)))
 
 
 def _unquote(x: str):
@@ -116,3 +116,43 @@ def _class_name_from_table_name(table_name: str):
 
 def _field_name_from_column_name(column_name: str):
     return column_name.strip()
+
+
+def _field_parser_for_type_string(type_string: str):
+    if type_string is None or type_string == 'string':
+        return lambda value: value
+
+    elif type_string == 'float':
+        return lambda value: float(value)
+
+    elif type_string == 'Boolean':
+        def str2bool(x: str):
+            if x in ['1', 'True']:
+                return True
+            elif x in ['0', 'False']:
+                return False
+            else:
+                raise ValueError
+
+        return str2bool
+
+    elif type_string == 'integer':
+        return lambda value: int(value)
+
+    elif type_string == '{+,-,0}':
+        def str2sign(x: str):
+            if x not in ['+', '-', '0']:
+                raise ValueError
+
+            return x
+        return str2sign
+
+    else:
+        raise TypeError
+
+
+
+
+
+
+
