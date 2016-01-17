@@ -1,7 +1,9 @@
+import os
+
 import rxncon.input.sbtab.sbtab as sbt
 
 
-TIGER_FILENAME = 'Tiger_et_al_TableS1.xls'
+TIGER_FILENAME = 'Tiger_et_al_TableS1_SBtab_ContingencyID.tsv'
 TIGER_PATH = os.path.join(os.path.dirname(__file__), TIGER_FILENAME)
 
 
@@ -31,4 +33,6 @@ def test_sbtab_from_list_of_lists():
 
 
 def test_sbtab_tiger_contingencies():
-    filename =
+    sbtab = sbt.sbtab_data_from_file(TIGER_PATH)
+
+    assert len(sbtab.entries) == 313
