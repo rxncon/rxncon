@@ -14,7 +14,6 @@ class SBtabData:
         self._field_parsers = {}
         self._entry_class = None
 
-        self._validate_input()
         self._parse_header()
         self._parse_column_names()
         self._construct_field_parser()
@@ -25,9 +24,6 @@ class SBtabData:
         del self._column_names
         del self._field_parsers
         del self._entry_class
-
-    def _validate_input(self):
-        pass
 
     def _parse_header(self):
         assert len(self._input[0]) == 1
@@ -59,7 +55,7 @@ class SBtabData:
 
     def _construct_field_parser(self):
         for column in self._column_names:
-            self._field_parsers[column] = lambda value: True
+            self._field_parsers[column] = lambda value: value
 
     def _construct_entry_class(self):
         self._entry_class = type(_class_name_from_table_name(self.table_name), (EntryBase,),
