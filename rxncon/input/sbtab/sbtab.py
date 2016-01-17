@@ -63,6 +63,8 @@ class SBtabData:
 class ValidatedSBtabData(SBtabData):
     def __init__(self, input: List[List[str]], definition: SBtabData):
         super().__init__(input)
+        
+        self._definition = definition
         self._field_postprocessors = {}
         self._construct_field_postprocessors()
         self._entry_class.field_postprocessors = {_field_name_from_column_name(col): func
@@ -70,8 +72,11 @@ class ValidatedSBtabData(SBtabData):
         self._postprocess_entries()
 
     def _construct_field_postprocessors(self):
+        type_definitions = {def_entry.ComponentName: def_entry.Format for def_entry in self._definition.entries
+                            if def_entry.IsPartOf == self.table_type}
+
         for column in self._column_names:
-            self._field_postprocessors[column] = lambda value: value
+            self._field_postprocessors[column] = _field_parser_for_type_string(type_definitions[column])
 
     def _postprocess_entries(self):
         for entry in self.entries:
