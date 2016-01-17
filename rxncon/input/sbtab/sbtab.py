@@ -1,7 +1,7 @@
 from typing import List
 
 
-class SBtabFile:
+class SBtabData:
     def __init__(self, input: List[List[str]]):
         self.version = None
         self.entries = []
@@ -10,17 +10,21 @@ class SBtabFile:
         self.table_name = None
 
         self._input = input
-        self._column_names = None
+        self._column_names = []
+        self._validation_functions = {}
+        self._entry_class = None
 
         self._validate_input()
         self._parse_header()
         self._parse_column_names()
+        self._construct_validation_functions()
         self._construct_entry_class()
         self._parse_entries()
 
         del self._input
-        del self._header_info
         del self._column_names
+        del self._validation_functions
+        del self._entry_class
 
     def _validate_input(self):
         pass
@@ -53,9 +57,30 @@ class SBtabFile:
 
         self._column_names = [_cleaned_column_name(name) for name in columns]
 
+    def _construct_validation_functions(self):
+        for column in self._column_names:
+            self._validation_functions[column] = lambda value: True
+
+    def _construct_entry_class(self):
+        self._entry_class = type(self.table_name, (EntryBase,),
+                                 {'validation_functions': self._validation_functions,
+                                  'field_names': self._column_names})
+
+    def _parse_entries(self):
+        for row in self._input[2:]:
+            entry = self._entry_class()
+
+            for i, column_value in enumerate(row):
+                setattr(entry, self._column_names[i], column_value)
+
+            entry.validate()
+            self.entries.append(entry)
 
 
-
+class EntryBase:
+    def validate(self):
+        for field_name in self.field_names:
+            assert self.validation_functions[field_name](field_name)
 
 
 def _unquote(x: str):
