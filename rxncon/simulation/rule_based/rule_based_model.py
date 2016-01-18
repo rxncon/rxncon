@@ -1,5 +1,14 @@
 from typing import Optional, List, Tuple
+from enum import Enum
 
+
+class RuleBasedModel:
+    def __init__(self, molecule_definitions: List['MoleculeDefinition'], rules: List['Rule'],
+                 parameters: List['Parameter'], initial_conditions: List['InitialCondition']):
+        self.molecule_definitions = molecule_definitions
+        self.rules = rules
+        self.parameters = parameters
+        self.initial_conditions = initial_conditions
 
 
 class MoleculeDefinition:
@@ -57,7 +66,7 @@ class LocalizationSpecification:
 
 
 class Rule:
-    def __init__(self, left_hand_side: List['Reactant'], right_hand_side: List['Reactant'], arrow_type: 'ArrowType'):
+    def __init__(self, left_hand_side: List['Reactant'], right_hand_side: List['Reactant'], arrow_type: 'Arrow'):
         self.left_hand_side = left_hand_side
         self.right_hand_side = right_hand_side
         self.arrow_type = arrow_type
@@ -83,5 +92,21 @@ class Binding:
         self.left_partner = left_partner
         self.right_partner = right_partner
 
+
+class Arrow(Enum):
+    irreversible = '->'
+    reversible   = '<->'
+
+
+class Parameter:
+    def __init__(self, name: str, value):
+        self.name = name
+        self.value = value
+
+
+class InitialCondition:
+    def __init__(self, molecule_specification: MoleculeSpecification, value):
+        self.molecule_specification = molecule_specification
+        self.value = value
 
 

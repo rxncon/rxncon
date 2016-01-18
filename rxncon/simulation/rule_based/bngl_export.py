@@ -1,139 +1,53 @@
-from typing import List, Optional
-
-# @basti Probably you want an Enum here? Do it like this:
-# from enum import Enum, unique
-#
-# @unique
-# class Bla(Enum):
-#     first_bla = 1
-#     second_bla = 2
-#
-# This gives you a couple of nice convenience functions and the @unique decorator enforces uniqueness.
-# See https://docs.python.org/3/library/enum.html
-
-class Unmodified:
-    unmodified = "U"
-
-class DefaultDomain:
-    """
-    we have to define default domains in BNGL
-    for Association reactions this will be Assoc[Partner]
-    for relocalisation this will be loc
-    for modifications this will be Mod[Modifier]
-    """
-    default_interacton_domain = "Assoc"
-    default_modification_domain = "Mod"
-    default_localisation_domain = "loc"
+import rxncon.simulation.rule_based.rule_based_model as rbm
 
 
 class BNGLSystem:
-    def __init__(self, rule_based_system: List[Rule]):
-        # @basti This constructor should read __init__(self, rule_based_system: RuleBasedModel).
-        #        Furthermore, leave the object in a good state after construction:
-        #        call _create_rule_section etc. _here_. Just like you did in the Quick class, where after
-        #        construction, all data is parsed. This is really similar.
-        self.rule_based_system = rule_based_system
+    def __init__(self, rule_based_model: rbm.RuleBasedModel):
+        self.rule_based_model = rule_based_model
 
-        self.molecules = []  # type: List[Molecule]
-        self.parameters = []  # type: List[Parameter]
-
-    # @basti What does this add to what is already in the constructor?
-    def bngl_from_rule_based_model(self):
-        rule_section = RuleSection(self.rule_based_system)
-        bngl = rule_section._create_rule_section()
-        self.molecules = bngl.molecules
-        self.parameters = bngl.parameters
-
-    def write_to_file(self):
-        # @basti This is good, very clear.
-        self._write_molecule_type_section()
-        self._write_seeded_species_section()
-        self._write_parameter_section()
-        self.rule_section.write_to_file()
-
-    def _write_molecule_type_section(self):
-        """
-
-        In this section all domains and modifications are considered
-        Ste7(ALS359~U~P, AssocSte11)
-
-        The names of the different molecules of the reactant should be sorted
-        A().B()
-        """
+    def to_string(self):
         pass
 
-    def _write_seeded_species_section(self):
-        """
-        all species should be initilized as not modified
-        Ste7(ALS359~U)
-        """
-        pass
-
-    def _write_parameter_section(self):
-        """
-        all parameters of the system
-        """
-        pass
-
-    # @basti What is this?
-    def has_molecule(self, other: str):
-        for mol in self.moleculs:
-            if mol.name == other:
-                return True
-        return False
 
 
-class Molecule:
-    def __init__(self):
-        self.name = None
-        self.occupied_binding_domain = []
-        self.free_binding_domain = []
-        self.occupied_modification_domain = []
-        self.free_modification_domain = []
-        self.relocalisation = []
+
+def string_from_molecule_definition(molecule_definition: rbm.MoleculeDefinition) -> str:
+    if not molecule_definition.modification_definitions and not molecule_definition.association_definitions and not\
+            molecule_definition.localization_definitions:
+        return molecule_definition.name
+
+    return molecule_definition.name + '(' + \
+        ','.join([string_from_localization_definition(x) for x in molecule_definition.localization_definitions]) + \
+        ','.join([string_from_modification_definition(x) for x in molecule_definition.modification_definitions]) + \
+        ','.join([string_from_association_definition(x) for x in molecule_definition.association_definitions]) + ')'
 
 
-class Parameter:
-    def __init__(self, forward_name: Optional[str], reverse_name: Optional[str]):
-        self.forward_name = forward_name
-        self.reverse_name = reverse_name
-        self.forward_value = 1
-        self.reverse_value = 1
+def string_from_modification_definition(modification_definition: rbm.ModificationDefinition) -> str:
+    return modification_definition.domain_name + '~'.join(modification_definition.valid_modifiers)
 
 
-class RuleSection:
+def string_from_association_definition(association_definition: rbm.AssociationDefinition) -> str:
+    return association_definition.domain_name
 
-    def __init__(self, rules: List[Rule], molecules: List[Molecule], parmeters: List[Parameter]):
-        self.rules = rules  # type: List[Rule]
-        self.molecules = []  # type: List[Molecule]
-        self.parameters = []  # type: List[Parameter]
 
-        self._create_rule_section()
+def string_from_localization_definition(localization_definition: rbm.LocalizationDefinition) -> str:
+    return 'loc~' + localization_definition.compartment
 
-    def _create_rule_section(self):
-        pass
 
-    def source_to_str(self):
-        pass
+def string_from_molecule_specification(molecule_specification: rbm.MoleculeSpecification) -> str:
+    pass
 
-    def product_to_str(self):
-        pass
 
-    def reactant_to_str(self):
-        """
-        # 1. Localisation domains
-        # 2. modification domains
-        # 3. Binding domains
+def string_from_modification_specification(modification_specification: rbm.ModificationSpecification) -> str:
+    return modification_specification.modification_definition.domain_name + '~' + modification_specification.value
 
-        A(1,2,3) + B(1,2,3) <-> A(1,2,3!0).B(1,2,3!0)
 
-        """
-        pass
+def string_from_association_specification(association_specification: rbm.AssociationSpecification) -> str:
+    return association_specification.association_definition.domain_name
 
-    @property
-    def arrow(self):
-        """Returns arrow depending on rule reversibility."""
-        if self.rule.directionality == 2:  # irreversible
-            return '->'
-        elif self.rule.directionality == 1:  # reversible
-            return '<->'
+
+
+
+
+
+

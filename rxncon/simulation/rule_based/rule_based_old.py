@@ -1,5 +1,5 @@
 from typing import List, Optional
-import rxncon.simulation.rule_based.bngl_export as bngle
+import rxncon.simulation.rule_based.bngl_export_old as bngle
 
 class RuleBasedModel:
     def __init__(self):
