@@ -5,8 +5,8 @@ import pytest
 import rxncon.input.sbtab.sbtab as sbt
 
 
-TIGER_FILENAME = 'Tiger_et_al_TableS1_SBtab_ContingencyID.tsv'
-TIGER_PATH = os.path.join(os.path.dirname(__file__), TIGER_FILENAME)
+TIGER_CONTINGENCY_FILENAME = 'Tiger_et_al_TableS1_SBtab_ContingencyID.tsv'
+TIGER_CONTINGENCY_PATH = os.path.join(os.path.dirname(__file__), TIGER_CONTINGENCY_FILENAME)
 
 DEFINITIONS_FILENAME = 'definitions.tsv'
 DEFINITIONS_PATH = os.path.join(os.path.dirname(__file__), DEFINITIONS_FILENAME)
@@ -40,6 +40,7 @@ def test_validated_sbtab_from_list_of_lists():
     assert len(sbtab.entries) == 3
 
     entry = sbtab.entries[0]
+    assert entry.field_names == ['Quantity', 'Name', 'Compound', 'Reaction', 'Location', 'Value', 'Unit', 'SBOTerm', 'QuantityType']
     assert entry.Quantity == 'Par1'
     assert entry.Name == 'k1'
     assert entry.Compound == ''
@@ -70,7 +71,7 @@ def test_validated_sbtab_tiger_contingencies():
     assert len(definitions.entries) > 0
     assert definitions.entries[0].__class__.__name__ == 'RxnconDefinitionsTable'
 
-    sbtab = sbt.sbtab_data_from_file(TIGER_PATH, definitions=definitions)
+    sbtab = sbt.sbtab_data_from_file(TIGER_CONTINGENCY_PATH, definitions=definitions)
     assert len(sbtab.entries) == 313
 
     entry = sbtab.entries[0]

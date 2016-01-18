@@ -49,6 +49,7 @@ class CovalentModificationState(State):
         return sfr.string_from_covalent_modification_state(self)
 
 
+# @todo rename to InterProteinInteractionState, create new IntraProteinInteractionState
 class InteractionState(State):
     def __init__(self, first_component: com.Component, second_component: com.Component):
         self.first_component = first_component

@@ -35,6 +35,7 @@ class SBtabData:
         assert header.startswith('!!SBtab')
 
         match = re.search(REGEX_VERSION, header)
+        # @todo fix space / = inconsistency
         if match:
             setattr(self, 'version', _unquote(match.group(0).split(' ')[1]))
 
