@@ -76,10 +76,16 @@ class ValidatedSBtabData(SBtabData):
         self._postprocess_entries()
 
     def _construct_field_postprocessors(self):
-        type_definitions = {def_entry.ComponentName: def_entry.Format for def_entry in self._definition.entries
-                            if def_entry.IsPartOf == self.table_type}
+        if hasattr(self._definition.entries[0], 'ComponentName'):
+            type_definitions = {def_entry.ComponentName: def_entry.Format for def_entry in self._definition.entries
+                                if def_entry.IsPartOf == self.table_type}
 
+        elif hasattr(self._definition.entries[0], 'Component'):
+            type_definitions = {def_entry.Component: def_entry.Format for def_entry in self._definition.entries
+                                if def_entry.IsPartOf == self.table_type}
 
+        else:
+            raise AssertionError('Could not parse the definition file')
 
         for column in self._column_names:
             self._field_postprocessors[column] = _field_postprocessor_for_type_string(type_definitions[column])
@@ -123,7 +129,7 @@ def _header_value(header_definition: str):
 
 def _cleaned_column_name(raw_name: str):
     assert raw_name.startswith('!') and not raw_name.startswith('!!')
-    return raw_name[1:]
+    return raw_name[1:].strip()
 
 
 def _class_name_from_table_name(table_name: str):
