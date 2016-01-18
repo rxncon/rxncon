@@ -79,6 +79,8 @@ class ValidatedSBtabData(SBtabData):
         type_definitions = {def_entry.ComponentName: def_entry.Format for def_entry in self._definition.entries
                             if def_entry.IsPartOf == self.table_type}
 
+
+
         for column in self._column_names:
             self._field_postprocessors[column] = _field_postprocessor_for_type_string(type_definitions[column])
 
@@ -92,7 +94,11 @@ def sbtab_data_from_file(filename: str, separator='\t', definitions: Optional[SB
 
     with open(filename) as f:
         for row in f:
-            sbtab_input.append(row.split(separator))
+            if row.startswith('%'):
+                continue
+
+            else:
+                sbtab_input.append(row.split(separator))
 
     if definitions:
         return ValidatedSBtabData(sbtab_input, definitions)
