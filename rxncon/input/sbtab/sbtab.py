@@ -22,7 +22,8 @@ class SBtabData:
         self._parse_entries()
 
     def _parse_header(self):
-        REGEX_VERSION    = 'SBtabVersion (\'|\").+?(\'|\")'
+        REGEX_VERSION_A  = 'SBtabVersion (\'|\").+?(\'|\")'
+        REGEX_VERSION_B  = 'SBtabVersion=(\'|\").+?(\'|\")'
         REGEX_DOCUMENT   = 'Document=(\'|\").+?(\'|\")'
         REGEX_TABLE_TYPE = 'TableType=(\'|\").+?(\'|\")'
         REGEX_TABLE_NAME = 'TableName=(\'|\").+?(\'|\")'
@@ -34,13 +35,12 @@ class SBtabData:
 
         assert header.startswith('!!SBtab')
 
-        match = re.search(REGEX_VERSION, header)
-        # @todo fix space / = inconsistency
+        match = re.search(REGEX_VERSION_A, header)
         if match:
             setattr(self, 'version', _unquote(match.group(0).split(' ')[1]))
 
-        for regex, attr in zip([REGEX_DOCUMENT, REGEX_TABLE_TYPE, REGEX_TABLE_NAME],
-                               ['document_name', 'table_type', 'table_name']):
+        for regex, attr in zip([REGEX_VERSION_B, REGEX_DOCUMENT, REGEX_TABLE_TYPE, REGEX_TABLE_NAME],
+                               ['version', 'document_name', 'table_type', 'table_name']):
             match = re.search(regex, header)
             if match:
                 setattr(self, attr, _header_value(match.group(0)))

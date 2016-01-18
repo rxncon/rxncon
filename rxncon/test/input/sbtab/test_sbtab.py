@@ -20,6 +20,25 @@ def test_sbtab_definition_from_file():
     assert len(sbtab.entries) == 249
 
 
+def test_sbtab_header_version_ambiguity_parses():
+    input_version_separator_space = [
+        ['!!SBtab SBtabVersion "0.8" Document="Hynne_2001" TableType="Quantity" TableName="Quantity-parameters"'],
+        ['!Quantity', '!Name', '!Compound', '!Reaction', '!Location', '!Value', '!Unit', '!SBOTerm', '!QuantityType'],
+        ['Par1', 'k1', '', 'vGlcTrans', 'plasmamembrane', '0.14', '1/s', 'SBO:0000022', 'forward unimolecular rate constant']
+    ]
+
+    input_version_separator_equals = [
+        ['!!SBtab SBtabVersion="0.8" Document="Hynne_2001" TableType="Quantity" TableName="Quantity-parameters"'],
+        ['!Quantity', '!Name', '!Compound', '!Reaction', '!Location', '!Value', '!Unit', '!SBOTerm', '!QuantityType'],
+        ['Par1', 'k1', '', 'vGlcTrans', 'plasmamembrane', '0.14', '1/s', 'SBO:0000022', 'forward unimolecular rate constant']
+    ]
+
+    sbtab_space = sbt.SBtabData(input_version_separator_space)
+    sbtab_equals = sbt.SBtabData(input_version_separator_equals)
+
+    assert sbtab_space.version == sbtab_equals.version == '0.8'
+
+
 def test_validated_sbtab_from_list_of_lists():
     sbtab_input = [
         ['!!SBtab SBtabVersion "0.8" Document="Hynne_2001" TableType="Quantity" TableName="Quantity-parameters"'],
