@@ -59,7 +59,7 @@ class SBtabData:
             entry = self._entry_class()
 
             for i, column_value in enumerate(row):
-                setattr(entry, _field_name_from_column_name(self._column_names[i]), column_value)
+                setattr(entry, _field_name_from_column_name(self._column_names[i]), column_value.strip())
 
             self.entries.append(entry)
 

@@ -71,7 +71,16 @@ def test_validated_sbtab_tiger_contingencies():
     assert definitions.entries[0].__class__.__name__ == 'RxnconDefinitionsTable'
 
     sbtab = sbt.sbtab_data_from_file(TIGER_PATH, definitions=definitions)
-
     assert len(sbtab.entries) == 313
+
+    entry = sbtab.entries[0]
+    assert entry.ContingencyID == 'ID1'
+    assert entry.Target == 'Hog1_[KD]_P+_Rck2_[c(S519)]'
+    assert entry.Contingency == '!'
+    assert entry.Modifier == 'Hog1_[(T174)]-{P}'
+    assert entry.PubMedIdentifiers == '10805732'
+    assert entry.Quality == 'in vitro kinase assay'
+    assert entry.Comment == 'Hog1 activation by constitutive active Pbs2 needed.'
+
 
 
