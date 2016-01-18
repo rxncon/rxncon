@@ -207,8 +207,13 @@ def states_from_reaction(reaction: Reaction) -> SourceStateProductState:
     elif reaction.reaction_class == ReactionClass.covalent_modification:
         return _covalent_modification_states_from_reaction(reaction)
 
-    elif reaction.reaction_class == ReactionClass.interaction:
-        return _interaction_states_from_reaction(reaction)
+    # @todo Is this correct?
+    elif reaction.reaction_class == ReactionClass.interaction and \
+            (reaction.isomerism == Isomerism.trans or reaction.isomerism == Isomerism.undefined):
+        return _inter_protein_interaction_states_from_reaction(reaction)
+
+    elif reaction.reaction_class == ReactionClass.interaction and reaction.isomerism == Isomerism.cis:
+        return _intra_protein_interaction_states_from_reaction(reaction)
 
     elif reaction.reaction_class == ReactionClass.synthesis_degradation:
         return _synthesis_degradation_states_from_reaction(reaction)
@@ -251,9 +256,16 @@ def _covalent_modification_states_from_reaction(reaction: Reaction) -> SourceSta
     return SourceStateProductState(source, product)
 
 
-def _interaction_states_from_reaction(reaction: Reaction) -> SourceStateProductState:
+def _inter_protein_interaction_states_from_reaction(reaction: Reaction) -> SourceStateProductState:
     source = None
-    product = sta.InteractionState(reaction.subject, reaction.object)
+    product = sta.InterProteinInteractionState(reaction.subject, reaction.object)
+
+    return SourceStateProductState(source, product)
+
+
+def _intra_protein_interaction_states_from_reaction(reaction: Reaction) -> SourceStateProductState:
+    source = None
+    product = sta.IntraProteinInteractionState(reaction.subject, reaction.object)
 
     return SourceStateProductState(source, product)
 

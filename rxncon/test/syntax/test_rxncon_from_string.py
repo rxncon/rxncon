@@ -82,6 +82,25 @@ def test_rxncon_from_string_reaction_ppi():
     assert str(reaction.product) == 'Fus3_[CD]--Msg5_[n]'
 
 
+def test_rxncon_from_string_reaction_ipi():
+    reaction = fst.reaction_from_string('A_[n]_ipi_A_[m]')
+
+    assert reaction.classification_code == '2.1.1.2'
+
+    assert reaction.subject.name == 'A'
+    assert reaction.subject.domain == 'n'
+    assert reaction.subject.subdomain is None
+    assert reaction.subject.residue is None
+
+    assert reaction.object.name == 'A'
+    assert reaction.object.domain == 'm'
+    assert reaction.object.subdomain is None
+    assert reaction.object.residue is None
+
+    assert reaction.source is None
+    assert str(reaction.product) == 'A_[n]--[m]'
+
+
 def test_rxncon_from_string_reaction_i():
     reaction = fst.reaction_from_string('Pkc1_i_PS')
 
@@ -292,13 +311,23 @@ def test_rxncon_from_string_reaction_cut():
 
 
 # State from string
-def test_rxncon_from_string_state_interaction():
+def test_rxncon_from_string_state_inter_protein_interaction():
     state = fst.state_from_string('Fus3_[CD]--Msg5_[n]')
 
-    assert isinstance(state, sta.InteractionState)
+    assert isinstance(state, sta.InterProteinInteractionState)
     assert str(state) == 'Fus3_[CD]--Msg5_[n]'
     assert str(state.first_component) == 'Fus3_[CD]'
     assert str(state.second_component) == 'Msg5_[n]'
+
+
+def test_rxncon_from_string_state_intra_protein_interaction():
+    state = fst.state_from_string('A_[n]--[m]')
+
+    assert isinstance(state, sta.IntraProteinInteractionState)
+    assert str(state) == 'A_[n]--[m]'
+    assert str(state.first_component) == 'A_[n]'
+    assert str(state.second_component) == 'A_[m]'
+
 
 
 def test_rxncon_from_string_state_phosphorylation():

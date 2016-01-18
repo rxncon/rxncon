@@ -29,8 +29,12 @@ def string_from_reaction(reaction) -> str:
     return '{0}_{1}_{2}'.format(reaction.subject, reaction.verb.value, reaction.object)
 
 
-def string_from_interaction_state(state) -> str:
+def string_from_inter_protein_interaction_state(state) -> str:
     return '{0}--{1}'.format(state.first_component, state.second_component)
+
+
+def string_from_intra_protein_interaction_state(state) -> str:
+    return '{0}--[{1}]'.format(state.first_component, state.second_component.domain)
 
 
 def string_from_covalent_modification_state(state) -> str:

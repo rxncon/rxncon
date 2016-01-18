@@ -50,7 +50,7 @@ class CovalentModificationState(State):
 
 
 # @todo rename to InterProteinInteractionState, create new IntraProteinInteractionState
-class InteractionState(State):
+class InterProteinInteractionState(State):
     def __init__(self, first_component: com.Component, second_component: com.Component):
         self.first_component = first_component
         self.second_component = second_component
@@ -58,17 +58,39 @@ class InteractionState(State):
     def __eq__(self, other: State) -> bool:
         assert isinstance(other, State)
 
-        if isinstance(other, InteractionState):
+        if isinstance(other, InterProteinInteractionState):
             return self.first_component == other.first_component and self.second_component == other.second_component
 
         else:
             return False
 
     def __hash__(self):
-        return hash('*int-state-{}-{}*'.format(self.first_component, self.second_component))
+        return hash('*ppi-state-{}-{}*'.format(self.first_component, self.second_component))
 
     def __str__(self) -> str:
-        return sfr.string_from_interaction_state(self)
+        return sfr.string_from_inter_protein_interaction_state(self)
+
+
+class IntraProteinInteractionState(State):
+    def __init__(self, first_component: com.Component, second_component: com.Component):
+        assert first_component.name == second_component.name
+        self.first_component = first_component
+        self.second_component = second_component
+
+    def __eq__(self, other: State) -> bool:
+        assert isinstance(other, State)
+
+        if isinstance(other, IntraProteinInteractionState):
+            return self.first_component == other.first_component and self.second_component == other.second_component
+
+        else:
+            return False
+
+    def __hash__(self):
+        return hash('*ipi-state-{}-{}*'.format(self.first_component, self.second_component))
+
+    def __str__(self) -> str:
+        return sfr.string_from_intra_protein_interaction_state(self)
 
 
 class SynthesisDegradationState(State):

@@ -9,8 +9,6 @@ class BNGLSystem:
         pass
 
 
-
-
 def string_from_molecule_definition(molecule_definition: rbm.MoleculeDefinition) -> str:
     if not molecule_definition.modification_definitions and not molecule_definition.association_definitions and not\
             molecule_definition.localization_definitions:

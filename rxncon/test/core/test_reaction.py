@@ -8,7 +8,7 @@ def test_states_from_reaction_ppi():
     states = rxn.states_from_reaction(reaction)
 
     assert states.source_state is None
-    assert isinstance(states.product_state, sta.InteractionState)
+    assert isinstance(states.product_state, sta.InterProteinInteractionState)
     assert str(states.product_state) == 'Fus3_[CD]--Msg5_[n]'
 
 

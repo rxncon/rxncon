@@ -144,12 +144,20 @@ def state_from_string(state_string: str) -> sta.State:
         raise err.RxnConParseError('Could not parse state string {} into State'.format(state_string))
 
 
-def _interaction_state_from_string(state_string: str) -> sta.InteractionState:
+def _interaction_state_from_string(state_string: str) -> sta.InterProteinInteractionState:
     component_strings = state_string.split('--')
-    first_component = component_from_string(component_strings[0])
-    second_component = component_from_string(component_strings[1])
 
-    return sta.InteractionState(first_component, second_component)
+    if component_strings[1].startswith('['):
+        first_component = component_from_string(component_strings[0])
+        second_component = com.Component(first_component.name, component_strings[1].strip('[]'), None, None)
+
+        return sta.IntraProteinInteractionState(first_component, second_component)
+
+    else:
+        first_component = component_from_string(component_strings[0])
+        second_component = component_from_string(component_strings[1])
+
+        return sta.InterProteinInteractionState(first_component, second_component)
 
 
 def _covalent_modification_state_from_string(state_string: str, modifier: sta.StateModifier) -> sta.CovalentModificationState:
