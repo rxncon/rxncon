@@ -10,6 +10,12 @@ class RuleBasedModel:
         self.parameters = parameters
         self.initial_conditions = initial_conditions
 
+        self.validate()
+
+    def validate(self):
+        [x.validate() for x in self.rules]
+        [x.validate() for x in self.initial_conditions]
+
 
 class MoleculeDefinition:
     def __init__(self, name: str, modification_definitions: Optional[List['ModificationDefinition']],
@@ -30,6 +36,16 @@ class MoleculeSpecification:
         self.association_specifications = association_specifications
         self.localization_specifications = localization_specifications
 
+    def validate(self):
+        assert all(mod_spec.modification_definition in self.molecule_definition.modification_definitions
+                   for mod_spec in self.modification_specifications)
+
+        assert all(ass_spec.association_definition in self.molecule_definition.association_definitions
+                   for ass_spec in self.association_specifications)
+
+        assert all(loc_spec.localization_definition in self.molecule_definition.localization_definitions
+                   for loc_spec in self.localization_specifications)
+
 
 class ModificationDefinition:
     def __init__(self, domain_name: str, valid_modifiers: List[str]):
@@ -42,6 +58,9 @@ class ModificationSpecification:
         self.modification_definition = modification_definition
         self.value = value
 
+    def validate(self):
+        assert self.value in self.modification_definition.valid_modifiers
+
 
 class AssociationDefinition:
     def __init__(self, domain_name: str):
@@ -52,6 +71,9 @@ class AssociationSpecification:
     def __init__(self, association_definition: AssociationDefinition, is_occupied: bool):
         self.association_definition = association_definition
         self.is_occupied = is_occupied
+
+    def validate(self):
+        pass
 
 
 class LocalizationDefinition:
@@ -64,12 +86,19 @@ class LocalizationSpecification:
         self.localization_definition = localization_definition
         self.is_localized = is_localized
 
+    def validate(self):
+        pass
+
 
 class Rule:
     def __init__(self, left_hand_side: List['Reactant'], right_hand_side: List['Reactant'], arrow_type: 'Arrow'):
         self.left_hand_side = left_hand_side
         self.right_hand_side = right_hand_side
         self.arrow_type = arrow_type
+
+    def validate(self):
+        self.left_hand_side.validate()
+        self.right_hand_side.validate()
 
 
 class Reactant:
@@ -80,17 +109,29 @@ class MoleculeReactant(Reactant):
     def __init__(self, molecule_specification: MoleculeSpecification):
         self.molecule_specification = molecule_specification
 
+    def validate(self):
+        self.molecule_specification.validate()
+
 
 class ComplexReactant(Reactant):
     def __init__(self, complex_parts: List[MoleculeSpecification], complex_bindings: List['Binding']):
         self.complex_parts = complex_parts
         self.complex_bindings = complex_bindings
 
+    def validate(self):
+        [part.validate() for part in self.complex_parts]
+        [bind.validate() for bind in self.complex_bindings]
+
 
 class Binding:
     def __init__(self, left_partner: Tuple[int, AssociationSpecification], right_partner: Tuple[int, AssociationSpecification]):
         self.left_partner = left_partner
         self.right_partner = right_partner
+
+    def validate(self):
+        # @todo validate the binding indices as well?
+        self.left_partner[1].validate()
+        self.right_partner[1].validate()
 
 
 class Arrow(Enum):
@@ -108,5 +149,8 @@ class InitialCondition:
     def __init__(self, molecule_specification: MoleculeSpecification, value):
         self.molecule_specification = molecule_specification
         self.value = value
+
+    def validate(self):
+        self.molecule_specification.validate()
 
 
