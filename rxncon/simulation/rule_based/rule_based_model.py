@@ -35,6 +35,7 @@ class MoleculeSpecification:
         self.modification_specifications = modification_specifications
         self.association_specifications = association_specifications
         self.localization_specifications = localization_specifications
+        #self.validate()
 
     def validate(self):
         assert all(mod_spec.modification_definition in self.molecule_definition.modification_definitions
@@ -57,6 +58,8 @@ class ModificationSpecification:
     def __init__(self, modification_definition: ModificationDefinition, value: str):
         self.modification_definition = modification_definition
         self.value = value
+        self.validate()
+
 
     def validate(self):
         assert self.value in self.modification_definition.valid_modifiers
