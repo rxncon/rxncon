@@ -58,8 +58,12 @@ def test_validated_sbtab_from_list_of_lists():
 
     assert len(sbtab.entries) == 3
 
+    # Assert both "entry[property]" and the "entry.property" work.
     entry = sbtab.entries[0]
     assert entry.field_names == ['Quantity', 'Name', 'Compound', 'Reaction', 'Location', 'Value', 'Unit', 'SBOTerm', 'QuantityType']
+    assert [entry[field] for field in entry.field_names if field != 'Value'] ==\
+           ['Par1', 'k1', '', 'vGlcTrans', 'plasmamembrane', '1/s', 'SBO:0000022', 'forward unimolecular rate constant']
+
     assert entry.Quantity == 'Par1'
     assert entry.Name == 'k1'
     assert entry.Compound == ''
@@ -101,6 +105,3 @@ def test_validated_sbtab_tiger_contingencies():
     assert entry.PubMedIdentifiers == '10805732'
     assert entry.Quality == 'in vitro kinase assay'
     assert entry.Comment == 'Hog1 activation by constitutive active Pbs2 needed.'
-
-
-

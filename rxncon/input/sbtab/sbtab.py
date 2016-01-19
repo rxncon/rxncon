@@ -115,6 +115,9 @@ def sbtab_data_from_file(filename: str, separator='\t', definitions: Optional[SB
 
 
 class EntryBase:
+    def __getitem__(self, item):
+        return getattr(self, item)
+
     def postprocess(self):
         for field_name in self.field_names:
             setattr(self, field_name, self.field_postprocessors[field_name](getattr(self, field_name)))
