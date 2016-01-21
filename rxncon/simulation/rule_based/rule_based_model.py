@@ -35,7 +35,7 @@ class MoleculeSpecification:
         self.modification_specifications = modification_specifications
         self.association_specifications = association_specifications
         self.localization_specifications = localization_specifications
-        #self.validate()
+        self.validate()
 
     def validate(self):
         assert all(mod_spec.modification_definition in self.molecule_definition.modification_definitions
@@ -88,9 +88,10 @@ class LocalizationSpecification:
     def __init__(self, localization_definition: LocalizationDefinition, is_localized: bool):
         self.localization_definition = localization_definition
         self.is_localized = is_localized
+        self.validate()
 
     def validate(self):
-        pass
+        assert isinstance(self.is_localized, bool)
 
 
 class Rule:

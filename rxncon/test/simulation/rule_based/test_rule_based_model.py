@@ -44,9 +44,59 @@ def test_localization_definition():
 
 def test_locatlization_specification():
     localization_definition = rbm.LocalizationDefinition("Cell")
-    localization_specification = rbm.LocalizationSpecification(localization_definition, "Cell")
+    localization_specification = rbm.LocalizationSpecification(localization_definition, True)
     assert localization_specification.localization_definition.compartment == "Cell"
 
+    with pytest.raises(AssertionError):
+        rbm.LocalizationSpecification(localization_definition, "Cell")
+
+def test_molecule_definition():
+    modification_definitions = [rbm.ModificationDefinition("ModDomain1", ["U","P"]),
+                                rbm.ModificationDefinition("ModDomain2", ["U","GTP"])]
+    association_definitions = [rbm.AssociationDefinition("AssociationDomain1"),
+                               rbm.AssociationDefinition("AssociationDomain2")]
+    localization_definitions = [rbm.LocalizationDefinition("Cytosole"),
+                               rbm.LocalizationDefinition("Nucleus")]
+
+    molecule_definition = rbm.MoleculeDefinition("A",modification_definitions,association_definitions,localization_definitions)
+
+    assert molecule_definition.name == "A"
+    assert molecule_definition.modification_definitions == modification_definitions
+    assert molecule_definition.association_definitions == association_definitions
+    assert molecule_definition.localization_definitions == localization_definitions
 
 
-    #mol_defintion = rbm.MoleculeDefinition("A",)
+def test_molecule_specification():
+    modification_definitions = [rbm.ModificationDefinition("ModDomain1", ["U","P"]),
+                                rbm.ModificationDefinition("ModDomain2", ["U","GTP"])]
+    modification_specifications = [rbm.ModificationSpecification(modification_definitions[0], "P")]
+    association_definitions = [rbm.AssociationDefinition("AssociationDomain1"),
+                               rbm.AssociationDefinition("AssociationDomain2")]
+    association_specifications = [rbm.AssociationSpecification(association_definitions[0],True)]
+    localization_definitions = [rbm.LocalizationDefinition("Cytosole"),
+                               rbm.LocalizationDefinition("Nucleus")]
+    localization_specifications = [rbm.LocalizationSpecification(localization_definitions[0], True)]
+
+    molecule_definition = rbm.MoleculeDefinition("A",modification_definitions,association_definitions,localization_definitions)
+
+    molecule_specification = rbm.MoleculeSpecification(molecule_definition,modification_specifications,
+                                                       association_specifications,localization_specifications)
+
+    assert molecule_specification.molecule_definition == molecule_definition
+
+    with pytest.raises(AssertionError):
+        mod_def = rbm.ModificationDefinition("ModDomain1", ["U","ATP"])
+        modification_specifications = [rbm.ModificationSpecification(mod_def, "ATP")]
+        molecule_specification = rbm.MoleculeSpecification(molecule_definition,modification_specifications,
+                                                       association_specifications,localization_specifications)
+
+    with pytest.raises(AssertionError):
+        association_def = rbm.AssociationDefinition("AssociationDomain3")
+        association_specifications = [rbm.AssociationSpecification(association_def,True)]
+        molecule_specification = rbm.MoleculeSpecification(molecule_definition,modification_specifications,
+                                                       association_specifications,localization_specifications)
+    with pytest.raises(AssertionError):
+        localization_def = rbm.LocalizationDefinition("Cell")
+        localization_specifications = [rbm.LocalizationSpecification(localization_def, True)]
+        molecule_specification = rbm.MoleculeSpecification(molecule_definition,modification_specifications,
+                                                       association_specifications,localization_specifications)
