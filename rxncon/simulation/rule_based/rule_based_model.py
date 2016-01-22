@@ -121,10 +121,27 @@ class Rule:
         self.left_hand_side = left_hand_side
         self.right_hand_side = right_hand_side
         self.arrow_type = arrow_type
+        self.validate()
 
     def validate(self):
-        self.left_hand_side.validate()
-        self.right_hand_side.validate()
+        def localisation_validation(hand_side):
+            # all binding partners should be in the same compartment
+            localisation = [loc.localization_definition.compartment
+                            for loc in hand_side[0].molecule_specification.localization_specifications if loc.is_localized]
+            assert len(localisation) == 1
+            for reactant in hand_side:
+                for loc in reactant.molecule_specification.localization_specifications:
+                    if loc.is_localized:
+                        assert loc.localization_definition.compartment == localisation[0]
+
+        assert [left_hand_side_reactant.validate() for left_hand_side_reactant in self.left_hand_side]
+        assert [right_hand_side_reactant.validate() for right_hand_side_reactant in self.right_hand_side]
+
+        # todo how to rewrite??
+        if len(self.left_hand_side) > 1:
+            localisation_validation(self.left_hand_side)
+        if len(self.right_hand_side) > 1:
+            localisation_validation(self.right_hand_side)
 
 
 class Reactant:
@@ -150,11 +167,15 @@ class ComplexReactant(Reactant):
         [bind.validate() for bind in self.complex_bindings]
         # each binding pair should appear only once
         assert all(self.complex_bindings.count(bind) == 1 for bind in self.complex_bindings)
-        localisation = [loc.localization_definition.compartment for loc in self.complex_parts[0].localization_specifications if loc.is_localized]
-        # a molecule can be localised only at one place at a time
-        assert len(localisation) == 1
-        assert all(loc.localization_definition.compartment == localisation[0] for part in self.complex_parts for loc in part.localization_specifications if loc.is_localized)
 
+        localisation = [loc.localization_definition.compartment for loc in self.complex_parts[0].localization_specifications if loc.is_localized]
+        # all binding partners should be in the same compartment
+        assert len(localisation) == 1
+        # todo How to rewrite
+        for part in self.complex_parts:
+            for loc in part.localization_specifications:
+                if loc.is_localized:
+                    assert loc.localization_definition.compartment == localisation[0]
 
 class Binding:
     def __init__(self, left_partner: Tuple[int, AssociationSpecification], right_partner: Tuple[int, AssociationSpecification]):

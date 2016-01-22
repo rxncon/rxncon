@@ -210,6 +210,20 @@ def test_complex_reactant():
     assert complex_reactant.complex_parts[0].localization_specifications == localization_specifications
     assert complex_reactant.complex_parts[1].localization_specifications == localization_specifications
 
+    with pytest.raises(AssertionError):
+        localization_definitions = [rbm.LocalizationDefinition("Nucleus")]
+        localization_specifications = [rbm.LocalizationSpecification(localization_definitions[0], True)]
+
+        molecule_definition = rbm.MoleculeDefinition("A", modification_definitions, association_definitions,
+                                                     localization_definitions)
+
+        molecule_specification1 = rbm.MoleculeSpecification(molecule_definition, modification_specifications,
+                                                           association_specifications1, localization_specifications)
+
+        mol_list = [molecule_specification1, molecule_specification2]
+        complex_reactant = rbm.ComplexReactant(mol_list, binding_list)
+
+
 
 def test_rule_ppi():
     # A(modDom~P,AssocB) + B(AssocA) -> A(modDom~P,AssocB!1).B(AssocA!1)
@@ -217,7 +231,7 @@ def test_rule_ppi():
     assoc_def = [rbm.AssociationDefinition("AssocDom1"),
                    rbm.AssociationDefinition("AssocDom2")]
 
-    localization_definitions = [rbm.LocalizationDefinition("Cytosole")]
+    localization_definitions = [rbm.LocalizationDefinition("Cytosole"), rbm.LocalizationDefinition("Nucleus")]
     localization_specifications = [rbm.LocalizationSpecification(localization_definitions[0], True)]
 
     A_mod_def = [rbm.ModificationDefinition("ModDomain1", ["U", "P"])]
@@ -234,6 +248,7 @@ def test_rule_ppi():
     B_mol_spec = rbm.MoleculeSpecification(B_mol_def, [], B_assoc_spec, localization_specifications)
     A_reactant = rbm.MoleculeReactant(A_mol_spec)
     B_reactant = rbm.MoleculeReactant(B_mol_spec)
+
     left_hand_side = [A_reactant, B_reactant]
 
     binding = rbm.Binding((0, A_mol_spec.association_specifications[0]),
@@ -255,3 +270,14 @@ def test_rule_ppi():
 
     assert rule.arrow_type.name == "reversible"
     assert rule.arrow_type.value == "<->"
+
+    with pytest.raises(AssertionError):
+        # molecule should be at the same location to react with each other
+        B_mol_def = rbm.MoleculeDefinition("B", [], assoc_def, localization_definitions)
+        localization_specifications = [rbm.LocalizationSpecification(localization_definitions[1], True)]
+        B_mol_spec = rbm.MoleculeSpecification(B_mol_def, [], B_assoc_spec, localization_specifications)
+
+        B_reactant = rbm.MoleculeReactant(B_mol_spec)
+
+        left_hand_side = [A_reactant, B_reactant]
+        rule = rbm.Rule(left_hand_side, right_hand_side, rbm.Arrow.reversible)
