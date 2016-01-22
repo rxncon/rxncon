@@ -28,7 +28,8 @@ class MoleculeDefinition:
 
 
 class MoleculeSpecification:
-    def __init__(self, molecule_definition: MoleculeDefinition, modification_specifications: List['ModificationSpecification'],
+    def __init__(self, molecule_definition: MoleculeDefinition,
+                 modification_specifications: List['ModificationSpecification'],
                  association_specifications: List['AssociationSpecification'],
                  localization_specifications: List['LocalizationSpecification']):
         self.molecule_definition = molecule_definition
@@ -40,13 +41,30 @@ class MoleculeSpecification:
     def validate(self):
         assert all(mod_spec.modification_definition in self.molecule_definition.modification_definitions
                    for mod_spec in self.modification_specifications)
+        # a modification can only appear once
+        assert all(self.modification_specifications.count(mod_spec) == 1 for mod_spec in self.modification_specifications)
+
+        mod_dom = [mod_spec.modification_definition.domain_name for mod_spec in self.modification_specifications]
+        # each mod domain should appear only once in molecule
+        assert all(mod_dom.count(dom) == 1 for dom in mod_dom)
 
         assert all(ass_spec.association_definition in self.molecule_definition.association_definitions
                    for ass_spec in self.association_specifications)
 
+        assoc_dom = [assoc_spec.association_definition.domain_name for assoc_spec in self.association_specifications]
+        # each mod domain should appear only once in molecule
+        assert all(assoc_dom.count(dom) == 1 for dom in assoc_dom)
+
         assert all(loc_spec.localization_definition in self.molecule_definition.localization_definitions
                    for loc_spec in self.localization_specifications)
 
+        loc_dom = [loc_spec.localization_definition.compartment for loc_spec in self.localization_specifications]
+        # each mod domain should appear only once in molecule
+        assert all(loc_dom.count(dom) == 1 for dom in loc_dom)
+
+        # a molecule can only be localised at one place at a time
+        localisation = [loc_spec.localization_definition.compartment for loc_spec in self.localization_specifications if loc_spec.is_localized]
+        assert len(localisation) == 1
 
 class ModificationDefinition:
     def __init__(self, domain_name: str, valid_modifiers: List[str]):
@@ -76,7 +94,11 @@ class AssociationSpecification:
         self.is_occupied = is_occupied
 
     def validate(self):
-        pass
+        assert isinstance(self.association_definition, AssociationDefinition)
+        assert isinstance(self.is_occupied, bool)
+        # the assoc domain should be occupied if we bound something to it
+        # called in Binding()
+        assert self.is_occupied
 
 
 class LocalizationDefinition:
@@ -121,10 +143,17 @@ class ComplexReactant(Reactant):
     def __init__(self, complex_parts: List[MoleculeSpecification], complex_bindings: List['Binding']):
         self.complex_parts = complex_parts
         self.complex_bindings = complex_bindings
+        self.validate()
 
     def validate(self):
         [part.validate() for part in self.complex_parts]
         [bind.validate() for bind in self.complex_bindings]
+        # each binding pair should appear only once
+        assert all(self.complex_bindings.count(bind) == 1 for bind in self.complex_bindings)
+        localisation = [loc.localization_definition.compartment for loc in self.complex_parts[0].localization_specifications if loc.is_localized]
+        # a molecule can be localised only at one place at a time
+        assert len(localisation) == 1
+        assert all(loc.localization_definition.compartment == localisation[0] for part in self.complex_parts for loc in part.localization_specifications if loc.is_localized)
 
 
 class Binding:
