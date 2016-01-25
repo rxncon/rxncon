@@ -39,6 +39,7 @@ class MoleculeSpecification:
         self.validate()
 
     def validate(self):
+        pass
         # def validate_unique_specification_property():
         #     for specification_name in ["modification", "association"]:
         #         specification_property_list = [getattr(specification, specification_name +"_definition").domain_name for specification in getattr(self , specification_name + "_specifications")]
@@ -59,7 +60,7 @@ class MoleculeSpecification:
         #validate_unique_specification_property()
 
         # a molecule can only be localized at one place at a time
-        assert len(self.localization_specifications) == 1
+#        assert len(self.localization_specifications) == 1
 
 
 class ModificationDefinition:
@@ -120,12 +121,13 @@ class Rule:
             reactant_localization = set()
             for reactant in hand_side:
                 if isinstance(reactant, MoleculeReactant):
-                    reactant_localization.add(reactant.molecule_specification.localization_specifications[0].current_compartment)
+                    if len(reactant.molecule_specification.localization_specifications) > 0:
+                        reactant_localization.add(reactant.molecule_specification.localization_specifications[0].current_compartment)
                 elif isinstance(reactant, ComplexReactant):
                     cp_localization = complex_part_localization(reactant)
                     reactant_localization = reactant_localization | cp_localization
-
-            assert len(reactant_localization) == 1
+            # todo what if we don't have localization
+            #assert len(reactant_localization) == 1
 
         assert [left_hand_side_reactant.validate() for left_hand_side_reactant in self.left_hand_side]
         assert [right_hand_side_reactant.validate() for right_hand_side_reactant in self.right_hand_side]
@@ -159,7 +161,8 @@ class ComplexReactant(Reactant):
         assert all(self.complex_bindings.count(bind) == 1 for bind in self.complex_bindings)
 
         cp_localization = complex_part_localization(self)
-        assert len(cp_localization) == 1
+        # todo what if we don't define localization
+#        assert len(cp_localization) == 1
 
 
 class Binding:
@@ -197,5 +200,6 @@ class InitialCondition:
 
 
 def complex_part_localization(complex_reactant: ComplexReactant) -> set:
-    localization_complex_part = [part.localization_specifications[0].current_compartment for part in complex_reactant.complex_parts]
+
+    localization_complex_part = [part.localization_specifications[0].current_compartment for part in complex_reactant.complex_parts if len(part.localization_specifications) > 0]
     return set(localization_complex_part)

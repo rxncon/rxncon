@@ -94,7 +94,8 @@ def test_string_from_complex_reactant(molecule_A):
     complex_reactant = rbm.ComplexReactant(molecules_bound, binding_list)
 
     complex_reactant_str = be.string_from_complex_reactant(complex_reactant)
-    pass
+
+    assert complex_reactant_str == 'A(loc~Cytosole,ModDomain1~P,AssociationDomain1!0).B(loc~Cytosole,AssociationDomain!0)'
 
 def test_simple_rule_based_model(simple_rule_based_model):
     bngl = be.BNGLSystem(simple_rule_based_model)
@@ -189,9 +190,6 @@ def simple_rule_based_model():
     ]
 
     return rbm.RuleBasedModel([mol_def_A, mol_def_B], [rule], parameters, initial_conditions)
-
-
-
 
 
 

@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional, Tuple
 
 import rxncon.simulation.rule_based.rule_based_model as rbm
 
@@ -17,10 +17,10 @@ class BNGLSystem:
                           self._footer_string()])
 
     def _header_string(self):
-        pass
+        return "begin model"
 
     def _molecule_types_string(self):
-        pass
+        self.rule_based_model
 
     def _seed_species_string(self):
         pass
@@ -51,16 +51,22 @@ def string_from_molecule_definition(molecule_definition: rbm.MoleculeDefinition)
     return "{0}({1})".format(molecule_definition.name,",".join(domain_strs))
 
 
-def string_from_molecule_specification(molecule_specification: rbm.MoleculeSpecification) -> str:
+def string_from_molecule_specification(molecule_specification: rbm.MoleculeSpecification, rxn_binding: Optional[Tuple[int, rbm.AssociationSpecification]] = None) -> str:
     if not molecule_specification.modification_specifications and not molecule_specification.association_specifications and not\
             molecule_specification.localization_specifications:
         return molecule_specification.molecule_definition.name
 
     domain_strs = [','.join(string_from_localization_specification(x) for x in molecule_specification.localization_specifications),
                    ','.join(string_from_modification_specification(x) for x in molecule_specification.modification_specifications),
-                   ','.join(string_from_association_specification(x) for x in molecule_specification.association_specifications)]
+                   ','.join(string_from_association_specification(x) if rxn_binding is None else string_from_bound_associaton_specification(x, rxn_binding) for x in molecule_specification.association_specifications)]
+
     domain_strs = [domain_str for domain_str in domain_strs if domain_str != ""]
     return "{0}({1})".format(molecule_specification.molecule_definition.name, ",".join(domain_strs))
+
+def string_from_bound_associaton_specification(assocDom: rbm.AssociationSpecification, rxn_binding: Tuple[int, rbm.AssociationSpecification]):
+    if assocDom == rxn_binding[1]:
+        return "{0}!{1}".format(string_from_association_specification(assocDom), rxn_binding[0])
+    return assocDom
 
 
 # MODIFICATION DEF / SPEC
@@ -95,10 +101,15 @@ def string_from_molecule_reactant(molecule_reactant: rbm.MoleculeReactant) -> st
     return string_from_molecule_specification(molecule_reactant.molecule_specification)
 
 
+def __is_association_domain_bound(i: int, complex_part: rbm.MoleculeSpecification, rxn_number: int, binding: rbm.Binding):
+    if binding.left_partner[0] == i:
+        return string_from_molecule_specification(complex_part,(rxn_number,binding.left_partner[1]))
+    elif binding.right_partner[0] == i:
+         return string_from_molecule_specification(complex_part,(rxn_number,binding.right_partner[1]))
+
+
 def string_from_complex_reactant(complex_reactant: rbm.ComplexReactant) -> str:
-    for i, complex_part in enumerate(complex_reactant.complex_parts):
-        for binding in complex_reactant.complex_bindings:
-            if binding.left_partner[0] == i or binding.right_partner[0] == i:
-                pass
-    #complex = [string_from_molecule_specification(complex_part) for complex_part in complex_reactant.complex_parts]
+    complex = [__is_association_domain_bound(i, complex_part, rxn_number, binding)
+               for i, complex_part in enumerate(complex_reactant.complex_parts)
+               for rxn_number, binding in enumerate(complex_reactant.complex_bindings)]
     return ".".join(complex)
