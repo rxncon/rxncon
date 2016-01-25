@@ -96,6 +96,7 @@ class BinaryEffector(Effector):
     def states(self):
         return self.left_expr.states + self.right_expr.states
 
+
 class AndEffector(BinaryEffector):
     def __str__(self) -> str:
         return 'AndEffector({0}, {1})'.format(self.left_expr, self.right_expr)

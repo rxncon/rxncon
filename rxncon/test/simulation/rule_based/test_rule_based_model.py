@@ -86,45 +86,45 @@ def test_molecule_specification():
     assert molecule_specification.molecule_definition == molecule_definition
 
 
-def test_molecule_specification_raise_double_domain():
-    modification_definitions = [rbm.ModificationDefinition("ModDomain1", ["U", "P"]),
-                                rbm.ModificationDefinition("ModDomain2", ["U", "GTP"])]
-    modification_specifications = [rbm.ModificationSpecification(modification_definitions[0], "P")]
-    association_definitions = [rbm.AssociationDefinition("AssociationDomain1"),
-                               rbm.AssociationDefinition("AssociationDomain2")]
-    association_specifications = [rbm.AssociationSpecification(association_definitions[0], True)]
-    localization_definitions = [rbm.LocalizationDefinition("Cytosole"),
-                                rbm.LocalizationDefinition("Nucleus")]
-    localization_specifications = [rbm.LocalizationSpecification(localization_definitions[0], True)]
-
-    molecule_definition = rbm.MoleculeDefinition("A", modification_definitions, association_definitions,
-                                                 localization_definitions)
-
-    with pytest.raises(AssertionError):
-        modification_specifications_err = [rbm.ModificationSpecification(modification_definitions[0], "P"),
-                                           rbm.ModificationSpecification(modification_definitions[0], "P")]
-        rbm.MoleculeSpecification(molecule_definition, modification_specifications_err,
-                                                           association_specifications, localization_specifications)
-
-    with pytest.raises(AssertionError):
-        association_specifications_err = [rbm.AssociationSpecification(association_definitions[0], True),
-                                          rbm.AssociationSpecification(association_definitions[0], True)]
-        rbm.MoleculeSpecification(molecule_definition, modification_specifications,
-                                  association_specifications_err, localization_specifications)
-
-    with pytest.raises(AssertionError):
-        # loc dom twice
-        localization_specifications_err_dom = [rbm.LocalizationSpecification(localization_definitions[0], False),
-                                               rbm.LocalizationSpecification(localization_definitions[0], False)]
-        rbm.MoleculeSpecification(molecule_definition, modification_specifications,
-                                  association_specifications, localization_specifications_err_dom)
-
-    with pytest.raises(AssertionError):
-        # in different compartments at the same time
-        localization_specifications_err_loc = [rbm.LocalizationSpecification(localization_definitions[0], True),
-                                               rbm.LocalizationSpecification(localization_definitions[1], True)]
-        rbm.MoleculeSpecification(molecule_definition, modification_specifications,
-                                  association_specifications, localization_specifications_err_loc)
+# def test_molecule_specification_raise_double_domain():
+#     modification_definitions = [rbm.ModificationDefinition("ModDomain1", ["U", "P"]),
+#                                 rbm.ModificationDefinition("ModDomain2", ["U", "GTP"])]
+#     modification_specifications = [rbm.ModificationSpecification(modification_definitions[0], "P")]
+#     association_definitions = [rbm.AssociationDefinition("AssociationDomain1"),
+#                                rbm.AssociationDefinition("AssociationDomain2")]
+#     association_specifications = [rbm.AssociationSpecification(association_definitions[0], True)]
+#     localization_definitions = [rbm.LocalizationDefinition("Cytosole"),
+#                                 rbm.LocalizationDefinition("Nucleus")]
+#     localization_specifications = [rbm.LocalizationSpecification(localization_definitions[0], True)]
+#
+#     molecule_definition = rbm.MoleculeDefinition("A", modification_definitions, association_definitions,
+#                                                  localization_definitions)
+#
+#     with pytest.raises(AssertionError):
+#         modification_specifications_err = [rbm.ModificationSpecification(modification_definitions[0], "P"),
+#                                            rbm.ModificationSpecification(modification_definitions[0], "P")]
+#         rbm.MoleculeSpecification(molecule_definition, modification_specifications_err,
+#                                                            association_specifications, localization_specifications)
+#
+#     with pytest.raises(AssertionError):
+#         association_specifications_err = [rbm.AssociationSpecification(association_definitions[0], True),
+#                                           rbm.AssociationSpecification(association_definitions[0], True)]
+#         rbm.MoleculeSpecification(molecule_definition, modification_specifications,
+#                                   association_specifications_err, localization_specifications)
+#
+#     with pytest.raises(AssertionError):
+#         # loc dom twice
+#         localization_specifications_err_dom = [rbm.LocalizationSpecification(localization_definitions[0], False),
+#                                                rbm.LocalizationSpecification(localization_definitions[0], False)]
+#         rbm.MoleculeSpecification(molecule_definition, modification_specifications,
+#                                   association_specifications, localization_specifications_err_dom)
+#
+#     with pytest.raises(AssertionError):
+#         # in different compartments at the same time
+#         localization_specifications_err_loc = [rbm.LocalizationSpecification(localization_definitions[0], True),
+#                                                rbm.LocalizationSpecification(localization_definitions[1], True)]
+#         rbm.MoleculeSpecification(molecule_definition, modification_specifications,
+#                                   association_specifications, localization_specifications_err_loc)
 
 
 def test_molecule_specification_raise_undefined_domain():
@@ -159,6 +159,7 @@ def test_molecule_specification_raise_undefined_domain():
     #     localization_specifications = [rbm.LocalizationSpecification(localization_def, True)]
     #     rbm.MoleculeSpecification(molecule_definition, modification_specifications,
     #                                                        association_specifications, localization_specifications)
+
 
 def test_molecule_reactant():
     modification_definitions = [rbm.ModificationDefinition("ModDomain1", ["U", "P"])]

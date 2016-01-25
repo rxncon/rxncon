@@ -39,8 +39,6 @@ class MoleculeSpecification:
         self.validate()
 
     def validate(self):
-        print(self)
-
         # def validate_unique_specification_property():
         #     for specification_name in ["modification", "association"]:
         #         specification_property_list = [getattr(specification, specification_name +"_definition").domain_name for specification in getattr(self , specification_name + "_specifications")]
@@ -98,18 +96,18 @@ class AssociationSpecification:
 
 
 class LocalizationDefinition:
-    def __init__(self, compartment: str):
-        self.compartment = compartment
+    def __init__(self, compartments: List[str]):
+        self.compartments = compartments
 
 
 class LocalizationSpecification:
-    def __init__(self, localization_definition: LocalizationDefinition, is_localized: bool):
+    def __init__(self, localization_definition: LocalizationDefinition, current_compartment: str)
         self.localization_definition = localization_definition
-        self.is_localized = is_localized
+        self.current_compartment = current_compartment
         self.validate()
 
     def validate(self):
-        assert isinstance(self.is_localized, bool)
+        pass
 
 
 class Rule:
