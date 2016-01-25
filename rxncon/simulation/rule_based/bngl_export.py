@@ -44,10 +44,10 @@ def string_from_molecule_definition(molecule_definition: rbm.MoleculeDefinition)
             molecule_definition.localization_definitions:
         return molecule_definition.name
 
-    # todo how to handle loc domains it should be loc~Cyto~Nuc in the definition case but loc~Cytosol in the specific case
-    domain_strs = [string_from_localization_definition(molecule_definition.localization_definitions), \
-                   ','.join([string_from_modification_definition(x) for x in molecule_definition.modification_definitions]), \
+    domain_strs = [','.join([string_from_localization_definition(x) for x in molecule_definition.localization_definitions]),
+                   ','.join([string_from_modification_definition(x) for x in molecule_definition.modification_definitions]),
                    ','.join([string_from_association_definition(x) for x in molecule_definition.association_definitions])]
+    domain_strs = [domain_str for domain_str in domain_strs if domain_str != ""]
     return "{0}({1})".format(molecule_definition.name,",".join(domain_strs))
 
 
@@ -56,11 +56,11 @@ def string_from_molecule_specification(molecule_specification: rbm.MoleculeSpeci
             molecule_specification.localization_specifications:
         return molecule_specification.molecule_definition.name
 
-    domain_strs = [','.join(string_from_localization_specification(x) for x in molecule_specification.localization_specifications), \
-        ','.join(string_from_modification_specification(x) for x in molecule_specification.modification_specifications), \
-        ','.join(string_from_association_specification(x) for x in molecule_specification.association_specifications)]
-
-    return "{0}({1})".format(molecule_specification.molecule_definition.name,",".join(domain_strs))
+    domain_strs = [','.join(string_from_localization_specification(x) for x in molecule_specification.localization_specifications),
+                   ','.join(string_from_modification_specification(x) for x in molecule_specification.modification_specifications),
+                   ','.join(string_from_association_specification(x) for x in molecule_specification.association_specifications)]
+    domain_strs = [domain_str for domain_str in domain_strs if domain_str != ""]
+    return "{0}({1})".format(molecule_specification.molecule_definition.name, ",".join(domain_strs))
 
 
 # MODIFICATION DEF / SPEC
@@ -96,10 +96,9 @@ def string_from_molecule_reactant(molecule_reactant: rbm.MoleculeReactant) -> st
 
 
 def string_from_complex_reactant(complex_reactant: rbm.ComplexReactant) -> str:
-
-    complex = [string_from_molecule_specification(complex_part) for complex_part in complex_reactant.complex_parts]
+    for i, complex_part in enumerate(complex_reactant.complex_parts):
+        for binding in complex_reactant.complex_bindings:
+            if binding.left_partner[0] == i or binding.right_partner[0] == i:
+                pass
+    #complex = [string_from_molecule_specification(complex_part) for complex_part in complex_reactant.complex_parts]
     return ".".join(complex)
-
-
-
-

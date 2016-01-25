@@ -37,56 +37,64 @@ def test_string_from_association_specification():
 
 
 def test_string_from_localization_definition():
-    localization_definition = rbm.LocalizationDefinition("Cell")
+    localization_definition = rbm.LocalizationDefinition(["Cell","Nucleus"])
     loc_str = be.string_from_localization_definition(localization_definition)
 
-    assert loc_str == "loc~Cell"
+    assert loc_str == "loc~Cell~Nucleus"
 
 
 def test_string_from_localization_specification():
-    localization_definition = rbm.LocalizationDefinition("Cell")
-    localization_specification = rbm.LocalizationSpecification(localization_definition, True)
+    localization_definition = rbm.LocalizationDefinition(["Cell"])
+    localization_specification = rbm.LocalizationSpecification(localization_definition, "Cell")
     loc_str = be.string_from_localization_specification(localization_specification)
 
     assert loc_str == "loc~Cell"
 
 
-def test_string_from_molecule_definition():
-    modification_definitions = [rbm.ModificationDefinition("ModDomain1", ["U", "P"]),
-                                rbm.ModificationDefinition("ModDomain2", ["U", "GTP"])]
-    association_definitions = [rbm.AssociationDefinition("AssociationDomain1"),
-                               rbm.AssociationDefinition("AssociationDomain2")]
-    localization_definitions = [rbm.LocalizationDefinition("Cytosole"),
-                                rbm.LocalizationDefinition("Nucleus")]
+def test_string_from_molecule_definition(molecule_A):
 
-    molecule_definition = rbm.MoleculeDefinition("A", modification_definitions, association_definitions,
-                                                 localization_definitions)
-
-    mol_def_str = be.string_from_molecule_definition(molecule_definition)
+    mol_def_str = be.string_from_molecule_definition(molecule_A.molecule_definition)
 
     assert mol_def_str == "A(loc~Cytosole~Nucleus,ModDomain1~U~P,ModDomain2~U~GTP,AssociationDomain1,AssociationDomain2)"
 
 
-def test_string_from_molecule_specification():
-    modification_definitions = [rbm.ModificationDefinition("ModDomain1", ["U", "P"]),
-                                rbm.ModificationDefinition("ModDomain2", ["U", "GTP"])]
-    modification_specifications = [rbm.ModificationSpecification(modification_definitions[0], "P")]
-    association_definitions = [rbm.AssociationDefinition("AssociationDomain1"),
-                               rbm.AssociationDefinition("AssociationDomain2")]
-    association_specifications = [rbm.AssociationSpecification(association_definitions[0], True)]
-    localization_definitions = [rbm.LocalizationDefinition("Cytosole"),
-                                rbm.LocalizationDefinition("Nucleus")]
-    localization_specifications = [rbm.LocalizationSpecification(localization_definitions[0], True)]
+def test_string_from_molecule_specification(molecule_A):
 
-    molecule_definition = rbm.MoleculeDefinition("A", modification_definitions, association_definitions,
-                                                 localization_definitions)
-
-    molecule_specification = rbm.MoleculeSpecification(molecule_definition, modification_specifications,
-                                                       association_specifications, localization_specifications)
-    molecule_specification_str = be.string_from_molecule_specification(molecule_specification)
+    molecule_specification_str = be.string_from_molecule_specification(molecule_A)
 
     assert molecule_specification_str == "A(loc~Cytosole,ModDomain1~P,AssociationDomain1)"
 
+def test_string_from_molecule_reactant(molecule_A):
+
+    molecule_reactant = rbm.MoleculeReactant(molecule_A)
+    molecule_reactant_str = be.string_from_molecule_reactant(molecule_reactant)
+
+    assert molecule_reactant_str == "A(loc~Cytosole,ModDomain1~P,AssociationDomain1)"
+
+
+def test_string_from_complex_reactant(molecule_A):
+    molecule_A.association_specifications[0].is_occupied = True
+    molecule_specification_A_bound = molecule_A
+
+    association_definitions_B_bound = [rbm.AssociationDefinition("AssociationDomain")]
+    association_specifications_B_bound = [rbm.AssociationSpecification(association_definitions_B_bound[0], True)]
+    localization_definitions_B_bound = [rbm.LocalizationDefinition(["Cytosole", "Nucleus"])],
+    localization_specifications_B_bound = [rbm.LocalizationSpecification(localization_definitions_B_bound[0], "Cytosole")]
+
+    molecule_definition_B_bound = rbm.MoleculeDefinition("B", [], association_definitions_B_bound,
+                                                 localization_definitions_B_bound)
+
+    molecule_specification_B_bound = rbm.MoleculeSpecification(molecule_definition_B_bound, [],
+                                                       association_specifications_B_bound, localization_specifications_B_bound)
+
+    molecules_bound = [molecule_specification_A_bound, molecule_specification_B_bound]
+
+    binding_list = [rbm.Binding(left_partner=(0, molecule_specification_A_bound.association_specifications[0]),
+                                right_partner=(1, molecule_specification_B_bound.association_specifications[0]))]
+    complex_reactant = rbm.ComplexReactant(molecules_bound, binding_list)
+
+    complex_reactant_str = be.string_from_complex_reactant(complex_reactant)
+    pass
 
 def test_simple_rule_based_model(simple_rule_based_model):
     bngl = be.BNGLSystem(simple_rule_based_model)
@@ -123,6 +131,24 @@ simulate({method=>"ode",t_end=>10,n_steps=>100})
 
     assert bngl.to_string() == expected_string
 
+@pytest.fixture
+def molecule_A():
+    modification_definitions = [rbm.ModificationDefinition("ModDomain1", ["U", "P"]),
+                                rbm.ModificationDefinition("ModDomain2", ["U", "GTP"])]
+    modification_specifications = [rbm.ModificationSpecification(modification_definitions[0], "P")]
+    association_definitions = [rbm.AssociationDefinition("AssociationDomain1"),
+                               rbm.AssociationDefinition("AssociationDomain2")]
+    association_specifications = [rbm.AssociationSpecification(association_definitions[0], False)]
+    localization_definitions = [rbm.LocalizationDefinition(["Cytosole", "Nucleus"])]
+    localization_specifications = [rbm.LocalizationSpecification(localization_definitions[0], "Cytosole")]
+
+    molecule_definition = rbm.MoleculeDefinition("A", modification_definitions, association_definitions,
+                                                 localization_definitions)
+
+    molecule_specification = rbm.MoleculeSpecification(molecule_definition, modification_specifications,
+                                                       association_specifications, localization_specifications)
+
+    return molecule_specification
 
 @pytest.fixture
 def simple_rule_based_model():
