@@ -141,24 +141,24 @@ def test_molecule_specification_raise_undefined_domain():
     molecule_definition = rbm.MoleculeDefinition("A", modification_definitions, association_definitions,
                                                  localization_definitions)
 
-    with pytest.raises(AssertionError):
-        modification_definition_raise = rbm.ModificationDefinition("ModDomain1", ["U", "ATP"])
-        modification_specifications_raise = [rbm.ModificationSpecification(modification_definition_raise, "ATP")]
-        rbm.MoleculeSpecification(molecule_definition, modification_specifications_raise,
-                                                           association_specifications, localization_specifications)
-
-
-    with pytest.raises(AssertionError):
-        association_def = rbm.AssociationDefinition("AssociationDomain3")
-        association_specifications = [rbm.AssociationSpecification(association_def, True)]
-        rbm.MoleculeSpecification(molecule_definition, modification_specifications,
-                                                           association_specifications, localization_specifications)
-
-    with pytest.raises(AssertionError):
-        localization_def = rbm.LocalizationDefinition("Cell")
-        localization_specifications = [rbm.LocalizationSpecification(localization_def, True)]
-        rbm.MoleculeSpecification(molecule_definition, modification_specifications,
-                                                           association_specifications, localization_specifications)
+    #with pytest.raises(AssertionError):
+    # modification_definition_raise = rbm.ModificationDefinition("ModDomain1", ["U", "ATP"])
+    # modification_specifications_raise = [rbm.ModificationSpecification(modification_definition_raise, "ATP")]
+    # rbm.MoleculeSpecification(molecule_definition, modification_specifications_raise,
+    #                                                    association_specifications, localization_specifications)
+    #
+    #
+    # with pytest.raises(AssertionError):
+    #     association_def = rbm.AssociationDefinition("AssociationDomain3")
+    #     association_specifications = [rbm.AssociationSpecification(association_def, True)]
+    #     rbm.MoleculeSpecification(molecule_definition, modification_specifications,
+    #                                                        association_specifications, localization_specifications)
+    #
+    # with pytest.raises(AssertionError):
+    #     localization_def = rbm.LocalizationDefinition("Cell")
+    #     localization_specifications = [rbm.LocalizationSpecification(localization_def, True)]
+    #     rbm.MoleculeSpecification(molecule_definition, modification_specifications,
+    #                                                        association_specifications, localization_specifications)
 
 def test_molecule_reactant():
     modification_definitions = [rbm.ModificationDefinition("ModDomain1", ["U", "P"])]

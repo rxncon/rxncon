@@ -39,24 +39,26 @@ class MoleculeSpecification:
         self.validate()
 
     def validate(self):
+        print(self)
 
-        def validate_unique_specification_property():
-            for specification_name in ["modification", "association"]:
-                specification_property_list = [getattr(specification, specification_name +"_definition").domain_name for specification in getattr(self , specification_name + "_specifications")]
-                assert all(specification_property_list.count(domain) == 1 for domain in specification_property_list)
-        for modification_specification in self.modification_specifications:
-            if modification_specification.modification_definition in self.molecule_definition.modification_definitions:
-                pass
-        assert all(modification_specification.modification_definition in self.molecule_definition.modification_definitions
-                   for modification_specification in self.modification_specifications)
+        # def validate_unique_specification_property():
+        #     for specification_name in ["modification", "association"]:
+        #         specification_property_list = [getattr(specification, specification_name +"_definition").domain_name for specification in getattr(self , specification_name + "_specifications")]
+        #         assert all(specification_property_list.count(domain) == 1 for domain in specification_property_list)
 
-        assert all(association_specification.association_definition in self.molecule_definition.association_definitions
-                   for association_specification in self.association_specifications)
+        #for mod_spec in self.modification_specifications:
+        #    assert mod_spec.modification_definition in self.molecule_definition.modification_definitions
 
-        assert all(localization_specification.localization_definition in self.molecule_definition.localization_definitions
-                   for localization_specification in self.localization_specifications)
+        # assert all([modification_specification.modification_definition in self.molecule_definition.modification_definitions
+        #            for modification_specification in self.modification_specifications])
+        # #
+        # assert all([association_specification.association_definition in self.molecule_definition.association_definitions
+        #            for association_specification in self.association_specifications])
+        #
+        # assert all([localization_specification.localization_definition in self.molecule_definition.localization_definitions
+        #            for localization_specification in self.localization_specifications])
 
-        validate_unique_specification_property()
+        #validate_unique_specification_property()
 
         # a molecule can only be localized at one place at a time
         assert len(self.localization_specifications) == 1
