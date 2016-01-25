@@ -60,8 +60,6 @@ class MoleculeSpecification:
 
         # a molecule can only be localized at one place at a time
         assert len(self.localization_specifications) == 1
-        # if a localization is defined it should be localized there in case of specification
-        assert self.localization_specifications[0].is_localized
 
 
 class ModificationDefinition:
@@ -101,10 +99,10 @@ class LocalizationDefinition:
 
 
 class LocalizationSpecification:
-    def __init__(self, localization_definition: LocalizationDefinition, current_compartment: str)
+    def __init__(self, localization_definition: LocalizationDefinition, current_compartment: str):
         self.localization_definition = localization_definition
         self.current_compartment = current_compartment
-        self.validate()
+        #self.validate()
 
     def validate(self):
         pass
@@ -122,8 +120,7 @@ class Rule:
             reactant_localization = set()
             for reactant in hand_side:
                 if isinstance(reactant, MoleculeReactant):
-                    if reactant.molecule_specification.localization_specifications[0].is_localized:
-                        reactant_localization.add(reactant.molecule_specification.localization_specifications[0].localization_definition.compartment)
+                    reactant_localization.add(reactant.molecule_specification.localization_specifications[0].current_compartment)
                 elif isinstance(reactant, ComplexReactant):
                     cp_localization = complex_part_localization(reactant)
                     reactant_localization = reactant_localization | cp_localization
@@ -199,8 +196,6 @@ class InitialCondition:
         self.molecule_specification.validate()
 
 
-def complex_part_localization(complex_molecule) -> set:
-    complex_part_localization_set = set()
-    for part in complex_molecule.complex_parts:
-        complex_part_localization_set.add(part.localization_specifications[0].localization_definition.compartment)
-    return complex_part_localization_set
+def complex_part_localization(complex_reactant: ComplexReactant) -> set:
+    localization_complex_part = [part.localization_specifications[0].current_compartment for part in complex_reactant.complex_parts]
+    return set(localization_complex_part)

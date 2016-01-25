@@ -45,7 +45,7 @@ def string_from_molecule_definition(molecule_definition: rbm.MoleculeDefinition)
         return molecule_definition.name
 
     # todo how to handle loc domains it should be loc~Cyto~Nuc in the definition case but loc~Cytosol in the specific case
-    domain_strs = [string_from_localization_definitions(molecule_definition.localization_definitions), \
+    domain_strs = [string_from_localization_definition(molecule_definition.localization_definitions), \
                    ','.join([string_from_modification_definition(x) for x in molecule_definition.modification_definitions]), \
                    ','.join([string_from_association_definition(x) for x in molecule_definition.association_definitions])]
     return "{0}({1})".format(molecule_definition.name,",".join(domain_strs))
