@@ -62,7 +62,7 @@ def test_molecule_definition():
     assert molecule_definition.name == "A"
     assert molecule_definition.modification_definitions == modification_definitions
     assert molecule_definition.association_definitions == association_definitions
-    assert molecule_definition.localization_definitions == localization_definitions
+    assert molecule_definition.localization_definition == localization_definitions
 
 
 
@@ -128,16 +128,16 @@ def test_complex_reactant(molecules_bound):
                                 right_partner=(1, molecules_bound[1].association_specifications[0]))]
     complex_reactant = rbm.ComplexReactant(molecules_bound, binding_list)
 
-    assert len(complex_reactant.complex_parts) == 2
+    assert len(complex_reactant.molecules) == 2
 
-    assert complex_reactant.complex_parts[0].modification_specifications == molecules_bound[0].modification_specifications
-    assert complex_reactant.complex_parts[1].modification_specifications == []
+    assert complex_reactant.molecules[0].modification_specifications == molecules_bound[0].modification_specifications
+    assert complex_reactant.molecules[1].modification_specifications == []
 
-    assert complex_reactant.complex_parts[0].association_specifications == molecules_bound[0].association_specifications
-    assert complex_reactant.complex_parts[1].association_specifications == molecules_bound[1].association_specifications
+    assert complex_reactant.molecules[0].association_specifications == molecules_bound[0].association_specifications
+    assert complex_reactant.molecules[1].association_specifications == molecules_bound[1].association_specifications
 
-    assert complex_reactant.complex_parts[0].localization_specifications == molecules_bound[0].localization_specifications
-    assert complex_reactant.complex_parts[1].localization_specifications == molecules_bound[1].localization_specifications
+    assert complex_reactant.molecules[0].localization_specifications == molecules_bound[0].localization_specifications
+    assert complex_reactant.molecules[1].localization_specifications == molecules_bound[1].localization_specifications
 
 
 def test_complex_reactant_parts_different_location(molecules_bound):

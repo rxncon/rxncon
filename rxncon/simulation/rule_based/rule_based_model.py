@@ -10,73 +10,63 @@ class RuleBasedModel:
         self.parameters = parameters
         self.initial_conditions = initial_conditions
 
-        self.validate()
+        self._validate()
 
-    def validate(self):
-        [x.validate() for x in self.rules]
-        [x.validate() for x in self.initial_conditions]
+    def _validate(self):
+        for initial_condition in self.initial_conditions:
+            if initial_condition.molecule_specification.molecule_definition not in self.molecule_definitions:
+                raise ValueError('Initial condition {0} refers to unknown molecule definition {1}.'
+                                 .format(initial_condition, initial_condition.molecule_specification.molecule_definition))
 
 
 class MoleculeDefinition:
     def __init__(self, name: str, modification_definitions: Optional[List['ModificationDefinition']],
                  association_definitions: Optional[List['AssociationDefinition']],
-                 localization_definitions: Optional[List['LocalizationDefinition']]):
+                 localization_definition: Optional['LocalizationDefinition']):
         self.name = name
+
         self.modification_definitions = modification_definitions
         self.association_definitions = association_definitions
-        self.localization_definitions = localization_definitions
+
+        self.localization_definition = localization_definition
 
 
 class MoleculeSpecification:
     def __init__(self, molecule_definition: MoleculeDefinition,
                  modification_specifications: List['ModificationSpecification'],
                  association_specifications: List['AssociationSpecification'],
-                 localization_specifications: List['LocalizationSpecification']):
+                 localization_specification: Optional['LocalizationSpecification']):
         self.molecule_definition = molecule_definition
+
         self.modification_specifications = modification_specifications
         self.association_specifications = association_specifications
-        self.localization_specifications = localization_specifications
-        self.validate()
 
-    def validate(self):
-        pass
-        # def validate_unique_specification_property():
-        #     for specification_name in ["modification", "association"]:
-        #         specification_property_list = [getattr(specification, specification_name +"_definition").domain_name for specification in getattr(self , specification_name + "_specifications")]
-        #         assert all(specification_property_list.count(domain) == 1 for domain in specification_property_list)
-
-        #for mod_spec in self.modification_specifications:
-        #    assert mod_spec.modification_definition in self.molecule_definition.modification_definitions
-
-        # assert all([modification_specification.modification_definition in self.molecule_definition.modification_definitions
-        #            for modification_specification in self.modification_specifications])
-        # #
-        # assert all([association_specification.association_definition in self.molecule_definition.association_definitions
-        #            for association_specification in self.association_specifications])
-        #
-        # assert all([localization_specification.localization_definition in self.molecule_definition.localization_definitions
-        #            for localization_specification in self.localization_specifications])
-
-        #validate_unique_specification_property()
-
-        # a molecule can only be localized at one place at a time
-#        assert len(self.localization_specifications) == 1
+        self.localization_specification = localization_specification
 
 
 class ModificationDefinition:
     def __init__(self, domain_name: str, valid_modifiers: List[str]):
         self.domain_name = domain_name
         self.valid_modifiers = valid_modifiers
+        self._validate()
+
+    def _validate(self):
+        if len(self.valid_modifiers) > len(set(self.valid_modifiers)):
+            modifiers = ', '.join(self.valid_modifiers)
+            raise ValueError('Modifier list {0} for domain {1} contains non-unique elements.'
+                             .format(modifiers, self.domain_name))
 
 
 class ModificationSpecification:
     def __init__(self, modification_definition: ModificationDefinition, value: str):
         self.modification_definition = modification_definition
         self.value = value
-        self.validate()
+        self._validate()
 
-    def validate(self):
-        assert self.value in self.modification_definition.valid_modifiers
+    def _validate(self):
+        if self.value not in self.modification_definition.valid_modifiers:
+            raise ValueError('Modifier {0} does not appear in list of valid modifiers for domain {1}.'
+                             .format(self.value, self.modification_definition.domain_name))
 
 
 class AssociationDefinition:
@@ -89,10 +79,6 @@ class AssociationSpecification:
         self.association_definition = association_definition
         self.is_occupied = is_occupied
 
-    def validate(self):
-        assert isinstance(self.association_definition, AssociationDefinition)
-        assert isinstance(self.is_occupied, bool)
-
 
 class LocalizationDefinition:
     def __init__(self, compartments: List[str]):
@@ -103,10 +89,12 @@ class LocalizationSpecification:
     def __init__(self, localization_definition: LocalizationDefinition, current_compartment: str):
         self.localization_definition = localization_definition
         self.current_compartment = current_compartment
-        #self.validate()
+        self._validate()
 
-    def validate(self):
-        pass
+    def _validate(self):
+        if self.current_compartment not in self.localization_definition.compartments:
+            raise ValueError('Compartment {0} does not appear in list of valid compartments {1}.'
+                             .format(self.current_compartment, ', '.join(self.localization_definition.compartments)))
 
 
 class Rule:
@@ -114,26 +102,10 @@ class Rule:
         self.left_hand_side = left_hand_side
         self.right_hand_side = right_hand_side
         self.arrow_type = arrow_type
-        self.validate()
+        self._validate()
 
-    def validate(self):
-        def localization_validation(hand_side: List[Reactant]):
-            reactant_localization = set()
-            for reactant in hand_side:
-                if isinstance(reactant, MoleculeReactant):
-                    if len(reactant.molecule_specification.localization_specifications) > 0:
-                        reactant_localization.add(reactant.molecule_specification.localization_specifications[0].current_compartment)
-                elif isinstance(reactant, ComplexReactant):
-                    cp_localization = complex_part_localization(reactant)
-                    reactant_localization = reactant_localization | cp_localization
-            # todo what if we don't have localization
-            #assert len(reactant_localization) == 1
-
-        assert [left_hand_side_reactant.validate() for left_hand_side_reactant in self.left_hand_side]
-        assert [right_hand_side_reactant.validate() for right_hand_side_reactant in self.right_hand_side]
-
-        localization_validation(self.left_hand_side)
-        localization_validation(self.right_hand_side)
+    def _validate(self):
+        pass
 
 
 class Reactant:
@@ -144,39 +116,37 @@ class MoleculeReactant(Reactant):
     def __init__(self, molecule_specification: MoleculeSpecification):
         self.molecule_specification = molecule_specification
 
-    def validate(self):
-        self.molecule_specification.validate()
-
 
 class ComplexReactant(Reactant):
-    def __init__(self, complex_parts: List[MoleculeSpecification], complex_bindings: List['Binding']):
-        self.complex_parts = complex_parts
-        self.complex_bindings = complex_bindings
-        self.validate()
+    def __init__(self, molecules: List[MoleculeSpecification], bindings: List['Binding']):
+        self.molecules = molecules
+        self.bindings = bindings
+        self._validate()
 
-    def validate(self):
-        [part.validate() for part in self.complex_parts]
-        [bind.validate() for bind in self.complex_bindings]
-        # each binding pair should appear only once
-        assert all(self.complex_bindings.count(bind) == 1 for bind in self.complex_bindings)
-
-        cp_localization = complex_part_localization(self)
-        # todo what if we don't define localization
-#        assert len(cp_localization) == 1
+    def _validate(self):
+        localizations = [molecule.localization_specification for molecule in self.molecules]
+        if len(set(localizations)) > 1:
+            raise ValueError('Molecules making up a ComplexReactant cannot be in different localizations: {0}.'
+                             .format(', '.join(localizations)))
 
 
 class Binding:
     def __init__(self, left_partner: Tuple[int, AssociationSpecification], right_partner: Tuple[int, AssociationSpecification]):
         self.left_partner = left_partner
         self.right_partner = right_partner
+        self._validate()
 
-    def validate(self):
-        # @todo validate the binding indices as well?
-        self.left_partner[1].validate()
-        self.right_partner[1].validate()
-        # the assoc domain should be occupied if we bound something to it
-        assert self.left_partner[1].is_occupied
-        assert self.right_partner[1].is_occupied
+    def __str__(self):
+        return 'Binding: L_index = {0}, L_domain = {1}, R_index = {2}, R_domain = {3}'\
+            .format(self.left_partner[0], self.left_partner[1].association_definition.domain_name,
+                    self.right_partner[0], self.right_partner[1].association_definition.domain_name)
+
+    def _validate(self):
+        if not self.left_partner[1].is_occupied or not self.right_partner[1].is_occupied:
+            raise ValueError('Binding requires both partners to have occupied association domains.')
+
+        if self.left_partner[0] == self.right_partner[0]:
+            raise ValueError('Binding-molecule-indices are required to be distinct for each binding.')
 
 
 class Arrow(Enum):
@@ -189,17 +159,14 @@ class Parameter:
         self.name = name
         self.value = value
 
+    def __str__(self):
+        return 'Parameter: {0} = {1}'.format(self.name, self.value)
+
 
 class InitialCondition:
     def __init__(self, molecule_specification: MoleculeSpecification, value):
         self.molecule_specification = molecule_specification
         self.value = value
 
-    def validate(self):
-        self.molecule_specification.validate()
-
-
-def complex_part_localization(complex_reactant: ComplexReactant) -> set:
-
-    localization_complex_part = [part.localization_specifications[0].current_compartment for part in complex_reactant.complex_parts if len(part.localization_specifications) > 0]
-    return set(localization_complex_part)
+    def __str__(self):
+        return 'InitialCondition: {0} = {1}'.format(self.molecule_specification, self.value)

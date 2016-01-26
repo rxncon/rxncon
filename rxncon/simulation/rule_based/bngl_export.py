@@ -41,10 +41,10 @@ class BNGLSystem:
 # MOLECULE DEF / SPEC
 def string_from_molecule_definition(molecule_definition: rbm.MoleculeDefinition) -> str:
     if not molecule_definition.modification_definitions and not molecule_definition.association_definitions and not\
-            molecule_definition.localization_definitions:
+            molecule_definition.localization_definition:
         return molecule_definition.name
 
-    domain_strs = [','.join([string_from_localization_definition(x) for x in molecule_definition.localization_definitions]),
+    domain_strs = [','.join([string_from_localization_definition(x) for x in molecule_definition.localization_definition]),
                    ','.join([string_from_modification_definition(x) for x in molecule_definition.modification_definitions]),
                    ','.join([string_from_association_definition(x) for x in molecule_definition.association_definitions])]
     domain_strs = [domain_str for domain_str in domain_strs if domain_str != ""]
@@ -53,10 +53,10 @@ def string_from_molecule_definition(molecule_definition: rbm.MoleculeDefinition)
 
 def string_from_molecule_specification(molecule_specification: rbm.MoleculeSpecification, rxn_binding: Optional[Tuple[int, rbm.AssociationSpecification]] = None) -> str:
     if not molecule_specification.modification_specifications and not molecule_specification.association_specifications and not\
-            molecule_specification.localization_specifications:
+            molecule_specification.localization_specification:
         return molecule_specification.molecule_definition.name
 
-    domain_strs = [','.join(string_from_localization_specification(x) for x in molecule_specification.localization_specifications),
+    domain_strs = [','.join(string_from_localization_specification(x) for x in molecule_specification.localization_specification),
                    ','.join(string_from_modification_specification(x) for x in molecule_specification.modification_specifications),
                    ','.join(string_from_association_specification(x) if rxn_binding is None else string_from_bound_associaton_specification(x, rxn_binding) for x in molecule_specification.association_specifications)]
 
@@ -110,6 +110,6 @@ def __is_association_domain_bound(i: int, complex_part: rbm.MoleculeSpecificatio
 
 def string_from_complex_reactant(complex_reactant: rbm.ComplexReactant) -> str:
     complex = [__is_association_domain_bound(i, complex_part, rxn_number, binding)
-               for i, complex_part in enumerate(complex_reactant.complex_parts)
-               for rxn_number, binding in enumerate(complex_reactant.complex_bindings)]
+               for i, complex_part in enumerate(complex_reactant.molecules)
+               for rxn_number, binding in enumerate(complex_reactant.bindings)]
     return ".".join(complex)
