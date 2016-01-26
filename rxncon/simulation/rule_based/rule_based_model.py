@@ -110,10 +110,11 @@ class LocalizationSpecification:
 
 
 class Rule:
-    def __init__(self, left_hand_side: List['Reactant'], right_hand_side: List['Reactant'], arrow_type: 'Arrow'):
+    def __init__(self, left_hand_side: List['Reactant'], right_hand_side: List['Reactant'], arrow_type: 'Arrow', parameters: List['Parameter']):
         self.left_hand_side = left_hand_side
         self.right_hand_side = right_hand_side
         self.arrow_type = arrow_type
+        self.parameters = parameters
         self.validate()
 
     def validate(self):

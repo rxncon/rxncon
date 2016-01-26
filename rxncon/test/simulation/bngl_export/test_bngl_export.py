@@ -64,6 +64,7 @@ def test_string_from_molecule_specification(molecule_A):
 
     assert molecule_specification_str == "A(loc~Cytosole,ModDomain1~P,AssociationDomain1)"
 
+
 def test_string_from_molecule_reactant(molecule_A):
 
     molecule_reactant = rbm.MoleculeReactant(molecule_A)
@@ -78,7 +79,7 @@ def test_string_from_complex_reactant(molecule_A):
 
     association_definitions_B_bound = [rbm.AssociationDefinition("AssociationDomain")]
     association_specifications_B_bound = [rbm.AssociationSpecification(association_definitions_B_bound[0], True)]
-    localization_definitions_B_bound = [rbm.LocalizationDefinition(["Cytosole", "Nucleus"])],
+    localization_definitions_B_bound = [rbm.LocalizationDefinition(["Cytosole", "Nucleus"])]
     localization_specifications_B_bound = [rbm.LocalizationSpecification(localization_definitions_B_bound[0], "Cytosole")]
 
     molecule_definition_B_bound = rbm.MoleculeDefinition("B", [], association_definitions_B_bound,
@@ -116,20 +117,20 @@ B(a)
 end molecule types
 
 begin seed species
-  A(b) A_total
-  B(a) B_total
+A(b) A_total
+B(a) B_total
 end seed species
 
 begin reaction rules
-  A(b) + B(a) <-> A(b!1).B(a!1) kf, kr
+A(b) + B(a) <-> A(b!0).B(a!0) kf,kr
 end reaction rules
 
 end model
 
-generate_network()
-simulate({method=>"ode",t_end=>10,n_steps=>100})
-    """
+generate_network(max_iter=>1, max_agg=>4)
+simulate({method=>"ode",t_end=>10,n_steps=>100})"""
 
+    bngl.to_string()
     assert bngl.to_string() == expected_string
 
 @pytest.fixture
@@ -169,20 +170,22 @@ def simple_rule_based_model():
     reactant_B_unbound = rbm.MoleculeReactant(mol_spec_B_unbound)
 
     binding = rbm.Binding((0, mol_spec_A_bound.association_specifications[0]),
-                          (0, mol_spec_B_bound.association_specifications[0]))
+                          (1, mol_spec_B_bound.association_specifications[0]))
 
     reactant_AB = rbm.ComplexReactant([mol_spec_A_bound, mol_spec_B_bound], [binding])
 
-    rule = rbm.Rule([reactant_A_unbound, reactant_B_unbound], [reactant_AB], rbm.Arrow.reversible)
+    rule_kinetic_paramerters = [rbm.Parameter('kf', '1e6/(NA*V)'),
+                                rbm.Parameter('kr', '0.1')]
+    rule = rbm.Rule([reactant_A_unbound, reactant_B_unbound], [reactant_AB], rbm.Arrow.reversible, rule_kinetic_paramerters)
 
     parameters = [
         rbm.Parameter('A_total', '100'),
         rbm.Parameter('B_total', '100'),
         rbm.Parameter('NA', '6.02214e23'),
         rbm.Parameter('V', '1e-12'),
-        rbm.Parameter('kf', '1e6/(NA*V)'),
-        rbm.Parameter('kr', '0.1')
     ]
+
+    parameters.extend(rule_kinetic_paramerters)
 
     initial_conditions = [
         rbm.InitialCondition(mol_spec_A_unbound, 'A_total'),
