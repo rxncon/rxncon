@@ -71,16 +71,16 @@ def string_from_bound_associaton_specification(assocDom: rbm.AssociationSpecific
 
 # MODIFICATION DEF / SPEC
 def string_from_modification_definition(modification_definition: rbm.ModificationDefinition) -> str:
-    return '{0}~{1}'.format(modification_definition.domain_name, '~'.join(modification_definition.valid_modifiers))
+    return '{0}~{1}'.format(modification_definition.domain, '~'.join(modification_definition.valid_modifiers))
 
 
 def string_from_modification_specification(modification_specification: rbm.ModificationSpecification) -> str:
-    return "{0}~{1}".format(modification_specification.modification_definition.domain_name, modification_specification.value)
+    return "{0}~{1}".format(modification_specification.modification_definition.domain_name, modification_specification.modifier)
 
 
 # ASSOCIATION DEF / SPEC
 def string_from_association_definition(association_definition: rbm.AssociationDefinition) -> str:
-    return association_definition.domain_name
+    return association_definition.domain
 
 
 def string_from_association_specification(association_specification: rbm.AssociationSpecification) -> str:
@@ -93,7 +93,7 @@ def string_from_localization_definition(localization_definition: rbm.Localizatio
 
 
 def string_from_localization_specification(localization_specification: rbm.LocalizationSpecification) -> str:
-    return 'loc~' + localization_specification.current_compartment
+    return 'loc~' + localization_specification.compartment
 
 
 # REACTANTS

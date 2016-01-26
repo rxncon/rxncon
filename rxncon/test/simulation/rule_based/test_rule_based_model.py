@@ -5,14 +5,14 @@ import rxncon.simulation.rule_based.rule_based_model as rbm
 
 def test_modification_definition():
     modification_definition = rbm.ModificationDefinition("ModDomain", ["U", "P"])
-    assert modification_definition.domain_name == "ModDomain"
+    assert modification_definition.domain == "ModDomain"
     assert modification_definition.valid_modifiers == ["U", "P"]
 
 
 def test_modification_specification():
     modification_definition = rbm.ModificationDefinition("ModDomain", ["U", "P"])
     modification_specification = rbm.ModificationSpecification(modification_definition, "P")
-    assert modification_specification.value == "P"
+    assert modification_specification.modifier == "P"
 
     with pytest.raises(AssertionError):
         rbm.ModificationSpecification(modification_definition, "G")
@@ -20,7 +20,7 @@ def test_modification_specification():
 
 def test_association_definition():
     association_definition = rbm.AssociationDefinition("AssociationDomain")
-    assert association_definition.domain_name == "AssociationDomain"
+    assert association_definition.domain == "AssociationDomain"
 
 
 def test_association_specification():
@@ -43,7 +43,7 @@ def test_localization_definition():
 def test_localization_specification():
     localization_definition = rbm.LocalizationDefinition(["Cell", "Cytoplasm", "Nucleus"])
     localization_specification = rbm.LocalizationSpecification(localization_definition, "Cell")
-    assert localization_specification.current_compartment == "Cell"
+    assert localization_specification.compartment == "Cell"
 
     #with pytest.raises(AssertionError):
     #    rbm.LocalizationSpecification(localization_definition, "Cell")
