@@ -1,21 +1,28 @@
 from typing import List, Optional, Tuple
 from collections import defaultdict
+from enum import Enum
 
 import rxncon.simulation.rule_based.rule_based_model as rbm
 
 
+class BNGLSimulationMethods(Enum):
+    ODE = 'ode'
+    SSA = 'ssa'
+
+
+class BNGLSettings:
+    def __init__(self):
+        self.maximal_iteration = 1
+        self.maximal_aggregate = 4
+        self.simulation_method = BNGLSimulationMethods.ODE
+        self.simulation_time_end = 10
+        self.simulation_time_steps = 100
+
+
 class BNGLSystem:
-    def __init__(self, rule_based_model: rbm.RuleBasedModel, maximal_iteration: Optional[int] = 1,
-                 maximal_aggregate: Optional[int]=4, simulation_method: Optional[str] = 'ode',
-                 simulation_time_end: Optional[int] = 10, simulation_time_steps: Optional[int] = 100):
+    def __init__(self, rule_based_model: rbm.RuleBasedModel, settings: BNGLSettings):
         self.rule_based_model = rule_based_model
-        self.maximal_iteration = maximal_iteration  # maximum number of iterations of rule application
-        self.maximal_aggregate = maximal_aggregate  # maximum number of molecules in one species
-        # simulation method in BNGL we have
-        # ode and ssa(kinetic Monte Carlo simulation using the Gillespie algorithm)
-        self.simulation_method = simulation_method
-        self.simulation_time_end = simulation_time_end
-        self.simulation_time_steps = simulation_time_steps
+        self.settings = settings
 
     def to_string(self):
         bngl_system_strs = [self._header_string(),
@@ -54,11 +61,11 @@ class BNGLSystem:
 
     def _footer_string(self):
         return 'end model\n\ngenerate_network(max_iter=>{0}, max_agg=>{1})\nsimulate({{method=>\"{2}\",t_end=>{3},n_steps=>{4}}})'\
-            .format(self.maximal_iteration,
-                    self.maximal_aggregate,
-                    self.simulation_method,
-                    self.simulation_time_end,
-                    self.simulation_time_steps)
+            .format(self.settings.maximal_iteration,
+                    self.settings.maximal_aggregate,
+                    self.settings.simulation_method.value,
+                    self.settings.simulation_time_end,
+                    self.settings.simulation_time_steps)
 
 
 # MOLECULE DEF / SPEC

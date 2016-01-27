@@ -36,6 +36,7 @@ def test_string_from_association_specification():
     assert bex.string_from_association_specification(rbm.AssociationSpecification(ass_def, rbm.OccupationStatus.not_specified)) == \
         'AssociationDomain!?'
 
+    # This should not appear outside of a ComplexReactant.
     with pytest.raises(NotImplementedError):
         bex.string_from_association_specification(rbm.AssociationSpecification(ass_def, rbm.OccupationStatus.occupied_known_partner))
 
@@ -93,7 +94,7 @@ def test_string_from_complex_reactant(simple_molecule_spec):
 
 
 def test_simple_rule_based_model(simple_rule_based_model):
-    bngl = bex.BNGLSystem(simple_rule_based_model)
+    bngl = bex.BNGLSystem(simple_rule_based_model, bex.BNGLSettings())
 
     expected_string = '''begin model
 begin parameters
