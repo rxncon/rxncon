@@ -152,7 +152,7 @@ class AssociationSpecification:
 @unique
 class OccupationStatus(Enum):
     not_specified = 0
-    unoccupied = 1
+    not_unoccupied = 1
     occupied_known_partner = 2
     occupied_unknown_partner = 3
 

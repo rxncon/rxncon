@@ -76,7 +76,7 @@ def test_molecule_specification(modification_defs, association_defs, localizatio
 ### REACTANTS: MOLECULEREACTANT, COMPLEXREACTANT ###
 def test_molecule_reactant(modification_defs, association_defs, localization_def):
     modification_specs = [rbm.ModificationSpecification(modification_defs[0], 'P')]
-    association_specs  = [rbm.AssociationSpecification(association_defs[0], rbm.OccupationStatus.unoccupied)]
+    association_specs  = [rbm.AssociationSpecification(association_defs[0], rbm.OccupationStatus.not_unoccupied)]
     localization_spec  = rbm.LocalizationSpecification(localization_def, 'Cytoplasm')
 
     molecule_definition = rbm.MoleculeDefinition('A', modification_defs, association_defs, localization_def)
@@ -187,9 +187,9 @@ def molecules_unbound(molecules_bound):
     molecule_specification_B_bound = molecules_bound[1]
 
     association_specification_A_unbound = [rbm.AssociationSpecification(molecule_specification_A_bound.association_specifications[0],
-                                                                        rbm.OccupationStatus.unoccupied)]
+                                                                        rbm.OccupationStatus.not_unoccupied)]
     assocociation_specification_B_unbound = [rbm.AssociationSpecification(molecule_specification_B_bound.association_specifications[0],
-                                                                          rbm.OccupationStatus.unoccupied)]
+                                                                          rbm.OccupationStatus.not_unoccupied)]
 
     molecule_definition_A = rbm.MoleculeDefinition('A', modification_defs, association_defs, localization_def)
     molecule_specification_A_unbound = rbm.MoleculeSpecification(molecule_definition_A,
