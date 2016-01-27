@@ -1,4 +1,3 @@
-from typing import List, Optional, Tuple
 from collections import defaultdict
 from enum import Enum
 
@@ -32,7 +31,7 @@ class BNGLSystem:
                             self._observables_string(),
                             self._reaction_rules_string(),
                             self._footer_string()]
-        bngl_system_strs = [bngl_system_str for bngl_system_str in bngl_system_strs if bngl_system_str != '']
+        bngl_system_strs = [bngl_system_str for bngl_system_str in bngl_system_strs if bngl_system_str]
 
         return '\n'.join(bngl_system_strs)
 
@@ -124,6 +123,7 @@ def string_from_association_specification(association_specification: rbm.Associa
 
     else:
         raise AssertionError
+
 
 # LOCALIZATION DEF / SPEC
 def string_from_localization_definition(localization_definition: rbm.LocalizationDefinition) -> str:

@@ -134,6 +134,7 @@ class AssociationDefinition:
 class AssociationSpecification:
     def __init__(self, association_def: AssociationDefinition, occupation_status: 'OccupationStatus'):
         self.association_def = association_def
+        assert isinstance(occupation_status, OccupationStatus)
         self.occupation_status = occupation_status
 
     def __eq__(self, other):
