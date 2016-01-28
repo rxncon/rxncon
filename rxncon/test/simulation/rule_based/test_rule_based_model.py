@@ -34,6 +34,7 @@ def test_association_specification():
     with pytest.raises(tc.InputParameterError):
         rbm.AssociationSpecification(association_definition, True)
 
+
 def test_localization_definition():
     localization_definition = rbm.LocalizationDefinition(['Cell', 'Cytoplasm', 'Nucleus'])
     assert localization_definition.valid_compartments == ['Cell', 'Cytoplasm', 'Nucleus']
