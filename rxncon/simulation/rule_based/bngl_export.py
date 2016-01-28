@@ -182,6 +182,7 @@ def string_from_complex_reactant(complex_reactant: rbm.ComplexReactant) -> str:
     return '.'.join(complex_strings)
 
 
+# RULE
 def string_from_rule(rule: rbm.Rule) -> str:
     left_hand_side = [string_from_reactant(reactant) for reactant in rule.left_hand_side]
     right_hand_side = [string_from_reactant(reactant) for reactant in rule.right_hand_side]
@@ -189,6 +190,7 @@ def string_from_rule(rule: rbm.Rule) -> str:
     return '{0} {1} {2} {3}'.format(' + '.join(left_hand_side), rule.arrow_type.value, ' + '.join(right_hand_side), ','.join(kinetic_parameters))
 
 
+# PARAMETERS / INITIAL CONDITIONS (SEED SPECIES)
 def string_from_parameter(parameter: rbm.Parameter) -> str:
     return '{0} {1}'.format(parameter.name, parameter.value)
 
