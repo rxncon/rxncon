@@ -2,5 +2,7 @@ syntax: glob
 
 .idea/
 .cache/
+.coverage
+htmlcov
 *.pyc
 .DS_Store
