@@ -1,6 +1,7 @@
 from collections import namedtuple
 from enum import Enum, unique
 from typing import List, Optional
+import typecheck as tc
 
 import rxncon.core.component as com
 import rxncon.core.error as err
@@ -8,7 +9,6 @@ import rxncon.core.state as sta
 import rxncon.syntax.string_from_rxncon as sfr
 
 
-# @todo lower case.
 @unique
 class Verb(Enum):
     phosphorylation             = 'p+'
@@ -55,6 +55,7 @@ class Isomerism(Enum):
     trans     = 1
     cis       = 2
 
+# @todo lower case.
 @unique
 class CovalentReactionModifier(Enum):
     undefined = None
@@ -138,6 +139,7 @@ VERB_REACTION_TABLE = {
 
 
 class Reaction:
+    @tc.typecheck
     def __init__(self, subject: com.Component, verb: Verb, object: com.Component,
                  reaction_class: ReactionClass, directionality: Directionality, influence: Influence,
                  isomerism: Isomerism, modifier: CovalentReactionModifier):
@@ -161,16 +163,11 @@ class Reaction:
     def __str__(self):
         return sfr.string_from_reaction(self)
 
+    @tc.typecheck
     def __eq__(self, other: 'Reaction') -> bool:
-        assert isinstance(other, Reaction)
         return self.subject == other.subject and self.verb == other.verb and self.object == other.object and \
             self.reaction_class == other.reaction_class and self.directionality == other.directionality and \
             self.influence == other.influence and self.isomerism == other.isomerism and self.modifier == other.modifier
-
-    @property
-    def constant_components(self) -> List[com.Component]:
-        # @todo implement this?
-        return []
 
     def _determine_source_product_states(self):
         self.source, self.product = states_from_reaction(self)

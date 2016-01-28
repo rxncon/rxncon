@@ -1,4 +1,5 @@
 import pytest
+import typecheck as tc
 
 import rxncon.simulation.rule_based.rule_based_model as rbm
 
@@ -30,7 +31,7 @@ def test_association_specification():
     assert association_specification_occupied
 
     # Occupation status was Boolean in previous version, this should raise an error.
-    with pytest.raises(AssertionError):
+    with pytest.raises(tc.InputParameterError):
         rbm.AssociationSpecification(association_definition, True)
 
 def test_localization_definition():

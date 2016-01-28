@@ -1,10 +1,11 @@
-from typing import List, Optional
+from typing import List, Optional, Callable, Union
+import typecheck as tc
 
 import re
 
 
-
 class SBtabData:
+    @tc.typecheck
     def __init__(self, input: List[List[str]]):
         self.version = None
         self.entries = []
@@ -66,6 +67,7 @@ class SBtabData:
 
 
 class ValidatedSBtabData(SBtabData):
+    @tc.typecheck
     def __init__(self, input: List[List[str]], definition: SBtabData):
         super().__init__(input)
 
@@ -96,6 +98,7 @@ class ValidatedSBtabData(SBtabData):
             entry.postprocess()
 
 
+@tc.typecheck
 def sbtab_data_from_file(filename: str, separator='\t', definitions: Optional[SBtabData]=None):
     sbtab_input = []
 
@@ -123,20 +126,20 @@ class EntryBase:
             setattr(self, field_name, self.field_postprocessors[field_name](getattr(self, field_name)))
 
 
-def _unquote(x: str):
+def _unquote(x: str) -> str:
     return x.strip('\'\"')
 
 
-def _header_value(header_definition: str):
+def _header_value(header_definition: str) -> str:
     return _unquote(header_definition.split('=')[1])
 
 
-def _cleaned_column_name(raw_name: str):
+def _cleaned_column_name(raw_name: str) -> str:
     assert raw_name.startswith('!') and not raw_name.startswith('!!')
     return raw_name[1:].strip()
 
 
-def _class_name_from_table_name(table_name: str):
+def _class_name_from_table_name(table_name: str) -> str:
     for separator in [' ', '-', '_']:
         if separator in table_name:
             table_name = ''.join(x.capitalize() for x in table_name.split(separator))
@@ -144,11 +147,11 @@ def _class_name_from_table_name(table_name: str):
     return table_name
 
 
-def _field_name_from_column_name(column_name: str):
+def _field_name_from_column_name(column_name: str) -> str:
     return column_name.strip()
 
 
-def _field_postprocessor_for_type_string(type_string: str):
+def _field_postprocessor_for_type_string(type_string: str) -> Callable[[str], Union[str, float, bool, int]]:
     if type_string is None or type_string == 'string':
         return lambda value: value
 

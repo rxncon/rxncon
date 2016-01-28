@@ -1,4 +1,4 @@
-# Note: not type annotations, because this would require importing the state, component and reaction modules,
+# Note: Here be no type annotations, because this would require importing the state, component and reaction modules,
 # which would induce a circular dependency.
 
 

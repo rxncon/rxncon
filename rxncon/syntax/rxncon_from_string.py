@@ -1,5 +1,6 @@
 import re
-from typing import Tuple
+from typing import Tuple, Union
+import typecheck as tc
 
 import rxncon.core.component as com
 import rxncon.core.error as err
@@ -7,6 +8,7 @@ import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
 
 
+@tc.typecheck
 def component_from_string(component_string: str) -> com.Component:
     DOMAIN_DELIMITER = '_'
 
@@ -59,6 +61,7 @@ def component_from_string(component_string: str) -> com.Component:
         raise err.RxnConParseError('Could not parse component string '.format(component_string))
 
 
+@tc.typecheck
 def reaction_from_string(reaction_string: str) -> rxn.Reaction:
     INPUT_REGEX = '^\[.+?\]$'
 
@@ -82,6 +85,7 @@ def reaction_from_string(reaction_string: str) -> rxn.Reaction:
     return rxn.Reaction(subject, verb, object, category, directionality, influence, isomerism, modifier)
 
 
+@tc.typecheck
 def _reaction_string_to_subject_verb_object_strings(reaction_string: str) -> Tuple[str, str, str]:
     known_verbs = [v.value for v in rxn.Verb]
     delimiters = ['_' + verb + '_' for verb in known_verbs]
@@ -115,6 +119,7 @@ def _reaction_string_to_subject_verb_object_strings(reaction_string: str) -> Tup
     return subject_string, verb_string, object_string
 
 
+@tc.typecheck
 def state_from_string(state_string: str) -> sta.State:
     OUTPUT_REGEX = '^\[.+?\]$'
     INTERACTION_REGEX = '^.+?--.+?$'
@@ -144,7 +149,9 @@ def state_from_string(state_string: str) -> sta.State:
         raise err.RxnConParseError('Could not parse state string {} into State'.format(state_string))
 
 
-def _interaction_state_from_string(state_string: str) -> sta.InterProteinInteractionState:
+@tc.typecheck
+def _interaction_state_from_string(state_string: str) -> Union[sta.InterProteinInteractionState,
+                                                               sta.IntraProteinInteractionState]:
     component_strings = state_string.split('--')
 
     if component_strings[1].startswith('['):
@@ -160,6 +167,7 @@ def _interaction_state_from_string(state_string: str) -> sta.InterProteinInterac
         return sta.InterProteinInteractionState(first_component, second_component)
 
 
+@tc.typecheck
 def _covalent_modification_state_from_string(state_string: str, modifier: sta.StateModifier) -> sta.CovalentModificationState:
     substrate_string = state_string.split('-{')[0]
     substrate = component_from_string(substrate_string)
@@ -167,6 +175,7 @@ def _covalent_modification_state_from_string(state_string: str, modifier: sta.St
     return sta.CovalentModificationState(substrate, modifier)
 
 
+@tc.typecheck
 def _translocation_state_from_string(state_string) -> sta.TranslocationState:
     # @todo Implement this.
     pass

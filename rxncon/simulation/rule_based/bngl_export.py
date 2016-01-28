@@ -23,7 +23,7 @@ class BNGLSystem:
         self.rule_based_model = rule_based_model
         self.settings = settings
 
-    def to_string(self):
+    def to_string(self) -> str:
         bngl_system_strs = [self._header_string(),
                             self._parameters_string(),
                             self._molecule_types_string(),
@@ -35,30 +35,30 @@ class BNGLSystem:
 
         return '\n'.join(bngl_system_strs)
 
-    def _header_string(self):
+    def _header_string(self) -> str:
         return 'begin model'
 
-    def _molecule_types_string(self):
+    def _molecule_types_string(self) -> str:
         molecule_types = [string_from_molecule_definition(molecule_definition) for molecule_definition in self.rule_based_model.molecule_defs]
         return 'begin molecule types\n{0}\nend molecule types\n'.format('\n'.join(molecule_types))
 
-    def _seed_species_string(self):
+    def _seed_species_string(self) -> str:
         seeded_species = [string_from_initial_condition(initial_condition) for initial_condition in self.rule_based_model.initial_conditions]
         return 'begin seed species\n{0}\nend seed species\n'.format('\n'.join(seeded_species))
 
-    def _parameters_string(self):
+    def _parameters_string(self) -> str:
         parameters = [string_from_parameter(parameter) for parameter in self.rule_based_model.parameters]
         return 'begin parameters\n{0}\nend parameters\n'.format('\n'.join(parameters))
 
-    def _observables_string(self):
+    def _observables_string(self) -> str:
         # @todo Add this.
         return ''
 
-    def _reaction_rules_string(self):
+    def _reaction_rules_string(self) -> str:
         rules = [string_from_rule(rule) for rule in self.rule_based_model.rules]
         return 'begin reaction rules\n{0}\nend reaction rules\n'.format('\n'.join(rules))
 
-    def _footer_string(self):
+    def _footer_string(self) -> str:
         return 'end model\n\ngenerate_network(max_iter=>{0}, max_agg=>{1})\nsimulate({{method=>\"{2}\",t_end=>{3},n_steps=>{4}}})'\
             .format(self.settings.maximal_iteration,
                     self.settings.maximal_aggregate,
@@ -122,7 +122,7 @@ def string_from_association_specification(association_specification: rbm.Associa
         raise NotImplementedError('AssociationSpecification with domain occupied by known partner cannot be stringified outside complex.')
 
     else:
-        raise AssertionError
+        raise AssertionError('Unknown occupation status for association spec {0}'.format(association_specification))
 
 
 # LOCALIZATION DEF / SPEC
@@ -182,16 +182,16 @@ def string_from_complex_reactant(complex_reactant: rbm.ComplexReactant) -> str:
     return '.'.join(complex_strings)
 
 
-def string_from_rule(rule: rbm.Rule):
+def string_from_rule(rule: rbm.Rule) -> str:
     left_hand_side = [string_from_reactant(reactant) for reactant in rule.left_hand_side]
     right_hand_side = [string_from_reactant(reactant) for reactant in rule.right_hand_side]
     kinetic_parameters = [parameter.name for parameter in rule.rates]
     return '{0} {1} {2} {3}'.format(' + '.join(left_hand_side), rule.arrow_type.value, ' + '.join(right_hand_side), ','.join(kinetic_parameters))
 
 
-def string_from_parameter(parameter: rbm.Parameter):
+def string_from_parameter(parameter: rbm.Parameter) -> str:
     return '{0} {1}'.format(parameter.name, parameter.value)
 
 
-def string_from_initial_condition(initial_condition: rbm.InitialCondition):
+def string_from_initial_condition(initial_condition: rbm.InitialCondition) -> str:
     return '{0} {1}'.format(string_from_molecule_specification(initial_condition.molecule_specification), initial_condition.value)

@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from enum import Enum, unique
+import typecheck as tc
 
 import rxncon.core.component as com
 import rxncon.syntax.string_from_rxncon as sfr
@@ -19,28 +20,16 @@ class State:
     def __repr__(self):
         return str(self)
 
-    @abstractmethod
-    def is_subset_of(self, other: 'State') -> bool:
-        pass
-
-    @abstractmethod
-    def is_superset_of(self, other: 'State') -> bool:
-        pass
-
 
 class CovalentModificationState(State):
+    @tc.typecheck
     def __init__(self, substrate: com.Component, modifier: StateModifier):
         self.substrate = substrate
         self.modifier = modifier
 
+    @tc.typecheck
     def __eq__(self, other: State) -> bool:
-        assert isinstance(other, State)
-
-        if isinstance(other, CovalentModificationState):
-            return self.substrate == other.substrate and self.modifier == other.modifier
-
-        else:
-            return False
+        return isinstance(other, CovalentModificationState) and self.substrate == other.substrate and self.modifier == other.modifier
 
     def __hash__(self):
         return hash('*cov-mod-state-{}-{}*'.format(self.substrate, self.modifier))
@@ -49,20 +38,16 @@ class CovalentModificationState(State):
         return sfr.string_from_covalent_modification_state(self)
 
 
-# @todo rename to InterProteinInteractionState, create new IntraProteinInteractionState
 class InterProteinInteractionState(State):
+    @tc.typecheck
     def __init__(self, first_component: com.Component, second_component: com.Component):
         self.first_component = first_component
         self.second_component = second_component
 
+    @tc.typecheck
     def __eq__(self, other: State) -> bool:
-        assert isinstance(other, State)
-
-        if isinstance(other, InterProteinInteractionState):
-            return self.first_component == other.first_component and self.second_component == other.second_component
-
-        else:
-            return False
+        return isinstance(other, InterProteinInteractionState) and self.first_component == other.first_component and \
+            self.second_component == other.second_component
 
     def __hash__(self):
         return hash('*ppi-state-{}-{}*'.format(self.first_component, self.second_component))
@@ -72,19 +57,16 @@ class InterProteinInteractionState(State):
 
 
 class IntraProteinInteractionState(State):
+    @tc.typecheck
     def __init__(self, first_component: com.Component, second_component: com.Component):
         assert first_component.name == second_component.name
         self.first_component = first_component
         self.second_component = second_component
 
+    @tc.typecheck
     def __eq__(self, other: State) -> bool:
-        assert isinstance(other, State)
-
-        if isinstance(other, IntraProteinInteractionState):
-            return self.first_component == other.first_component and self.second_component == other.second_component
-
-        else:
-            return False
+        return isinstance(other, IntraProteinInteractionState) and self.first_component == other.first_component and \
+            self.second_component == other.second_component
 
     def __hash__(self):
         return hash('*ipi-state-{}-{}*'.format(self.first_component, self.second_component))
@@ -94,17 +76,13 @@ class IntraProteinInteractionState(State):
 
 
 class SynthesisDegradationState(State):
+    @tc.typecheck
     def __init__(self, component: com.Component):
         self.component = component
 
+    @tc.typecheck
     def __eq__(self, other: State) -> bool:
-        assert isinstance(other, State)
-
-        if isinstance(other, SynthesisDegradationState):
-            return self.component == other.component
-
-        else:
-            return False
+        return isinstance(other, SynthesisDegradationState) and self.component == other.component
 
     def __hash__(self):
         return hash('*synth-deg-state-{}*'.format(self.component))
@@ -114,18 +92,15 @@ class SynthesisDegradationState(State):
 
 
 class TranslocationState(State):
+    @tc.typecheck
     def __init__(self, substrate: com.Component, compartment: StateModifier):
         self.substrate = substrate
         self.compartment = compartment
 
+    @tc.typecheck
     def __eq__(self, other: State) -> bool:
-        assert isinstance(other, State)
-
-        if isinstance(other, TranslocationState):
-            return self.substrate == other.substrate and self.compartment == other.compartment
-
-        else:
-            return False
+        return isinstance(other, TranslocationState) and self.substrate == other.substrate and \
+            self.compartment == other.compartment
 
     def __hash__(self):
         return hash('*transloc-state-{}-{}*'.format(self.substrate, self.compartment))
@@ -135,6 +110,7 @@ class TranslocationState(State):
 
 
 class InputState(State):
+    @tc.typecheck
     def __init__(self, name: str):
         self.name = name
 
