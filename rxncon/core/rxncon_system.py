@@ -1,10 +1,12 @@
 from typing import List
+import typecheck as tc
 
 import rxncon.core.contingency as con
 import rxncon.core.reaction as rxn
 
 
 class RxnConSystem:
+    @tc.typecheck
     def __init__(self, reactions: List[rxn.Reaction], contingencies: List[con.Contingency]):
         self.reactions = reactions
         self.implicit_reactions = []  # type: List[rxn.Reaction]

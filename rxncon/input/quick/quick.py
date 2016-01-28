@@ -1,4 +1,5 @@
 from typing import List
+import typecheck as tc
 
 import rxncon.input.rxncon_input as inp
 import rxncon.core.rxncon_system as rxs
@@ -7,9 +8,9 @@ import rxncon.syntax.rxncon_from_string as fst
 
 
 class Quick(inp.RxnConInput):
+    @tc.typecheck
     def __init__(self, rxncon_string: str):
-        assert isinstance(rxncon_string, str)
-        self.quick_input = rxncon_string.split("\n")  # seperating the input into lines
+        self.quick_input = rxncon_string.split("\n")
         self._reactions = []                    # type: List[rxn.Reaction]
         self._contingencies = []                # type: List[con.Contingency]
         self._contingency_list_entries = []     # type: List[cli.ContingencyListEntry]
@@ -24,27 +25,16 @@ class Quick(inp.RxnConInput):
         return self._rxncon_system
 
     def _parse_str(self):
-        # @basti You can leave out the docstrings for now. Furthermore in this case it's rather obvious what this function does :)
-        """
-        parsing the input
-        :return:
-        """
-        assert isinstance(self.quick_input, list)
         for line in self.quick_input:
-            full_reaction_str = line.split(";")[0].strip()
-            contingencies = line.split(";")[1:]
-            if full_reaction_str:  # as long as we have a full_reaction != ""
-                # @basti For simple methods with no optional arguments, preferably don't use the 'named_argument=xxx' syntax,
-                #        just do 'self._add_reactions(full_reaction_str)
-                if full_reaction_str[0] != "<":
-                    # @basti To be pedantic, I would parse the reaction string here, and change the _add_reaction function
-                    #        to one that accepts a 'Reaction' object. That way both this function and that really do what their
-                    #        name suggests.
-                    self._add_reactions(full_reaction_str=full_reaction_str)
-                self._add_contingencies(contingencies=contingencies, full_reaction_str=full_reaction_str)
+            reaction_string = line.split(";")[0].strip()
+            contingency_strings = line.split(";")[1:]
+            if reaction_string:
+                if reaction_string[0] != "<":
+                    self._add_reaction_from_string(reaction_string)
+                self._add_contingency_list_entries(contingency_strings, reaction_string)
 
-    # @basti This should be called 'add_reaction' (singular)?
-    def _add_reactions(self, full_reaction_str: str):
+    @tc.typecheck
+    def _add_reaction_from_string(self, full_reaction_str: str):
         """
         converting a full_reaction_str into reaction object
         :param full_reaction_str: str
@@ -54,33 +44,17 @@ class Quick(inp.RxnConInput):
         reaction = fst.reaction_from_string(full_reaction_str)
         self._reactions.append(reaction)
 
-    # @basti Leave out the :param part of the docstrings. It's covered by having type annotations in the function header.
-    def _add_contingencies(self, contingencies: List[str], full_reaction_str: str):
-        """
-        itterating over the lists of contingencies and converting them into contingenccy objects
-        :param contingencies: List[str]
-        :param full_reaction_str:  str
-        :return: None
-        """
-        assert isinstance(contingencies, list)
-        for cont in contingencies:
+    @tc.typecheck
+    def _add_contingency_list_entries(self, contingency_strings: List[str], reaction_string: str):
+        for cont in contingency_strings:
             cont = cont.strip()
             cont_type = cont.split()[0]
             modifier = cont.split()[-1]
-            entry = cli.contingency_list_entry_from_subject_predicate_agent_strings(
-                full_reaction_str, cont_type, modifier)
+            entry = cli.contingency_list_entry_from_subject_predicate_agent_strings(reaction_string, cont_type, modifier)
             self._contingency_list_entries.append(entry)
 
     def _construct_contingencies(self):
         self._contingencies = cli.contingencies_from_contingency_list_entries(self._contingency_list_entries)
 
     def _construct_rxncon_system(self):
-        pass
-
-# @basti This should go: I guess it's just for trying out stuff?
-if __name__ == "__main__":
-    quick = Quick("""A_ppi_B; ! <bool>
-                    <bool>; AND A--C
-                    <bool>; AND A--D
-                    <bool>; AND B--E
-                  """)
+        self._rxncon_system = rxs.RxnConSystem(self._reactions, self._contingencies)

@@ -1,4 +1,5 @@
 from enum import Enum, unique
+import typecheck as tc
 
 import rxncon.core.effector as eff
 import rxncon.core.reaction as rxn
@@ -16,13 +17,14 @@ class ContingencyType(Enum):
 
 
 class Contingency:
+    @tc.typecheck
     def __init__(self, target: rxn.Reaction, type: ContingencyType, effector: eff.Effector):
         self.target = target
         self.type = type
         self.effector = effector
 
+    @tc.typecheck
     def __eq__(self, other: 'Contingency') -> bool:
-        assert isinstance(other, Contingency)
         return self.target == other.target and self.type == other.type and self.effector == other.effector
 
     def __str__(self) -> str:

@@ -1,6 +1,16 @@
+import pytest
+import typecheck as tc
+
+import rxncon.core.component as com
 import rxncon.syntax.rxncon_from_string as cfs
 
 
+def test_component_without_name_raises():
+    with pytest.raises(tc.InputParameterError):
+        component = com.Component(None, None, None, None)
+
+
+### SPECIFICATION, SUBSPECIFICATION TESTS ###
 # All of these components describe the same protein at different specification resolutions.
 no_domain = cfs.component_from_string('A')
 domain = cfs.component_from_string('A_[b]')

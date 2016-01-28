@@ -1,37 +1,62 @@
 import rxncon.input.quick.quick as qui
+import rxncon.syntax.rxncon_from_string as rfs
+import rxncon.core.contingency as con
+import rxncon.core.effector as eff
 
-# @basti I kind of like the PEP8 guidelines for code formatting, this states you should have 2 line breaks between
-#        function definitions and betwee class definitions etc. You can turn PEP8 checking in Pycharm.
 
 def test_quick_single_reaction():
     quick = qui.Quick("A_ppi_B")
 
     assert isinstance(quick, qui.Quick)
-    assert len(quick._reactions) == 1
-    assert len(quick._contingencies) == 0
-    # @basti You should check that it's also the right reaction that gets created. Also in the other tests.
 
-def test_quick_single_reaction_simple_cont():
-    # @basti 'cont' -> 'contingency'. It's the name of a test, should be as descriptive as possible.
-    #        also check whether it's the correct contingency that gets created.
+    assert len(quick.rxncon_system.reactions) == 1
+    assert len(quick.rxncon_system.contingencies) == 0
+
+    assert quick.rxncon_system.reactions[0] == rfs.reaction_from_string('A_ppi_B')
+
+
+def test_quick_single_reaction_simple_contingency():
     quick = qui.Quick("A_ppi_B; ! A--C")
-    assert isinstance(quick, qui.Quick)
-    assert len(quick._reactions) == 1
-    assert len(quick._contingencies) == 1
 
-def test_quick_single_reaction_simple_bool():
-    # @basti check whether the contingency is the one you want. Also 'bool' -> 'boolean_contingency'
+    assert isinstance(quick, qui.Quick)
+
+    assert len(quick.rxncon_system.reactions) == 1
+    assert len(quick.rxncon_system.contingencies) == 1
+
+    assert quick.rxncon_system.reactions[0] == rfs.reaction_from_string('A_ppi_B')
+    assert quick.rxncon_system.contingencies[0] == con.Contingency(
+            rfs.reaction_from_string('A_ppi_B'),
+            con.ContingencyType.requirement,
+            eff.StateEffector(rfs.state_from_string('A--C'))
+    )
+
+
+def test_quick_single_reaction_simple_boolean_contingency():
     quick = qui.Quick("""A_ppi_B; ! <bool>
                         <bool>; AND A--C
                         <bool>; AND A--D
                         <bool>; AND B--C""")
+
     assert isinstance(quick, qui.Quick)
-    assert len(quick._reactions) == 1
-    assert len(quick._contingencies) == 1
+
+    assert len(quick.rxncon_system.reactions) == 1
+    assert len(quick.rxncon_system.contingencies) == 1
+
+    expected_effector = eff.AndEffector(eff.AndEffector(eff.StateEffector(rfs.state_from_string('A--C')),
+                                                        eff.StateEffector(rfs.state_from_string('A--D'))),
+                                        eff.StateEffector(rfs.state_from_string('B--C')))
+
+    expected_effector.name = '<bool>'
+
+    assert quick.rxncon_system.contingencies[0] == con.Contingency(
+        rfs.reaction_from_string('A_ppi_B'),
+        con.ContingencyType.requirement,
+        expected_effector
+    )
+
 
 def test_quick_multiple_reactions_contingencies():
-    # @basti idem
-    quick = qui.Quick("""A_ppi_B; ! A--C
+    quick = qui.Quick("""A_ppi_B; ! A_[n]--[m]
                          B_p+_C; ! <bool>
                          <bool>; OR B--D
                          <bool>; OR <bool1>
@@ -40,10 +65,27 @@ def test_quick_multiple_reactions_contingencies():
                         """)
 
     assert isinstance(quick, qui.Quick)
-    assert len(quick._reactions) == 2
-    assert len(quick._contingencies) == 2
 
-def test():
-    # @basti This is probably not finished :) I'll try to fix this parsing error.
-    quick = qui.Quick("A_ppi_B; ! A_[n]--[m]")
-    pass
+    assert len(quick.rxncon_system.reactions) == 2
+    assert len(quick.rxncon_system.contingencies) == 2
+
+    bool1_effector = eff.AndEffector(eff.StateEffector(rfs.state_from_string('B--E')),
+                                     eff.StateEffector(rfs.state_from_string('B--F')))
+    bool1_effector.name = '<bool1>'
+
+    bool_effector = eff.OrEffector(eff.StateEffector(rfs.state_from_string('B--D')), bool1_effector)
+    bool_effector.name = '<bool>'
+
+    assert con.Contingency(
+        rfs.reaction_from_string('A_ppi_B'),
+        con.ContingencyType.requirement,
+        eff.StateEffector(rfs.state_from_string('A_[n]--[m]'))
+    ) in quick.rxncon_system.contingencies
+
+    assert con.Contingency(
+        rfs.reaction_from_string('B_p+_C'),
+        con.ContingencyType.requirement,
+        bool_effector
+    ) in quick.rxncon_system.contingencies
+
+

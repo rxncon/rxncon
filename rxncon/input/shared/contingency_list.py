@@ -1,7 +1,8 @@
 import re
 from enum import Enum
 from functools import reduce
-from typing import Dict, List
+from typing import Dict, List, Union
+import typecheck as tc
 
 import rxncon.core.contingency as con
 import rxncon.core.effector as eff
@@ -18,26 +19,6 @@ class BooleanOperator(Enum):
     op_not = 'not'
 
 
-class ContingencyListEntry:
-    # @todo Names subject, predicate, agent need to be standardized. Maybe validate.
-    def __init__(self, subject, predicate, agent):
-        self.subject = subject
-        self.predicate = predicate
-        self.agent = agent
-
-    def __eq__(self, other: 'ContingencyListEntry') -> bool:
-        assert isinstance(other, ContingencyListEntry)
-        return self.subject == other.subject and self.predicate == other.predicate and self.agent == other.agent
-
-    @property
-    def is_boolean_entry(self) -> bool:
-        return isinstance(self.subject, BooleanContingencyName)
-
-    @property
-    def is_reaction_entry(self) -> bool:
-        return isinstance(self.subject, rxn.Reaction)
-
-
 class BooleanContingencyName:
     def __init__(self, name: str):
         assert re.match(BOOLEAN_CONTINGENCY_REGEX, name)
@@ -49,6 +30,28 @@ class BooleanContingencyName:
 
     def __hash__(self) -> int:
         return hash(self.name)
+
+
+class ContingencyListEntry:
+    @tc.typecheck
+    def __init__(self, subject: Union[rxn.Reaction, BooleanContingencyName],
+                 predicate: Union[BooleanOperator, con.ContingencyType],
+                 agent: Union[sta.State, BooleanContingencyName]):
+        self.subject = subject
+        self.predicate = predicate
+        self.agent = agent
+
+    @tc.typecheck
+    def __eq__(self, other: 'ContingencyListEntry') -> bool:
+        return self.subject == other.subject and self.predicate == other.predicate and self.agent == other.agent
+
+    @property
+    def is_boolean_entry(self) -> bool:
+        return isinstance(self.subject, BooleanContingencyName)
+
+    @property
+    def is_reaction_entry(self) -> bool:
+        return isinstance(self.subject, rxn.Reaction)
 
 
 def contingency_list_entry_from_subject_predicate_agent_strings(subject_string, predicate_string, agent_string) -> ContingencyListEntry:
@@ -72,6 +75,7 @@ def contingency_list_entry_from_subject_predicate_agent_strings(subject_string, 
     return ContingencyListEntry(subject, predicate, agent)
 
 
+@tc.typecheck
 def contingencies_from_contingency_list_entries(entries: List[ContingencyListEntry]) -> List[con.Contingency]:
     # @todo Explain this algorithm (the monkey patching etc.).
     contingencies = []
@@ -151,6 +155,7 @@ def _contains_boolean_contingency_effectors(self: eff.Effector) -> bool:
         raise AssertionError
 
 
+@tc.typecheck
 def _create_boolean_contingency_lookup_table(boolean_contingencies: List[ContingencyListEntry]) -> Dict[BooleanContingencyName, eff.Effector]:
     lookup_table = {}
 
@@ -189,6 +194,7 @@ def _create_boolean_contingency_lookup_table(boolean_contingencies: List[Conting
     return lookup_table
 
 
+@tc.typecheck
 def _unary_effector_from_boolean_contingency_entry(entry: ContingencyListEntry) -> eff.Effector:
     if isinstance(entry.agent, sta.State):
         return eff.StateEffector(entry.agent)
