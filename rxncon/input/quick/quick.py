@@ -35,12 +35,6 @@ class Quick(inp.RxnConInput):
 
     @tc.typecheck
     def _add_reaction_from_string(self, full_reaction_str: str):
-        """
-        converting a full_reaction_str into reaction object
-        :param full_reaction_str: str
-        :return: None
-        """
-        assert isinstance(full_reaction_str, str)
         reaction = fst.reaction_from_string(full_reaction_str)
         self._reactions.append(reaction)
 
