@@ -4,7 +4,8 @@ from collections import defaultdict
 import typecheck as tc
 
 
-TRIVIAL_SYMBOL = '1'
+TRIVIAL_MUL_SYMBOL = '1'
+TRIVIAL_ADD_SYMBOL = '0'
 
 
 class Symbol:
@@ -23,12 +24,20 @@ class Symbol:
         return '*symb*{0}'.format(self.name)
 
     @property
-    def is_trivial(self):
-        return self.name == TRIVIAL_SYMBOL
+    def is_trivial_mul(self):
+        return self.name == TRIVIAL_MUL_SYMBOL
+
+    @property
+    def is_trivial_add(self):
+        return self.name == TRIVIAL_ADD_SYMBOL
 
 
-def TrivialSymbol():
-    return Symbol(TRIVIAL_SYMBOL)
+def TrivialMulSymbol():
+    return Symbol(TRIVIAL_MUL_SYMBOL)
+
+
+def TrivialAddSymbol():
+    return Symbol(TRIVIAL_ADD_SYMBOL)
 
 
 class Monomial:
@@ -60,7 +69,7 @@ class Monomial:
                 new_factors.append(MonomialFactor(sym, power))
 
         if not new_factors:
-            return Monomial({MonomialFactor(TrivialSymbol(), 0)})
+            return Monomial({MonomialFactor(TrivialMulSymbol(), 0)})
 
         return Monomial(set(new_factors))
 
@@ -88,10 +97,10 @@ class MonomialFactor:
             return '{0}^{1}'.format(self.symbol, self.power)
 
     def _validate(self):
-        if self.power == 0 and not self.symbol.is_trivial:
+        if self.power == 0 and not self.symbol.is_trivial_mul:
             raise ValueError('Only TrivialSymbol may be raised to the zero-th power.')
 
-        elif self.symbol.is_trivial and not self.power == 0:
+        elif self.symbol.is_trivial_mul and not self.power == 0:
             raise ValueError('TrivialSymbol may only be raised to the zero-th power.')
 
 
