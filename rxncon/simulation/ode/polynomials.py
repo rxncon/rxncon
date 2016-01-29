@@ -121,11 +121,29 @@ class Polynomial:
         self._validate()
 
     @tc.typecheck
-    def __eq__(self, other: 'Polynomial'):
+    def __add__(self, other: 'Polynomial') -> 'Polynomial':
+        new_monomial_to_factor = defaultdict(lambda: 0.0)
+
+        for term in self.terms:
+            new_monomial_to_factor[term.monomial] = term.factor
+
+        for term in other.terms:
+            new_monomial_to_factor[term.monomial] += term.factor
+
+        new_terms = []
+
+        for new_mon, new_fac in new_monomial_to_factor.items():
+            if not isclose(new_fac, 0.0):
+                new_terms.append(PolynomialTerm(new_mon, new_fac))
+
+        return Polynomial(set(new_terms))
+
+    @tc.typecheck
+    def __eq__(self, other: 'Polynomial') -> bool:
         return self.terms == other.terms
 
     @tc.typecheck
-    def __mul__(self, other: 'Polynomial'):
+    def __mul__(self, other: 'Polynomial') -> 'Polynomial':
         this_monomial_to_factor = {term.monomial: term.factor for term in self.terms}
         that_monomial_to_factor = {term.monomial: term.factor for term in other.terms}
 
@@ -150,6 +168,7 @@ class Polynomial:
         for term in self.terms:
             if isclose(term.factor, 0.0):
                 raise ValueError('Polynomial {0} has zero term.'.format(str(self)))
+
 
 class PolynomialTerm:
     def __init__(self, monomial: Monomial, factor: float):
