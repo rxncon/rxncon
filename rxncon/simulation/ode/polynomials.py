@@ -79,6 +79,11 @@ class Monomial:
     def __str__(self) -> str:
         return ''.join(str(fac) for fac in self.factors)
 
+    @property
+    def symbols(self) -> Set[Symbol]:
+        return {x.symbol for x in self.factors}
+
+
 class MonomialFactor:
     @tc.typecheck
     def __init__(self, symbol: Symbol, power: int):
@@ -164,6 +169,14 @@ class Polynomial:
     def __str__(self) -> str:
         return ' + '.join(str(term) for term in self.terms)
 
+    @property
+    def symbols(self):
+        syms = []
+        for term in self.terms:
+            syms += list(term.symbols)
+
+        return set(syms)
+
     def _validate(self):
         for term in self.terms:
             if isclose(term.factor, 0.0):
@@ -183,6 +196,10 @@ class PolynomialTerm:
 
     def __str__(self) -> str:
         return '{0} * {1}'.format(str(self.factor), str(self.monomial))
+
+    @property
+    def symbols(self):
+        return self.monomial.symbols
 
 
 
