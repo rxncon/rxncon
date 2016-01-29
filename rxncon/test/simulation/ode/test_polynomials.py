@@ -41,13 +41,23 @@ def test_monomial_multiplication_to_trivial():
 
 
 ### POLYNOMIAL ALGEBRA ###
-def test_polynomial_multiplication(x_plus_y, x_minus_y, x_sq_minus_y_sq, x_sq_plus_2xy_plus_y_sq):
-    # (x + y)(x - y) == (x^2 - y^2)
+def test_polynomial_multiplication(x_plus_y, x_minus_y, x_sq_minus_y_sq, x_sq_plus_two_xy_plus_y_sq):
     assert x_plus_y * x_minus_y == x_sq_minus_y_sq
+    assert x_plus_y * x_plus_y == x_sq_plus_two_xy_plus_y_sq
 
-    # (x + y)(x + y) == (x^2 + 2xy + y^2)
-    assert x_plus_y * x_plus_y == x_sq_plus_2xy_plus_y_sq
 
+def test_polynomial_addition(x_plus_y, x_minus_y, two_x, two_x_plus_two_y, two_x_minus_two_y):
+    assert x_plus_y + x_plus_y == two_x_plus_two_y
+    assert x_plus_y + x_minus_y == two_x
+    assert x_minus_y + x_minus_y == two_x_minus_two_y
+
+
+@pytest.fixture
+def two_x():
+    x = pol.Symbol('x')
+    term_two_x = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1)}), 2.0)
+
+    return pol.Polynomial({term_two_x})
 
 @pytest.fixture
 def x_plus_y():
@@ -57,6 +67,24 @@ def x_plus_y():
     term_y = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(y, 1)}), 1.0)
 
     return pol.Polynomial({term_x, term_y})
+
+@pytest.fixture
+def two_x_plus_two_y():
+    x = pol.Symbol('x')
+    y = pol.Symbol('y')
+    term_two_x = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1)}), 2.0)
+    term_two_y = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(y, 1)}), 2.0)
+
+    return pol.Polynomial({term_two_x, term_two_y})
+
+@pytest.fixture
+def two_x_minus_two_y():
+    x = pol.Symbol('x')
+    y = pol.Symbol('y')
+    term_two_x = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1)}), 2.0)
+    term_minus_two_y = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(y, 1)}), -2.0)
+
+    return pol.Polynomial({term_two_x, term_minus_two_y})
 
 @pytest.fixture
 def x_minus_y():
@@ -77,7 +105,7 @@ def x_sq_minus_y_sq():
     return pol.Polynomial({term_x_sq, term_minus_y_sq})
 
 @pytest.fixture
-def x_sq_plus_2xy_plus_y_sq():
+def x_sq_plus_two_xy_plus_y_sq():
     x = pol.Symbol('x')
     y = pol.Symbol('y')
     term_2xy = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1), pol.MonomialFactor(y, 1)}), 2.0)
