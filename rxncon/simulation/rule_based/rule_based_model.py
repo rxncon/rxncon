@@ -45,8 +45,6 @@ class MoleculeDefinition:
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def __repr__(self) -> str:
-        return str(self)
 
     def __str__(self) -> str:
         return 'MoleculeDefinition: {0}'.format(self.name)
@@ -72,6 +70,9 @@ class MoleculeSpecification:
     def __hash__(self) -> int:
         return hash(str(self))
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(self) -> str:
         return 'MoleculeSpecification: {0}, mod_specs = {1}. ass_specs = {2}. loc_spec = {3}'\
             .format(self.molecule_def.name, ', '.join([str(x) for x in self.modification_specs]),
@@ -91,6 +92,9 @@ class ModificationDefinition:
 
     def __hash__(self) -> int:
         return hash(str(self))
+
+    def __repr__(self):
+        return str(self)
 
     def __str__(self) -> str:
         return 'ModificationDefinition: Domain = {0}, Modifiers = {1}'\
@@ -116,6 +120,9 @@ class ModificationSpecification:
 
     def __hash__(self) -> bool:
         return hash(str(self))
+
+    def __repr__(self):
+        return str(self)
 
     def __str__(self) -> str:
         return 'ModificationSpecification: Domain = {0}, Modifier = {1}'\
@@ -159,6 +166,7 @@ class AssociationSpecification:
     def __hash__(self) -> int:
         return hash(str(self))
 
+
     def __str__(self) -> str:
         return 'AssociationSpecification: Domain = {0}, occupation_status = {1}'\
             .format(self.association_def.domain, self.occupation_status)
@@ -184,6 +192,7 @@ class LocalizationDefinition:
     def __hash__(self) -> int:
         return hash(str(self))
 
+
     def __str__(self) -> str:
         return 'LocalizationDefinition: {0}'.format(', '.join(self.valid_compartments))
 
@@ -201,6 +210,9 @@ class LocalizationSpecification:
 
     def __hash__(self) -> int:
         return hash(str(self))
+
+    def __repr__(self):
+        return str(self)
 
     def __str__(self) -> str:
         return 'LocalizationSpecification: {0}'.format(self.compartment)
@@ -227,6 +239,9 @@ class Rule:
 
     def __hash__(self) -> int:
         return hash(str(self))
+
+    def __repr__(self):
+        return str(self)
 
     def __str__(self) -> str:
         return 'Rule: {0} {1} {2}, {3}'.format('+'.join(str(x) for x in self.left_hand_side), self.arrow_type,
@@ -267,6 +282,9 @@ class MoleculeReactant(Reactant):
     def __eq__(self, other: 'Reactant') -> bool:
         return isinstance(other, MoleculeReactant) and self.molecule_specification == other.molecule_specification
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(self) -> str:
         return 'MoleculeReactant: [{0}]'.format(self.molecule_specification)
 
@@ -281,6 +299,9 @@ class ComplexReactant(Reactant):
     @tc.typecheck
     def __eq__(self, other: 'Reactant'):
         return isinstance(other, ComplexReactant) and self.molecules == other.molecules and self.bindings == other.bindings
+
+    def __repr__(self):
+        return str(self)
 
     def __str__(self) -> str:
         return 'ComplexReactant: Molecules = [{0}], Bindings = [{1}]'\
@@ -303,6 +324,9 @@ class Binding:
     @tc.typecheck
     def __eq__(self, other: 'Binding'):
         return self.left_partner == other.left_partner and self.right_partner == other.right_partner
+
+    def __repr__(self):
+        return str(self)
 
     def __str__(self) -> str:
         return 'Binding: L_molecule_index = {0}, L_domain = {1}, R_molecule_index = {2}, R_domain = {3}'\
@@ -333,6 +357,9 @@ class Parameter:
         assert isinstance(other, Parameter)
         return self.name == other.name and self.value == other.value
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(self) -> bool:
         return 'Parameter: {0} = {1}'.format(self.name, self.value)
 
@@ -345,6 +372,9 @@ class InitialCondition:
     def __eq__(self, other):
         assert isinstance(other, InitialCondition)
         return self.molecule_specification == other.molecule_specification and self.value == other.value
+
+    def __repr__(self):
+        return str(self)
 
     def __str__(self):
         return 'InitialCondition: {0} = {1}'.format(self.molecule_specification, self.value)
