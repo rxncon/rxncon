@@ -30,7 +30,7 @@ def test_string_from_association_specification():
     assert bex.string_from_association_specification(rbm.AssociationSpecification(ass_def, rbm.OccupationStatus.occupied_unknown_partner)) == \
         'AssociationDomain!+'
 
-    assert bex.string_from_association_specification(rbm.AssociationSpecification(ass_def, rbm.OccupationStatus.not_unoccupied)) == \
+    assert bex.string_from_association_specification(rbm.AssociationSpecification(ass_def, rbm.OccupationStatus.not_occupied)) == \
         'AssociationDomain'
 
     assert bex.string_from_association_specification(rbm.AssociationSpecification(ass_def, rbm.OccupationStatus.not_specified)) == \
@@ -137,7 +137,7 @@ def simple_molecule_spec():
 
     ass_defs  = [rbm.AssociationDefinition('AssociationDomain1'),
                  rbm.AssociationDefinition('AssociationDomain2')]
-    ass_specs = [rbm.AssociationSpecification(ass_defs[0], rbm.OccupationStatus.not_unoccupied)]
+    ass_specs = [rbm.AssociationSpecification(ass_defs[0], rbm.OccupationStatus.not_occupied)]
 
     loc_def   = rbm.LocalizationDefinition(['Cytosole', 'Nucleus'])
     loc_spec  = rbm.LocalizationSpecification(loc_def, 'Cytosole')
@@ -156,9 +156,9 @@ def simple_rule_based_model():
     mol_def_a = rbm.MoleculeDefinition('A', [], [assoc_def_a], None)
     mol_def_b = rbm.MoleculeDefinition('B', [], [assoc_def_b], None)
 
-    mol_spec_a_unbound = rbm.MoleculeSpecification(mol_def_a, [], [rbm.AssociationSpecification(assoc_def_a, rbm.OccupationStatus.not_unoccupied)],
+    mol_spec_a_unbound = rbm.MoleculeSpecification(mol_def_a, [], [rbm.AssociationSpecification(assoc_def_a, rbm.OccupationStatus.not_occupied)],
                                                    None)
-    mol_spec_b_unbound = rbm.MoleculeSpecification(mol_def_b, [], [rbm.AssociationSpecification(assoc_def_b, rbm.OccupationStatus.not_unoccupied)],
+    mol_spec_b_unbound = rbm.MoleculeSpecification(mol_def_b, [], [rbm.AssociationSpecification(assoc_def_b, rbm.OccupationStatus.not_occupied)],
                                                    None)
 
     mol_spec_a_bound = rbm.MoleculeSpecification(mol_def_a, [], [rbm.AssociationSpecification(assoc_def_a, rbm.OccupationStatus.occupied_known_partner)],

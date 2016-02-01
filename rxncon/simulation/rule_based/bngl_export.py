@@ -115,7 +115,7 @@ def string_from_association_specification(association_specification: rbm.Associa
     elif association_specification.occupation_status == rbm.OccupationStatus.occupied_unknown_partner:
         return association_specification.association_def.domain + '!+'
 
-    elif association_specification.occupation_status == rbm.OccupationStatus.not_unoccupied:
+    elif association_specification.occupation_status == rbm.OccupationStatus.not_occupied:
         return association_specification.association_def.domain
 
     elif association_specification.occupation_status == rbm.OccupationStatus.occupied_known_partner:

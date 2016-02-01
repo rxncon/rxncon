@@ -93,7 +93,7 @@ class SynthesisDegradationState(State):
 
 class TranslocationState(State):
     @tc.typecheck
-    def __init__(self, substrate: com.Component, compartment: StateModifier):
+    def __init__(self, substrate: com.Component, compartment: str):
         self.substrate = substrate
         self.compartment = compartment
 

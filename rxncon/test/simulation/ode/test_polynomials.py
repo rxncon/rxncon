@@ -73,12 +73,14 @@ def test_polynomial_symbols(two_x, x_sq_minus_y_sq):
     assert x_sq_minus_y_sq.symbols == {x, y}
 
 
+### TEST FIXTURES ###
 @pytest.fixture
 def two_x():
     x = pol.Symbol('x')
     term_two_x = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1)}), 2.0)
 
     return pol.Polynomial({term_two_x})
+
 
 @pytest.fixture
 def x_plus_y():
@@ -89,6 +91,7 @@ def x_plus_y():
 
     return pol.Polynomial({term_x, term_y})
 
+
 @pytest.fixture
 def two_x_plus_two_y():
     x = pol.Symbol('x')
@@ -97,6 +100,7 @@ def two_x_plus_two_y():
     term_two_y = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(y, 1)}), 2.0)
 
     return pol.Polynomial({term_two_x, term_two_y})
+
 
 @pytest.fixture
 def two_x_minus_two_y():
@@ -107,6 +111,7 @@ def two_x_minus_two_y():
 
     return pol.Polynomial({term_two_x, term_minus_two_y})
 
+
 @pytest.fixture
 def x_minus_y():
     x = pol.Symbol('x')
@@ -116,6 +121,7 @@ def x_minus_y():
 
     return pol.Polynomial({term_x, term_minus_y})
 
+
 @pytest.fixture
 def x_sq_minus_y_sq():
     x = pol.Symbol('x')
@@ -124,6 +130,7 @@ def x_sq_minus_y_sq():
     term_minus_y_sq = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(y, 2)}), -1.0)
 
     return pol.Polynomial({term_x_sq, term_minus_y_sq})
+
 
 @pytest.fixture
 def x_sq_plus_two_xy_plus_y_sq():
