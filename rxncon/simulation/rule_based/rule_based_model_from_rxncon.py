@@ -12,6 +12,7 @@ def rule_based_model_from_rxncon(rxnconsys: rxs.RxnConSystem) -> rbm.RuleBasedMo
     mol_defs = molecule_defs_from_rxncon(rxnconsys)
 
 
+
 @tc.typecheck
 def molecule_defs_from_rxncon(rxnconsys: rxs.RxnConSystem) -> List[rbm.MoleculeDefinition]:
     unmodified = 'u'

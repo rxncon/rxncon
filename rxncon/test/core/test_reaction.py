@@ -74,3 +74,18 @@ def test_states_from_reaction_cut():
     assert isinstance(states.product_state, sta.CovalentModificationState)
     assert str(states.product_state) == 'Msb2_[HMH/CD]-{truncated}'
 
+
+def test_states_from_reaction_pt():
+    reaction = fst.reaction_from_string('A_pt_B')
+    states = rxn.states_from_reaction(reaction)
+
+    assert states.source_state == fst.state_from_string('A-{p}')
+    assert states.product_state == fst.state_from_string('B-{p}')
+
+
+def test_states_from_reaction_synth():
+    reaction = fst.reaction_from_string('A_syn_B')
+    states = rxn.states_from_reaction(reaction)
+
+    assert not states.source_state
+    assert str(states.product_state) == 'B'

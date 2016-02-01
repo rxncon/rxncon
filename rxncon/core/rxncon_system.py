@@ -3,6 +3,7 @@ import typecheck as tc
 
 import rxncon.core.contingency as con
 import rxncon.core.reaction as rxn
+import rxncon.core.effector as eff
 
 
 class RxnConSystem:
@@ -13,7 +14,7 @@ class RxnConSystem:
         self.contingencies = contingencies
         self.implicit_contingencies = []  # type: List[con.Contingency]
 
-        self._generate_implicit_reactions_contingencies()
+        self._generate_implicit_contingencies()
         self._assert_consistency()
 
     @property
@@ -32,11 +33,30 @@ class RxnConSystem:
     def states(self):
         return list({state for state in self.source_states + self.product_states + self.effector_states})
 
-    def _generate_implicit_reactions_contingencies(self):
+    def _generate_implicit_contingencies(self):
         # generate reaction-contingency pairs implied by the explicitly passed reactions and contingencies.
         # e.g. if A_ppi_B requires A-{P}, and there exists a dephosphorylation reaction for A,
         # we add a negative A_ppi_B that has as its contingency NOT A-{P}.
-        pass
+        for reaction in self.reactions:
+            # @todo bidirectionality???
+            if reaction.influence == rxn.Influence.positive or reaction.influence == rxn.Influence.bidirectional:
+                self.implicit_contingencies.append(con.Contingency(reaction,
+                                                                   con.ContingencyType.inhibition,
+                                                                   eff.StateEffector(reaction.product)))
+            elif reaction.influence == rxn.Influence.negative:
+                self.implicit_contingencies.append(con.Contingency(reaction,
+                                                                   con.ContingencyType.requirement,
+                                                                   eff.StateEffector(reaction.source)))
+
+            elif reaction.influence == rxn.Influence.transfer:
+                self.implicit_contingencies.append(con.Contingency(reaction,
+                                                                   con.ContingencyType.requirement,
+                                                                   eff.StateEffector(reaction.source)))
+
+                self.implicit_contingencies.append(con.Contingency(reaction,
+                                                                   con.ContingencyType.inhibition,
+                                                                   eff.StateEffector(reaction.product)))
+
 
     def _assert_consistency(self):
         pass
