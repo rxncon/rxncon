@@ -55,8 +55,8 @@ def molecule_defs_from_rxncon(rxnconsys: rxs.RxnConSystem) -> List[rbm.MoleculeD
     mol_defs = []
 
     for name in names:
-        assoc_defs = name_to_assoc_defs[name] if name in name_to_assoc_defs else None
-        mod_defs = name_to_mod_defs if name in name_to_mod_defs else None
+        assoc_defs = list(name_to_assoc_defs[name]) if name in name_to_assoc_defs else None
+        mod_defs = list(name_to_mod_defs[name]) if name in name_to_mod_defs else None
         loc_def = rbm.LocalizationDefinition(list(name_to_valid_compartments[name])) if name in name_to_valid_compartments else None
 
         mol_defs.append(rbm.MoleculeDefinition(name, mod_defs, assoc_defs, loc_def))
