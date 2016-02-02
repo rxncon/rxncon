@@ -22,6 +22,13 @@ class Set:
     def to_boolean_function(self):
         return boolean_function_from_nested_list_form(self.to_nested_list_form())
 
+    def to_union_list_form(self) -> List['Set']:
+        union_terms = []
+        for term in self.to_nested_list_form():
+            union_terms.append(nested_expression_from_list_and_binary_op(term, Intersection))
+
+        return union_terms
+
     @property
     def cardinality(self):
         list_of_intersections = self.to_nested_list_form()

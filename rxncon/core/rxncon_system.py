@@ -12,9 +12,9 @@ class RxnConSystem:
         self.reactions = reactions
         self.implicit_reactions = []  # type: List[rxn.Reaction]
         self.contingencies = contingencies
-        self.implicit_contingencies = []  # type: List[con.Contingency]
+        self.source_contingencies = []  # type: List[con.Contingency]
 
-        self._generate_implicit_contingencies()
+        self._generate_source_contingencies()
         self._assert_consistency()
 
     @property
@@ -33,35 +33,38 @@ class RxnConSystem:
     def states(self):
         return list({state for state in self.source_states + self.product_states + self.effector_states})
 
-    def explicit_contingencies_for_reaction(self, reaction: rxn.Reaction) -> List[con.Contingency]:
-        return [x for x in self.contingencies if x.target == reaction]
+    def quantitative_contingencies_for_reaction(self, reaction: rxn.Reaction) -> List[con.Contingency]:
+        return [x for x in self.contingencies if x.target == reaction and x.type in [con.ContingencyType.positive, con.ContingencyType.negative]]
 
-    def implicit_contingencies_for_reaction(self, reaction: rxn.Reaction) -> List[con.Contingency]:
-        return [x for x in self.implicit_contingencies if x.target == reaction]
+    def strict_contingencies_for_reaction(self, reaction: rxn.Reaction) -> List[con.Contingency]:
+        return [x for x in self.contingencies if x.target == reaction and x.type in [con.ContingencyType.requirement, con.ContingencyType.inhibition]]
 
-    def _generate_implicit_contingencies(self):
+    def source_contingencies_for_reaction(self, reaction: rxn.Reaction) -> List[con.Contingency]:
+        return [x for x in self.source_contingencies if x.target == reaction]
+
+    def _generate_source_contingencies(self):
         # generate reaction-contingency pairs implied by the explicitly passed reactions and contingencies.
         # e.g. if A_ppi_B requires A-{P}, and there exists a dephosphorylation reaction for A,
         # we add a negative A_ppi_B that has as its contingency NOT A-{P}.
         for reaction in self.reactions:
             # @todo bidirectionality???
             if reaction.influence == rxn.Influence.positive or reaction.influence == rxn.Influence.bidirectional:
-                self.implicit_contingencies.append(con.Contingency(reaction,
-                                                                   con.ContingencyType.inhibition,
-                                                                   eff.StateEffector(reaction.product)))
+                self.source_contingencies.append(con.Contingency(reaction,
+                                                                 con.ContingencyType.inhibition,
+                                                                 eff.StateEffector(reaction.product)))
             elif reaction.influence == rxn.Influence.negative:
-                self.implicit_contingencies.append(con.Contingency(reaction,
-                                                                   con.ContingencyType.requirement,
-                                                                   eff.StateEffector(reaction.source)))
+                self.source_contingencies.append(con.Contingency(reaction,
+                                                                 con.ContingencyType.requirement,
+                                                                 eff.StateEffector(reaction.source)))
 
             elif reaction.influence == rxn.Influence.transfer:
-                self.implicit_contingencies.append(con.Contingency(reaction,
-                                                                   con.ContingencyType.requirement,
-                                                                   eff.StateEffector(reaction.source)))
+                self.source_contingencies.append(con.Contingency(reaction,
+                                                                 con.ContingencyType.requirement,
+                                                                 eff.StateEffector(reaction.source)))
 
-                self.implicit_contingencies.append(con.Contingency(reaction,
-                                                                   con.ContingencyType.inhibition,
-                                                                   eff.StateEffector(reaction.product)))
+                self.source_contingencies.append(con.Contingency(reaction,
+                                                                 con.ContingencyType.inhibition,
+                                                                 eff.StateEffector(reaction.product)))
 
 
     def _assert_consistency(self):

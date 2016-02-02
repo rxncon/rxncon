@@ -1,5 +1,7 @@
 import rxncon.core.reaction as rxn
 import rxncon.core.rxncon_system as rxs
+import rxncon.core.contingency as con
+import rxncon.core.effector as eff
 import rxncon.syntax.rxncon_from_string as rfs
 import rxncon.simulation.rule_based.rule_based_model_from_rxncon as rfr
 
@@ -112,6 +114,34 @@ def test_single_transcription_reaction_mol_defs():
 def test_single_localization_reaction_mol_defs():
     # todo: let's implement this
     pass
+
+
+
+### SET STUFF ###
+def test_set_from_contingencies():
+    reaction = rfs.reaction_from_string('A_ppi_B')
+    state1 = rfs.state_from_string('A_[x]-{p}')
+    state2 = rfs.state_from_string('B_[y]-{p}')
+    state3 = rfs.state_from_string('A_[z]-{p}')
+    state4 = rfs.state_from_string('B_[w]-{p}')
+
+    contingency = con.Contingency(reaction,
+                                  con.ContingencyType.requirement,
+                                  eff.AndEffector(eff.OrEffector(eff.StateEffector(state1),
+                                                                 eff.StateEffector(state2)),
+                                                  eff.OrEffector(eff.StateEffector(state3),
+                                                                 eff.StateEffector(state4))))
+
+    the_set = rfr.set_from_contingencies([contingency])
+
+    the_list = the_set.to_nested_list_form()
+
+
+
+
+
+
+
 
 
 
