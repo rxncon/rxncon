@@ -23,6 +23,9 @@ class RuleConditions:
         self.left_hand_side = left_hand_side
         self.right_hand_side = right_hand_side
 
+    def __str__(self):
+        return 'LHS:{0}, RHS:{1}'.format(self.left_hand_side, self.right_hand_side)
+
 
 @tc.typecheck
 def rule_based_model_from_rxncon(rxnconsys: rxs.RxnConSystem) -> rbm.RuleBasedModel:

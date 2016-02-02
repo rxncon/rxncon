@@ -95,6 +95,12 @@ class PropertySet(UnarySet):
         assert isinstance(other, Set)
 
         if isinstance(other, PropertySet):
+            if self.value is None and other.value is None:
+                return True
+
+            elif self.value is None or other.value is None:
+                return False
+
             return self.value == other.value
 
         else:

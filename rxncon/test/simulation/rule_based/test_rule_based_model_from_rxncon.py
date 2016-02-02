@@ -132,9 +132,16 @@ def test_set_from_contingencies():
                                                   eff.OrEffector(eff.StateEffector(state3),
                                                                  eff.StateEffector(state4))))
 
+    source_contingency = con.Contingency(reaction,
+                                         con.ContingencyType.inhibition,
+                                         eff.StateEffector(rfs.state_from_string('A--B')))
+
     the_set = rfr.set_from_contingencies([contingency])
 
-    the_list = the_set.to_nested_list_form()
+    rule_conditions = rfr.base_rule_conditions_from_strict_and_source_contingencies([contingency], [source_contingency])
+
+    for rule in rule_conditions:
+        print(rule)
 
 
 
