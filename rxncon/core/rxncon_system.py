@@ -33,6 +33,12 @@ class RxnConSystem:
     def states(self):
         return list({state for state in self.source_states + self.product_states + self.effector_states})
 
+    def explicit_contingencies_for_reaction(self, reaction: rxn.Reaction) -> List[con.Contingency]:
+        return [x for x in self.contingencies if x.target == reaction]
+
+    def implicit_contingencies_for_reaction(self, reaction: rxn.Reaction) -> List[con.Contingency]:
+        return [x for x in self.implicit_contingencies if x.target == reaction]
+
     def _generate_implicit_contingencies(self):
         # generate reaction-contingency pairs implied by the explicitly passed reactions and contingencies.
         # e.g. if A_ppi_B requires A-{P}, and there exists a dephosphorylation reaction for A,

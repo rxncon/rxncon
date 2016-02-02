@@ -3,14 +3,33 @@ from collections import defaultdict
 import typecheck as tc
 
 import rxncon.core.rxncon_system as rxs
+import rxncon.core.reaction as rxn
 import rxncon.simulation.rule_based.rule_based_model as rbm
 import rxncon.core.state as sta
+import rxncon.core.contingency as con
 
 
 @tc.typecheck
 def rule_based_model_from_rxncon(rxnconsys: rxs.RxnConSystem) -> rbm.RuleBasedModel:
     mol_defs = molecule_defs_from_rxncon(rxnconsys)
 
+    rules = []
+    for reaction in rxnconsys.reactions:
+        lhs_base_reactants = base_reactants(mol_defs,
+                                            rxnconsys.explicit_contingencies_for_reaction(reaction) + rxnconsys.implicit_contingencies_for_reaction(reaction),
+                                            [])
+
+        rhs_base_reactants = base_reactants(mol_defs,
+                                            rxnconsys.explicit_contingencies_for_reaction(reaction),
+                                            rxnconsys.implicit_contingencies_for_reaction(reaction))
+
+        base_rules = [] # rbm.Rule(lhs_base_reactants, rhs_base_reactants, arrow_type_from_reaction(reaction), base_rates_from_reaction(reaction))
+        for base_rule in base_rules:
+            rules.extend(derived_rules_from_base_rule_and_contingencies(base_rule, rxnconsys.explicit_contingencies_for_reaction(reaction)))
+
+    non_overlapping_rules = non_overlapping_rules_from_rules(rules)
+
+    return rbm.RuleBasedModel(mol_defs, non_overlapping_rules, None, None)
 
 
 @tc.typecheck
@@ -65,12 +84,25 @@ def molecule_defs_from_rxncon(rxnconsys: rxs.RxnConSystem) -> List[rbm.MoleculeD
     return mol_defs
 
 
+def base_reactants(mol_defs: List[rbm.MoleculeDefinition], contingencies: List[con.Contingency],
+                   negated_contingencies: List[con.Contingency]):
+    return []
 
 
+def arrow_type_from_reaction(reaction: rxn.Reaction) -> rbm.Arrow:
+    pass
 
 
+def base_rates_from_reaction(reaction: rxn.Reaction) -> List[rbm.Parameter]:
+    pass
 
 
+def derived_rules_from_base_rule_and_contingencies(base_rule: rbm.Rule, contingencies: List[con.Contingency]) -> List[rbm.Rule]:
+    pass
+
+
+def non_overlapping_rules_from_rules(rules: List[rbm.Rule]) -> List[rbm.Rule]:
+    pass
 
 
 
