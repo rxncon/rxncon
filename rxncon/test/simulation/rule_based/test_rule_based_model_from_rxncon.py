@@ -117,32 +117,6 @@ def test_single_localization_reaction_mol_defs():
 
 
 
-### SET STUFF ###
-def test_set_from_contingencies():
-    reaction = rfs.reaction_from_string('A_ppi_B')
-    state1 = rfs.state_from_string('A_[x]-{p}')
-    state2 = rfs.state_from_string('B_[y]-{p}')
-    state3 = rfs.state_from_string('A_[z]-{p}')
-    state4 = rfs.state_from_string('B_[w]-{p}')
-
-    contingency = con.Contingency(reaction,
-                                  con.ContingencyType.requirement,
-                                  eff.AndEffector(eff.OrEffector(eff.StateEffector(state1),
-                                                                 eff.StateEffector(state2)),
-                                                  eff.OrEffector(eff.StateEffector(state3),
-                                                                 eff.StateEffector(state4))))
-
-    source_contingency = con.Contingency(reaction,
-                                         con.ContingencyType.inhibition,
-                                         eff.StateEffector(rfs.state_from_string('A--B')))
-
-    rule_conditions = rfr.determine_base_rule_conditions([contingency], [source_contingency])
-
-    for rule in rule_conditions:
-        print(rule.rhs_conditions.to_nested_list_form())
-
-
-
 
 
 
