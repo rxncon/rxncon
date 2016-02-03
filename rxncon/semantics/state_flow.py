@@ -1,4 +1,6 @@
 from typing import List
+import typecheck as tc
+import copy
 
 import rxncon.core.contingency as con
 import rxncon.venntastic.sets as venn
@@ -15,9 +17,13 @@ class StateFlow:
         return 'Source:{0}, Target:{1}'.format(self.source, self.target)
 
 
+@tc.typecheck
 def boolean_state_flows(reaction: rxn.Reaction,
                         strict_contingencies: List[con.Contingency],
                         source_contingencies: List[con.Contingency]) -> List[StateFlow]:
+
+    for contingency in strict_contingencies + source_contingencies:
+        assert contingency.type in [con.ContingencyType.requirement, con.ContingencyType.inhibition]
 
     or_terms = set_from_contingencies(strict_contingencies).to_union_list_form()
 
@@ -27,11 +33,33 @@ def boolean_state_flows(reaction: rxn.Reaction,
             for or_term in or_terms]
 
 
-def quantified_state_flows(transfer_map: StateFlow, quantitative_contingencies: List[con.Contingency]) -> List[StateFlow]:
-    pass
+@tc.typecheck
+def quantified_state_flows(state_flow: StateFlow, quantitative_contingencies: List[con.Contingency]) -> List[StateFlow]:
+    quantified_flows = [state_flow]
+
+    for contingency in quantitative_contingencies:
+        assert contingency.type in [con.ContingencyType.positive, con.ContingencyType.negative]
+
+        new_flows = []
+        for flow in quantified_flows:
+            flow_with_cont, flow_without_cont = copy.deepcopy(flow), copy.deepcopy(flow)
+
+            flow_with_cont.source = venn.Intersection(flow_with_cont.source, set_from_effector(contingency.effector))
+            flow_with_cont.target = venn.Intersection(flow_with_cont.target, set_from_effector(contingency.effector))
+
+            flow_without_cont.source = venn.Intersection(flow_without_cont.source,
+                                                         venn.Complement(set_from_effector(contingency.effector)))
+            flow_without_cont.target = venn.Intersection(flow_without_cont.target,
+                                                         venn.Complement(set_from_effector(contingency.effector)))
+
+            new_flows += [flow_with_cont, flow_without_cont]
+
+        quantified_flows = new_flows
+
+    return quantified_flows
 
 
-def disjunctified_state_flows(rule_conditions: List[StateFlow]) -> List[StateFlow]:
+def disjunctified_state_flows(state_flow: List[StateFlow]) -> List[StateFlow]:
     pass
 
 

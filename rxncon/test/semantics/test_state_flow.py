@@ -5,8 +5,7 @@ import rxncon.semantics.state_flow as flo
 import rxncon.venntastic.sets as venn
 
 
-### SET STUFF ###
-def test_set_from_contingencies():
+def test_boolean_state_flows():
     reaction = rfs.reaction_from_string('A_ppi_B')
     state1 = rfs.state_from_string('A_[x]-{p}')
     state2 = rfs.state_from_string('B_[y]-{p}')
@@ -66,4 +65,38 @@ def test_set_from_contingencies():
             raise AssertionError
 
 
+def test_quantified_state_flows_single_quantitative_contingency():
+    reaction = rfs.reaction_from_string('A_ppi_B')
+    a_b = rfs.state_from_string('A--B')
+    a_phos = rfs.state_from_string('A-{p}')
+    b_phos = rfs.state_from_string('B-{p}')
 
+    reqd_cont = con.Contingency(reaction, con.ContingencyType.requirement, eff.StateEffector(a_phos))
+    src_cont  = con.Contingency(reaction, con.ContingencyType.requirement, eff.NotEffector(eff.StateEffector(a_b)))
+    quan_cont = con.Contingency(reaction, con.ContingencyType.positive, eff.StateEffector(b_phos))
+
+    bool_state_flows = flo.boolean_state_flows(reaction, [reqd_cont], [src_cont])
+    assert len(bool_state_flows) == 1
+
+    quant_state_flows = flo.quantified_state_flows(bool_state_flows[0], [quan_cont])
+
+    expected_pairs = [
+        (
+            [[venn.PropertySet(a_phos), venn.Complement(venn.PropertySet(a_b)), venn.PropertySet(b_phos)]],
+            [[venn.PropertySet(a_phos), venn.PropertySet(a_b), venn.PropertySet(b_phos)]],
+        ),
+        (
+            [[venn.PropertySet(a_phos), venn.Complement(venn.PropertySet(a_b)), venn.Complement(venn.PropertySet(b_phos))]],
+            [[venn.PropertySet(a_phos), venn.PropertySet(a_b), venn.Complement(venn.PropertySet(b_phos))]],
+        )
+    ]
+
+    for flow in quant_state_flows:
+        if flow.source.to_nested_list_form() == expected_pairs[0][0]:
+            assert flow.target.to_nested_list_form() == expected_pairs[0][1]
+
+        elif flow.source.to_nested_list_form() == expected_pairs[1][0]:
+            assert flow.target.to_nested_list_form() == expected_pairs[1][1]
+
+        else:
+            raise AssertionError
