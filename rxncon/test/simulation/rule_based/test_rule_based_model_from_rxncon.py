@@ -136,12 +136,10 @@ def test_set_from_contingencies():
                                          con.ContingencyType.inhibition,
                                          eff.StateEffector(rfs.state_from_string('A--B')))
 
-    the_set = rfr.set_from_contingencies([contingency])
-
-    rule_conditions = rfr.base_rule_conditions_from_strict_and_source_contingencies([contingency], [source_contingency])
+    rule_conditions = rfr.determine_base_rule_conditions([contingency], [source_contingency])
 
     for rule in rule_conditions:
-        print(rule)
+        print(rule.rhs_conditions.to_nested_list_form())
 
 
 

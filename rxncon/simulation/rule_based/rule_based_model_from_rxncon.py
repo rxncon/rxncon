@@ -19,45 +19,43 @@ class Default(Enum):
 
 
 class RuleConditions:
-    def __init__(self, left_hand_side: venn.Set, right_hand_side: venn.Set):
-        self.left_hand_side = left_hand_side
-        self.right_hand_side = right_hand_side
+    def __init__(self, lhs_conditions: venn.Set, rhs_conditions: venn.Set):
+        self.lhs_conditions = lhs_conditions
+        self.rhs_conditions = rhs_conditions
 
     def __str__(self):
-        return 'LHS:{0}, RHS:{1}'.format(self.left_hand_side, self.right_hand_side)
+        return 'LHS:{0}, RHS:{1}'.format(self.lhs_conditions, self.rhs_conditions)
 
 
 @tc.typecheck
 def rule_based_model_from_rxncon(rxnconsys: rxs.RxnConSystem) -> rbm.RuleBasedModel:
     molecule_defs = molecule_defs_from_rxncon(rxnconsys)
 
-    rule_conds = []
+    rule_conditions = []
 
     for reaction in rxnconsys.reactions:
-        base_rule_conds = base_rule_conditions_from_strict_and_source_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction),
-                                                                                    rxnconsys.source_contingencies_for_reaction(reaction))
+        base_rule_conditions = determine_base_rule_conditions(rxnconsys.strict_contingencies_for_reaction(reaction),
+                                                              rxnconsys.source_contingencies_for_reaction(reaction))
 
-        derived_rule_conds = []
+        derived_rule_conditions = []
 
-        for base_rule_cond in base_rule_conds:
-            derived_rule_conds += \
-                derived_rule_conditions_from_base_rule_condition_and_quantitative_contingencies(base_rule_cond,
-                                                                                                rxnconsys.quantitative_contingencies_for_reaction(reaction))
+        for condition in base_rule_conditions:
+            derived_rule_conditions += \
+                expand_base_rule_condition(condition,
+                                           rxnconsys.quantitative_contingencies_for_reaction(reaction))
 
-        rule_conds += derived_rule_conds
-
-    disjunct_rule_conds = disjunct_rule_conditions_from_rule_conditions(rule_conds)
+        rule_conditions += derived_rule_conditions
 
     rules = []
 
-    for disjunct_rule_cond in disjunct_rule_conds:
-        rules.append(rule_from_rule_condition_and_molecule_definitions(disjunct_rule_cond, molecule_defs))
+    for disjunct_rule_condition in disjunct_rule_conditions_from_rule_conditions(rule_conditions):
+        rules.append(rule_from_rule_condition_and_molecule_definitions(disjunct_rule_condition, molecule_defs))
 
     return rules
 
 
-def base_rule_conditions_from_strict_and_source_contingencies(strict_contingencies: List[con.Contingency],
-                                                              source_contingencies: List[con.Contingency]) -> List[RuleConditions]:
+def determine_base_rule_conditions(strict_contingencies: List[con.Contingency],
+                                   source_contingencies: List[con.Contingency]) -> List[RuleConditions]:
 
     set_of_requirements = set_from_contingencies(strict_contingencies)
     set_of_source_cont = set_from_contingencies(source_contingencies)
@@ -65,12 +63,10 @@ def base_rule_conditions_from_strict_and_source_contingencies(strict_contingenci
     or_terms = set_of_requirements.to_union_list_form()
 
     return [RuleConditions(venn.Intersection(or_term, set_of_source_cont),
-                                             venn.Intersection(or_term, venn.Complement(set_of_source_cont))) for or_term in or_terms]
+                           venn.Intersection(or_term, venn.Complement(set_of_source_cont))) for or_term in or_terms]
 
 
-def derived_rule_conditions_from_base_rule_condition_and_quantitative_contingencies(rule_condition: RuleConditions,
-                                                                                    quantitative_contingencies: List[con.Contingency]) \
-        -> List[RuleConditions]:
+def expand_base_rule_condition(rule_condition: RuleConditions, quantitative_contingencies: List[con.Contingency]) -> List[RuleConditions]:
     pass
 
 
@@ -100,18 +96,18 @@ def set_from_effector(effector: eff.Effector) -> venn.Set:
 
 
 def set_from_contingencies(contingencies: List[con.Contingency]) -> venn.Set:
-    result = venn.UniversalSet()
+    intersections = []
     for contingency in contingencies:
         if contingency.type == con.ContingencyType.requirement:
-            result = venn.Intersection(result, set_from_effector(contingency.effector))
+            intersections.append(set_from_effector(contingency.effector))
 
         elif contingency.type == con.ContingencyType.inhibition:
-            result = venn.Intersection(result, venn.Complement(set_from_effector(contingency.effector)))
+            intersections.append(venn.Complement(set_from_effector(contingency.effector)))
 
         else:
             raise NotImplementedError
 
-    return result
+    return venn.nested_expression_from_list_and_binary_op(intersections, venn.Intersection)
 
 
 @tc.typecheck
