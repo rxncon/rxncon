@@ -3,10 +3,11 @@ from typing import List
 import rxncon.core.contingency as con
 import rxncon.venntastic.sets as venn
 import rxncon.core.effector as eff
+import rxncon.core.reaction as rxn
 
 
 class StateFlow:
-    def __init__(self, source: venn.Set, target: venn.Set):
+    def __init__(self, reaction: rxn.Reaction, source: venn.Set, target: venn.Set):
         self.source = source
         self.target = target
 
@@ -14,12 +15,14 @@ class StateFlow:
         return 'Source:{0}, Target:{1}'.format(self.source, self.target)
 
 
-def boolean_state_flows(strict_contingencies: List[con.Contingency],
+def boolean_state_flows(reaction: rxn.Reaction,
+                        strict_contingencies: List[con.Contingency],
                         source_contingencies: List[con.Contingency]) -> List[StateFlow]:
 
     or_terms = set_from_contingencies(strict_contingencies).to_union_list_form()
 
-    return [StateFlow(venn.Intersection(or_term, set_from_contingencies(source_contingencies)),
+    return [StateFlow(reaction,
+                      venn.Intersection(or_term, set_from_contingencies(source_contingencies)),
                       venn.Intersection(or_term, venn.Complement(set_from_contingencies(source_contingencies))))
             for or_term in or_terms]
 

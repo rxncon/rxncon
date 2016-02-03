@@ -26,7 +26,7 @@ def test_set_from_contingencies():
                                          con.ContingencyType.inhibition,
                                          eff.StateEffector(boundstate))
 
-    state_flows = flo.boolean_state_flows([contingency], [source_contingency])
+    state_flows = flo.boolean_state_flows(reaction, [contingency], [source_contingency])
 
     expected_pairs = [
         (
