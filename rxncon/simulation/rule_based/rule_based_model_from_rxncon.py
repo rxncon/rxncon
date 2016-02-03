@@ -1,6 +1,6 @@
 from collections import defaultdict
 from enum import Enum
-from typing import List
+from typing import List, Set
 
 import typecheck as tc
 
@@ -52,39 +52,91 @@ def rule_based_model_from_rxncon(rxnconsys: rxs.RxnConSystem) -> rbm.RuleBasedMo
 def rule_from_flow_and_molecule_definitions(flow: flo.StateFlow, molecule_defs: List[rbm.MoleculeDefinition]) -> rbm.Rule:
     name_to_association_specifications = defaultdict(set)
     name_to_modification_specifications = defaultdict(set)
-    name_to_valid_compartments = defaultdict(set)
+    name_to_localisation_specification = defaultdict(lambda: None)
+
+    names = set()
 
     assert len(flow.source.to_nested_list_form()) == 1
 
     for source in flow.source.to_nested_list_form()[0]:
+        # todo: source.expr.value only for complement otherwise source.value
         if isinstance(source.expr.value, sta.InterProteinInteractionState):
-            name_to_association_specifications = association_specification_from_set(name_to_association_specifications, source)
+            name_to_association_specifications.update({key: (name_to_association_specifications[key].union(value)
+                                                       if key in name_to_association_specifications else value)
+                                                       for key, value in association_specification_from_set(source).items()})
+            names.update(names_from_set(source))
 
-    for target in flow.target.to_nested_list_form()[0]:
-        if isinstance(source.expr.value, sta.InterProteinInteractionState):
-            name_to_association_specifications = association_specification_from_set(name_to_association_specifications, source)
+    source_molecule_specifications(names, name_to_association_specifications,
+                                   name_to_modification_specifications,
+                                   name_to_localisation_specification,
+                                   molecule_defs)
+
+    # for target in flow.target.to_nested_list_form()[0]:
+    #     if isinstance(target.expr.value, sta.InterProteinInteractionState):
+    #         name_to_association_specifications = association_specification_from_set(name_to_association_specifications, target)
+
+
+def source_molecule_specifications(names: Set[str],
+                                   name_to_association_specifications: defaultdict,
+                                   name_to_modification_specifications: defaultdict,
+                                   name_to_localisation_specification: defaultdict,
+                                   molecule_defs: List[rbm.MoleculeDefinition]) -> defaultdict:
+
+    molecule_specifications = defaultdict()
+    for name in names:
+        mol_def = [mol_def for mol_def in molecule_defs if mol_def.name == name]
+        molecule_specifications[name] = rbm.MoleculeSpecification(mol_def[0],
+                                                                  list(name_to_modification_specifications[name]),
+                                                                  list(name_to_association_specifications[name]),
+                                                                  name_to_localisation_specification[name])
+    return molecule_specifications
 
 
 # modification_specs = [rbm.ModificationSpecification(modification_defs[0], 'P')]
 # association_specs  = [rbm.AssociationSpecification(association_defs[0], rbm.OccupationStatus.not_occupied)]
 # localization_spec  = rbm.LocalizationSpecification(localization_def, 'Cytoplasm')
-
-def association_specification_from_set(name_to_association_specifications: defaultdict, set_state: venn.Set):
-    name_to_association_definition = defaultdict(set)
+def names_from_set(set_state):
     if isinstance(set_state, venn.Complement):
         assert isinstance(set_state.expr, venn.PropertySet)
         assert isinstance(set_state.expr.value, sta.State)
-        name_to_association_definition = name_to_assoc_defs_from_state(name_to_association_definition, set_state.expr.value)
-        first_comp_assoc_spec = rbm.AssociationSpecification(list(name_to_association_definition[set_state.expr.value.first_component.name])[0], rbm.OccupationStatus.not_occupied)
-        second_comp_assoc_spec =rbm.AssociationSpecification(name_to_association_definition[set_state.expr.value.second_component.name], rbm.OccupationStatus.not_occupied)
-        name_to_association_specifications[set_state.expr.value.first_component.name].add(first_comp_assoc_spec)
-        name_to_association_specifications[set_state.expr.value.second_component.name].add(second_comp_assoc_spec)
+        return set([set_state.expr.value.first_component.name, set_state.expr.value.second_component.name])
     elif isinstance(set_state, venn.PropertySet):
         assert isinstance(set_state.value, sta.State)
-        pass
+        return set([set_state.value.first_component, set_state.value.second_component.name])
+    else:
+        raise NotImplementedError
+
+def association_specification_from_set(set_state: venn.Set):
+    name_to_association_specifications = defaultdict(set)
+    if isinstance(set_state, venn.Complement):
+        assert isinstance(set_state.expr, venn.PropertySet)
+        assert isinstance(set_state.expr.value, sta.State)
+        name_to_association_definition = name_to_assoc_defs_from_state(set_state.expr.value)
+        first_comp_assoc_spec = rbm.AssociationSpecification(list(name_to_association_definition[set_state.expr.value.first_component.name])[0],
+                                                             rbm.OccupationStatus.not_occupied)
+        second_comp_assoc_spec =rbm.AssociationSpecification(list(name_to_association_definition[set_state.expr.value.second_component.name])[0],
+                                                             rbm.OccupationStatus.not_occupied)
+        name_to_association_specifications[set_state.expr.value.first_component.name].add(first_comp_assoc_spec)
+        name_to_association_specifications[set_state.expr.value.second_component.name].add(second_comp_assoc_spec)
+
+    elif isinstance(set_state, venn.PropertySet):
+        assert isinstance(set_state.value, sta.State)
+        name_to_association_definition = name_to_assoc_defs_from_state(set_state.expr.value)
+        first_comp_assoc_spec = rbm.AssociationSpecification(list(name_to_association_definition[set_state.expr.value.first_component.name])[0],
+                                                             rbm.OccupationStatus.not_occupied)
+        second_comp_assoc_spec =rbm.AssociationSpecification(list(name_to_association_definition[set_state.expr.value.second_component.name])[0],
+                                                             rbm.OccupationStatus.not_occupied)
+
     else:
         raise NotImplementedError
     return name_to_association_specifications
+
+
+def modification_specification_from_set():
+    pass
+
+def localisation_specification_from_set():
+    pass
 
 @tc.typecheck
 def molecule_defs_from_rxncon(rxnconsys: rxs.RxnConSystem) -> List[rbm.MoleculeDefinition]:
@@ -150,16 +202,16 @@ def name_to_defs_from_rxncon(rxnconsys: rxs.RxnConSystem):
                                                        for key, value in name_to_mod_defs_from_state_or_reaction(state, reaction).items()})
 
             elif isinstance(state, sta.InterProteinInteractionState) or isinstance(state, sta.IntraProteinInteractionState):
-                names = name_to_names_from_reaction(names, state.first_component.name, state.second_component.name)
+                names.update({state.first_component.name, state.second_component.name})
 
                 name_to_association_definitions.update({key: (name_to_association_definitions[key].union(value)
                                                        if key in name_to_association_definitions else value)
                                                        for key, value in name_to_assoc_defs_from_state(state).items()})
 
             elif isinstance(state, sta.SynthesisDegradationState):
-                names = name_to_names_from_reaction(names, reaction.subject.name, state.component.name)
+                names.update({reaction.subject.name, state.component.name})
 
             elif isinstance(state, sta.TranslocationState):
-                names = name_to_names_from_reaction(names, reaction.subject.name, state.substrate.name)
+                names.update({reaction.subject.name, state.substrate.name})
                 name_to_valid_compartments[state.substrate.name].add(state.compartment)
     return names, name_to_modification_definitions, name_to_association_definitions, name_to_valid_compartments

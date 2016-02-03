@@ -184,7 +184,7 @@ def test_rule_based_model_from_rxncon():
     reaction = rfs.reaction_from_string('A_ppi_B')
     rxncon_sys = rxs.RxnConSystem([reaction], [])
 
-    #rfr.rule_based_model_from_rxncon(rxncon_sys)
+    rfr.rule_based_model_from_rxncon(rxncon_sys)
 
 
 
