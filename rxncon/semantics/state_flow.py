@@ -10,6 +10,15 @@ import rxncon.core.reaction as rxn
 
 class StateFlow:
     def __init__(self, reaction: rxn.Reaction, source: venn.Set, target: venn.Set):
+        if len(source.to_nested_list_form()) != 1:
+            raise AssertionError('Number of OR-terms in StateFlow source needs to be 1, is {0}'
+                                 .format(len(source.to_nested_list_form())))
+
+        if len(target.to_nested_list_form()) != 1:
+            raise AssertionError('Number of OR-terms in StateFlow target needs to be 1, is {0}'
+                                 .format(len(source.to_nested_list_form())))
+
+        self.reaction = reaction
         self.source = source
         self.target = target
 
