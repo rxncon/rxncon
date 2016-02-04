@@ -50,6 +50,12 @@ def rule_based_model_from_rxncon(rxnconsys: rxs.RxnConSystem) -> rbm.RuleBasedMo
 
 #@tc.typecheck
 def rule_from_flow_and_molecule_definitions(flow: flo.StateFlow, molecule_defs: List[rbm.MoleculeDefinition]) -> rbm.Rule:
+    def __state_type_helper(source):
+        if isinstance(source, venn.Complement):
+            return source.expr.value
+        elif isinstance(source, venn.PropertySet):
+            return source.value
+
     name_to_association_specifications = defaultdict(set)
     name_to_modification_specifications = defaultdict(set)
     name_to_localisation_specification = defaultdict(lambda: None)
@@ -60,21 +66,26 @@ def rule_from_flow_and_molecule_definitions(flow: flo.StateFlow, molecule_defs: 
 
     for source in flow.source.to_nested_list_form()[0]:
         # todo: source.expr.value only for complement otherwise source.value
-        if isinstance(source.expr.value, sta.InterProteinInteractionState):
+        if isinstance(__state_type_helper(source), sta.InterProteinInteractionState):
             name_to_association_specifications.update({key: (name_to_association_specifications[key].union(value)
-                                                       if key in name_to_association_specifications else value)
+                                                       if key in name_to_association_specifications else values)
                                                        for key, value in association_specification_from_set(source).items()})
             names.update(names_from_set(source))
 
-    source_molecule_specifications(names, name_to_association_specifications,
+    source_mol_specs = source_molecule_specifications(names, name_to_association_specifications,
                                    name_to_modification_specifications,
                                    name_to_localisation_specification,
                                    molecule_defs)
+
 
     # for target in flow.target.to_nested_list_form()[0]:
     #     if isinstance(target.expr.value, sta.InterProteinInteractionState):
     #         name_to_association_specifications = association_specification_from_set(name_to_association_specifications, target)
 
+
+def source_reactant(source_mol_specs: defaultdict) -> List[rbm.Reactant]:
+    reactants = []
+    #rbm.MoleculeReactant(mol_spec_a_unbound)
 
 def source_molecule_specifications(names: Set[str],
                                    name_to_association_specifications: defaultdict,
@@ -92,17 +103,15 @@ def source_molecule_specifications(names: Set[str],
     return molecule_specifications
 
 
-# modification_specs = [rbm.ModificationSpecification(modification_defs[0], 'P')]
-# association_specs  = [rbm.AssociationSpecification(association_defs[0], rbm.OccupationStatus.not_occupied)]
-# localization_spec  = rbm.LocalizationSpecification(localization_def, 'Cytoplasm')
+
 def names_from_set(set_state):
     if isinstance(set_state, venn.Complement):
         assert isinstance(set_state.expr, venn.PropertySet)
         assert isinstance(set_state.expr.value, sta.State)
-        return set([set_state.expr.value.first_component.name, set_state.expr.value.second_component.name])
+        return {set_state.expr.value.first_component.name, set_state.expr.value.second_component.name}
     elif isinstance(set_state, venn.PropertySet):
         assert isinstance(set_state.value, sta.State)
-        return set([set_state.value.first_component, set_state.value.second_component.name])
+        return {set_state.value.first_component, set_state.value.second_component.name}
     else:
         raise NotImplementedError
 
@@ -179,14 +188,6 @@ def name_to_assoc_defs_from_state(state: tc.any(sta.InterProteinInteractionState
     return name_to_association_definitions
 
 
-@tc.typecheck
-def name_to_names_from_reaction(names: set, first_name: str, second_name: str) -> set:
-
-    names.add(first_name)
-    names.add(second_name)
-    return names
-
-
 def name_to_defs_from_rxncon(rxnconsys: rxs.RxnConSystem):
     names = set()
     name_to_association_definitions = defaultdict(set)
@@ -196,7 +197,7 @@ def name_to_defs_from_rxncon(rxnconsys: rxs.RxnConSystem):
     for reaction in rxnconsys.reactions:
         for state in [x for x in (reaction.source, reaction.product) if x]:
             if isinstance(state, sta.CovalentModificationState):
-                names = name_to_names_from_reaction(names, reaction.subject.name, state.substrate.name)
+                names.update(reaction.subject.name, state.substrate.name)
                 name_to_modification_definitions.update({key: (name_to_modification_definitions[key].union(value)
                                                        if key in name_to_modification_definitions else value)
                                                        for key, value in name_to_mod_defs_from_state_or_reaction(state, reaction).items()})

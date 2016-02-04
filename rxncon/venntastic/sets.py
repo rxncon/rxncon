@@ -44,7 +44,7 @@ class Set:
                 for part in intersection_parts:
                     intersection += part
 
-                partial_cardinality = cardinality_of_intersection_term(_cleaned_intersection_term(intersection))
+                partial_cardinality = _cardinality_of_intersection_term(_cleaned_intersection_term(intersection))
 
                 if i % 2:
                     cardinality = _add_dicts(cardinality, _negate_dict(partial_cardinality))
@@ -328,6 +328,7 @@ def UniversalSet():
     return PropertySet(None)
 
 
+### PUBLIC FUNCTIONS ###
 def nested_expression_from_list_and_binary_op(xs: List[Set], binary_op) -> Set:
     if binary_op == Intersection:
         unit = UniversalSet()
@@ -348,6 +349,24 @@ def nested_expression_from_list_and_binary_op(xs: List[Set], binary_op) -> Set:
         return functools.reduce(binary_op, xs[1:], xs[0])
 
 
+def gram_schmidt_disjunctify(overlapping_sets: List[Set]) -> List[Set]:
+    non_overlapping_sets = []
+
+    for x in overlapping_sets:
+        assert len(x.to_union_list_form()) == 1
+
+        for y in non_overlapping_sets:
+            x = Intersection(x, Complement(y))
+
+        non_overlapping_sets.append(x)
+
+    for x in non_overlapping_sets:
+        assert len(x.to_union_list_form()) == 1
+
+    return non_overlapping_sets
+
+
+### BOOLEAN FUNCTIONS FROM SETS ###
 def boolean_function_from_nested_list_form(nested_list: List[List[Set]]) -> 'BooleanFunction':
     assert isinstance(nested_list, list)
     assert len(nested_list) > 0
@@ -481,31 +500,7 @@ def generate_boolean_value_lists(statements):
         yield list(itt.compress(statements, selector)), list(itt.compress(statements, [not x for x in selector]))
 
 
-def _call_method_list_until_stable(expr: Set, methods: List[str]):
-    max_simplifications = 100
-    i = 0
-
-    previous_simplification = expr
-    current_simplification = expr
-    simplification_done = False
-
-    while not simplification_done:
-        i += 1
-        if i > max_simplifications:
-            raise RecursionError
-
-        for method in methods:
-            current_simplification = getattr(current_simplification, method)()
-
-        if current_simplification == previous_simplification:
-            simplification_done = True
-
-        else:
-            previous_simplification = current_simplification
-
-    return current_simplification
-
-
+### PROTECTED HELPERS ###
 def _cleaned_nested_list_form(nested_list: List[List[Set]]) -> List[List[Set]]:
     clean_terms = []
 
@@ -565,6 +560,30 @@ def _cleaned_union_terms(dirty_union_terms: List[List[Set]]) -> List[List[Set]]:
     return union_terms
 
 
+def _cardinality_of_intersection_term(term: List[Set]) -> Dict:
+    if any(isinstance(x, EmptySet) for x in term):
+        return {}
+
+    if not any(isinstance(x, Complement) for x in term):
+        return {tuple(sorted(term)): 1}
+
+    term_copy = term.copy()
+
+    head_of_list = []
+    while term_copy:
+        x = term_copy.pop()
+        if isinstance(x, Complement):
+            rest_of_list = head_of_list + term_copy
+            return _add_dicts(_cardinality_of_intersection_term(rest_of_list),
+                              _negate_dict(_cardinality_of_intersection_term(rest_of_list + [x.expr])))
+
+        elif isinstance(x, PropertySet):
+            head_of_list.append(x)
+
+        else:
+            raise AssertionError
+
+
 def _add_dicts(x: Dict, y: Dict) -> Dict:
     res = {}
     for k, v in x.items():
@@ -588,25 +607,26 @@ def _negate_dict(x: Dict) -> Dict:
     return res
 
 
-def cardinality_of_intersection_term(term: List[Set]) -> Dict:
-    if any(isinstance(x, EmptySet) for x in term):
-        return {}
+def _call_method_list_until_stable(expr: Set, methods: List[str]):
+    max_simplifications = 100
+    i = 0
 
-    if not any(isinstance(x, Complement) for x in term):
-        return {tuple(sorted(term)): 1}
+    previous_simplification = expr
+    current_simplification = expr
+    simplification_done = False
 
-    term_copy = term.copy()
+    while not simplification_done:
+        i += 1
+        if i > max_simplifications:
+            raise RecursionError
 
-    head_of_list = []
-    while term_copy:
-        x = term_copy.pop()
-        if isinstance(x, Complement):
-            rest_of_list = head_of_list + term_copy
-            return _add_dicts(cardinality_of_intersection_term(rest_of_list),
-                              _negate_dict(cardinality_of_intersection_term(rest_of_list + [x.expr])))
+        for method in methods:
+            current_simplification = getattr(current_simplification, method)()
 
-        elif isinstance(x, PropertySet):
-            head_of_list.append(x)
+        if current_simplification == previous_simplification:
+            simplification_done = True
 
         else:
-            raise AssertionError
+            previous_simplification = current_simplification
+
+    return current_simplification
