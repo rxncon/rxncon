@@ -45,6 +45,8 @@ class MoleculeDefinition:
     def __hash__(self) -> int:
         return hash(str(self))
 
+    def __repr__(self):
+        return str(self)
 
     def __str__(self) -> str:
         return 'MoleculeDefinition: {0}'.format(self.name)
@@ -166,6 +168,8 @@ class AssociationSpecification:
     def __hash__(self) -> int:
         return hash(str(self))
 
+    def __repr__(self):
+        return str(self)
 
     def __str__(self) -> str:
         return 'AssociationSpecification: Domain = {0}, occupation_status = {1}'\
