@@ -63,6 +63,7 @@ def test_mutual_ordering():
 # Test the superset / subset relationships
 def test_superset_subset_for_unary_sets():
     assert UniversalSet() == PropertySet(None)
+    assert PropertySet(None).is_superset_of(PropertySet(None))
 
     assert UniversalSet().is_superset_of(UniversalSet())
     assert UniversalSet().is_subset_of(UniversalSet())

@@ -1,12 +1,12 @@
 import functools
 import itertools as itt
-from typing import List, Dict
-
+import typing as tg
 
 METHOD_COMPLEMENTS_EXPANDED = '_complements_expanded'
 METHOD_UNIONS_MOVED_TO_LEFT = '_unions_moved_to_left'
 
 
+# @todo Make typechecking work in this module. Problem is the co/contravariance of function arguments and return types.
 class Set:
     def simplified_form(self) -> 'Set':
         simplification_methods = [
@@ -16,13 +16,13 @@ class Set:
 
         return _call_method_list_until_stable(self, simplification_methods)
 
-    def to_nested_list_form(self) -> List[List['Set']]:
+    def to_nested_list_form(self) -> tg.List[tg.List['Set']]:
         return _cleaned_nested_list_form(self.simplified_form()._to_nested_list())
 
-    def to_boolean_function(self):
+    def to_boolean_function(self) -> 'BooleanFunction':
         return boolean_function_from_nested_list_form(self.to_nested_list_form())
 
-    def to_union_list_form(self) -> List['Set']:
+    def to_union_list_form(self) -> tg.List['Set']:
         union_terms = []
         for term in self.to_nested_list_form():
             union_terms.append(nested_expression_from_list_and_binary_op(term, Intersection))
@@ -60,9 +60,7 @@ class Set:
 
         return {k: v for k, v in cardinality.items() if v != 0}
 
-    def is_equivalent_to(self, other: 'Set'):
-        assert isinstance(other, Set)
-
+    def is_equivalent_to(self, other: 'Set') -> bool:
         return self.is_superset_of(other) and self.is_subset_of(other)
 
     def is_superset_of(self, other: 'Set') -> bool:
@@ -77,7 +75,7 @@ class Set:
     def _unions_moved_to_left(self) -> 'Set':
         return self
 
-    def _to_nested_list(self) -> List[List['Set']]:
+    def _to_nested_list(self) -> tg.List[tg.List['Set']]:
         pass
 
 
@@ -270,7 +268,7 @@ class Intersection(BinarySet):
         else:
             return Intersection(self.left_expr._unions_moved_to_left(), self.right_expr._unions_moved_to_left())
 
-    def _to_nested_list(self) -> List[List[Set]]:
+    def _to_nested_list(self) -> tg.List[tg.List[Set]]:
         return [self.left_expr._to_nested_list()[0] + self.right_expr._to_nested_list()[0]]
 
 
@@ -314,7 +312,7 @@ class Union(BinarySet):
         else:
             return Union(self.left_expr._unions_moved_to_left(), self.right_expr._unions_moved_to_left())
 
-    def _to_nested_list(self) -> List[List[Set]]:
+    def _to_nested_list(self) -> tg.List[tg.List[Set]]:
         return self.left_expr._to_nested_list() + self.right_expr._to_nested_list()
 
 
@@ -324,12 +322,12 @@ class Difference(Set):
         return Intersection(args[0], Complement(args[1]))
 
 
-def UniversalSet():
+def UniversalSet() -> Set:
     return PropertySet(None)
 
 
 ### PUBLIC FUNCTIONS ###
-def nested_expression_from_list_and_binary_op(xs: List[Set], binary_op) -> Set:
+def nested_expression_from_list_and_binary_op(xs: tg.List[Set], binary_op) -> Set:
     if binary_op == Intersection:
         unit = UniversalSet()
 
@@ -349,7 +347,7 @@ def nested_expression_from_list_and_binary_op(xs: List[Set], binary_op) -> Set:
         return functools.reduce(binary_op, xs[1:], xs[0])
 
 
-def gram_schmidt_disjunctify(overlapping_sets: List[Set]) -> List[Set]:
+def gram_schmidt_disjunctify(overlapping_sets: tg.List[Set]) -> tg.List[Set]:
     non_overlapping_sets = []
 
     for x in overlapping_sets:
@@ -367,7 +365,7 @@ def gram_schmidt_disjunctify(overlapping_sets: List[Set]) -> List[Set]:
 
 
 ### BOOLEAN FUNCTIONS FROM SETS ###
-def boolean_function_from_nested_list_form(nested_list: List[List[Set]]) -> 'BooleanFunction':
+def boolean_function_from_nested_list_form(nested_list: tg.List[tg.List[Set]]) -> 'BooleanFunction':
     assert isinstance(nested_list, list)
     assert len(nested_list) > 0
 
@@ -501,7 +499,7 @@ def generate_boolean_value_lists(statements):
 
 
 ### PROTECTED HELPERS ###
-def _cleaned_nested_list_form(nested_list: List[List[Set]]) -> List[List[Set]]:
+def _cleaned_nested_list_form(nested_list: tg.List[tg.List[Set]]) -> tg.List[tg.List[Set]]:
     clean_terms = []
 
     for term in nested_list:
@@ -516,7 +514,7 @@ def _cleaned_nested_list_form(nested_list: List[List[Set]]) -> List[List[Set]]:
     return _cleaned_union_terms(clean_terms)
 
 
-def _cleaned_intersection_term(term: List[Set]) -> List[Set]:
+def _cleaned_intersection_term(term: tg.List[Set]) -> tg.List[Set]:
     cleaned_term = []
 
     if all(item == UniversalSet() for item in term):
@@ -543,7 +541,7 @@ def _cleaned_intersection_term(term: List[Set]) -> List[Set]:
     return cleaned_term
 
 
-def _cleaned_union_terms(dirty_union_terms: List[List[Set]]) -> List[List[Set]]:
+def _cleaned_union_terms(dirty_union_terms: tg.List[tg.List[Set]]) -> tg.List[tg.List[Set]]:
     dirty_union_terms.sort(key=len)
     union_terms = [dirty_union_terms.pop(0)]
 
@@ -560,7 +558,7 @@ def _cleaned_union_terms(dirty_union_terms: List[List[Set]]) -> List[List[Set]]:
     return union_terms
 
 
-def _cardinality_of_intersection_term(term: List[Set]) -> Dict:
+def _cardinality_of_intersection_term(term: tg.List[Set]) -> tg.Dict:
     if any(isinstance(x, EmptySet) for x in term):
         return {}
 
@@ -584,7 +582,7 @@ def _cardinality_of_intersection_term(term: List[Set]) -> Dict:
             raise AssertionError
 
 
-def _add_dicts(x: Dict, y: Dict) -> Dict:
+def _add_dicts(x: tg.Dict, y: tg.Dict) -> tg.Dict:
     res = {}
     for k, v in x.items():
         res[k] = v
@@ -599,7 +597,7 @@ def _add_dicts(x: Dict, y: Dict) -> Dict:
     return res
 
 
-def _negate_dict(x: Dict) -> Dict:
+def _negate_dict(x: tg.Dict) -> tg.Dict:
     res = {}
     for k, v in x.items():
         res[k] = -1 * v
@@ -607,7 +605,7 @@ def _negate_dict(x: Dict) -> Dict:
     return res
 
 
-def _call_method_list_until_stable(expr: Set, methods: List[str]):
+def _call_method_list_until_stable(expr: Set, methods: tg.List[str]):
     max_simplifications = 100
     i = 0
 
