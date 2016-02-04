@@ -179,6 +179,23 @@ def test_single_localization_reaction_mol_defs():
 
 
  ### RULE GENERATION ###
+def test_molecule_specification_dict_from_state_and_molecule_def_ppi_not_bound_part():
+    reaction = rfs.reaction_from_string('A_ppi_B')
+    rxncon_sys = rxs.RxnConSystem([reaction], [])
+    molecule_def = rfr.molecule_defs_from_rxncon(rxncon_sys)
+
+    specification = rfr.molecule_specification_dict_from_state_and_molecule_def(molecule_def,
+                                                                                rfs.state_from_string("A--B"),
+                                                                                reaction, True )
+
+def test_molecule_specification_dict_from_state_and_molecule_def_ppi_bound_part():
+    reaction = rfs.reaction_from_string('A_ppi_B')
+    rxncon_sys = rxs.RxnConSystem([reaction], [])
+    molecule_def = rfr.molecule_defs_from_rxncon(rxncon_sys)
+
+    specification = rfr.molecule_specification_dict_from_state_and_molecule_def(molecule_def,
+                                                                                rfs.state_from_string("A--B"),
+                                                                                reaction, False )
 
 def test_rule_based_model_from_rxncon():
     reaction = rfs.reaction_from_string('A_ppi_B')

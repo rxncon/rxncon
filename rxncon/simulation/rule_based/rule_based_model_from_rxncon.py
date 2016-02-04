@@ -5,6 +5,7 @@ from typing import List, Set
 import typecheck as tc
 
 import rxncon.core.rxncon_system as rxs
+import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
 import rxncon.simulation.rule_based.rule_based_model as rbm
 import rxncon.semantics.state_flow as flo
@@ -48,6 +49,71 @@ def rule_based_model_from_rxncon(rxnconsys: rxs.RxnConSystem) -> rbm.RuleBasedMo
 
     return rules
 
+def molecule_specification_dict_from_state_and_molecule_def(molecule_def: List[rbm.MoleculeDefinition], state: sta.State, reaction: rxs.rxn.Reaction,
+                                     take_complement: bool) -> defaultdict:
+    name_to_association_specifications = defaultdict(set)
+    name_to_modification_specifications = defaultdict(set)
+    name_to_localisation_specification = defaultdict(lambda: None)
+
+    names = set()
+
+    if isinstance(state, sta.InterProteinInteractionState) or isinstance(state, sta.IntraProteinInteractionState):
+        names.update(state.first_component.name, state.second_component.name)
+        if take_complement:
+            name_to_association_definition = name_to_assoc_defs_from_state(state)
+            name_to_association_specifications[state.first_component.name].add(rbm.AssociationSpecification(list(name_to_association_definition[state.first_component.name])[0],
+                                                                               rbm.OccupationStatus.not_occupied))
+            name_to_association_specifications[state.second_component.name].add(rbm.AssociationSpecification(list(name_to_association_definition[state.second_component.name])[0],
+                                                                                rbm.OccupationStatus.not_occupied))
+
+        elif not take_complement:
+            name_to_association_definition = name_to_assoc_defs_from_state(state)
+            # todo: unknown partner?
+            name_to_association_specifications[state.first_component.name].add(rbm.AssociationSpecification(list(name_to_association_definition[state.first_component.name])[0],
+                                                                               rbm.OccupationStatus.occupied_known_partner))
+            name_to_association_specifications[state.second_component.name].add(rbm.AssociationSpecification(list(name_to_association_definition[state.first_component.name])[0],
+                                                                                rbm.OccupationStatus.occupied_known_partner))
+        else:
+            raise NotImplementedError
+    elif isinstance(state, sta.CovalentModificationState):
+        names.update(reaction.subject.name, state.substrate.name)
+        modification_def = name_to_mod_defs_from_state_or_reaction(state,reaction)
+        if take_complement:
+            name_to_modification_specifications[state.substrate.name].add(rbm.ModificationSpecification(modification_def, Default.unmodified.value))
+        else:
+            name_to_modification_specifications[state.substrate.name].add(rbm.ModificationSpecification(modification_def, state.modifier.value))
+
+    elif isinstance(state, sta.TranslocationState):
+        names.update({reaction.subject.name, state.substrate.name})
+        name_to_localisation_specification[state.substrate.name].add(state.compartment)
+
+    elif isinstance(state, sta.SynthesisDegradationState):
+        names.update({reaction.subject.name, state.component.name})
+
+
+    molecule_specifications = molecule_specification_from_name_to_defaultdict(names, name_to_association_specifications,
+                                                    name_to_modification_specifications,
+                                                    name_to_localisation_specification,
+                                                    molecule_def)
+
+    return molecule_specifications
+
+def molecule_specification_from_name_to_defaultdict(names: Set[str],
+                                   name_to_association_specifications: defaultdict,
+                                   name_to_modification_specifications: defaultdict,
+                                   name_to_localisation_specification: defaultdict,
+                                   molecule_defs: List[rbm.MoleculeDefinition]) -> defaultdict:
+
+    molecule_specifications = defaultdict()
+    for name in names:
+        mol_def = [mol_def for mol_def in molecule_defs if mol_def.name == name]
+        molecule_specifications[name] = rbm.MoleculeSpecification(mol_def[0],
+                                                                  list(name_to_modification_specifications[name]),
+                                                                  list(name_to_association_specifications[name]),
+                                                                  name_to_localisation_specification[name])
+    return molecule_specifications
+
+
 #@tc.typecheck
 def rule_from_flow_and_molecule_definitions(flow: flo.StateFlow, molecule_defs: List[rbm.MoleculeDefinition]) -> rbm.Rule:
     def __state_type_helper(source):
@@ -83,24 +149,7 @@ def rule_from_flow_and_molecule_definitions(flow: flo.StateFlow, molecule_defs: 
     #         name_to_association_specifications = association_specification_from_set(name_to_association_specifications, target)
 
 
-def source_reactant(source_mol_specs: defaultdict) -> List[rbm.Reactant]:
-    reactants = []
-    #rbm.MoleculeReactant(mol_spec_a_unbound)
 
-def source_molecule_specifications(names: Set[str],
-                                   name_to_association_specifications: defaultdict,
-                                   name_to_modification_specifications: defaultdict,
-                                   name_to_localisation_specification: defaultdict,
-                                   molecule_defs: List[rbm.MoleculeDefinition]) -> defaultdict:
-
-    molecule_specifications = defaultdict()
-    for name in names:
-        mol_def = [mol_def for mol_def in molecule_defs if mol_def.name == name]
-        molecule_specifications[name] = rbm.MoleculeSpecification(mol_def[0],
-                                                                  list(name_to_modification_specifications[name]),
-                                                                  list(name_to_association_specifications[name]),
-                                                                  name_to_localisation_specification[name])
-    return molecule_specifications
 
 
 
@@ -116,29 +165,7 @@ def names_from_set(set_state):
         raise NotImplementedError
 
 def association_specification_from_set(set_state: venn.Set):
-    name_to_association_specifications = defaultdict(set)
-    if isinstance(set_state, venn.Complement):
-        assert isinstance(set_state.expr, venn.PropertySet)
-        assert isinstance(set_state.expr.value, sta.State)
-        name_to_association_definition = name_to_assoc_defs_from_state(set_state.expr.value)
-        first_comp_assoc_spec = rbm.AssociationSpecification(list(name_to_association_definition[set_state.expr.value.first_component.name])[0],
-                                                             rbm.OccupationStatus.not_occupied)
-        second_comp_assoc_spec =rbm.AssociationSpecification(list(name_to_association_definition[set_state.expr.value.second_component.name])[0],
-                                                             rbm.OccupationStatus.not_occupied)
-        name_to_association_specifications[set_state.expr.value.first_component.name].add(first_comp_assoc_spec)
-        name_to_association_specifications[set_state.expr.value.second_component.name].add(second_comp_assoc_spec)
-
-    elif isinstance(set_state, venn.PropertySet):
-        assert isinstance(set_state.value, sta.State)
-        name_to_association_definition = name_to_assoc_defs_from_state(set_state.expr.value)
-        first_comp_assoc_spec = rbm.AssociationSpecification(list(name_to_association_definition[set_state.expr.value.first_component.name])[0],
-                                                             rbm.OccupationStatus.not_occupied)
-        second_comp_assoc_spec =rbm.AssociationSpecification(list(name_to_association_definition[set_state.expr.value.second_component.name])[0],
-                                                             rbm.OccupationStatus.not_occupied)
-
-    else:
-        raise NotImplementedError
-    return name_to_association_specifications
+    pass
 
 
 def modification_specification_from_set():
