@@ -314,15 +314,15 @@ def test_rule_based_model_from_rxncon():
 
 
 
-# def test_test():
-#     # todo: does not work contingencies are not considered in mol_def generation
-#     quick_test = qui.Quick("A_ppi_B; ! A--C")
-#     molecule_def = rfr.molecule_defs_from_rxncon(quick_test.rxncon_system)
-#     reaction = quick_test.rxncon_system.reactions[0]
-#     boolean_flow = flo.boolean_state_flows(reaction, quick_test.rxncon_system.strict_contingencies_for_reaction(reaction),
-#                                            quick_test.rxncon_system.source_contingencies_for_reaction(reaction))
-#     #todo: remove reaction as input
-#     source_specs, target_specs = rfr.specs_pair_from_flow(molecule_def, boolean_flow[0], quick_test.rxncon_system.reactions[0])
-#
-#     pass
+def test_test():
+    # todo: does not work contingencies are not considered in mol_def generation
+    quick_test = qui.Quick("A_ppi_C \n A_ppi_B; ! A--C")
+    molecule_def = rfr.molecule_defs_from_rxncon(quick_test.rxncon_system)
+    reaction = quick_test.rxncon_system.reactions[1]
+    boolean_flow = flo.boolean_state_flows(reaction, quick_test.rxncon_system.strict_contingencies_for_reaction(reaction),
+                                           quick_test.rxncon_system.source_contingencies_for_reaction(reaction))
+    #todo: remove reaction as input
+    source_specs, target_specs = rfr.specs_pair_from_flow(molecule_def, boolean_flow[0], quick_test.rxncon_system.reactions[0])
+
+    pass
 
