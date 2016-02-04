@@ -1,12 +1,11 @@
-import rxncon.core.reaction as rxn
+
 import rxncon.core.rxncon_system as rxs
-import rxncon.core.contingency as con
-import rxncon.core.effector as eff
 import rxncon.syntax.rxncon_from_string as rfs
 import rxncon.simulation.rule_based.rule_based_model as rbm
 import rxncon.simulation.rule_based.rule_based_model_from_rxncon as rfr
 import rxncon.semantics.state_flow as flo
 import rxncon.input.quick.quick as qui
+import rxncon.simulation.rule_based.bngl_export as bng
 
 ### MOLECULE DEFINITIONS FROM SINGLE REACTION SYSTEMS ###
 def test_single_ppi_reaction_mol_defs():
@@ -248,9 +247,6 @@ def test_reactants_from_specs_pair():
                                            rxncon_sys.source_contingencies_for_reaction(reaction))
     #todo: remove reaction as input
     source_specs, target_specs = rfr.specs_pair_from_flow(molecule_defs, boolean_flow[0], reaction)
-    print(source_specs)
-    print(target_specs)
-
 
     source_expected_reactant_A = rbm.MoleculeReactant(rbm.MoleculeSpecification(molecule_defs["A"], [], [], None))
     source_expected_reactant_B = rbm.MoleculeReactant(rbm.MoleculeSpecification(molecule_defs["B"],
@@ -268,11 +264,46 @@ def test_reactants_from_specs_pair():
     assert reactants[0][0] in [source_expected_reactant_A, source_expected_reactant_B]
     assert reactants[0][1] in [source_expected_reactant_A, source_expected_reactant_B]
 
-
     assert len(reactants[1]) == 2
     assert reactants[1][0] in [target_expected_reactant_A, target_expected_reactant_B]
     assert reactants[1][1] in [target_expected_reactant_A, target_expected_reactant_B]
     assert reactants[1][0] != reactants[1][1]
+
+
+def test_rule_from_flow_and_molecule_definitions_and_reaction():
+    reaction = rfs.reaction_from_string('A_p+_B')
+    rxncon_sys = rxs.RxnConSystem([reaction], [])
+
+    molecule_defs = rfr.molecule_defs_from_rxncon(rxncon_sys)
+
+    boolean_flow = flo.boolean_state_flows(reaction, rxncon_sys.strict_contingencies_for_reaction(reaction),
+                                           rxncon_sys.source_contingencies_for_reaction(reaction))
+
+    left_hand_side = [rbm.MoleculeReactant(rbm.MoleculeSpecification(molecule_defs["A"], [], [], None)),
+                      rbm.MoleculeReactant(rbm.MoleculeSpecification(molecule_defs["B"],
+                                                                     [rbm.ModificationSpecification(molecule_defs["B"].modification_def_by_domain_name("ModA"),"u")],
+                                                                     [], None))]
+
+    right_hand_side = [rbm.MoleculeReactant(rbm.MoleculeSpecification(molecule_defs["A"], [], [], None)),
+                       rbm.MoleculeReactant(rbm.MoleculeSpecification(molecule_defs["B"],
+                                                                      [rbm.ModificationSpecification(molecule_defs["B"].modification_def_by_domain_name("ModA"),"p")],
+                                                                      [], None))]
+
+
+    rule = rfr.rule_from_flow_and_molecule_definitions_and_reaction(molecule_defs, boolean_flow[0], reaction, 1)
+
+    assert len(rule.left_hand_side) == 2
+    assert rule.left_hand_side[0] in left_hand_side
+    assert rule.left_hand_side[1] in left_hand_side
+    assert rule.left_hand_side[0] != rule.left_hand_side[1]
+
+    assert len(rule.right_hand_side) == 2
+    assert rule.right_hand_side[0] in right_hand_side
+    assert rule.right_hand_side[1] in right_hand_side
+    assert rule.right_hand_side[0] != rule.right_hand_side[1]
+
+    assert rule.arrow_type == rbm.Arrow.irreversible
+    assert rule.rates == [rbm.Parameter("k1","1")]
 
 
 def test_rule_based_model_from_rxncon():

@@ -35,8 +35,11 @@ def rule_based_model_from_rxncon(rxnconsys: rxs.RxnConSystem) -> rbm.RuleBasedMo
     rules = []
 
     for rxn_number, flow in enumerate(flows):
-        rules.append(rule_from_flow_and_molecule_definitions(molecule_defs, flow , flow.reaction, rxn_number))
+        rules.append(rule_from_flow_and_molecule_definitions_and_reaction(molecule_defs, flow , flow.reaction, rxn_number))
 
+    list_of_mol_defs = [molecule_defs[mol] for mol in molecule_defs]
+    # todo set Parameter, set initial_conditions
+    rbm.RuleBasedModel(list_of_mol_defs, rules, parameters, initial_conditions)
     return rules
 
 
@@ -46,10 +49,10 @@ def rule_from_flow_and_molecule_definitions_and_reaction(mol_def: Dict[str, rbm.
 
     if reaction.directionality.irreversible:
         rates = [rbm.Parameter("k"+str(rxn_number),"1")]
-        rbm.Rule(reactant_pairs[0], reactant_pairs[1], rbm.Arrow.irreversible, rates)
+        return rbm.Rule(reactant_pairs[0], reactant_pairs[1], rbm.Arrow.irreversible, rates)
     elif reaction.directionality.reversible:
         rates = [rbm.Parameter("kf"+str(rxn_number),"1"), rbm.Parameter("kr"+str(rxn_number),"1")]
-        rbm.Rule(reactant_pairs[0], reactant_pairs[1], rbm.Arrow.irreversible, rates)
+        return rbm.Rule(reactant_pairs[0], reactant_pairs[1], rbm.Arrow.irreversible, rates)
 
 
 def molecule_specification_from_spec(mol_defs: Dict[str, rbm.MoleculeDefinition], spec):
@@ -73,6 +76,7 @@ def molecule_specification_from_spec(mol_defs: Dict[str, rbm.MoleculeDefinition]
 def reactants_from_specs_pair(mol_defs: Dict[str, rbm.MoleculeDefinition], specs_pair):
     source_specs = specs_pair[0]
     target_specs = specs_pair[1]
+    #todo: consider ComplexReactant
 
     source_molecule_specifications = molecule_specification_from_spec(mol_defs, source_specs)
     source_reactants = []
