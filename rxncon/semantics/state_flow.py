@@ -51,17 +51,21 @@ def quantified_state_flows(state_flow: StateFlow, quantitative_contingencies: Li
 
         new_flows = []
         for flow in quantified_flows:
-            flow_with_cont, flow_without_cont = copy.deepcopy(flow), copy.deepcopy(flow)
+            # Split the flow in (possibly more than one) WITH and (possibly more than one) WITHOUT the effector.
+            # The reason this could be more than one is that the states making up the effector can be joined by Unions.
+            for effector in set_from_effector(contingency.effector).to_union_list_form():
+                new_flow = copy.deepcopy(flow)
+                new_flow.source = venn.Intersection(new_flow.source, effector)
+                new_flow.target = venn.Intersection(new_flow.target, effector)
 
-            flow_with_cont.source = venn.Intersection(flow_with_cont.source, set_from_effector(contingency.effector))
-            flow_with_cont.target = venn.Intersection(flow_with_cont.target, set_from_effector(contingency.effector))
+                new_flows.append(new_flow)
 
-            flow_without_cont.source = venn.Intersection(flow_without_cont.source,
-                                                         venn.Complement(set_from_effector(contingency.effector)))
-            flow_without_cont.target = venn.Intersection(flow_without_cont.target,
-                                                         venn.Complement(set_from_effector(contingency.effector)))
+            for effector in venn.Complement(set_from_effector(contingency.effector)).to_union_list_form():
+                new_flow = copy.deepcopy(flow)
+                new_flow.source = venn.Intersection(new_flow.source, effector)
+                new_flow.target = venn.Intersection(new_flow.target, effector)
 
-            new_flows += [flow_with_cont, flow_without_cont]
+                new_flows.append(new_flow)
 
         quantified_flows = new_flows
 

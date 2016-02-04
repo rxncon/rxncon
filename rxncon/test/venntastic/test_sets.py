@@ -370,6 +370,28 @@ def test_boolean_function_implies_subset():
     assert not one_func.implies(and_func)
 
 
+# Test the "Gramm-Schmidt" algorithm
+def test_overlaps_simplify_correctly():
+    ab = PropertySet('ab')
+    ac = PropertySet('ac')
+    be = PropertySet('be')
+    bf = PropertySet('bf')
+
+    set1 = Intersection(ab, be)
+    set2 = Intersection(Intersection(ab, bf), Complement(set1))
+    set3 = Intersection(Intersection(Intersection(ac, be), Complement(set2)), Complement(set1))
+    set4 = Intersection(Intersection(Intersection(Intersection(ac, bf), Complement(set3)), Complement(set2)), Complement(set1))
+
+    assert set2.is_equivalent_to(Intersection(Intersection(ab, bf), Complement(be)))
+    assert set3.is_equivalent_to(Intersection(Intersection(ac, be), Complement(ab)))
+    assert set4.is_equivalent_to(Intersection(Intersection(Intersection(ac, bf), Complement(be)), Complement(ab)))
+
+    assert len(set1.to_nested_list_form()) == 1
+    assert len(set2.to_nested_list_form()) == 1
+    assert len(set3.to_nested_list_form()) == 1
+    assert len(set4.to_nested_list_form()) == 1
+
+
 @pytest.fixture
 def sets():
     return [

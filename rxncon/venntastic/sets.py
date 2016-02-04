@@ -507,17 +507,18 @@ def _call_method_list_until_stable(expr: Set, methods: List[str]):
 
 
 def _cleaned_nested_list_form(nested_list: List[List[Set]]) -> List[List[Set]]:
-    cleaned = []
+    clean_terms = []
 
     for term in nested_list:
-        cleaned_term = _cleaned_intersection_term(term)
-        cleaned.append(cleaned_term)
+        cleaned_intersection_term = _cleaned_intersection_term(term)
 
-    if all(cleaned_term == [EmptySet()] for cleaned_term in cleaned):
+        if cleaned_intersection_term != [EmptySet()]:
+            clean_terms.append(cleaned_intersection_term)
+
+    if len(clean_terms) == 0:
         return [[EmptySet()]]
 
-    else:
-        return cleaned
+    return _cleaned_union_terms(clean_terms)
 
 
 def _cleaned_intersection_term(term: List[Set]) -> List[Set]:
@@ -536,6 +537,7 @@ def _cleaned_intersection_term(term: List[Set]) -> List[Set]:
 
         elif Complement(item) in cleaned_term or item in [Complement(x) for x in cleaned_term]:
             cleaned_term = [EmptySet()]
+            break
 
         elif item not in cleaned_term:
             cleaned_term.append(item)
@@ -544,6 +546,23 @@ def _cleaned_intersection_term(term: List[Set]) -> List[Set]:
             continue
 
     return cleaned_term
+
+
+def _cleaned_union_terms(dirty_union_terms: List[List[Set]]) -> List[List[Set]]:
+    dirty_union_terms.sort(key=len)
+    union_terms = [dirty_union_terms.pop(0)]
+
+    for dirty_term in dirty_union_terms:
+        is_subset = False
+        for possible_superset in [x for x in union_terms]:
+            if all(x in dirty_term for x in possible_superset):
+                is_subset = True
+                break
+
+        if not is_subset:
+            union_terms.append(dirty_term)
+
+    return union_terms
 
 
 def _add_dicts(x: Dict, y: Dict) -> Dict:
