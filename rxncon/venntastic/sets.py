@@ -498,7 +498,7 @@ def generate_boolean_value_lists(statements):
         yield list(itt.compress(statements, selector)), list(itt.compress(statements, [not x for x in selector]))
 
 
-### PROTECTED HELPERS ###
+### EXPRESSION SIMPLIFIERS ###
 def _cleaned_nested_list_form(nested_list: tg.List[tg.List[Set]]) -> tg.List[tg.List[Set]]:
     clean_terms = []
 
@@ -511,7 +511,11 @@ def _cleaned_nested_list_form(nested_list: tg.List[tg.List[Set]]) -> tg.List[tg.
     if len(clean_terms) == 0:
         return [[EmptySet()]]
 
-    return _cleaned_union_terms(clean_terms)
+    clean_terms = _remove_subsets_from_union_terms(clean_terms)
+    clean_terms = _remove_partial_complements_from_union_terms(clean_terms)
+    clean_terms = _remove_subsets_from_union_terms(clean_terms)
+
+    return clean_terms
 
 
 def _cleaned_intersection_term(term: tg.List[Set]) -> tg.List[Set]:
@@ -541,23 +545,47 @@ def _cleaned_intersection_term(term: tg.List[Set]) -> tg.List[Set]:
     return cleaned_term
 
 
-def _cleaned_union_terms(dirty_union_terms: tg.List[tg.List[Set]]) -> tg.List[tg.List[Set]]:
-    dirty_union_terms.sort(key=len)
-    union_terms = [dirty_union_terms.pop(0)]
+def _remove_subsets_from_union_terms(union_terms: tg.List[tg.List[Set]]) -> tg.List[tg.List[Set]]:
+    union_terms.sort(key=len)
+    new_union_terms = [union_terms.pop(0)]
 
-    for dirty_term in dirty_union_terms:
+    for term in union_terms:
         is_subset = False
-        for possible_superset in [x for x in union_terms]:
-            if all(x in dirty_term for x in possible_superset):
+        for possible_superset in [x for x in new_union_terms]:
+            if all(x in term for x in possible_superset):
                 is_subset = True
                 break
 
         if not is_subset:
-            union_terms.append(dirty_term)
+            new_union_terms.append(term)
 
-    return union_terms
+    return new_union_terms
 
 
+def _remove_partial_complements_from_union_terms(union_terms: tg.List[tg.List[Set]]) -> tg.List[tg.List[Set]]:
+    new_union_terms = []
+
+    for term in union_terms:
+        simplified_term = None
+        for possible_counter_term in [x for x in union_terms if len(x) == len(term)]:
+            possible_simplified_term = []
+            for s in list(set(possible_counter_term).union(set(term))):
+                if isinstance(s, Complement) and s.expr in possible_simplified_term:
+                    possible_simplified_term.remove(s.expr)
+                elif isinstance(s, PropertySet) and Complement(s) in possible_simplified_term:
+                    possible_simplified_term.remove(Complement(s))
+                else:
+                    possible_simplified_term.append(s)
+
+            if len(possible_simplified_term) < len(term):
+                simplified_term = possible_simplified_term
+
+        new_union_terms.append(simplified_term) if simplified_term else new_union_terms.append(term)
+
+    return new_union_terms
+
+
+### PROTECTED HELPERS ###
 def _cardinality_of_intersection_term(term: tg.List[Set]) -> tg.Dict:
     if any(isinstance(x, EmptySet) for x in term):
         return {}

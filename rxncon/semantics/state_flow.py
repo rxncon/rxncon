@@ -73,9 +73,9 @@ def quantified_state_flows(state_flow: StateFlow, quantitative_contingencies: Li
 
 
 def disjunctified_state_flows(state_flows: List[StateFlow]) -> List[StateFlow]:
-    reaction = state_flows[0].reaction
+    _validate_state_flows(state_flows)
 
-    assert all(flow.reaction == reaction for flow in state_flows)
+    reaction = state_flows[0].reaction
 
     sources = [x.source for x in state_flows]
     targets = [x.target for x in state_flows]
@@ -87,6 +87,8 @@ def disjunctified_state_flows(state_flows: List[StateFlow]) -> List[StateFlow]:
 
     for source, target in zip(non_overlapping_sources, non_overlapping_targets):
         non_overlapping_state_flows.append(StateFlow(reaction, source, target))
+
+    _validate_state_flows(non_overlapping_state_flows)
 
     return non_overlapping_state_flows
 
@@ -121,3 +123,19 @@ def set_from_contingencies(contingencies: List[con.Contingency]) -> venn.Set:
             raise NotImplementedError
 
     return venn.nested_expression_from_list_and_binary_op(intersections, venn.Intersection)
+
+
+def _validate_state_flows(state_flows: List[StateFlow]):
+    reaction = state_flows[0].reaction
+    assert all(x.reaction == reaction for x in state_flows)
+
+    for flow in state_flows:
+        # The union of the source and the target gives us the non-source contingencies
+        contingencies_set = venn.Union(flow.source, flow.target)
+
+        print(contingencies_set.to_nested_list_form())
+
+
+
+
+

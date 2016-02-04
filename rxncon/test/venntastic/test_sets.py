@@ -60,6 +60,15 @@ def test_mutual_ordering():
     assert Intersection(PropertySet(1), PropertySet(2)) < Union(PropertySet(1), PropertySet(2))
 
 
+def test_nested_list_simplifies_mutual_complements():
+    x1 = Intersection(PropertySet(1), PropertySet(2))
+    x2 = Intersection(PropertySet(1), Complement(PropertySet(2)))
+
+    z = Union(x1, x2)
+
+    assert z.to_nested_list_form() == [[PropertySet(1)]]
+
+
 # Test the superset / subset relationships
 def test_superset_subset_for_unary_sets():
     assert UniversalSet() == PropertySet(None)
