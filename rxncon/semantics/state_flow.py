@@ -72,8 +72,23 @@ def quantified_state_flows(state_flow: StateFlow, quantitative_contingencies: Li
     return quantified_flows
 
 
-def disjunctified_state_flows(state_flow: List[StateFlow]) -> List[StateFlow]:
-    pass
+def disjunctified_state_flows(state_flows: List[StateFlow]) -> List[StateFlow]:
+    reaction = state_flows[0].reaction
+
+    assert all(flow.reaction == reaction for flow in state_flows)
+
+    sources = [x.source for x in state_flows]
+    targets = [x.target for x in state_flows]
+
+    non_overlapping_sources = venn.gram_schmidt_disjunctify(sources)
+    non_overlapping_targets = venn.gram_schmidt_disjunctify(targets)
+
+    non_overlapping_state_flows = []
+
+    for source, target in zip(non_overlapping_sources, non_overlapping_targets):
+        non_overlapping_state_flows.append(StateFlow(reaction, source, target))
+
+    return non_overlapping_state_flows
 
 
 def set_from_effector(effector: eff.Effector) -> venn.Set:

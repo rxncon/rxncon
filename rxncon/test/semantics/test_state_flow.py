@@ -100,3 +100,34 @@ def test_quantified_state_flows_single_quantitative_contingency():
 
         else:
             raise AssertionError
+
+
+def test_disjunctified_state_flows():
+    reaction = rfs.reaction_from_string('A_ppi_B')
+    a_phos = rfs.state_from_string('A-{p}')
+    b_phos = rfs.state_from_string('B-{p}')
+    a_b = rfs.state_from_string('A--B')
+
+    contingency = con.Contingency(reaction,
+                                  con.ContingencyType.requirement,
+                                  eff.OrEffector(eff.StateEffector(a_phos),
+                                                 eff.StateEffector(b_phos)))
+
+    source_contingency = con.Contingency(reaction, con.ContingencyType.inhibition, eff.StateEffector(a_b))
+
+    state_flows = flo.boolean_state_flows(reaction, [contingency], [source_contingency])
+    disjunct_state_flows = flo.disjunctified_state_flows(state_flows)
+
+    assert len(disjunct_state_flows) == 2
+
+    assert disjunct_state_flows[0].source.is_equivalent_to(venn.Intersection(venn.PropertySet(a_phos),
+                                                                             venn.Complement(venn.PropertySet(a_b))))
+    assert disjunct_state_flows[0].target.is_equivalent_to(venn.Intersection(venn.PropertySet(a_phos),
+                                                                             venn.PropertySet(a_b)))
+
+    assert disjunct_state_flows[1].source.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(b_phos),
+                                                                                               venn.Complement(venn.PropertySet(a_b))),
+                                                                             venn.Complement(venn.PropertySet(a_phos))))
+    assert disjunct_state_flows[1].target.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(b_phos),
+                                                                                               venn.PropertySet(a_b)),
+                                                                             venn.Complement(venn.PropertySet(a_phos))))
