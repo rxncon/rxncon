@@ -1,6 +1,6 @@
 from collections import defaultdict
 from enum import Enum
-from typing import List, Set
+from typing import List, Set, Dict
 
 import typecheck as tc
 
@@ -97,6 +97,54 @@ def molecule_specification_dict_from_state_and_molecule_def(molecule_def: List[r
                                                     molecule_def)
 
     return molecule_specifications
+
+def reactants_from_specs_pair(mol_defs: Dict[str, rbm.MoleculeDefinition], specs_pair):
+    source_specs = specs_pair[0]
+    target_specs = specs_pair[1]
+
+
+
+
+def specs_pair_from_flow(mol_defs: Dict[str, rbm.MoleculeDefinition], flow: flo.StateFlow):
+    source_specs = {}
+    assert len(flow.source.to_nested_list_form()) == 1
+    for setstate in flow.source.to_nested_list_form()[0]:
+        if isinstance(setstate, venn.Complement):
+            source_specs.update(specs_from_state(mol_defs, setstate.expr.value, True))
+        elif isinstance(setstate, venn.PropertySet):
+            source_specs.update(specs_from_state(mol_defs, setstate.value, False))
+        else:
+            raise AssertionError
+
+    target_specs = {}
+    assert len(flow.target.to_nested_list_form()) == 1
+    for setstate in flow.target.to_nested_list_form()[0]:
+        if isinstance(setstate, venn.Complement):
+            target_specs.update(specs_from_state(mol_defs, setstate.expr.value, True))
+        elif isinstance(setstate, venn.PropertySet):
+            target_specs.update(specs_from_state(mol_defs, setstate.value, False))
+        else:
+            raise AssertionError
+
+    return source_specs, target_specs
+
+
+def specs_from_state(mol_defs: Dict[str, rbm.MoleculeDefinition], state: sta.State, take_complement: bool) -> Dict:
+    if isinstance(state, sta.CovalentModificationState) and not take_complement:
+        mod_def = mol_defs[state.substrate.name].modification_def_by_domain_name(state.substrate.domain)
+        return {state.substrate.name: rbm.ModificationSpecification(mod_def, state.modifier.value)}
+
+    elif isinstance(state, sta.CovalentModificationState) and take_complement:
+        mod_def = mol_defs[state.substrate.name].modification_def_by_domain_name(state.substrate.domain)
+        return {state.substrate.name: rbm.ModificationSpecification(mod_def, Default.unmodified.value)}
+
+    elif isinstance(state, sta.InterProteinInteractionState) and not take_complement:
+        return
+
+
+
+
+
 
 def molecule_specification_from_name_to_defaultdict(names: Set[str],
                                    name_to_association_specifications: defaultdict,

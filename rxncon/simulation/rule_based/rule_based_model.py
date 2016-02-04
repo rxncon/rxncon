@@ -51,6 +51,19 @@ class MoleculeDefinition:
     def __str__(self) -> str:
         return 'MoleculeDefinition: {0}'.format(self.name)
 
+    def modification_def_by_domain_name(self, domain_name):
+        defs = [x for x in self.modification_defs if x.domain == domain_name]
+        assert len(defs) == 1
+
+        return defs[0]
+
+    def association_def_by_domain_name(self, domain_name):
+        defs = [x for x in self.association_defs if x.domain == domain_name]
+        assert len(defs) == 1
+
+        return defs[0]
+
+
 
 class MoleculeSpecification:
     @tc.typecheck
