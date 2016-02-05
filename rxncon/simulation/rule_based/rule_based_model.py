@@ -30,7 +30,15 @@ class RuleBasedModel:
                                      .format(rule, molecule))
 
 
-class MoleculeDefinition:
+class Definition:
+    pass
+
+
+class Specification:
+    pass
+
+
+class MoleculeDefinition(Definition):
     @tc.typecheck
     def __init__(self, name: str, modification_defs: List['ModificationDefinition'],
                  association_defs: List['AssociationDefinition'],
@@ -41,8 +49,8 @@ class MoleculeDefinition:
         self.localization_def = localization_def
 
     @tc.typecheck
-    def __eq__(self, other: 'MoleculeDefinition') -> bool:
-        return self.name == other.name and self.localization_def == other.localization_def and \
+    def __eq__(self, other: 'Definition') -> bool:
+        return isinstance(other, MoleculeDefinition) and self.name == other.name and self.localization_def == other.localization_def and \
             other.modification_defs == self.modification_defs and other.association_defs == self.association_defs
 
     def __hash__(self) -> int:
@@ -79,6 +87,8 @@ class MoleculeDefinition:
 
         spec_lists = []
 
+        print(total_spec_set)
+
         if disjunctify:
             non_overlapping_sets = venn.gram_schmidt_disjunctify(total_spec_set.to_union_list_form())
 
@@ -108,7 +118,7 @@ class MoleculeDefinition:
         return mol_specs
 
 
-class MoleculeSpecification:
+class MoleculeSpecification(Specification):
     @tc.typecheck
     def __init__(self, molecule_def: MoleculeDefinition,
                  modification_specs: List['ModificationSpecification'],
@@ -120,9 +130,9 @@ class MoleculeSpecification:
         self.localization_spec = localization_spec
 
     @tc.typecheck
-    def __eq__(self, other: 'MoleculeSpecification'):
-        assert isinstance(other, MoleculeSpecification)
-        return self.molecule_def == other.molecule_def and self.localization_spec == other.localization_spec and \
+    def __eq__(self, other: Specification):
+        return isinstance(other, MoleculeSpecification) and self.molecule_def == other.molecule_def and \
+            self.localization_spec == other.localization_spec and \
             other.modification_specs == self.modification_specs and other.association_specs == other.association_specs
 
     def __hash__(self) -> int:
@@ -137,7 +147,7 @@ class MoleculeSpecification:
                     ', '.join(str(x) for x in self.association_specs), str(self.localization_spec))
 
 
-class ModificationDefinition:
+class ModificationDefinition(Definition):
     @tc.typecheck
     def __init__(self, domain: str, valid_modifiers: List[str]):
         self.domain = domain
@@ -147,8 +157,9 @@ class ModificationDefinition:
         self.matching_states = []
 
     @tc.typecheck
-    def __eq__(self, other: 'ModificationDefinition'):
-        return self.domain == other.domain and self.valid_modifiers == other.valid_modifiers
+    def __eq__(self, other: Definition):
+        return isinstance(other, ModificationDefinition) and self.domain == other.domain and \
+            self.valid_modifiers == other.valid_modifiers
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -177,7 +188,7 @@ class ModificationDefinition:
             return []
 
 
-class ModificationSpecification:
+class ModificationSpecification(Specification):
     @tc.typecheck
     def __init__(self, modification_def: ModificationDefinition, modifier: str):
         self.modification_def = modification_def
@@ -185,8 +196,9 @@ class ModificationSpecification:
         self._validate()
 
     @tc.typecheck
-    def __eq__(self, other: 'ModificationSpecification') -> bool:
-        return self.modification_def == other.modification_def and self.modifier == other.modifier
+    def __eq__(self, other: Specification) -> bool:
+        return isinstance(other, ModificationSpecification) and self.modification_def == other.modification_def and \
+            self.modifier == other.modifier
 
     def __hash__(self) -> bool:
         return hash(str(self))
@@ -208,7 +220,7 @@ class ModificationSpecification:
                 in self.modification_def.valid_modifiers if modifier != self.modifier]
 
 
-class AssociationDefinition:
+class AssociationDefinition(Definition):
     @tc.typecheck
     def __init__(self, domain: str):
         self.domain = domain
@@ -216,8 +228,8 @@ class AssociationDefinition:
         self.matching_states = []
 
     @tc.typecheck
-    def __eq__(self, other: 'AssociationDefinition') -> bool:
-        return self.domain == other.domain
+    def __eq__(self, other: Definition) -> bool:
+        return isinstance(other, AssociationDefinition) and self.domain == other.domain
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -242,15 +254,16 @@ class AssociationDefinition:
             return []
 
 
-class AssociationSpecification:
+class AssociationSpecification(Specification):
     @tc.typecheck
     def __init__(self, association_def: AssociationDefinition, occupation_status: 'OccupationStatus'):
         self.association_def = association_def
         self.occupation_status = occupation_status
 
     @tc.typecheck
-    def __eq__(self, other: 'AssociationSpecification') -> bool:
-        return self.association_def == other.association_def and self.occupation_status == other.occupation_status
+    def __eq__(self, other: Specification) -> bool:
+        return isinstance(other, AssociationSpecification) and self.association_def == other.association_def and \
+            self.occupation_status == other.occupation_status
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -277,7 +290,7 @@ class OccupationStatus(Enum):
     occupied_unknown_partner = 3
 
 
-class LocalizationDefinition:
+class LocalizationDefinition(Definition):
     @tc.typecheck
     def __init__(self, valid_compartments: List[str]):
         self.valid_compartments = valid_compartments
@@ -285,8 +298,8 @@ class LocalizationDefinition:
         self.matching_states = []
 
     @tc.typecheck
-    def __eq__(self, other: 'LocalizationDefinition'):
-        return self.valid_compartments == other.valid_compartments
+    def __eq__(self, other: Definition):
+        return isinstance(other, LocalizationDefinition) and self.valid_compartments == other.valid_compartments
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -305,7 +318,7 @@ class LocalizationDefinition:
             return []
 
 
-class LocalizationSpecification:
+class LocalizationSpecification(Specification):
     @tc.typecheck
     def __init__(self, localization_def: LocalizationDefinition, compartment: str):
         self.localization_def = localization_def
@@ -313,8 +326,9 @@ class LocalizationSpecification:
         self._validate()
 
     @tc.typecheck
-    def __eq__(self, other: 'LocalizationSpecification') -> bool:
-        return self.localization_def == other.localization_def and self.compartment == other.compartment
+    def __eq__(self, other: Specification) -> bool:
+        return isinstance(other, LocalizationSpecification) and self.localization_def == other.localization_def and \
+            self.compartment == other.compartment
 
     def __hash__(self) -> int:
         return hash(str(self))
