@@ -296,7 +296,7 @@ class MoleculeReactant(Reactant):
         self.molecule_specification = molecule_specification
 
     @tc.typecheck
-    def __eq__(self, other: 'Reactant') -> bool:
+    def __eq__(self, other: Reactant) -> bool:
         return isinstance(other, MoleculeReactant) and self.molecule_specification == other.molecule_specification
 
     def __repr__(self):
