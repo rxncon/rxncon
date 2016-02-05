@@ -1,6 +1,5 @@
 from typing import Optional, List, Tuple
 from enum import Enum, unique
-from collections import defaultdict
 import typecheck as tc
 
 import rxncon.core.state as sta
@@ -33,8 +32,8 @@ class RuleBasedModel:
 
 class MoleculeDefinition:
     @tc.typecheck
-    def __init__(self, name: str, modification_defs: Optional[List['ModificationDefinition']],
-                 association_defs: Optional[List['AssociationDefinition']],
+    def __init__(self, name: str, modification_defs: List['ModificationDefinition'],
+                 association_defs: List['AssociationDefinition'],
                  localization_def: Optional['LocalizationDefinition']):
         self.name = name
         self.modification_defs = modification_defs
@@ -70,10 +69,10 @@ class MoleculeDefinition:
 
             matching_specs = []
 
-            matching_specs += [matches for matches in [mod_def.match_with_state(state, negate=negate) for mod_def in self.modification_defs]]
-            matching_specs += [matches for matches in [ass_def.match_with_state(state, negate=negate) for ass_def in self.association_defs]]
-            matching_specs += [matches for matches in [loc_def.match_with_state(state, negate=negate) for loc_def in self.localization_def]]
+            for definition in self.modification_defs + self.association_defs:
+                matching_specs += definition.match_with_state(state, negate=negate)
 
+            matching_specs += self.localization_def.match_with_state(state, negate=negate)
             spec_sets.append(venn.nested_expression_from_list_and_binary_op([venn.PropertySet(x) for x in matching_specs], venn.Union))
 
         total_spec_set = venn.nested_expression_from_list_and_binary_op(spec_sets, venn.Intersection)
@@ -92,9 +91,10 @@ class MoleculeDefinition:
         mol_specs = []
 
         for spec_list in spec_lists:
-            ass_specs = [spec for spec in spec_list if isinstance(spec, AssociationSpecification)]
-            mod_specs = [spec for spec in spec_list if isinstance(spec, ModificationSpecification)]
-            loc_specs = [spec for spec in spec_list if isinstance(spec, LocalizationSpecification)]
+            assert all(isinstance(x, venn.PropertySet) for x in spec_list)
+            ass_specs = [spec.value for spec in spec_list if isinstance(spec.value, AssociationSpecification)]
+            mod_specs = [spec.value for spec in spec_list if isinstance(spec.value, ModificationSpecification)]
+            loc_specs = [spec.value for spec in spec_list if isinstance(spec.value, LocalizationSpecification)]
 
             if len(loc_specs) == 1:
                 loc_spec = loc_specs[0]
@@ -492,19 +492,19 @@ class InitialCondition:
         return 'InitialCondition: {0} = {1}'.format(self.molecule_specification, self.value)
 
 
-def _remove_complements_from_spec_set(x):
-    if isinstance(x, venn.Intersection):
-        return venn.Intersection(_remove_complements_from_spec_set(x.left_expr), _remove_complements_from_spec_set(x.right_expr))
+def _remove_complements_from_spec_set(spec_set):
+    if isinstance(spec_set, venn.Intersection):
+        return venn.Intersection(_remove_complements_from_spec_set(spec_set.left_expr), _remove_complements_from_spec_set(spec_set.right_expr))
 
-    elif isinstance(x, venn.Union):
-        return venn.Union(_remove_complements_from_spec_set(x.left_expr), _remove_complements_from_spec_set(x.right_expr))
+    elif isinstance(spec_set, venn.Union):
+        return venn.Union(_remove_complements_from_spec_set(spec_set.left_expr), _remove_complements_from_spec_set(spec_set.right_expr))
 
-    elif isinstance(x, venn.PropertySet):
-        return x
+    elif isinstance(spec_set, venn.PropertySet):
+        return spec_set
 
-    elif isinstance(x, venn.Complement):
-        assert isinstance(x.expr, venn.PropertySet)
-        complement_terms = x.expr.value.complement()
+    elif isinstance(spec_set, venn.Complement):
+        assert isinstance(spec_set.expr, venn.PropertySet)
+        complement_terms = [venn.PropertySet(x) for x in spec_set.expr.value.complement()]
 
         return venn.nested_expression_from_list_and_binary_op(complement_terms, venn.Union)
 
