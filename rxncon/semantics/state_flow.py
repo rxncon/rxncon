@@ -133,7 +133,7 @@ def _validate_state_flows(state_flows: List[StateFlow]):
         # The union of the source and the target gives us the non-source contingencies
         contingencies_set = venn.Union(flow.source, flow.target)
 
-        print(contingencies_set.to_nested_list_form())
+        print()
 
 
 
