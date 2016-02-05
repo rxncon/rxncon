@@ -1,6 +1,10 @@
 from typing import Optional, List, Tuple
 from enum import Enum, unique
+from collections import defaultdict
 import typecheck as tc
+
+import rxncon.core.state as sta
+import rxncon.venntastic.sets as venn
 
 
 class RuleBasedModel:
@@ -51,18 +55,57 @@ class MoleculeDefinition:
     def __str__(self) -> str:
         return 'MoleculeDefinition: {0}'.format(self.name)
 
-    def modification_def_by_domain_name(self, domain_name):
-        defs = [x for x in self.modification_defs if x.domain == domain_name]
-        assert len(defs) == 1
+    def match_with_state_set(self, state_set: venn.Set, disjunctify=True) -> List['MoleculeSpecification']:
+        assert len(state_set.to_nested_list_form()) == 1
+        spec_sets = []
 
-        return defs[0]
+        for single_property in state_set.to_nested_list_form()[0]:
+            if isinstance(single_property, venn.PropertySet):
+                state = single_property.value
+                negate = False
+            elif isinstance(single_property, venn.Complement):
+                assert isinstance(single_property.expr, venn.PropertySet)
+                state = single_property.expr.value
+                negate = True
 
-    def association_def_by_domain_name(self, domain_name):
-        defs = [x for x in self.association_defs if x.domain == domain_name]
-        assert len(defs) == 1
+            matching_specs = []
 
-        return defs[0]
+            matching_specs += [matches for matches in [mod_def.match_with_state(state, negate=negate) for mod_def in self.modification_defs]]
+            matching_specs += [matches for matches in [ass_def.match_with_state(state, negate=negate) for ass_def in self.association_defs]]
+            matching_specs += [matches for matches in [loc_def.match_with_state(state, negate=negate) for loc_def in self.localization_def]]
 
+            spec_sets.append(venn.nested_expression_from_list_and_binary_op([venn.PropertySet(x) for x in matching_specs], venn.Union))
+
+        total_spec_set = venn.nested_expression_from_list_and_binary_op(spec_sets, venn.Intersection)
+
+        spec_lists = []
+
+        if disjunctify:
+            non_overlapping_sets = venn.gram_schmidt_disjunctify(total_spec_set.to_union_list_form())
+
+            for x in non_overlapping_sets:
+                spec_lists += _remove_complements_from_spec_set(x).to_nested_list_form()
+
+        else:
+            spec_lists = total_spec_set.to_nested_list_form()
+
+        mol_specs = []
+
+        for spec_list in spec_lists:
+            ass_specs = [spec for spec in spec_list if isinstance(spec, AssociationSpecification)]
+            mod_specs = [spec for spec in spec_list if isinstance(spec, ModificationSpecification)]
+            loc_specs = [spec for spec in spec_list if isinstance(spec, LocalizationSpecification)]
+
+            if len(loc_specs) == 1:
+                loc_spec = loc_specs[0]
+            elif len(loc_specs) == 0:
+                loc_spec = None
+            else:
+                raise AssertionError
+
+            mol_specs.append(MoleculeSpecification(self, mod_specs, ass_specs, loc_spec))
+
+        return mol_specs
 
 
 class MoleculeSpecification:
@@ -101,6 +144,8 @@ class ModificationDefinition:
         self.valid_modifiers = valid_modifiers
         self._validate()
 
+        self.matching_states = []
+
     @tc.typecheck
     def __eq__(self, other: 'ModificationDefinition'):
         return self.domain == other.domain and self.valid_modifiers == other.valid_modifiers
@@ -120,6 +165,16 @@ class ModificationDefinition:
             modifiers = ', '.join(self.valid_modifiers)
             raise ValueError('Valid modifier list {0} for domain {1} contains non-unique elements.'
                              .format(modifiers, self.domain))
+
+    def match_with_state(self, state: sta.State, negate: bool) -> List['ModificationSpecification']:
+        if isinstance(state, sta.CovalentModificationState) and state in self.matching_states:
+            if not negate:
+                return [ModificationSpecification(self, state.modifier.value)]
+            else:
+                return ModificationSpecification(self, state.modifier.value).complement()
+
+        else:
+            return []
 
 
 class ModificationSpecification:
@@ -148,11 +203,17 @@ class ModificationSpecification:
             raise ValueError('Modifier {0} does not appear in list of valid modifiers for domain {1}.'
                              .format(self.modifier, self.modification_def.domain))
 
+    def complement(self):
+        return [ModificationSpecification(self.modification_def, modifier) for modifier
+                in self.modification_def.valid_modifiers if modifier != self.modifier]
+
 
 class AssociationDefinition:
     @tc.typecheck
     def __init__(self, domain: str):
         self.domain = domain
+
+        self.matching_states = []
 
     @tc.typecheck
     def __eq__(self, other: 'AssociationDefinition') -> bool:
@@ -166,6 +227,19 @@ class AssociationDefinition:
 
     def __str__(self) -> str:
         return 'AssociationDefinition: Domain = {0}'.format(self.domain)
+
+    def match_with_state(self, state: sta.State, negate: bool) -> List['AssociationSpecification']:
+        if isinstance(state, sta.InterProteinInteractionState) and state in self.matching_states:
+            if not negate:
+                return [AssociationSpecification(self, OccupationStatus.occupied_known_partner)]
+            else:
+                return AssociationSpecification(self, OccupationStatus.occupied_known_partner).complement()
+
+        elif isinstance(state, sta.IntraProteinInteractionState) and state in self.matching_states:
+            raise NotImplementedError
+
+        else:
+            return []
 
 
 class AssociationSpecification:
@@ -188,6 +262,12 @@ class AssociationSpecification:
         return 'AssociationSpecification: Domain = {0}, occupation_status = {1}'\
             .format(self.association_def.domain, self.occupation_status)
 
+    def complement(self):
+        if self.occupation_status == OccupationStatus.occupied_known_partner:
+            return [AssociationSpecification(self.association_def, OccupationStatus.not_occupied)]
+
+        else:
+            raise NotImplementedError
 
 @unique
 class OccupationStatus(Enum):
@@ -202,6 +282,8 @@ class LocalizationDefinition:
     def __init__(self, valid_compartments: List[str]):
         self.valid_compartments = valid_compartments
 
+        self.matching_states = []
+
     @tc.typecheck
     def __eq__(self, other: 'LocalizationDefinition'):
         return self.valid_compartments == other.valid_compartments
@@ -209,9 +291,18 @@ class LocalizationDefinition:
     def __hash__(self) -> int:
         return hash(str(self))
 
-
     def __str__(self) -> str:
         return 'LocalizationDefinition: {0}'.format(', '.join(self.valid_compartments))
+
+    def match_with_state(self, state: sta.State, negate: bool):
+        if isinstance(state, sta.TranslocationState) and state in self.matching_states:
+            if not negate:
+                return [LocalizationSpecification(self, state.compartment)]
+            else:
+                return LocalizationSpecification(self, state.compartment).complement()
+
+        else:
+            return []
 
 
 class LocalizationSpecification:
@@ -238,6 +329,10 @@ class LocalizationSpecification:
         if self.compartment not in self.localization_def.valid_compartments:
             raise ValueError('Compartment {0} does not appear in list of valid compartments {1}.'
                              .format(self.compartment, ', '.join(self.localization_def.valid_compartments)))
+
+    def complement(self):
+        return [LocalizationSpecification(self.localization_def, compartment) for compartment
+                in self.localization_def.valid_compartments if compartment != self.compartment]
 
 
 class Rule:
@@ -395,3 +490,22 @@ class InitialCondition:
 
     def __str__(self):
         return 'InitialCondition: {0} = {1}'.format(self.molecule_specification, self.value)
+
+
+def _remove_complements_from_spec_set(x):
+    if isinstance(x, venn.Intersection):
+        return venn.Intersection(_remove_complements_from_spec_set(x.left_expr), _remove_complements_from_spec_set(x.right_expr))
+
+    elif isinstance(x, venn.Union):
+        return venn.Union(_remove_complements_from_spec_set(x.left_expr), _remove_complements_from_spec_set(x.right_expr))
+
+    elif isinstance(x, venn.PropertySet):
+        return x
+
+    elif isinstance(x, venn.Complement):
+        assert isinstance(x.expr, venn.PropertySet)
+        complement_terms = x.expr.value.complement()
+
+        return venn.nested_expression_from_list_and_binary_op(complement_terms, venn.Union)
+
+

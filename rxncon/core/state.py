@@ -8,10 +8,10 @@ import rxncon.syntax.string_from_rxncon as sfr
 
 @unique
 class StateModifier(Enum):
-    undefined = None
-    phosphor  = 'p'
-    ubiquitin = 'ub'
-    truncated = 'truncated'
+    unmodified = 'u'
+    phosphor   = 'p'
+    ubiquitin  = 'ub'
+    truncated  = 'truncated'
 
 
 class State:
@@ -37,6 +37,10 @@ class CovalentModificationState(State):
     def __str__(self) -> str:
         return sfr.string_from_covalent_modification_state(self)
 
+    @property
+    def matching_states(self):
+        return [CovalentModificationState(superspec, self.modifier) for superspec in self.substrate.superspecifications]
+
 
 class InterProteinInteractionState(State):
     @tc.typecheck
@@ -54,6 +58,11 @@ class InterProteinInteractionState(State):
 
     def __str__(self) -> str:
         return sfr.string_from_inter_protein_interaction_state(self)
+
+    @property
+    def matching_states(self):
+        return [InterProteinInteractionState(first_superspec, second_superspec) for first_superspec in
+                self.first_component.superspecifications for second_superspec in self.second_component.superspecifications]
 
 
 class IntraProteinInteractionState(State):
@@ -74,6 +83,11 @@ class IntraProteinInteractionState(State):
     def __str__(self) -> str:
         return sfr.string_from_intra_protein_interaction_state(self)
 
+    @property
+    def matching_states(self):
+        return [IntraProteinInteractionState(first_superspec, second_superspec) for first_superspec in
+                self.first_component.superspecifications for second_superspec in self.second_component.superspecifications]
+
 
 class SynthesisDegradationState(State):
     @tc.typecheck
@@ -89,6 +103,10 @@ class SynthesisDegradationState(State):
 
     def __str__(self) -> str:
         return sfr.string_from_synthesis_degradation_state(self)
+
+    @property
+    def matching_states(self):
+        return [SynthesisDegradationState(superspec) for superspec in self.component.superspecifications]
 
 
 class TranslocationState(State):
@@ -108,6 +126,10 @@ class TranslocationState(State):
     def __str__(self) -> str:
         return sfr.string_from_translocation_state(self)
 
+    @property
+    def matching_states(self):
+        return [TranslocationState(superspec, self.compartment) for superspec in self.substrate.superspecifications]
+
 
 class InputState(State):
     @tc.typecheck
@@ -116,3 +138,7 @@ class InputState(State):
 
     def __hash__(self):
         return hash('*input-state-{}*'.format(self.name))
+
+    @property
+    def matching_states(self):
+        raise NotImplementedError
