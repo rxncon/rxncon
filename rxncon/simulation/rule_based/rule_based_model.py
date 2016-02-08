@@ -154,7 +154,7 @@ class ModificationDefinition(Definition):
         self.valid_modifiers = valid_modifiers
         self._validate()
 
-        self.matching_states = []
+        self.matching_state = None
 
     @tc.typecheck
     def __eq__(self, other: Definition):
@@ -178,7 +178,7 @@ class ModificationDefinition(Definition):
                              .format(modifiers, self.domain))
 
     def match_with_state(self, state: sta.State, negate: bool) -> List['ModificationSpecification']:
-        if isinstance(state, sta.CovalentModificationState) and state in self.matching_states:
+        if isinstance(state, sta.CovalentModificationState) and state.is_subspecification_of(self.matching_state):
             if not negate:
                 return [ModificationSpecification(self, state.modifier.value)]
             else:
@@ -225,7 +225,7 @@ class AssociationDefinition(Definition):
     def __init__(self, domain: str):
         self.domain = domain
 
-        self.matching_states = []
+        self.matching_state = None
 
     @tc.typecheck
     def __eq__(self, other: Definition) -> bool:
@@ -241,13 +241,13 @@ class AssociationDefinition(Definition):
         return 'AssociationDefinition: Domain = {0}'.format(self.domain)
 
     def match_with_state(self, state: sta.State, negate: bool) -> List['AssociationSpecification']:
-        if isinstance(state, sta.InterProteinInteractionState) and state in self.matching_states:
+        if isinstance(state, sta.InterProteinInteractionState) and state.is_subspecification_of(self.matching_state):
             if not negate:
                 return [AssociationSpecification(self, OccupationStatus.occupied_known_partner)]
             else:
                 return AssociationSpecification(self, OccupationStatus.occupied_known_partner).complement()
 
-        elif isinstance(state, sta.IntraProteinInteractionState) and state in self.matching_states:
+        elif isinstance(state, sta.IntraProteinInteractionState) and state.is_subspecification_of(self.matching_state):
             raise NotImplementedError
 
         else:
@@ -295,7 +295,7 @@ class LocalizationDefinition(Definition):
     def __init__(self, valid_compartments: List[str]):
         self.valid_compartments = valid_compartments
 
-        self.matching_states = []
+        self.matching_state = None
 
     @tc.typecheck
     def __eq__(self, other: Definition):
@@ -308,7 +308,7 @@ class LocalizationDefinition(Definition):
         return 'LocalizationDefinition: {0}'.format(', '.join(self.valid_compartments))
 
     def match_with_state(self, state: sta.State, negate: bool):
-        if isinstance(state, sta.TranslocationState) and state in self.matching_states:
+        if isinstance(state, sta.TranslocationState) and state.is_subspecification_of(self.matching_state):
             if not negate:
                 return [LocalizationSpecification(self, state.compartment)]
             else:

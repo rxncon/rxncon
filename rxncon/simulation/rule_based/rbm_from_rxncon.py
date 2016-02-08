@@ -54,7 +54,7 @@ def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, react
         domain_name = state.substrate.domain
 
     mod_def = rbm.ModificationDefinition(domain_name, [sta.StateModifier.unmodified.value, state.modifier.value])
-    mod_def.matching_states = state.matching_states
+    mod_def.matching_state = state
 
     return mod_def
 
@@ -64,10 +64,10 @@ def _state_to_ass_defs(state: tg.Union[sta.InterProteinInteractionState, sta.Int
     second_dom = state.second_component.domain if state.second_component.domain else 'Ass{}'.format(state.first_component.name)
 
     first_def = rbm.AssociationDefinition(first_dom)
-    first_def.matching_states = state.matching_states
+    first_def.matching_state = state
 
     second_def = rbm.AssociationDefinition(second_dom)
-    second_def.matching_states = state.matching_states
+    second_def.matching_state = state
 
     return first_def, second_def
 
