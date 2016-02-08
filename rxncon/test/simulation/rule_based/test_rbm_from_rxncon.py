@@ -27,6 +27,19 @@ def test_simple_rxncon_system(simple_system):
         print(mol_def_X.specification_from_specification_set(ss))
 
 
+def test_single_rule():
+    a_phos_b = rfs.reaction_from_string('A_p+_B')
+    rxncon = rxs.RxnConSystem([a_phos_b], [])
+
+    # print(rfr.molecule_defs_from_rxncon(rxncon)['A'].modification_defs)
+
+    rules = rfr.rules_from_rxncon(rxncon)
+
+    for rule in rules:
+        print()
+        print(rule)
+
+
 
 @pytest.fixture
 def simple_system():

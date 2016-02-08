@@ -13,47 +13,65 @@ import rxncon.core.effector as eff
 import rxncon.venntastic.sets as venn
 
 
+def rules_from_rxncon(rxconsys: rxs.RxnConSystem):
+    mol_defs = molecule_defs_from_rxncon(rxconsys)
+
+    rules = []
+    for reaction in rxconsys.reactions:
+        rules += rules_from_reaction(rxconsys, mol_defs, reaction)
+
+    return rules
+
+
 def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.MoleculeDefinition],
                         reaction: rxn.Reaction) -> tg.List[rbm.Rule]:
     strict_contingency_state_set = state_set_from_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction))
-    source_contingency_state_set = None
+    source_state_set = source_state_set_from_reaction(reaction)
 
     quant_contingency_configurations = \
         contingency_configurations_from_quantitative_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))
 
-    mol_specs_lhs_to_rhs = defaultdict([])
+    mol_specs_lhs_to_rhs = defaultdict(list)
 
     for mol_def in mol_defs.values():
         strict_spec_set = mol_def.specification_set_from_state_set(strict_contingency_state_set)
-        source_spec_set = mol_def.specification_set_from_state_set(source_contingency_state_set)
+        source_spec_set = mol_def.specification_set_from_state_set(source_state_set)
 
         lhs_sets = []
 
         for strict_term in strict_spec_set.to_union_list_form():
-            for contingencies in quant_contingency_configurations:
-                quant_contingency_state_set = state_set_from_contingencies(contingencies)
+            for contingency in quant_contingency_configurations:
+                quant_contingency_state_set = state_set_from_contingencies([contingency])
                 quant_term = mol_def.specification_set_from_state_set(quant_contingency_state_set)
 
                 lhs_sets.append(venn.Intersection(strict_term, quant_term))
 
+            else:
+                lhs_sets.append(strict_term)
+
         lhs_sets_disjunct = venn.gram_schmidt_disjunctify(lhs_sets)
 
         for lhs in lhs_sets_disjunct:
-            left_mol_spec = mol_def.specification_from_specification_set(venn.Intersection(lhs, source_spec_set))
-            right_mol_spec = mol_def.specification_from_specification_set(venn.Intersection(lhs, venn.Complement(source_spec_set)))
+            if source_spec_set == venn.EmptySet():
+                left_mol_spec = mol_def.specification_from_specification_set(lhs)
+                right_mol_spec = left_mol_spec
+
+            else:
+                left_mol_spec = mol_def.specification_from_specification_set(venn.Intersection(lhs, source_spec_set))
+                right_mol_spec = mol_def.specification_from_specification_set(venn.Intersection(lhs, venn.Complement(source_spec_set)))
 
             mol_specs_lhs_to_rhs[left_mol_spec.molecule_def.name].append((left_mol_spec, right_mol_spec))
 
     rules = []
 
-    arrow = arrow_from_reaction(reaction)
+    # @todo
+    arrow = rbm.Arrow.reversible
+    rates = [rbm.Parameter('k1', '1.0'), rbm.Parameter('k2', '1.0')]
 
     for lhs_to_rhs_per_molecule in itt.product(*mol_specs_lhs_to_rhs.values()):
-        lhs_to_rhs = zip(*lhs_to_rhs_per_molecule)
+        lhs_to_rhs = list(zip(*lhs_to_rhs_per_molecule))
         lhs = reactants_from_specs(lhs_to_rhs[0])
         rhs = reactants_from_specs(lhs_to_rhs[1])
-
-        rates = rates_from_reaction(reaction)
 
         rules.append(rbm.Rule(lhs, rhs, arrow, rates))
 
@@ -61,6 +79,9 @@ def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.
 
 
 def state_set_from_contingencies(contingencies: tg.List[con.Contingency]) -> venn.Set:
+    if not contingencies:
+        return venn.EmptySet()
+
     for contingency in contingencies:
         assert contingency.target == contingencies[0].target
         assert contingency.type in [con.ContingencyType.inhibition, con.ContingencyType.requirement]
@@ -82,6 +103,9 @@ def state_set_from_contingencies(contingencies: tg.List[con.Contingency]) -> ven
 
 
 def contingency_configurations_from_quantitative_contingencies(contingencies: tg.List[con.Contingency]) -> tg.List[con.Contingency]:
+    if not contingencies:
+        return []
+
     reaction = contingencies[0].target
 
     for contingency in contingencies:
@@ -103,6 +127,23 @@ def contingency_configurations_from_quantitative_contingencies(contingencies: tg
         contingency_configs.append(con.Contingency(reaction, con.ContingencyType.requirement, total_effector))
 
     return contingency_configs
+
+
+def source_state_set_from_reaction(reaction: rxn.Reaction) -> venn.Set:
+    source_state = reaction.source
+    product_state = reaction.product
+
+    if not source_state and product_state:
+        return venn.Complement(venn.PropertySet(product_state))
+
+    elif source_state and not product_state:
+        return venn.PropertySet(source_state)
+
+    elif source_state and product_state:
+        return venn.Intersection(venn.Complement(venn.PropertySet(product_state)), venn.PropertySet(source_state))
+
+    else:
+        raise AssertionError
 
 
 def reactants_from_specs(mol_specs: tg.List[rbm.MoleculeSpecification]) -> tg.List[rbm.Reactant]:
@@ -142,6 +183,7 @@ def molecule_defs_from_rxncon(rxnconsys: rxs.RxnConSystem) -> tg.Dict[str, rbm.M
         for state in [x for x in [reaction.source, reaction.product] if x]:
             if isinstance(state, sta.CovalentModificationState):
                 names.add(state.substrate.name)
+                names.add(reaction.subject.name)
                 name_to_mod_defs[state.substrate.name].append(_mod_def_from_state_and_reaction(state, reaction))
 
             elif isinstance(state, sta.InterProteinInteractionState) or isinstance(state, sta.IntraProteinInteractionState):
@@ -153,6 +195,7 @@ def molecule_defs_from_rxncon(rxnconsys: rxs.RxnConSystem) -> tg.Dict[str, rbm.M
 
             elif isinstance(state, sta.TranslocationState):
                 names.add(state.substrate.name)
+                names.add(reaction.subject.name)
                 name_to_locs[state.substrate.name].append(state.compartment)
 
             else:

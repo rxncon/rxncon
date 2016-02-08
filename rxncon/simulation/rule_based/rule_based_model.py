@@ -67,6 +67,9 @@ class MoleculeDefinition(Definition):
         assert len(state_set.to_nested_list_form()) == 1
         spec_sets = []
 
+        if state_set == venn.EmptySet():
+            return venn.UniversalSet()
+
         for single_property in state_set.to_nested_list_form()[0]:
             if isinstance(single_property, venn.PropertySet):
                 state = single_property.value
@@ -75,6 +78,8 @@ class MoleculeDefinition(Definition):
                 assert isinstance(single_property.expr, venn.PropertySet)
                 state = single_property.expr.value
                 negate = True
+            else:
+                raise AssertionError
 
             matching_specs = []
 
