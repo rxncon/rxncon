@@ -28,8 +28,13 @@ def test_simple_rxncon_system(simple_system):
 
 
 def test_single_rule():
+    c_phos_a = rfs.reaction_from_string('C_p+_A_[x]')
+    a_phos = rfs.state_from_string('A_[x]-{p}')
     a_phos_b = rfs.reaction_from_string('A_p+_B')
-    rxncon = rxs.RxnConSystem([a_phos_b], [])
+
+    cont = con.Contingency(a_phos_b, con.ContingencyType.requirement, eff.StateEffector(a_phos))
+
+    rxncon = rxs.RxnConSystem([c_phos_a, a_phos_b], [cont])
 
     # print(rfr.molecule_defs_from_rxncon(rxncon)['A'].modification_defs)
 

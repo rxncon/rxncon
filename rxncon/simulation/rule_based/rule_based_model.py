@@ -516,4 +516,6 @@ def remove_complements_from_spec_set(spec_set):
 
         return venn.nested_expression_from_list_and_binary_op(complement_terms, venn.Union)
 
+    else:
+        raise AssertionError
 

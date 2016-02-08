@@ -39,6 +39,8 @@ def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.
 
         lhs_sets = []
 
+        print(reaction)
+
         for strict_term in strict_spec_set.to_union_list_form():
             for contingency in quant_contingency_configurations:
                 quant_contingency_state_set = state_set_from_contingencies([contingency])
@@ -50,6 +52,10 @@ def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.
                 lhs_sets.append(strict_term)
 
         lhs_sets_disjunct = venn.gram_schmidt_disjunctify(lhs_sets)
+        print(lhs_sets_disjunct)
+
+        if lhs_sets_disjunct == [venn.EmptySet()]:
+            continue
 
         for lhs in lhs_sets_disjunct:
             if source_spec_set == venn.EmptySet():
@@ -60,6 +66,9 @@ def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.
                 left_mol_spec = mol_def.specification_from_specification_set(venn.Intersection(lhs, source_spec_set))
                 right_mol_spec = mol_def.specification_from_specification_set(venn.Intersection(lhs, venn.Complement(source_spec_set)))
 
+            print('left, right')
+            print(left_mol_spec)
+            print(right_mol_spec)
             mol_specs_lhs_to_rhs[left_mol_spec.molecule_def.name].append((left_mol_spec, right_mol_spec))
 
     rules = []
@@ -67,6 +76,11 @@ def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.
     # @todo
     arrow = rbm.Arrow.reversible
     rates = [rbm.Parameter('k1', '1.0'), rbm.Parameter('k2', '1.0')]
+
+    for k, v in mol_specs_lhs_to_rhs.items():
+        print()
+        print(k)
+        print(v)
 
     for lhs_to_rhs_per_molecule in itt.product(*mol_specs_lhs_to_rhs.values()):
         lhs_to_rhs = list(zip(*lhs_to_rhs_per_molecule))
