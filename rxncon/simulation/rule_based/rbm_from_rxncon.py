@@ -1,5 +1,6 @@
 from collections import defaultdict
 import itertools as itt
+import functools as ft
 import typing as tg
 
 import rxncon.core.rxncon_system as rxs
@@ -7,26 +8,32 @@ import rxncon.simulation.rule_based.rule_based_model as rbm
 import rxncon.core.state as sta
 import rxncon.core.reaction as rxn
 import rxncon.core.component as com
+import rxncon.core.contingency as con
+import rxncon.core.effector as eff
 import rxncon.venntastic.sets as venn
 
 
 def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.MoleculeDefinition],
                         reaction: rxn.Reaction) -> tg.List[rbm.Rule]:
     strict_contingency_state_set = state_set_from_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction))
-    quant_contingency_state_set = state_set_from_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))
     source_contingency_state_set = None
+
+    quant_contingency_configurations = \
+        contingency_configurations_from_quantitative_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))
 
     mol_specs_lhs_to_rhs = defaultdict([])
 
     for mol_def in mol_defs.values():
         strict_spec_set = mol_def.specification_set_from_state_set(strict_contingency_state_set)
-        quant_spec_set = mol_def.specification_set_from_state_set(quant_contingency_state_set)
         source_spec_set = mol_def.specification_set_from_state_set(source_contingency_state_set)
 
         lhs_sets = []
 
         for strict_term in strict_spec_set.to_union_list_form():
-            for quant_term in quant_spec_set.to_union_list_form():
+            for contingencies in quant_contingency_configurations:
+                quant_contingency_state_set = state_set_from_contingencies(contingencies)
+                quant_term = mol_def.specification_set_from_state_set(quant_contingency_state_set)
+
                 lhs_sets.append(venn.Intersection(strict_term, quant_term))
 
         lhs_sets_disjunct = venn.gram_schmidt_disjunctify(lhs_sets)
@@ -51,6 +58,77 @@ def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.
         rules.append(rbm.Rule(lhs, rhs, arrow, rates))
 
     return rules
+
+
+def state_set_from_contingencies(contingencies: tg.List[con.Contingency]) -> venn.Set:
+    for contingency in contingencies:
+        assert contingency.target == contingencies[0].target
+        assert contingency.type in [con.ContingencyType.inhibition, con.ContingencyType.requirement]
+
+    requirements = []
+    inhibitions = []
+
+    for contingency in contingencies:
+        if contingency.type == con.ContingencyType.requirement:
+            requirements.append(state_set_from_effector(contingency.effector))
+
+        elif contingency.type == con.ContingencyType.inhibition:
+            inhibitions.append(state_set_from_effector(contingency.effector))
+
+    required = venn.nested_expression_from_list_and_binary_op(requirements, venn.Intersection)
+    inhibited = venn.nested_expression_from_list_and_binary_op(inhibitions, venn.Union)
+
+    return venn.Intersection(required, venn.Complement(inhibited))
+
+
+def contingency_configurations_from_quantitative_contingencies(contingencies: tg.List[con.Contingency]) -> tg.List[con.Contingency]:
+    reaction = contingencies[0].target
+
+    for contingency in contingencies:
+        assert contingency.target == reaction
+        assert contingency.type in [con.ContingencyType.positive, con.ContingencyType.negative]
+
+    config_pairs = [(effector, eff.NotEffector(effector)) for effector in [contingency.effector for contingency in contingencies]]
+
+    configs = itt.product(*config_pairs)
+
+    contingency_configs = []
+
+    for config in configs:
+        if len(config) == 1:
+            total_effector = config[0]
+        else:
+            total_effector = ft.reduce(eff.AndEffector, config[1:], config[0])
+
+        contingency_configs.append(con.Contingency(reaction, con.ContingencyType.requirement, total_effector))
+
+    return contingency_configs
+
+
+def reactants_from_specs(mol_specs: tg.List[rbm.MoleculeSpecification]) -> tg.List[rbm.Reactant]:
+    reactants = []
+
+    for mol_spec in mol_specs:
+        reactants.append(rbm.MoleculeReactant(mol_spec))
+
+    return reactants
+
+
+def state_set_from_effector(effector: eff.Effector) -> venn.Set:
+    if isinstance(effector, eff.StateEffector):
+        return venn.PropertySet(effector.expr)
+
+    elif isinstance(effector, eff.NotEffector):
+        return venn.Complement(state_set_from_effector(effector.expr))
+
+    elif isinstance(effector, eff.AndEffector):
+        return venn.Intersection(state_set_from_effector(effector.left_expr), state_set_from_effector(effector.right_expr))
+
+    elif isinstance(effector, eff.OrEffector):
+        return venn.Union(state_set_from_effector(effector.left_expr), state_set_from_effector(effector.right_expr))
+
+    else:
+        raise AssertionError
 
 
 def molecule_defs_from_rxncon(rxnconsys: rxs.RxnConSystem) -> tg.Dict[str, rbm.MoleculeDefinition]:
