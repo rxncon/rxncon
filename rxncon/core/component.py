@@ -50,33 +50,3 @@ class Component:
             return True
 
         return other.is_subspecification_of(self)
-
-    @property
-    def superspecifications(self) -> List['Component']:
-        if not self.domain and not self.subdomain and not self.residue:
-            return [self]
-
-        elif not self.domain and not self.subdomain and self.residue:
-            return [self, Component(self.name, None, None, None)]
-
-        elif self.domain and not self.subdomain and not self.residue:
-            return [Component(self.name, None, None, None), self]
-
-        elif self.domain and not self.subdomain and self.residue:
-            return [Component(self.name, None, None, None), Component(self.name, self.domain, None, None), self]
-
-        elif self.domain and self.subdomain and not self.residue:
-            return [Component(self.name, None, None, None), Component(self.name, self.domain, None, None), self]
-
-        elif self.domain and self.subdomain and self.residue:
-            return [Component(self.name, None, None, None), Component(self.name, self.domain, None, None),
-                    Component(self.name, None, None, self.residue), Component(self.name, self.domain, None, self.residue),
-                    Component(self.name, self.domain, self.subdomain, None), Component(self.name, self.domain, self.subdomain, self.residue)]
-
-        else:
-            raise NotImplementedError
-
-
-
-
-

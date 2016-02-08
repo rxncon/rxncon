@@ -20,6 +20,14 @@ class State:
     def __repr__(self):
         return str(self)
 
+    @abstractmethod
+    def is_superspecification_of(self, other):
+        pass
+
+    @abstractmethod
+    def is_subspecification_of(self, other):
+        pass
+
 
 class CovalentModificationState(State):
     @tc.typecheck
@@ -37,9 +45,13 @@ class CovalentModificationState(State):
     def __str__(self) -> str:
         return sfr.string_from_covalent_modification_state(self)
 
-    @property
-    def matching_states(self):
-        return [CovalentModificationState(superspec, self.modifier) for superspec in self.substrate.superspecifications]
+    def is_superspecification_of(self, other: State):
+        return isinstance(other, CovalentModificationState) and self.modifier == other.modifier and \
+            self.substrate.is_superspecification_of(other.substrate)
+
+    def is_subspecification_of(self, other: State):
+        return isinstance(other, CovalentModificationState) and self.modifier == other.modifier and \
+            self.substrate.is_subspecification_of(other.substrate)
 
 
 class InterProteinInteractionState(State):
@@ -59,10 +71,13 @@ class InterProteinInteractionState(State):
     def __str__(self) -> str:
         return sfr.string_from_inter_protein_interaction_state(self)
 
-    @property
-    def matching_states(self):
-        return [InterProteinInteractionState(first_superspec, second_superspec) for first_superspec in
-                self.first_component.superspecifications for second_superspec in self.second_component.superspecifications]
+    def is_superspecification_of(self, other: State):
+        return isinstance(other, InterProteinInteractionState) and self.first_component.is_superspecification_of(other.first_component) \
+            and self.second_component.is_superspecification_of(other.second_component)
+
+    def is_subspecification_of(self, other: State):
+        return isinstance(other, InterProteinInteractionState) and self.first_component.is_subspecification_of(other.first_component) \
+            and self.second_component.is_subspecification_of(other.second_component)
 
 
 class IntraProteinInteractionState(State):
@@ -83,10 +98,13 @@ class IntraProteinInteractionState(State):
     def __str__(self) -> str:
         return sfr.string_from_intra_protein_interaction_state(self)
 
-    @property
-    def matching_states(self):
-        return [IntraProteinInteractionState(first_superspec, second_superspec) for first_superspec in
-                self.first_component.superspecifications for second_superspec in self.second_component.superspecifications]
+    def is_superspecification_of(self, other: State):
+        return isinstance(other, IntraProteinInteractionState) and self.first_component.is_superspecification_of(other.first_component) \
+            and self.second_component.is_superspecification_of(other.second_component)
+
+    def is_subspecification_of(self, other: State):
+        return isinstance(other, IntraProteinInteractionState) and self.first_component.is_subspecification_of(other.first_component) \
+            and self.second_component.is_subspecification_of(other.second_component)
 
 
 class SynthesisDegradationState(State):
@@ -104,9 +122,11 @@ class SynthesisDegradationState(State):
     def __str__(self) -> str:
         return sfr.string_from_synthesis_degradation_state(self)
 
-    @property
-    def matching_states(self):
-        return [SynthesisDegradationState(superspec) for superspec in self.component.superspecifications]
+    def is_superspecification_of(self, other: State):
+        return isinstance(other, SynthesisDegradationState) and self.component.is_superspecification_of(other.component)
+
+    def is_subspecification_of(self, other: State):
+        return isinstance(other, SynthesisDegradationState) and self.component.is_subspecification_of(other.component)
 
 
 class TranslocationState(State):
@@ -126,9 +146,13 @@ class TranslocationState(State):
     def __str__(self) -> str:
         return sfr.string_from_translocation_state(self)
 
-    @property
-    def matching_states(self):
-        return [TranslocationState(superspec, self.compartment) for superspec in self.substrate.superspecifications]
+    def is_superspecification_of(self, other: State):
+        return isinstance(other, TranslocationState) and self.compartment == other.compartment and \
+            self.substrate.is_superspecification_of(other.substrate)
+
+    def is_subspecification_of(self, other: State):
+        return isinstance(other, TranslocationState) and self.compartment == other.compartment and \
+            self.substrate.is_subspecification_of(other.substrate)
 
 
 class InputState(State):
@@ -139,6 +163,8 @@ class InputState(State):
     def __hash__(self):
         return hash('*input-state-{}*'.format(self.name))
 
-    @property
-    def matching_states(self):
+    def is_superspecification_of(self, other: State):
+        raise NotImplementedError
+
+    def is_subspecification_of(self, other: State):
         raise NotImplementedError
