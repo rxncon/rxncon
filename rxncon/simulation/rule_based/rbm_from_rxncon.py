@@ -1,4 +1,5 @@
 from collections import defaultdict
+import itertools as itt
 import typing as tg
 
 import rxncon.core.rxncon_system as rxs
@@ -6,6 +7,50 @@ import rxncon.simulation.rule_based.rule_based_model as rbm
 import rxncon.core.state as sta
 import rxncon.core.reaction as rxn
 import rxncon.core.component as com
+import rxncon.venntastic.sets as venn
+
+
+def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.MoleculeDefinition],
+                        reaction: rxn.Reaction) -> tg.List[rbm.Rule]:
+    strict_contingency_state_set = state_set_from_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction))
+    quant_contingency_state_set = state_set_from_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))
+    source_contingency_state_set = None
+
+    mol_specs_lhs_to_rhs = defaultdict([])
+
+    for mol_def in mol_defs.values():
+        strict_spec_set = mol_def.specification_set_from_state_set(strict_contingency_state_set)
+        quant_spec_set = mol_def.specification_set_from_state_set(quant_contingency_state_set)
+        source_spec_set = mol_def.specification_set_from_state_set(source_contingency_state_set)
+
+        lhs_sets = []
+
+        for strict_term in strict_spec_set.to_union_list_form():
+            for quant_term in quant_spec_set.to_union_list_form():
+                lhs_sets.append(venn.Intersection(strict_term, quant_term))
+
+        lhs_sets_disjunct = venn.gram_schmidt_disjunctify(lhs_sets)
+
+        for lhs in lhs_sets_disjunct:
+            left_mol_spec = mol_def.specification_from_specification_set(venn.Intersection(lhs, source_spec_set))
+            right_mol_spec = mol_def.specification_from_specification_set(venn.Intersection(lhs, venn.Complement(source_spec_set)))
+
+            mol_specs_lhs_to_rhs[left_mol_spec.molecule_def.name].append((left_mol_spec, right_mol_spec))
+
+    rules = []
+
+    arrow = arrow_from_reaction(reaction)
+
+    for lhs_to_rhs_per_molecule in itt.product(*mol_specs_lhs_to_rhs.values()):
+        lhs_to_rhs = zip(*lhs_to_rhs_per_molecule)
+        lhs = reactants_from_specs(lhs_to_rhs[0])
+        rhs = reactants_from_specs(lhs_to_rhs[1])
+
+        rates = rates_from_reaction(reaction)
+
+        rules.append(rbm.Rule(lhs, rhs, arrow, rates))
+
+    return rules
 
 
 def molecule_defs_from_rxncon(rxnconsys: rxs.RxnConSystem) -> tg.Dict[str, rbm.MoleculeDefinition]:

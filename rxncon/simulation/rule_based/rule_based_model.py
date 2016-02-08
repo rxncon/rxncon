@@ -62,7 +62,8 @@ class MoleculeDefinition(Definition):
     def __str__(self) -> str:
         return 'MoleculeDefinition: {0}'.format(self.name)
 
-    def match_with_state_set(self, state_set: venn.Set, disjunctify=True) -> List['MoleculeSpecification']:
+    def specification_set_from_state_set(self, state_set: venn.Set) -> venn.Set:
+        # molecule_def + set of states --> set of specifications
         assert len(state_set.to_nested_list_form()) == 1
         spec_sets = []
 
@@ -83,39 +84,27 @@ class MoleculeDefinition(Definition):
             matching_specs += self.localization_def.match_with_state(state, negate=negate)
             spec_sets.append(venn.nested_expression_from_list_and_binary_op([venn.PropertySet(x) for x in matching_specs], venn.Union))
 
-        total_spec_set = venn.nested_expression_from_list_and_binary_op(spec_sets, venn.Intersection)
+        return venn.nested_expression_from_list_and_binary_op(spec_sets, venn.Intersection)
 
-        spec_lists = []
+    def specification_from_specification_set(self, spec_set: venn.Set) -> 'MoleculeSpecification':
+        spec_lists = remove_complements_from_spec_set(spec_set).to_nested_list_form()
 
-        print(total_spec_set)
+        assert len(spec_lists) == 1
+        spec_list = spec_lists[0]
 
-        if disjunctify:
-            non_overlapping_sets = venn.gram_schmidt_disjunctify(total_spec_set.to_union_list_form())
+        assert all(isinstance(x, venn.PropertySet) for x in spec_list)
+        ass_specs = [spec.value for spec in spec_list if isinstance(spec.value, AssociationSpecification)]
+        mod_specs = [spec.value for spec in spec_list if isinstance(spec.value, ModificationSpecification)]
+        loc_specs = [spec.value for spec in spec_list if isinstance(spec.value, LocalizationSpecification)]
 
-            for x in non_overlapping_sets:
-                spec_lists += _remove_complements_from_spec_set(x).to_nested_list_form()
-
+        if len(loc_specs) == 1:
+            loc_spec = loc_specs[0]
+        elif len(loc_specs) == 0:
+            loc_spec = None
         else:
-            spec_lists = total_spec_set.to_nested_list_form()
+            raise AssertionError
 
-        mol_specs = []
-
-        for spec_list in spec_lists:
-            assert all(isinstance(x, venn.PropertySet) for x in spec_list)
-            ass_specs = [spec.value for spec in spec_list if isinstance(spec.value, AssociationSpecification)]
-            mod_specs = [spec.value for spec in spec_list if isinstance(spec.value, ModificationSpecification)]
-            loc_specs = [spec.value for spec in spec_list if isinstance(spec.value, LocalizationSpecification)]
-
-            if len(loc_specs) == 1:
-                loc_spec = loc_specs[0]
-            elif len(loc_specs) == 0:
-                loc_spec = None
-            else:
-                raise AssertionError
-
-            mol_specs.append(MoleculeSpecification(self, mod_specs, ass_specs, loc_spec))
-
-        return mol_specs
+        return MoleculeSpecification(self, mod_specs, ass_specs, loc_spec)
 
 
 class MoleculeSpecification(Specification):
@@ -506,12 +495,12 @@ class InitialCondition:
         return 'InitialCondition: {0} = {1}'.format(self.molecule_specification, self.value)
 
 
-def _remove_complements_from_spec_set(spec_set):
+def remove_complements_from_spec_set(spec_set):
     if isinstance(spec_set, venn.Intersection):
-        return venn.Intersection(_remove_complements_from_spec_set(spec_set.left_expr), _remove_complements_from_spec_set(spec_set.right_expr))
+        return venn.Intersection(remove_complements_from_spec_set(spec_set.left_expr), remove_complements_from_spec_set(spec_set.right_expr))
 
     elif isinstance(spec_set, venn.Union):
-        return venn.Union(_remove_complements_from_spec_set(spec_set.left_expr), _remove_complements_from_spec_set(spec_set.right_expr))
+        return venn.Union(remove_complements_from_spec_set(spec_set.left_expr), remove_complements_from_spec_set(spec_set.right_expr))
 
     elif isinstance(spec_set, venn.PropertySet):
         return spec_set

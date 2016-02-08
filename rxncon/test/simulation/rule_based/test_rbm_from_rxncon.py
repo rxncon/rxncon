@@ -18,11 +18,14 @@ def test_simple_rxncon_system(simple_system):
     lhs_set = venn.Intersection(venn.PropertySet(rfs.state_from_string('X-{p}')),
                                 venn.Complement(venn.PropertySet(rfs.state_from_string('X--Y'))))
 
-    matches = mol_def_X.match_with_state_set(lhs_set)
+    spec_set = mol_def_X.specification_set_from_state_set(lhs_set)
 
-    for match in matches:
-        print()
-        print(match)
+    spec_sets_overlapping = spec_set.to_union_list_form()
+    spec_sets_disjunct = venn.gram_schmidt_disjunctify(spec_sets_overlapping)
+
+    for ss in spec_sets_disjunct:
+        print(mol_def_X.specification_from_specification_set(ss))
+
 
 
 @pytest.fixture
