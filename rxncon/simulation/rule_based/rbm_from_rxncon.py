@@ -160,31 +160,68 @@ def source_state_set_from_reaction(reaction: rxn.Reaction) -> venn.Set:
         raise AssertionError
 
 
-def reactants_from_specs(mol_specs: tg.List[rbm.MoleculeSpecification]) -> tg.List[rbm.Reactant]:
+# def binding_from_moleculespecifications(molecule_specifications: tg.List[rbm.MoleculeSpecification]) -> tg.List[rbm.Binding]:
+#
+#
+#         bindings = defaultdict(list)
+#         for mol_spec in molecule_specifications:
+#             for mol_occupied_assoc_spec in mol_spec.occupied_association_specs():
+#                 bindings[mol_occupied_assoc_spec.association_def.matching_state].append(mol_spec)
+#
+#
+#
+#
+#     for mol_spec in mol_specs:
+#         for assoc_spec in mol_spec.association_specs:
+#             if assoc_spec.occupation_status in [rbm.OccupationStatus.occupied_known_partner, rbm.OccupationStatus.occupied_unknown_partner]:
+#                 binding_state = assoc_spec.association_def.matching_state
+#                 for possible_assoc_mol_spec in mol_specs:
+#                     if possible_assoc_mol_spec != mol_spec:
+#                         for possible_binding in possible_assoc_mol_spec.association_specs:
+#                             if possible_binding.association_def.matching_state == binding_state:
+#                                 if mol_spec not in binding_spec:
+#                                     binding_spec.append(mol_spec)
+#                                 if possible_assoc_mol_spec not in binding_spec:
+#                                     binding_spec.append(possible_assoc_mol_spec)
+#
+#                                 binding_tuple = rbm.Binding((binding_spec.index(mol_spec),assoc_spec),
+#                                                        (binding_spec.index(possible_assoc_mol_spec),possible_binding))
+#                                 check_tuple = rbm.Binding((binding_spec.index(possible_assoc_mol_spec),possible_binding),
+#                                                           (binding_spec.index(mol_spec),assoc_spec))
+#                                 if  check_tuple not in binding:
+#                                     binding.append(binding_tuple)
+#                                 else:
+#                                     binding_spec = binding_spec[:-2]
+
+
+def reactants_from_specs(molecule_specifications: tg.List[rbm.MoleculeSpecification]) -> tg.List[rbm.Reactant]:
     reactants = []
     binding_spec = []
     binding = []
-    for mol_spec in mol_specs:
-        for assoc_spec in mol_spec.association_specs:
-            if assoc_spec.occupation_status in [rbm.OccupationStatus.occupied_known_partner, rbm.OccupationStatus.occupied_unknown_partner]:
-                binding_state = assoc_spec.association_def.matching_state
-                for possible_assoc_mol_spec in mol_specs:
-                    if possible_assoc_mol_spec != mol_spec:
-                        for possible_binding in possible_assoc_mol_spec.association_specs:
-                            if possible_binding.association_def.matching_state == binding_state:
-                                if mol_spec not in binding_spec:
-                                    binding_spec.append(mol_spec)
-                                if possible_assoc_mol_spec not in binding_spec:
-                                    binding_spec.append(possible_assoc_mol_spec)
 
-                                binding_tuple = rbm.Binding((binding_spec.index(mol_spec),assoc_spec),
-                                                       (binding_spec.index(possible_assoc_mol_spec),possible_binding))
-                                check_tuple = rbm.Binding((binding_spec.index(possible_assoc_mol_spec),possible_binding),
-                                                          (binding_spec.index(mol_spec),assoc_spec))
-                                if  check_tuple not in binding:
-                                    binding.append(binding_tuple)
-                                else:
-                                    binding_spec = binding_spec[:-2]
+    bindings = defaultdict(list)
+    for mol_spec in molecule_specifications:
+        for mol_occupied_assoc_spec in mol_spec.occupied_association_specs():
+            bindings[mol_occupied_assoc_spec.association_def.matching_state].append((mol_spec, mol_occupied_assoc_spec))
+
+    binding_specifications = []
+    binding_definition = []
+
+    for occupied_mol_spec in bindings.values():
+        assert len(occupied_mol_spec) == 2
+
+        if occupied_mol_spec[0] not in binding_specifications and occupied_mol_spec[1] not in binding_specifications:
+            binding_specifications.append(occupied_mol_spec[0][0])
+            binding_specifications.append(occupied_mol_spec[1][0])
+
+        if occupied_mol_spec[1] not in binding_specifications:
+            binding_specifications.append(occupied_mol_spec[1][0])
+        reverse_binding = rbm.Binding((binding_spec.index(occupied_mol_spec[1][0]),occupied_mol_spec[1][1]),
+                                      (binding_specifications.index(occupied_mol_spec[0][0]), occupied_mol_spec[0][1]))
+        if reverse_binding not in binding_definition:
+            binding_definition.append(rbm.Binding((binding_specifications.index(occupied_mol_spec[0][0]), occupied_mol_spec[0][1]),
+                                                  (binding_spec.index(occupied_mol_spec[1][0]),occupied_mol_spec[1][1])))
+
 
 
     if binding_spec:

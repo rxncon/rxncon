@@ -143,6 +143,9 @@ class MoleculeSpecification(Specification):
             .format(self.molecule_def.name, ', '.join([str(x) for x in self.modification_specs]),
                     ', '.join(str(x) for x in self.association_specs), str(self.localization_spec))
 
+    def occupied_association_specs(self):
+        return [assoc_spec for assoc_spec in self.association_specs
+                if assoc_spec.occupation_status in [OccupationStatus.occupied_known_partner, OccupationStatus.occupied_unknown_partner]]
 
 class ModificationDefinition(Definition):
     @tc.typecheck
