@@ -67,9 +67,6 @@ class MoleculeDefinition(Definition):
         assert len(state_set.to_nested_list_form()) == 1
         spec_sets = []
 
-        print('inside spec set from state set')
-        print('state set is {}'.format(state_set))
-
         if state_set == venn.UniversalSet():
             return venn.UniversalSet()
 
@@ -90,7 +87,6 @@ class MoleculeDefinition(Definition):
                 matching_specs += definition.match_with_state(state, negate=negate)
 
             matching_specs += self.localization_def.match_with_state(state, negate=negate)
-            print('matching specs {}'.format(matching_specs))
             spec_sets.append(venn.nested_expression_from_list_and_binary_op([venn.PropertySet(x) for x in matching_specs], venn.Union))
 
         if all(x == venn.EmptySet() for x in spec_sets):

@@ -69,29 +69,51 @@ def test_nested_list_simplifies_mutual_complements():
     assert z.to_nested_list_form() == [[PropertySet(1)]]
 
 
+def test_nested_list_universal_empty():
+    assert EmptySet().to_nested_list_form() == [[EmptySet()]]
+    assert UniversalSet().to_nested_list_form() == [[UniversalSet()]]
+
+
+def test_union_list_universal_empty():
+    assert EmptySet().to_union_list_form() == [EmptySet()]
+    assert UniversalSet().to_union_list_form() == [UniversalSet()]
+
+
 # Test the superset / subset relationships
 def test_superset_subset_for_unary_sets():
     assert UniversalSet() == PropertySet(None)
     assert PropertySet(None).is_superset_of(PropertySet(None))
 
+    # UniversalSet == UniversalSet
     assert UniversalSet().is_superset_of(UniversalSet())
     assert UniversalSet().is_subset_of(UniversalSet())
 
+    # UniversalSet contains all other sets
     assert UniversalSet().is_superset_of(EmptySet())
     assert UniversalSet().is_superset_of(PropertySet(1))
 
-    assert PropertySet(2).is_superset_of(PropertySet(2))
-    assert PropertySet(2).is_subset_of(PropertySet(2))
-
-    assert PropertySet(2).is_subset_of(UniversalSet())
-    assert PropertySet(2).is_superset_of(EmptySet())
-    assert EmptySet().is_subset_of(PropertySet(2))
-
+    # EmptySet is contained in all sets
     assert EmptySet().is_subset_of(EmptySet())
     assert EmptySet().is_superset_of(EmptySet())
+    assert EmptySet().is_subset_of(PropertySet(2))
 
+    # PropertySets <-> PropertySets
+    assert PropertySet(2).is_superset_of(PropertySet(2))
+    assert PropertySet(2).is_subset_of(PropertySet(2))
     assert not PropertySet(2).is_subset_of(PropertySet(3))
     assert not PropertySet(2).is_superset_of(PropertySet(3))
+
+    # PropertySet <-> UniversalSet
+    assert PropertySet(1).is_subset_of(UniversalSet())
+    assert not UniversalSet().is_subset_of(PropertySet(1))
+    assert UniversalSet().is_superset_of(PropertySet(1))
+    assert not PropertySet(1).is_superset_of(UniversalSet())
+
+    # PropertySet <-> EmptySet
+    assert PropertySet(2).is_superset_of(EmptySet())
+    assert not EmptySet().is_superset_of(PropertySet(2))
+    assert EmptySet().is_subset_of(PropertySet(1))
+    assert not PropertySet(1).is_subset_of(EmptySet())
 
 
 def test_superset_subset_for_flat_intersections():
@@ -221,6 +243,14 @@ def test_absorption_properties(sets):
         assert x.is_equivalent_to(Union(x, Intersection(x, y)))
         assert x.is_equivalent_to(Intersection(x, Union(x, y)))
 
+
+# Test is_equivalent_to
+def test_is_equivalent_to():
+    assert UniversalSet().is_equivalent_to(UniversalSet())
+    assert EmptySet().is_equivalent_to(EmptySet())
+
+    assert not UniversalSet().is_equivalent_to(PropertySet(1))
+    assert not PropertySet(1).is_equivalent_to(UniversalSet())
 
 # Test the cardinality calculator
 def test_cardinality_empty_and_universal_set():
