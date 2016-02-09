@@ -195,11 +195,27 @@ def source_state_set_from_reaction(reaction: rxn.Reaction) -> venn.Set:
 
 
 def reactants_from_specs(molecule_specifications: tg.List[rbm.MoleculeSpecification]) -> tg.List[rbm.Reactant]:
+
+
+
+
     reactants = []
     binding_spec = []
     binding = []
 
     bindings = defaultdict(list)
+
+    specs_in_complexes = []
+
+    while molecule_specifications:
+        mol_spec = molecule_specifications.pop()
+        if not mol_spec.occupied_association_specs():
+            reactants.append(rbm.MoleculeReactant(mol_spec))
+
+        else:
+            specs_in_complexes.append(mol_spec)
+
+
     for mol_spec in molecule_specifications:
         for mol_occupied_assoc_spec in mol_spec.occupied_association_specs():
             bindings[mol_occupied_assoc_spec.association_def.matching_state].append((mol_spec, mol_occupied_assoc_spec))
@@ -216,6 +232,7 @@ def reactants_from_specs(molecule_specifications: tg.List[rbm.MoleculeSpecificat
 
         if occupied_mol_spec[1] not in binding_specifications:
             binding_specifications.append(occupied_mol_spec[1][0])
+
         reverse_binding = rbm.Binding((binding_spec.index(occupied_mol_spec[1][0]),occupied_mol_spec[1][1]),
                                       (binding_specifications.index(occupied_mol_spec[0][0]), occupied_mol_spec[0][1]))
         if reverse_binding not in binding_definition:
