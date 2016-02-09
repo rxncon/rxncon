@@ -244,13 +244,14 @@ def test_absorption_properties(sets):
         assert x.is_equivalent_to(Intersection(x, Union(x, y)))
 
 
-# Test is_equivalent_to
 def test_is_equivalent_to():
     assert UniversalSet().is_equivalent_to(UniversalSet())
     assert EmptySet().is_equivalent_to(EmptySet())
 
     assert not UniversalSet().is_equivalent_to(PropertySet(1))
     assert not PropertySet(1).is_equivalent_to(UniversalSet())
+
+    assert UniversalSet().is_equivalent_to(Union(PropertySet(1), Complement(PropertySet(1))))
 
 # Test the cardinality calculator
 def test_cardinality_empty_and_universal_set():
@@ -331,6 +332,33 @@ def test_boolean_function_multiple_and_clauses():
 
     assert bool_func(true=['a'])
     assert bool_func(false=['a'])
+
+
+def test_boolean_function_always_true():
+    # Non-trivial boolean function with one input.
+    bool_func = BooleanFunction([BooleanAndClause(required_true=[0])])
+
+    assert bool_func(true=[0])
+    assert not bool_func(false=[0])
+    assert not bool_func()
+
+    assert not BooleanFunctionAlwaysTrue().implies(bool_func)
+    assert bool_func.implies(BooleanFunctionAlwaysTrue())
+
+    # Trivial 'always true' boolean function with one input.
+    bool_func = BooleanFunction([BooleanAndClause(required_true=[0]),
+                                 BooleanAndClause(required_false=[0])])
+
+    assert bool_func.implies(BooleanFunctionAlwaysTrue())
+    assert BooleanFunctionAlwaysTrue().implies(bool_func)
+
+
+def test_boolean_function_always_false():
+    # Non-trivial boolean function with one input.
+    bool_func = BooleanFunction([BooleanAndClause(required_true=[0])])
+
+    assert BooleanFunctionAlwaysFalse().implies(bool_func)
+    assert not bool_func.implies(BooleanFunctionAlwaysFalse())
 
 
 def test_boolean_function_called_with_wrong_arguments():

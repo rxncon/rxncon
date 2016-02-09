@@ -454,6 +454,10 @@ class BooleanFunctionAlwaysFalse(BooleanFunction):
     def __call__(self, *args, **kwargs) -> bool:
         return False
 
+    def implies(self, other):
+        self.valid_statements = other.valid_statements
+        return super().implies(other)
+
     def is_valid_statement(self, statement) -> bool:
         return True
 
@@ -466,8 +470,9 @@ class BooleanFunctionAlwaysTrue(BooleanFunction):
     def __call__(self, *args, **kwargs) -> bool:
         return True
 
-    def implies(self, other) -> bool:
-        return True
+    def implies(self, other):
+        self.valid_statements = other.valid_statements
+        return super().implies(other)
 
     def is_valid_statement(self, statement) -> bool:
         return True
