@@ -45,6 +45,15 @@ def test_single_rule():
         print(rule)
 
 
+def test_single_ppi_rule():
+    a_ppi_b = rfs.reaction_from_string('A_ppi_B')
+    a_ppi_c = rfs.reaction_from_string('A_ppi_C')
+    a_dash_dash_c = rfs.state_from_string('A--C')
+    # A--B
+    cont = con.Contingency(a_ppi_b, con.ContingencyType.requirement, eff.StateEffector(a_dash_dash_c))
+    rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c], [cont])
+
+    rules = rfr.rules_from_rxncon(rxncon)
 
 @pytest.fixture
 def simple_system():

@@ -49,7 +49,7 @@ class MoleculeDefinition(Definition):
         self.localization_def = localization_def
 
     @tc.typecheck
-    def __eq__(self, other: 'Definition') -> bool:
+    def __eq__(self, other: Definition) -> bool:
         return isinstance(other, MoleculeDefinition) and self.name == other.name and self.localization_def == other.localization_def and \
             other.modification_defs == self.modification_defs and other.association_defs == self.association_defs
 
@@ -279,7 +279,8 @@ class AssociationSpecification(Specification):
     def complement(self):
         if self.occupation_status == OccupationStatus.occupied_known_partner:
             return [AssociationSpecification(self.association_def, OccupationStatus.not_occupied)]
-
+        elif self.occupation_status == OccupationStatus.not_occupied:
+            return [AssociationSpecification(self.association_def, OccupationStatus.occupied_known_partner)]
         else:
             raise NotImplementedError
 

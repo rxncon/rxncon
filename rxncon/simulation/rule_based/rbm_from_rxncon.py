@@ -162,9 +162,37 @@ def source_state_set_from_reaction(reaction: rxn.Reaction) -> venn.Set:
 
 def reactants_from_specs(mol_specs: tg.List[rbm.MoleculeSpecification]) -> tg.List[rbm.Reactant]:
     reactants = []
+    binding_spec = []
+    binding = []
+    for mol_spec in mol_specs:
+        for assoc_spec in mol_spec.association_specs:
+            if assoc_spec.occupation_status in [rbm.OccupationStatus.occupied_known_partner, rbm.OccupationStatus.occupied_unknown_partner]:
+                binding_state = assoc_spec.association_def.matching_state
+                for possible_assoc_mol_spec in mol_specs:
+                    if possible_assoc_mol_spec != mol_spec:
+                        for possible_binding in possible_assoc_mol_spec.association_specs:
+                            if possible_binding.association_def.matching_state == binding_state:
+                                if mol_spec not in binding_spec:
+                                    binding_spec.append(mol_spec)
+                                if possible_assoc_mol_spec not in binding_spec:
+                                    binding_spec.append(possible_assoc_mol_spec)
+
+                                binding_tuple = rbm.Binding((binding_spec.index(mol_spec),assoc_spec),
+                                                       (binding_spec.index(possible_assoc_mol_spec),possible_binding))
+                                check_tuple = rbm.Binding((binding_spec.index(possible_assoc_mol_spec),possible_binding),
+                                                          (binding_spec.index(mol_spec),assoc_spec))
+                                if  check_tuple not in binding:
+                                    binding.append(binding_tuple)
+                                else:
+                                    binding_spec = binding_spec[:-2]
+
+
+    if binding_spec:
+        reactants.append((rbm.ComplexReactant(binding_spec, binding)))
 
     for mol_spec in mol_specs:
-        reactants.append(rbm.MoleculeReactant(mol_spec))
+        if mol_spec not in binding_spec:
+            reactants.append(rbm.MoleculeReactant(mol_spec))
 
     return reactants
 
