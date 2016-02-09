@@ -330,19 +330,15 @@ def UniversalSet() -> Set:
 def nested_expression_from_list_and_binary_op(xs: tg.List[Set], binary_op) -> Set:
     if binary_op == Intersection:
         unit = UniversalSet()
-
     elif binary_op == Union:
         unit = EmptySet()
-
     else:
         raise TypeError
 
     if len(xs) == 0:
         return unit
-
     elif len(xs) == 1:
         return xs[0]
-
     else:
         return functools.reduce(binary_op, xs[1:], xs[0])
 
@@ -455,8 +451,12 @@ class BooleanFunctionAlwaysFalse(BooleanFunction):
         return False
 
     def implies(self, other):
+        # Since this 'function' has no 'valid_statements', we use the statement list of its counterpart.
         self.valid_statements = other.valid_statements
-        return super().implies(other)
+        implies = super().implies(other)
+        self.valid_statements = []
+
+        return implies
 
     def is_valid_statement(self, statement) -> bool:
         return True
@@ -471,8 +471,12 @@ class BooleanFunctionAlwaysTrue(BooleanFunction):
         return True
 
     def implies(self, other):
+        # Since this 'function' has no 'valid_statements', we use the statement list of its counterpart.
         self.valid_statements = other.valid_statements
-        return super().implies(other)
+        implies = super().implies(other)
+        self.valid_statements = []
+
+        return implies
 
     def is_valid_statement(self, statement) -> bool:
         return True
