@@ -67,7 +67,10 @@ class MoleculeDefinition(Definition):
         assert len(state_set.to_nested_list_form()) == 1
         spec_sets = []
 
-        if state_set == venn.EmptySet():
+        print('inside spec set from state set')
+        print('state set is {}'.format(state_set))
+
+        if state_set == venn.UniversalSet():
             return venn.UniversalSet()
 
         for single_property in state_set.to_nested_list_form()[0]:
@@ -87,7 +90,11 @@ class MoleculeDefinition(Definition):
                 matching_specs += definition.match_with_state(state, negate=negate)
 
             matching_specs += self.localization_def.match_with_state(state, negate=negate)
+            print('matching specs {}'.format(matching_specs))
             spec_sets.append(venn.nested_expression_from_list_and_binary_op([venn.PropertySet(x) for x in matching_specs], venn.Union))
+
+        if all(x == venn.EmptySet() for x in spec_sets):
+            return venn.UniversalSet()
 
         return venn.nested_expression_from_list_and_binary_op(spec_sets, venn.Intersection)
 
@@ -512,6 +519,10 @@ def remove_complements_from_spec_set(spec_set):
 
     elif isinstance(spec_set, venn.Complement):
         assert isinstance(spec_set.expr, venn.PropertySet)
+
+        if not spec_set.expr.value:
+            return venn.UniversalSet()
+
         complement_terms = [venn.PropertySet(x) for x in spec_set.expr.value.complement()]
 
         return venn.nested_expression_from_list_and_binary_op(complement_terms, venn.Union)

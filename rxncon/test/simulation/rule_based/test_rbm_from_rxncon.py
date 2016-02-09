@@ -36,13 +36,13 @@ def test_single_rule():
 
     rxncon = rxs.RxnConSystem([c_phos_a, a_phos_b], [cont])
 
-    print(rfr.molecule_defs_from_rxncon(rxncon)['B'].modification_defs[0].matching_state)
+    # print(rfr.molecule_defs_from_rxncon(rxncon)['B'].modification_defs[0].matching_state)
 
-    # rules = rfr.rules_from_rxncon(rxncon)
-    #
-    # for rule in rules:
-    #     print()
-    #     print(rule)
+    rules = rfr.rules_from_rxncon(rxncon)
+
+    for rule in rules:
+        print()
+        print(rule)
 
 
 

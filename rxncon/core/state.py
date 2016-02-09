@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod
+from abc import ABCMeta, abstractmethod, abstractproperty
 from enum import Enum, unique
 import typecheck as tc
 
@@ -28,6 +28,10 @@ class State:
     def is_subspecification_of(self, other):
         pass
 
+    @abstractproperty
+    def components(self):
+        pass
+
 
 class CovalentModificationState(State):
     @tc.typecheck
@@ -52,6 +56,10 @@ class CovalentModificationState(State):
     def is_subspecification_of(self, other: State):
         return isinstance(other, CovalentModificationState) and self.modifier == other.modifier and \
             self.substrate.is_subspecification_of(other.substrate)
+
+    @property
+    def components(self):
+        return [self.substrate]
 
 
 class InterProteinInteractionState(State):
@@ -78,6 +86,10 @@ class InterProteinInteractionState(State):
     def is_subspecification_of(self, other: State):
         return isinstance(other, InterProteinInteractionState) and self.first_component.is_subspecification_of(other.first_component) \
             and self.second_component.is_subspecification_of(other.second_component)
+
+    @property
+    def components(self):
+        return [self.first_component, self.second_component]
 
 
 class IntraProteinInteractionState(State):
@@ -106,6 +118,10 @@ class IntraProteinInteractionState(State):
         return isinstance(other, IntraProteinInteractionState) and self.first_component.is_subspecification_of(other.first_component) \
             and self.second_component.is_subspecification_of(other.second_component)
 
+    @property
+    def components(self):
+        return [self.first_component, self.second_component]
+
 
 class SynthesisDegradationState(State):
     @tc.typecheck
@@ -127,6 +143,10 @@ class SynthesisDegradationState(State):
 
     def is_subspecification_of(self, other: State):
         return isinstance(other, SynthesisDegradationState) and self.component.is_subspecification_of(other.component)
+
+    @property
+    def components(self):
+        return [self.component]
 
 
 class TranslocationState(State):
@@ -154,6 +174,10 @@ class TranslocationState(State):
         return isinstance(other, TranslocationState) and self.compartment == other.compartment and \
             self.substrate.is_subspecification_of(other.substrate)
 
+    @property
+    def components(self):
+        return [self.substrate]
+
 
 class InputState(State):
     @tc.typecheck
@@ -168,3 +192,7 @@ class InputState(State):
 
     def is_subspecification_of(self, other: State):
         raise NotImplementedError
+
+    @property
+    def components(self):
+        return []

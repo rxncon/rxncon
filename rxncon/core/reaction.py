@@ -169,6 +169,10 @@ class Reaction:
             self.reaction_class == other.reaction_class and self.directionality == other.directionality and \
             self.influence == other.influence and self.isomerism == other.isomerism and self.modifier == other.modifier
 
+    @property
+    def components(self):
+        return [self.subject, self.object]
+
     def _determine_source_product_states(self):
         self.source, self.product = states_from_reaction(self)
 

@@ -25,6 +25,8 @@ def rules_from_rxncon(rxconsys: rxs.RxnConSystem):
 
 def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.MoleculeDefinition],
                         reaction: rxn.Reaction) -> tg.List[rbm.Rule]:
+    relevant_molecule_names = set(component.name for component in rxnconsys.components_for_reaction(reaction))
+
     strict_contingency_state_set = state_set_from_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction))
     source_state_set = source_state_set_from_reaction(reaction)
 
@@ -33,13 +35,13 @@ def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.
 
     mol_specs_lhs_to_rhs = defaultdict(list)
 
-    for mol_def in mol_defs.values():
+    for molecule_name in relevant_molecule_names:
+        mol_def = mol_defs[molecule_name]
+
         strict_spec_set = mol_def.specification_set_from_state_set(strict_contingency_state_set)
         source_spec_set = mol_def.specification_set_from_state_set(source_state_set)
 
         lhs_sets = []
-
-        print(reaction)
 
         for strict_term in strict_spec_set.to_union_list_form():
             for contingency in quant_contingency_configurations:
@@ -52,7 +54,6 @@ def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.
                 lhs_sets.append(strict_term)
 
         lhs_sets_disjunct = venn.gram_schmidt_disjunctify(lhs_sets)
-        print(lhs_sets_disjunct)
 
         if lhs_sets_disjunct == [venn.EmptySet()]:
             continue
@@ -66,9 +67,6 @@ def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.
                 left_mol_spec = mol_def.specification_from_specification_set(venn.Intersection(lhs, source_spec_set))
                 right_mol_spec = mol_def.specification_from_specification_set(venn.Intersection(lhs, venn.Complement(source_spec_set)))
 
-            print('left, right')
-            print(left_mol_spec)
-            print(right_mol_spec)
             mol_specs_lhs_to_rhs[left_mol_spec.molecule_def.name].append((left_mol_spec, right_mol_spec))
 
     rules = []
@@ -76,11 +74,6 @@ def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.
     # @todo
     arrow = rbm.Arrow.reversible
     rates = [rbm.Parameter('k1', '1.0'), rbm.Parameter('k2', '1.0')]
-
-    for k, v in mol_specs_lhs_to_rhs.items():
-        print()
-        print(k)
-        print(v)
 
     for lhs_to_rhs_per_molecule in itt.product(*mol_specs_lhs_to_rhs.values()):
         lhs_to_rhs = list(zip(*lhs_to_rhs_per_molecule))
@@ -94,7 +87,7 @@ def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.
 
 def state_set_from_contingencies(contingencies: tg.List[con.Contingency]) -> venn.Set:
     if not contingencies:
-        return venn.EmptySet()
+        return venn.UniversalSet()
 
     for contingency in contingencies:
         assert contingency.target == contingencies[0].target
@@ -113,7 +106,14 @@ def state_set_from_contingencies(contingencies: tg.List[con.Contingency]) -> ven
     required = venn.nested_expression_from_list_and_binary_op(requirements, venn.Intersection)
     inhibited = venn.nested_expression_from_list_and_binary_op(inhibitions, venn.Union)
 
-    return venn.Intersection(required, venn.Complement(inhibited))
+    if required != venn.EmptySet() and inhibited != venn.EmptySet():
+        return venn.Intersection(required, venn.Complement(inhibited))
+
+    elif required == venn.EmptySet():
+        return venn.Complement(inhibited)
+
+    elif inhibited == venn.EmptySet():
+        return required
 
 
 def contingency_configurations_from_quantitative_contingencies(contingencies: tg.List[con.Contingency]) -> tg.List[con.Contingency]:

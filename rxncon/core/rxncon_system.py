@@ -3,6 +3,7 @@ import typecheck as tc
 
 import rxncon.core.contingency as con
 import rxncon.core.reaction as rxn
+import rxncon.core.component as com
 
 
 class RxnConSystem:
@@ -22,6 +23,20 @@ class RxnConSystem:
     def strict_contingencies_for_reaction(self, reaction: rxn.Reaction) -> List[con.Contingency]:
         return [x for x in self.contingencies if x.target == reaction and x.type
                 in [con.ContingencyType.requirement, con.ContingencyType.inhibition]]
+
+    def components_for_reaction(self, reaction: rxn.Reaction) -> List[com.Component]:
+        components = reaction.components
+
+        states = []
+
+        for contingency in self.strict_contingencies_for_reaction(reaction) + self.quantitative_contingencies_for_reaction(reaction):
+            states += contingency.effector.states
+
+        for state in states:
+            components += state.components
+
+        return components
+
 
     def _assert_consistency(self):
         pass
