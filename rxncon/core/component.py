@@ -1,5 +1,5 @@
 import typecheck as tc
-from typing import Optional
+from typing import Optional, List
 
 import rxncon.syntax.string_from_rxncon as sfr
 

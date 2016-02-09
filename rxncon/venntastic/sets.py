@@ -358,10 +358,13 @@ def gram_schmidt_disjunctify(overlapping_sets: tg.List[Set]) -> tg.List[Set]:
 
         non_overlapping_sets.append(x)
 
+    result = []
+
     for x in non_overlapping_sets:
         assert len(x.to_union_list_form()) == 1
+        result.append(x.to_union_list_form()[0])
 
-    return non_overlapping_sets
+    return result
 
 
 ### BOOLEAN FUNCTIONS FROM SETS ###
