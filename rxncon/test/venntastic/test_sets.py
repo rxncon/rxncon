@@ -32,34 +32,6 @@ def test_property_set_dictionary_keys():
     assert dictionary[y] == 'diebla'
 
 
-def test_property_set_ordering():
-    assert PropertySet(1) < PropertySet(2)
-    assert PropertySet('a') < PropertySet('b')
-
-
-def test_complement_ordering():
-    assert Complement(PropertySet(1)) < Complement(PropertySet(2))
-    assert Complement(PropertySet('a')) < Complement(PropertySet('b'))
-
-
-def test_intersection_ordering():
-    assert Intersection(PropertySet(1), PropertySet(2)) < Intersection(PropertySet(2), PropertySet(3))
-    assert Intersection(PropertySet(1), PropertySet(2)) < Intersection(Intersection(PropertySet(1), PropertySet(2)), PropertySet(3))
-
-
-def test_union_ordering():
-    assert Union(PropertySet(1), PropertySet(2)) < Union(PropertySet(2), PropertySet(3))
-    assert Union(PropertySet(1), PropertySet(2)) < Union(Union(PropertySet(1), PropertySet(2)), PropertySet(3))
-
-
-def test_mutual_ordering():
-    assert EmptySet() < UniversalSet()
-    assert UniversalSet() < PropertySet(1)
-    assert PropertySet(1) < Complement(PropertySet(1))
-    assert Complement(PropertySet(1)) < Intersection(PropertySet(1), PropertySet(2))
-    assert Intersection(PropertySet(1), PropertySet(2)) < Union(PropertySet(1), PropertySet(2))
-
-
 def test_nested_list_simplifies_mutual_complements():
     x1 = Intersection(PropertySet(1), PropertySet(2))
     x2 = Intersection(PropertySet(1), Complement(PropertySet(2)))
@@ -252,6 +224,7 @@ def test_is_equivalent_to():
     assert not PropertySet(1).is_equivalent_to(UniversalSet())
 
     assert UniversalSet().is_equivalent_to(Union(PropertySet(1), Complement(PropertySet(1))))
+
 
 # Test the cardinality calculator
 def test_cardinality_empty_and_universal_set():

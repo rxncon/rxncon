@@ -54,15 +54,28 @@ def test_monomial_symbols():
 
 
 ### POLYNOMIAL ALGEBRA ###
-def test_polynomial_multiplication(x_plus_y, x_minus_y, x_sq_minus_y_sq, x_sq_plus_two_xy_plus_y_sq):
+def test_polynomial_multiplication_by_polynomial(x_plus_y, x_minus_y, x_sq_minus_y_sq, x_sq_plus_two_xy_plus_y_sq):
     assert x_plus_y * x_minus_y == x_sq_minus_y_sq
     assert x_plus_y * x_plus_y == x_sq_plus_two_xy_plus_y_sq
+
+
+def test_polynomial_multiplication_by_int(x_plus_y, two_x_plus_two_y):
+    assert x_plus_y * 2 == two_x_plus_two_y
+    assert 2 * x_plus_y == two_x_plus_two_y
 
 
 def test_polynomial_addition(x_plus_y, x_minus_y, two_x, two_x_plus_two_y, two_x_minus_two_y):
     assert x_plus_y + x_plus_y == two_x_plus_two_y
     assert x_plus_y + x_minus_y == two_x
     assert x_minus_y + x_minus_y == two_x_minus_two_y
+
+
+def test_polynomial_addition_by_scalar(one_x, two_x, const_one):
+    assert 2 * (one_x + 1) == 2 * (one_x + const_one) == two_x + 2 == two_x + 2 * const_one == two_x + const_one * 2
+
+
+def test_polynomial_subtraction(one_x, one_y, two_x_minus_two_y, const_one):
+    assert 2 * one_x - 2 * one_y == two_x_minus_two_y
 
 
 def test_polynomial_symbols(two_x, x_sq_minus_y_sq):
@@ -74,6 +87,29 @@ def test_polynomial_symbols(two_x, x_sq_minus_y_sq):
 
 
 ### TEST FIXTURES ###
+@pytest.fixture
+def const_one():
+    x = pol.TrivialMulSymbol()
+    one = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 0)}), 1.0)
+
+    return pol.Polynomial({one})
+
+@pytest.fixture
+def one_x():
+    x = pol.Symbol('x')
+    one_x = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1)}), 1.0)
+
+    return pol.Polynomial({one_x})
+
+
+@pytest.fixture
+def one_y():
+    y = pol.Symbol('y')
+    one_y = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(y, 1)}), 1.0)
+
+    return pol.Polynomial({one_y})
+
+
 @pytest.fixture
 def two_x():
     x = pol.Symbol('x')
