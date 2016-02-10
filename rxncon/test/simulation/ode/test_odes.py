@@ -54,6 +54,32 @@ def test_ode_odeint_function(lotke_volterra_system):
         assert math.isclose(f(xs, t0)[0], fs[0]) and math.isclose(f(xs, t0)[1], fs[1])
 
 
+def test_ode_odeint(lotke_volterra_system):
+    import numpy as np
+    import scipy.integrate as integ
+
+    f = lotke_volterra_system.odeint_function
+    y0 = [4.0, 5.0]
+    t = np.linspace(0.0, 15.0, 100)
+
+    solution = integ.odeint(f, y0, t)
+
+    # Compare this solution with one generated in Mathematica:
+    expected_index_to_x_to_y = {
+        0:  [4.0, 5.0],
+        20: [0.00796014, 0.532128],
+        40: [0.0986716, 0.0284035],
+        60: [1.97129, 0.00907175],
+        80: [0.017887, 3.09127],
+        99: [0.016797, 0.178667]
+    }
+
+    # The tolerance is quite high, since the numbers coming from Mathematica don't have such a high precision.
+    for index, x_y in expected_index_to_x_to_y.items():
+        assert math.isclose(solution[index, 0], x_y[0], abs_tol=1E-5) and \
+               math.isclose(solution[index, 1], x_y[1], abs_tol=1E-5)
+
+
 @pytest.fixture
 def lotke_volterra_system(first_lotke_volterra_ode, second_lotke_volterra_ode):
     return ode.ODESystem([first_lotke_volterra_ode, second_lotke_volterra_ode])
@@ -83,10 +109,10 @@ def second_lotke_volterra_ode():
 @pytest.fixture
 def first_ode_codes():
     return ['(-1) * (y ** 1 * x ** 1) + (1) * (x ** 1)',  '(1) * (x ** 1) + (-1) * (y ** 1 * x ** 1)',
-        '(-1) * (x ** 1 * y ** 1) + (1) * (x ** 1)', '(1) * (x ** 1) + (-1) * (x ** 1 * y ** 1)']
+            '(-1) * (x ** 1 * y ** 1) + (1) * (x ** 1)', '(1) * (x ** 1) + (-1) * (x ** 1 * y ** 1)']
 
 
 @pytest.fixture
 def second_ode_codes():
     return ['(1) * (y ** 1 * x ** 1) + (-1) * (y ** 1)', '(1) * (x ** 1 * y ** 1) + (-1) * (y ** 1)',
-        '(-1) * (y ** 1) + (1) * (y ** 1 * x ** 1)', '(-1) * (y ** 1) + (1) * (x ** 1 * y ** 1)']
+            '(-1) * (y ** 1) + (1) * (y ** 1 * x ** 1)', '(-1) * (y ** 1) + (1) * (x ** 1 * y ** 1)']
