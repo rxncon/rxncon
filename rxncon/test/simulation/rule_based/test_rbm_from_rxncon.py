@@ -48,10 +48,16 @@ def test_single_rule():
 def test_single_ppi_rule():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_ppi_c = rfs.reaction_from_string('A_ppi_C')
+    #c_ppi_f = rfs.reaction_from_string('C_ppi_F')
+    b_ppi_e = rfs.reaction_from_string('B_ppi_E')
     a_dash_dash_c = rfs.state_from_string('A--C')
+    b_dash_dash_e = rfs.state_from_string('B--E')
+    #c_dash_dash_f = rfs.state_from_string('C--F')
     # A--B
-    cont = con.Contingency(a_ppi_b, con.ContingencyType.requirement, eff.StateEffector(a_dash_dash_c))
-    rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c], [cont])
+    cont_A = con.Contingency(a_ppi_b, con.ContingencyType.requirement, eff.StateEffector(a_dash_dash_c))
+    cont_B = con.Contingency(a_ppi_b, con.ContingencyType.requirement, eff.StateEffector(b_dash_dash_e))
+    #cont_C = con.Contingency(a_ppi_c, con.ContingencyType.requirement, eff.StateEffector(c_dash_dash_f))
+    rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c, b_ppi_e], [cont_A, cont_B])
 
     rules = rfr.rules_from_rxncon(rxncon)
 
