@@ -4,7 +4,6 @@ from typing import List
 import rxncon.simulation.ode.polynomials as pol
 
 
-
 class ODE:
     @tc.typecheck
     def __init__(self, time_derivative: pol.Symbol, polynomial: pol.Polynomial):
@@ -61,7 +60,6 @@ class ODESystem:
         func_string = ', '.join(func_names)
 
         return 'return [{0}]'.format(func_string)
-
 
     def _validate(self):
         if not len(set(x.time_derivative for x in self.odes)) == len(self.odes):
