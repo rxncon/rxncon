@@ -1,3 +1,4 @@
+import copy
 from collections import defaultdict
 import itertools as itt
 import functools as ft
@@ -77,8 +78,8 @@ def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rbm.
 
     for lhs_to_rhs_per_molecule in itt.product(*mol_specs_lhs_to_rhs.values()):
         lhs_to_rhs = list(zip(*lhs_to_rhs_per_molecule))
-        lhs = reactants_from_specs(lhs_to_rhs[0])
-        rhs = reactants_from_specs(lhs_to_rhs[1])
+        lhs = reactants_from_specs(list(lhs_to_rhs[0]))
+        rhs = reactants_from_specs(list(lhs_to_rhs[1]))
 
         rules.append(rbm.Rule(lhs, rhs, arrow, rates))
 
@@ -160,107 +161,92 @@ def source_state_set_from_reaction(reaction: rxn.Reaction) -> venn.Set:
         raise AssertionError
 
 
-def find_connectivity_by_molecule_specifications(molecule_specifications: tg.List[rbm.MoleculeSpecification]) -> tg.List[tg.List[rbm.MoleculeSpecification]]:
-
-    connected_specifications = []
-    while molecule_specifications:
-        mol_spec = molecule_specifications.pop()
-        if mol_spec.occupied_association_specs():
-             states = []
-            for occupied_molecule_spec in mol_spec.occupied_association_specs():
-                states.append(occupied_molecule_spec.association_def.association_def.matching_state)
-            for state in states:
-                connected_specifications.append(complexes_from_association_spec_from_state(state,
-                                                                                mol_spec, molecule_specifications,
-                                                                                molecule_specifications))
-        else:
-            connected_specifications.append([mol_spec])
-
-
-def complexes_from_association_spec_from_state(state: sta.State,
-                                    mol_spec: rbm.MoleculeSpecification,
-                                    molecule_specifications: tg.List[rbm.MoleculeSpecification]):
-    states = [state]
-    already = []
-    while states:
-        states, already = _get_complex_layer(states, mol_spec, molecule_specifications, already)
-
-
-
-def _get_complex_layer(states: tg.List[sta.State], molecule_spec: rbm.MoleculeSpecification,
-                       molecule_specifications:tg.List[rbm.MoleculeSpecification],
-                       already: list):
-
-    connectors = already
-    new_connections = []
-    for state in states:
-        if state not in connectors:
-            connectors.append(state)
-        if state.first_component.name == molecule_spec.molecule_def.name:
-            new_connections.append(state.second_component)
-        else:
-            new_connections.append(state.first_component)
-
-    for new_connection in new_connections:
-        for molecule_specification in molecule_specifications:
-            if new_connection.name == molecule_specification.molecule_def.name:
-                pass
+# def find_connectivity_by_molecule_specifications(molecule_specifications: tg.List[rbm.MoleculeSpecification]) -> tg.List[tg.List[rbm.MoleculeSpecification]]:
+#
+#     connected_specifications = []
+#     while molecule_specifications:
+#         mol_spec = molecule_specifications.pop()
+#         if mol_spec.occupied_association_specs():
+#              states = []
+#             for occupied_molecule_spec in mol_spec.occupied_association_specs():
+#                 states.append(occupied_molecule_spec.association_def.association_def.matching_state)
+#             for state in states:
+#                 connected_specifications.append(complexes_from_association_spec_from_state(state,
+#                                                                                 mol_spec, molecule_specifications,
+#                                                                                 molecule_specifications))
+#         else:
+#             connected_specifications.append([mol_spec])
+#
+#
+# def complexes_from_association_spec_from_state(state: sta.State,
+#                                     mol_spec: rbm.MoleculeSpecification,
+#                                     molecule_specifications: tg.List[rbm.MoleculeSpecification]):
+#     states = [state]
+#     already = []
+#     while states:
+#         states, already = _get_complex_layer(states, mol_spec, molecule_specifications, already)
+#
+#
+#
+# def _get_complex_layer(states: tg.List[sta.State], molecule_spec: rbm.MoleculeSpecification,
+#                        molecule_specifications:tg.List[rbm.MoleculeSpecification],
+#                        already: list):
+#
+#     connectors = already
+#     new_connections = []
+#     for state in states:
+#         if state not in connectors:
+#             connectors.append(state)
+#         if state.first_component.name == molecule_spec.molecule_def.name:
+#             new_connections.append(state.second_component)
+#         else:
+#             new_connections.append(state.first_component)
+#
+#     for new_connection in new_connections:
+#         for molecule_specification in molecule_specifications:
+#             if new_connection.name == molecule_specification.molecule_def.name:
+#                 pass
 
 def reactants_from_specs(molecule_specifications: tg.List[rbm.MoleculeSpecification]) -> tg.List[rbm.Reactant]:
 
-
-
-
     reactants = []
-    binding_spec = []
-    binding = []
 
-    bindings = defaultdict(list)
-
-    specs_in_complexes = []
+    specs_in_complexes = defaultdict(list)
 
     while molecule_specifications:
         mol_spec = molecule_specifications.pop()
-        find_connectivity([mol])
 
-        # if not mol_spec.occupied_association_specs():
-        #     reactants.append(rbm.MoleculeReactant(mol_spec))
-        #
-        # else:
-        #     specs_in_complexes.append(mol_spec)
-
-
-    for mol_spec in molecule_specifications:
-        for mol_occupied_assoc_spec in mol_spec.occupied_association_specs():
-            bindings[mol_occupied_assoc_spec.association_def.matching_state].append((mol_spec, mol_occupied_assoc_spec))
-
-    binding_specifications = []
-    binding_definition = []
-
-    for occupied_mol_spec in bindings.values():
-        assert len(occupied_mol_spec) == 2
-
-        if occupied_mol_spec[0] not in binding_specifications and occupied_mol_spec[1] not in binding_specifications:
-            binding_specifications.append(occupied_mol_spec[0][0])
-            binding_specifications.append(occupied_mol_spec[1][0])
-
-        if occupied_mol_spec[1] not in binding_specifications:
-            binding_specifications.append(occupied_mol_spec[1][0])
-
-        reverse_binding = rbm.Binding((binding_spec.index(occupied_mol_spec[1][0]),occupied_mol_spec[1][1]),
-                                      (binding_specifications.index(occupied_mol_spec[0][0]), occupied_mol_spec[0][1]))
-        if reverse_binding not in binding_definition:
-            binding_definition.append(rbm.Binding((binding_specifications.index(occupied_mol_spec[0][0]), occupied_mol_spec[0][1]),
-                                                  (binding_spec.index(occupied_mol_spec[1][0]),occupied_mol_spec[1][1])))
-
-    if binding_spec:
-        reactants.append((rbm.ComplexReactant(binding_spec, binding)))
-
-    for mol_spec in mol_specs:
-        if mol_spec not in binding_spec:
+        if not mol_spec.occupied_association_specs():
             reactants.append(rbm.MoleculeReactant(mol_spec))
+        else:
+            for mol_assoc_spec in mol_spec.occupied_association_specs():
+                specs_in_complexes[mol_assoc_spec.association_def.matching_state].append((mol_spec, mol_assoc_spec))
+    states = [state for state in specs_in_complexes.keys()]
+
+    states_in_complex = complexes_by_state_connection(states)
 
     return reactants
+
+
+def complexes_by_state_connection(states: tg.List[sta.State]):
+    states_in_complex = []
+    while states:
+        state = states.pop()
+        states, connected_states = _find_connectectivity_of_state(state, states)
+        states_in_complex.append(connected_states)
+    return states_in_complex
+
+
+def _find_connectectivity_of_state(state: sta.State, states: tg.List[sta.State]):
+    connected_states = [state]
+    new_states = []
+    for connected_state in states:
+        if {connected_state.first_component.name, connected_state.second_component.name} | \
+                {state.first_component.name, state.second_component.name}:
+            connected_states.append(connected_state)
+        else:
+            new_states.append(connected_state)
+    return new_states, connected_states
 
 
 def state_set_from_effector(effector: eff.Effector) -> venn.Set:

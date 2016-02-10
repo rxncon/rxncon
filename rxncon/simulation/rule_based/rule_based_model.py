@@ -87,7 +87,12 @@ class MoleculeDefinition(Definition):
                 matching_specs += definition.match_with_state(state, negate=negate)
 
             matching_specs += self.localization_def.match_with_state(state, negate=negate)
-            spec_sets.append(venn.nested_expression_from_list_and_binary_op([venn.PropertySet(x) for x in matching_specs], venn.Union))
+
+            if matching_specs:
+                spec_sets.append(venn.nested_expression_from_list_and_binary_op([venn.PropertySet(x) for x in matching_specs], venn.Union))
+            else:
+                spec_sets.append(venn.UniversalSet())
+
 
         if all(x == venn.EmptySet() for x in spec_sets):
             return venn.UniversalSet()
