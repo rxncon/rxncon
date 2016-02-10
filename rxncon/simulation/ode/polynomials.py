@@ -1,4 +1,4 @@
-from typing import List, Callable, Set
+from typing import List, Callable, Set, Union
 from collections import defaultdict
 from math import isclose
 
@@ -80,6 +80,10 @@ class Monomial:
         return ''.join(str(fac) for fac in self.factors)
 
     @property
+    def is_constant(self):
+        return self == TrivialMonomial()
+
+    @property
     def symbols(self) -> Set[Symbol]:
         return {x.symbol for x in self.factors}
 
@@ -126,45 +130,83 @@ class Polynomial:
         self._validate()
 
     @tc.typecheck
-    def __add__(self, other: 'Polynomial') -> 'Polynomial':
-        new_monomial_to_factor = defaultdict(lambda: 0.0)
+    def __add__(self, other: Union['Polynomial', float, int]) -> 'Polynomial':
+        if isinstance(other, Polynomial):
+            new_monomial_to_factor = defaultdict(lambda: 0.0)
 
-        for term in self.terms:
-            new_monomial_to_factor[term.monomial] = term.factor
+            for term in self.terms:
+                new_monomial_to_factor[term.monomial] = term.factor
 
-        for term in other.terms:
-            new_monomial_to_factor[term.monomial] += term.factor
+            for term in other.terms:
+                new_monomial_to_factor[term.monomial] += term.factor
 
-        new_terms = []
+            new_terms = []
 
-        for new_mon, new_fac in new_monomial_to_factor.items():
-            if not isclose(new_fac, 0.0):
-                new_terms.append(PolynomialTerm(new_mon, new_fac))
+            for new_mon, new_fac in new_monomial_to_factor.items():
+                if not isclose(new_fac, 0.0):
+                    new_terms.append(PolynomialTerm(new_mon, new_fac))
 
-        return Polynomial(set(new_terms))
+            return Polynomial(set(new_terms))
+
+        elif isinstance(other, int) or isinstance(other, float):
+            new_monomial_to_factor = defaultdict(lambda: 0.0)
+
+            for term in self.terms:
+                new_monomial_to_factor[term.monomial] = term.factor
+
+            new_monomial_to_factor[TrivialMonomial()] += other
+
+            new_terms = []
+
+            for new_mon, new_fac in new_monomial_to_factor.items():
+                if not isclose(new_fac, 0.0):
+                    new_terms.append(PolynomialTerm(new_mon, new_fac))
+
+            return Polynomial(set(new_terms))
+
+    @tc.typecheck
+    def __sub__(self, other: Union['Polynomial', float, int]):
+        if isinstance(other, Polynomial):
+            return self + (-1 * other)
+
+        elif isinstance(other, float) or isinstance(other, int):
+            return self + (-1 * other)
 
     @tc.typecheck
     def __eq__(self, other: 'Polynomial') -> bool:
         return self.terms == other.terms
 
     @tc.typecheck
-    def __mul__(self, other: 'Polynomial') -> 'Polynomial':
-        this_monomial_to_factor = {term.monomial: term.factor for term in self.terms}
-        that_monomial_to_factor = {term.monomial: term.factor for term in other.terms}
+    def __mul__(self, mult_by: Union['Polynomial', float, int]) -> 'Polynomial':
+        if isinstance(mult_by, Polynomial):
+            this_monomial_to_factor = {term.monomial: term.factor for term in self.terms}
+            that_monomial_to_factor = {term.monomial: term.factor for term in mult_by.terms}
 
-        new_monomial_to_factor = defaultdict(lambda: 0.0)
+            new_monomial_to_factor = defaultdict(lambda: 0.0)
 
-        for this_mon, this_fac in this_monomial_to_factor.items():
-            for that_mon, that_fac in that_monomial_to_factor.items():
-                new_monomial_to_factor[this_mon * that_mon] += this_fac * that_fac
+            for this_mon, this_fac in this_monomial_to_factor.items():
+                for that_mon, that_fac in that_monomial_to_factor.items():
+                    new_monomial_to_factor[this_mon * that_mon] += this_fac * that_fac
 
-        new_terms = []
+            new_terms = []
 
-        for new_mon, new_fac in new_monomial_to_factor.items():
-            if not isclose(new_fac, 0.0):
-                new_terms.append(PolynomialTerm(new_mon, new_fac))
+            for new_mon, new_fac in new_monomial_to_factor.items():
+                if not isclose(new_fac, 0.0):
+                    new_terms.append(PolynomialTerm(new_mon, new_fac))
 
-        return Polynomial(set(new_terms))
+            return Polynomial(set(new_terms))
+
+        elif isinstance(mult_by, float) or isinstance(mult_by, int):
+            new_terms = []
+
+            for term in self.terms:
+                new_terms.append(PolynomialTerm(term.monomial, term.factor * mult_by))
+
+            return Polynomial(set(new_terms))
+
+    @tc.typecheck
+    def __rmul__(self, other):
+        return self * other
 
     def __str__(self) -> str:
         return ' + '.join(str(term) for term in self.terms)
@@ -184,7 +226,7 @@ class Polynomial:
 
 
 class PolynomialTerm:
-    def __init__(self, monomial: Monomial, factor: float):
+    def __init__(self, monomial: Monomial, factor: Union[float, int]):
         self.monomial = monomial
         self.factor = factor
 
@@ -196,6 +238,10 @@ class PolynomialTerm:
 
     def __str__(self) -> str:
         return '{0} * {1}'.format(str(self.factor), str(self.monomial))
+
+    @property
+    def is_constant(self):
+        return self.monomial.is_constant
 
     @property
     def symbols(self):
