@@ -1,13 +1,13 @@
 import pytest
 import typecheck as tc
 
-import rxncon.core.component as com
+import rxncon.core.specification as com
 import rxncon.syntax.rxncon_from_string as cfs
 
 
 def test_component_without_name_raises():
     with pytest.raises(tc.InputParameterError):
-        component = com.Component(None, None, None, None)
+        component = com.Specification(None, None, None, None)
 
 
 ### SPECIFICATION, SUBSPECIFICATION TESTS ###

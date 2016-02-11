@@ -2,14 +2,14 @@ import re
 from typing import Tuple, Union
 import typecheck as tc
 
-import rxncon.core.component as com
+import rxncon.core.specification as com
 import rxncon.core.error as err
 import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
 
 
 @tc.typecheck
-def component_from_string(component_string: str) -> com.Component:
+def component_from_string(component_string: str) -> com.Specification:
     DOMAIN_DELIMITER = '_'
 
     DOMAIN_SUBDOMAIN_RESIDUE_REGEX = '^[\w:-]+\/[\w:-]+\([\w:-]+\)$'
@@ -21,7 +21,7 @@ def component_from_string(component_string: str) -> com.Component:
     items = component_string.split(DOMAIN_DELIMITER, maxsplit=1)
 
     if len(items) == 1:
-        return com.Component(items[0], None, None, None)
+        return com.Specification(items[0], None, None, None)
 
     elif len(items) == 2:
         name = items[0]
@@ -55,7 +55,7 @@ def component_from_string(component_string: str) -> com.Component:
         else:
             raise AssertionError
 
-        return com.Component(name, domain, subdomain, residue)
+        return com.Specification(name, domain, subdomain, residue)
 
     else:
         raise err.RxnConParseError('Could not parse component string '.format(component_string))
@@ -156,7 +156,7 @@ def _interaction_state_from_string(state_string: str) -> Union[sta.InterProteinI
 
     if component_strings[1].startswith('['):
         first_component = component_from_string(component_strings[0])
-        second_component = com.Component(first_component.name, component_strings[1].strip('[]'), None, None)
+        second_component = com.Specification(first_component.name, component_strings[1].strip('[]'), None, None)
 
         return sta.IntraProteinInteractionState(first_component, second_component)
 

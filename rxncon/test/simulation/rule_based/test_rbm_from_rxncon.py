@@ -1,6 +1,8 @@
 import pytest
 
 import rxncon.core.rxncon_system as rxs
+import rxncon.semantics.molecule
+import rxncon.semantics.molecule_from_rxncon
 import rxncon.syntax.rxncon_from_string as rfs
 import rxncon.core.contingency as con
 import rxncon.core.effector as eff
@@ -20,12 +22,17 @@ def test_molecule_defs_from_rxncon_without_contingencies():
     b_pplus_e = rfs.reaction_from_string('B_p+_E')
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c, b_ppi_e, b_pplus_e], [])
 
-    mol_defs = rfr.molecule_defs_from_rxncon(rxncon)
+    mol_defs = rxncon.semantics.molecule_from_rxncon.molecule_defs_from_rxncon(rxncon)
 
-    expected_mol_def_A = rbm.MoleculeDefinition("A", [], [rbm.AssociationDefinition("AssB"), rbm.AssociationDefinition("AssC")], rbm.LocalizationDefinition([]))
-    expected_mol_def_B = rbm.MoleculeDefinition("B", [], [rbm.AssociationDefinition("AssE"), rbm.AssociationDefinition("AssA")], rbm.LocalizationDefinition([]))
-    expected_mol_def_C = rbm.MoleculeDefinition("C", [], [rbm.AssociationDefinition("AssA")], rbm.LocalizationDefinition([]))
-    expected_mol_def_E = rbm.MoleculeDefinition("E", [rbm.ModificationDefinition("ModB", ["u", "p"])], [rbm.AssociationDefinition("AssB")], rbm.LocalizationDefinition([]))
+    expected_mol_def_A = rxncon.semantics.molecule.MoleculeDefinition("A", [], [
+        rxncon.semantics.molecule.AssociationDefinition("AssB"), rxncon.semantics.molecule.AssociationDefinition("AssC")], rxncon.semantics.molecule.LocalizationDefinition([]))
+    expected_mol_def_B = rxncon.semantics.molecule.MoleculeDefinition("B", [], [
+        rxncon.semantics.molecule.AssociationDefinition("AssE"), rxncon.semantics.molecule.AssociationDefinition("AssA")], rxncon.semantics.molecule.LocalizationDefinition([]))
+    expected_mol_def_C = rxncon.semantics.molecule.MoleculeDefinition("C", [], [
+        rxncon.semantics.molecule.AssociationDefinition("AssA")], rxncon.semantics.molecule.LocalizationDefinition([]))
+    expected_mol_def_E = rxncon.semantics.molecule.MoleculeDefinition("E", [
+        rxncon.semantics.molecule.ModificationDefinition("ModB", ["u", "p"])], [
+                                                                          rxncon.semantics.molecule.AssociationDefinition("AssB")], rxncon.semantics.molecule.LocalizationDefinition([]))
 
     assert len(mol_defs["A"].association_defs) == 2
     assert not mol_defs["A"].modification_defs
@@ -66,12 +73,17 @@ def test_mmolecule_defs_from_rxncon_with_contingencies():
     cont_a_ppi_b = con.Contingency(a_ppi_b, con.ContingencyType.inhibition, eff.StateEffector(a_dash_c))  # A_ppi_B; x A--C
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c, b_ppi_e, b_pplus_e], [cont_b_pplus_e, cont_b_dash_e, cont_a_ppi_b])
 
-    mol_defs = rfr.molecule_defs_from_rxncon(rxncon)
+    mol_defs = rxncon.semantics.molecule_from_rxncon.molecule_defs_from_rxncon(rxncon)
 
-    expected_mol_def_A = rbm.MoleculeDefinition("A", [], [rbm.AssociationDefinition("AssB"), rbm.AssociationDefinition("AssC")], rbm.LocalizationDefinition([]))
-    expected_mol_def_B = rbm.MoleculeDefinition("B", [], [rbm.AssociationDefinition("AssE"), rbm.AssociationDefinition("AssA")], rbm.LocalizationDefinition([]))
-    expected_mol_def_C = rbm.MoleculeDefinition("C", [], [rbm.AssociationDefinition("AssA")], rbm.LocalizationDefinition([]))
-    expected_mol_def_E = rbm.MoleculeDefinition("E", [rbm.ModificationDefinition("ModB", ["u", "p"])], [rbm.AssociationDefinition("AssB")], rbm.LocalizationDefinition([]))
+    expected_mol_def_A = rxncon.semantics.molecule.MoleculeDefinition("A", [], [
+        rxncon.semantics.molecule.AssociationDefinition("AssB"), rxncon.semantics.molecule.AssociationDefinition("AssC")], rxncon.semantics.molecule.LocalizationDefinition([]))
+    expected_mol_def_B = rxncon.semantics.molecule.MoleculeDefinition("B", [], [
+        rxncon.semantics.molecule.AssociationDefinition("AssE"), rxncon.semantics.molecule.AssociationDefinition("AssA")], rxncon.semantics.molecule.LocalizationDefinition([]))
+    expected_mol_def_C = rxncon.semantics.molecule.MoleculeDefinition("C", [], [
+        rxncon.semantics.molecule.AssociationDefinition("AssA")], rxncon.semantics.molecule.LocalizationDefinition([]))
+    expected_mol_def_E = rxncon.semantics.molecule.MoleculeDefinition("E", [
+        rxncon.semantics.molecule.ModificationDefinition("ModB", ["u", "p"])], [
+                                                                          rxncon.semantics.molecule.AssociationDefinition("AssB")], rxncon.semantics.molecule.LocalizationDefinition([]))
 
     assert len(mol_defs["A"].association_defs) == 2
     assert not mol_defs["A"].modification_defs
@@ -118,13 +130,13 @@ def test_state_set_from_contingencies():
 
     rxncon = rxs.RxnConSystem([b_ppi_e, a_ppi_b, a_ppi_c, b_pplus_e], [cont_e_pplus, cont_b_dash_e, cont_a_ppi_b])
 
-    strict_contingencies_state_set_b_ppi_e = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
+    strict_contingencies_state_set_b_ppi_e = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
 
-    strict_contingencies_state_set_a_ppi_b = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[1]))
+    strict_contingencies_state_set_a_ppi_b = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[1]))
 
-    strict_contingencies_state_set_a_ppi_c = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[2]))
+    strict_contingencies_state_set_a_ppi_c = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[2]))
 
-    strict_contingencies_state_set_b_pplus_e = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[3]))
+    strict_contingencies_state_set_b_pplus_e = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[3]))
 
     expected_b_ppi_e_strict_cont = venn.Intersection(venn.PropertySet(e_pplus), venn.PropertySet(a_dash_b))
     assert strict_contingencies_state_set_b_ppi_e.is_equivalent_to(expected_b_ppi_e_strict_cont)
@@ -152,7 +164,7 @@ def test_state_set_from_contingencies_from_AND_complex():
 
     rxncon = quick.rxncon_system
 
-    strict_cont_state_set = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
+    strict_cont_state_set = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
 
 
     assert strict_cont_state_set.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(a_dash_c), venn.PropertySet(c_dash_e)),
@@ -163,9 +175,9 @@ def test_state_set_from_contingencies_from_AND_complex():
 def test_specification_set_from_state_set_single_ppi_no_contingency():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     rxncon = rxs.RxnConSystem([a_ppi_b], [])
-    mol_defs = rfr.molecule_defs_from_rxncon(rxncon)
+    mol_defs = rxncon.semantics.molecule_from_rxncon.molecule_defs_from_rxncon(rxncon)
 
-    strict_cont_state_set = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
+    strict_cont_state_set = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
     strict_spec_set = mol_defs["A"].specification_set_from_state_set(strict_cont_state_set)
 
     assert strict_spec_set.is_equivalent_to(venn.UniversalSet())
@@ -178,14 +190,15 @@ def test_specification_set_from_state_set_single_requirement_related():
 
     cont = con.Contingency(a_ppi_b, con.ContingencyType.requirement, eff.StateEffector(a_dash_c))
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c], [cont])
-    mol_defs = rfr.molecule_defs_from_rxncon(rxncon)
+    mol_defs = rxncon.semantics.molecule_from_rxncon.molecule_defs_from_rxncon(rxncon)
 
-    strict_cont_state_set = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
+    strict_cont_state_set = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
     strict_spec_set = mol_defs["A"].specification_set_from_state_set(strict_cont_state_set)
 
     assoc_def = [assoc_def for assoc_def in mol_defs["A"].association_defs if assoc_def.domain == "AssC"]
 
-    assert strict_spec_set.is_equivalent_to(venn.PropertySet(rbm.AssociationSpecification(assoc_def[0], rbm.OccupationStatus.occupied_known_partner)))
+    assert strict_spec_set.is_equivalent_to(venn.PropertySet(
+        rxncon.semantics.molecule.AssociationSpecification(assoc_def[0], rxncon.semantics.molecule.OccupationStatus.occupied_known_partner)))
 
 
 def test_specification_set_from_state_set_single_inhibition_related():
@@ -195,14 +208,15 @@ def test_specification_set_from_state_set_single_inhibition_related():
 
     cont = con.Contingency(a_ppi_b, con.ContingencyType.inhibition, eff.StateEffector(a_dash_c))
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c], [cont])
-    mol_defs = rfr.molecule_defs_from_rxncon(rxncon)
+    mol_defs = rxncon.semantics.molecule_from_rxncon.molecule_defs_from_rxncon(rxncon)
 
-    strict_cont_state_set = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
+    strict_cont_state_set = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
     strict_spec_set = mol_defs["A"].specification_set_from_state_set(strict_cont_state_set)
 
     assoc_def = [assoc_def for assoc_def in mol_defs["A"].association_defs if assoc_def.domain == "AssC"]
 
-    assert strict_spec_set.is_equivalent_to(venn.PropertySet(rbm.AssociationSpecification(assoc_def[0], rbm.OccupationStatus.not_occupied)))
+    assert strict_spec_set.is_equivalent_to(venn.PropertySet(
+        rxncon.semantics.molecule.AssociationSpecification(assoc_def[0], rxncon.semantics.molecule.OccupationStatus.not_occupied)))
 
 
 def test_specification_set_from_state_set_single_requirement_not_related():
@@ -212,9 +226,9 @@ def test_specification_set_from_state_set_single_requirement_not_related():
 
     cont = con.Contingency(a_ppi_b, con.ContingencyType.requirement, eff.StateEffector(b_dash_c))
     rxncon = rxs.RxnConSystem([a_ppi_b, b_ppi_c], [cont])
-    mol_defs = rfr.molecule_defs_from_rxncon(rxncon)
+    mol_defs = rxncon.semantics.molecule_from_rxncon.molecule_defs_from_rxncon(rxncon)
 
-    strict_cont_state_set = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
+    strict_cont_state_set = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
     strict_spec_set = mol_defs["A"].specification_set_from_state_set(strict_cont_state_set)
 
     assert strict_spec_set.is_equivalent_to(venn.UniversalSet())
@@ -227,9 +241,9 @@ def test_specification_set_from_state_set_single_inhibited_not_related():
 
     cont = con.Contingency(a_ppi_b, con.ContingencyType.inhibition, eff.StateEffector(b_dash_c))
     rxncon = rxs.RxnConSystem([a_ppi_b, b_ppi_c], [cont])
-    mol_defs = rfr.molecule_defs_from_rxncon(rxncon)
+    mol_defs = rxncon.semantics.molecule_from_rxncon.molecule_defs_from_rxncon(rxncon)
 
-    strict_cont_state_set = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
+    strict_cont_state_set = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
     strict_spec_set = mol_defs["A"].specification_set_from_state_set(strict_cont_state_set)
 
     assert strict_spec_set.is_equivalent_to(venn.UniversalSet())
@@ -243,9 +257,9 @@ def test_specification_set_from_state_set_quantitative_contingencies():
     cont_pos = con.Contingency(a_ppi_b, con.ContingencyType.positive, eff.StateEffector(a_dash_c))
     cont_neg = con.Contingency(a_ppi_b, con.ContingencyType.positive, eff.StateEffector(a_dash_c))
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c], [cont_pos, cont_neg])
-    mol_defs = rfr.molecule_defs_from_rxncon(rxncon)
+    mol_defs = rxncon.semantics.molecule_from_rxncon.molecule_defs_from_rxncon(rxncon)
 
-    strict_cont_state_set = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
+    strict_cont_state_set = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
     strict_spec_set_A = mol_defs["A"].specification_set_from_state_set(strict_cont_state_set)
     strict_spec_set_C = mol_defs["C"].specification_set_from_state_set(strict_cont_state_set)
 
@@ -261,13 +275,14 @@ def test_specification_set_from_state_set_inhibition_one_molecule_not_related_to
     cont_a_ppi_b = con.Contingency(a_ppi_b, con.ContingencyType.inhibition, eff.StateEffector(a_dash_c))  # A_ppi_B; x A--C
 
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c], [cont_a_ppi_b])
-    mol_defs = rfr.molecule_defs_from_rxncon(rxncon)
+    mol_defs = rxncon.semantics.molecule_from_rxncon.molecule_defs_from_rxncon(rxncon)
 
-    strict_cont_state_set_a_ppi_b = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
+    strict_cont_state_set_a_ppi_b = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
     strict_spec_set_a_ppi_b = mol_defs["A"].specification_set_from_state_set(strict_cont_state_set_a_ppi_b)
 
     assoc_def = [assoc_def for assoc_def in mol_defs["A"].association_defs if assoc_def.domain == "AssC"]
-    assert strict_spec_set_a_ppi_b.is_equivalent_to(venn.PropertySet(rbm.AssociationSpecification(assoc_def[0], rbm.OccupationStatus.not_occupied)))
+    assert strict_spec_set_a_ppi_b.is_equivalent_to(venn.PropertySet(
+        rxncon.semantics.molecule.AssociationSpecification(assoc_def[0], rxncon.semantics.molecule.OccupationStatus.not_occupied)))
 
     strict_spec_set_a_ppi_b = mol_defs["B"].specification_set_from_state_set(strict_cont_state_set_a_ppi_b)
     assert strict_spec_set_a_ppi_b.is_equivalent_to(venn.UniversalSet())
@@ -287,16 +302,18 @@ def test_specifictation_set_from_state_set_two_contingencies():
 
     rxncon = rxs.RxnConSystem([b_ppi_e, a_ppi_b, b_pplus_e], [cont_e_pplus, cont_b_dash_e])
 
-    strict_cont_state_set_b_ppi_e = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
+    strict_cont_state_set_b_ppi_e = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
 
-    mol_defs = rfr.molecule_defs_from_rxncon(rxncon)
+    mol_defs = rxncon.semantics.molecule_from_rxncon.molecule_defs_from_rxncon(rxncon)
 
     strict_spec_set_b_ppi_e = mol_defs["B"].specification_set_from_state_set(strict_cont_state_set_b_ppi_e)
 
     assoc_def = [assoc_def for assoc_def in mol_defs["B"].association_defs if assoc_def.domain == "AssA"]
 
-    assert strict_spec_set_b_ppi_e.is_equivalent_to(venn.Intersection(venn.PropertySet(rbm.AssociationSpecification(assoc_def[0], rbm.OccupationStatus.occupied_known_partner)),
-                                                                      venn.PropertySet(rbm.ModificationSpecification(mol_defs["B"].modification_defs[0],"p"))))
+    assert strict_spec_set_b_ppi_e.is_equivalent_to(venn.Intersection(venn.PropertySet(
+        rxncon.semantics.molecule.AssociationSpecification(assoc_def[0], rxncon.semantics.molecule.OccupationStatus.occupied_known_partner)),
+                                                                      venn.PropertySet(
+                                                                          rxncon.semantics.molecule.ModificationSpecification(mol_defs["B"].modification_defs[0], "p"))))
 
 
 def test_specifictation_set_from_state_boolean_complex():
@@ -310,15 +327,17 @@ def test_specifictation_set_from_state_boolean_complex():
                         C_ppi_E
                         B_ppi_F""")
     rxncon = quick.rxncon_system
-    mol_defs = rfr.molecule_defs_from_rxncon(rxncon)
-    strict_cont_state_set = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
+    mol_defs = rxncon.semantics.molecule_from_rxncon.molecule_defs_from_rxncon(rxncon)
+    strict_cont_state_set = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
 
     strict_spec_set_B = mol_defs["B"].specification_set_from_state_set(strict_cont_state_set)
     strict_spec_set_A = mol_defs["A"].specification_set_from_state_set(strict_cont_state_set)
     strict_spec_set_C = mol_defs['C'].specification_set_from_state_set(strict_cont_state_set)
 
-    assert strict_spec_set_B.is_equivalent_to(venn.PropertySet(rbm.AssociationSpecification(mol_defs["B"].association_defs[0], rbm.OccupationStatus.occupied_known_partner)))
-    assert strict_spec_set_A.is_equivalent_to(venn.PropertySet(rbm.AssociationSpecification(mol_defs["A"].association_defs[0], rbm.OccupationStatus.occupied_known_partner)))
+    assert strict_spec_set_B.is_equivalent_to(venn.PropertySet(
+        rxncon.semantics.molecule.AssociationSpecification(mol_defs["B"].association_defs[0], rxncon.semantics.molecule.OccupationStatus.occupied_known_partner)))
+    assert strict_spec_set_A.is_equivalent_to(venn.PropertySet(
+        rxncon.semantics.molecule.AssociationSpecification(mol_defs["A"].association_defs[0], rxncon.semantics.molecule.OccupationStatus.occupied_known_partner)))
 
     # @todo check that the association domains are the correct ones
     # @todo check the stuff for C and E
@@ -328,7 +347,7 @@ def test_specifictation_set_from_state_boolean_complex():
 
 
 def test_simple_rxncon_system(simple_system):
-    mol_defs = rfr.molecule_defs_from_rxncon(simple_system)
+    mol_defs = rxncon.semantics.molecule_from_rxncon.molecule_defs_from_rxncon(simple_system)
 
     mol_def_X = mol_defs['X']
 
