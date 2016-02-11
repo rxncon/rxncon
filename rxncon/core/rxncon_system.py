@@ -39,4 +39,5 @@ class RxnConSystem:
 
 
     def _assert_consistency(self):
+        # @todo check that every contingency is produced.
         pass

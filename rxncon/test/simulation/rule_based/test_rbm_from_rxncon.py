@@ -11,6 +11,7 @@ import rxncon.venntastic.sets as venn
 
 import rxncon.input.quick.quick as qui
 
+# MOLECULE DEFINITIONS
 def test_molecule_defs_from_rxncon_without_contingencies():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_ppi_c = rfs.reaction_from_string('A_ppi_C')
@@ -93,6 +94,11 @@ def test_mmolecule_defs_from_rxncon_with_contingencies():
     assert len(mol_defs["E"].association_defs) == 1
     assert mol_defs["E"].association_defs[0] == expected_mol_def_E.association_defs[0]
 
+
+# @todo Fix the mutual exclusivity for associations and modifications.
+
+
+# STRICT STATE SETS FROM STRICT CONTINGENCIES
 def test_state_set_from_contingencies():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_dash_b = rfs.state_from_string('A--B')
@@ -120,18 +126,19 @@ def test_state_set_from_contingencies():
 
     strict_contingencies_state_set_b_pplus_e = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[3]))
 
-
     expected_b_ppi_e_strict_cont = venn.Intersection(venn.PropertySet(e_pplus), venn.PropertySet(a_dash_b))
     assert strict_contingencies_state_set_b_ppi_e.is_equivalent_to(expected_b_ppi_e_strict_cont)
 
     expected_a_ppi_b_strict_cont = venn.Intersection(venn.UniversalSet(),venn.Complement(venn.PropertySet(a_dash_c)))
     assert strict_contingencies_state_set_a_ppi_b.is_equivalent_to(expected_a_ppi_b_strict_cont)
+    assert strict_contingencies_state_set_a_ppi_b.is_equivalent_to(venn.Complement(venn.PropertySet(a_dash_c)))
 
     expected_a_ppi_c_strict_cont = venn.UniversalSet()
     assert strict_contingencies_state_set_a_ppi_c.is_equivalent_to(expected_a_ppi_c_strict_cont)
 
     expected_b_pplus_e_strict_cont = venn.UniversalSet()
     assert strict_contingencies_state_set_b_pplus_e.is_equivalent_to(expected_b_pplus_e_strict_cont)
+
 
 def test_state_set_from_contingencies_from_AND_complex():
     quick = qui.Quick("""A_ppi_B; ! <comp>
@@ -150,6 +157,7 @@ def test_state_set_from_contingencies_from_AND_complex():
 
     assert strict_cont_state_set.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(a_dash_c), venn.PropertySet(c_dash_e)),
                                                                     venn.PropertySet(b_dash_f)))
+
 
 # todo: this does not belong here ####################
 def test_specification_set_from_state_set_single_ppi_no_contingency():
@@ -178,6 +186,7 @@ def test_specification_set_from_state_set_single_requirement_related():
     assoc_def = [assoc_def for assoc_def in mol_defs["A"].association_defs if assoc_def.domain == "AssC"]
 
     assert strict_spec_set.is_equivalent_to(venn.PropertySet(rbm.AssociationSpecification(assoc_def[0], rbm.OccupationStatus.occupied_known_partner)))
+
 
 def test_specification_set_from_state_set_single_inhibition_related():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
@@ -210,12 +219,13 @@ def test_specification_set_from_state_set_single_requirement_not_related():
 
     assert strict_spec_set.is_equivalent_to(venn.UniversalSet())
 
+
 def test_specification_set_from_state_set_single_inhibited_not_related():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     b_ppi_c = rfs.reaction_from_string('B_ppi_C')
     b_dash_c = rfs.state_from_string('B--C')
 
-    cont = con.Contingency(a_ppi_b, con.ContingencyType.requirement, eff.StateEffector(b_dash_c))
+    cont = con.Contingency(a_ppi_b, con.ContingencyType.inhibition, eff.StateEffector(b_dash_c))
     rxncon = rxs.RxnConSystem([a_ppi_b, b_ppi_c], [cont])
     mol_defs = rfr.molecule_defs_from_rxncon(rxncon)
 
@@ -223,6 +233,7 @@ def test_specification_set_from_state_set_single_inhibited_not_related():
     strict_spec_set = mol_defs["A"].specification_set_from_state_set(strict_cont_state_set)
 
     assert strict_spec_set.is_equivalent_to(venn.UniversalSet())
+
 
 def test_specification_set_from_state_set_quantitative_contingencies():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
@@ -241,10 +252,9 @@ def test_specification_set_from_state_set_quantitative_contingencies():
     assert strict_spec_set_A.is_equivalent_to(venn.UniversalSet())
     assert strict_spec_set_C.is_equivalent_to(venn.UniversalSet())
 
+
 def test_specification_set_from_state_set_inhibition_one_molecule_not_related_to_both():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
-    a_dash_b = rfs.state_from_string('A--B')
-
     a_ppi_c = rfs.reaction_from_string('A_ppi_C')
     a_dash_c = rfs.state_from_string('A--C')
 
@@ -252,7 +262,6 @@ def test_specification_set_from_state_set_inhibition_one_molecule_not_related_to
 
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c], [cont_a_ppi_b])
     mol_defs = rfr.molecule_defs_from_rxncon(rxncon)
-
 
     strict_cont_state_set_a_ppi_b = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
     strict_spec_set_a_ppi_b = mol_defs["A"].specification_set_from_state_set(strict_cont_state_set_a_ppi_b)
@@ -264,13 +273,11 @@ def test_specification_set_from_state_set_inhibition_one_molecule_not_related_to
     assert strict_spec_set_a_ppi_b.is_equivalent_to(venn.UniversalSet())
 
 
-
 def test_specifictation_set_from_state_set_two_contingencies():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_dash_b = rfs.state_from_string('A--B')
 
     b_ppi_e = rfs.reaction_from_string('B_ppi_E')
-    b_dash_e = rfs.state_from_string('B--E')
 
     b_pplus_e = rfs.reaction_from_string('E_p+_B')
     b_pplus = rfs.state_from_string("B-{P}")
@@ -291,6 +298,7 @@ def test_specifictation_set_from_state_set_two_contingencies():
     assert strict_spec_set_b_ppi_e.is_equivalent_to(venn.Intersection(venn.PropertySet(rbm.AssociationSpecification(assoc_def[0], rbm.OccupationStatus.occupied_known_partner)),
                                                                       venn.PropertySet(rbm.ModificationSpecification(mol_defs["B"].modification_defs[0],"p"))))
 
+
 def test_specifictation_set_from_state_boolean_complex():
     # todo throw something if state is not produced
     quick = qui.Quick("""
@@ -307,15 +315,14 @@ def test_specifictation_set_from_state_boolean_complex():
 
     strict_spec_set_B = mol_defs["B"].specification_set_from_state_set(strict_cont_state_set)
     strict_spec_set_A = mol_defs["A"].specification_set_from_state_set(strict_cont_state_set)
+    strict_spec_set_C = mol_defs['C'].specification_set_from_state_set(strict_cont_state_set)
 
-    assert strict_spec_set_B.is_equivalent_to(venn.Intersection(venn.Intersection(venn.UniversalSet(), venn.UniversalSet()),
-                                                                venn.PropertySet(rbm.AssociationSpecification(mol_defs["B"].association_defs[0], rbm.OccupationStatus.occupied_known_partner))))
+    assert strict_spec_set_B.is_equivalent_to(venn.PropertySet(rbm.AssociationSpecification(mol_defs["B"].association_defs[0], rbm.OccupationStatus.occupied_known_partner)))
+    assert strict_spec_set_A.is_equivalent_to(venn.PropertySet(rbm.AssociationSpecification(mol_defs["A"].association_defs[0], rbm.OccupationStatus.occupied_known_partner)))
 
-    assert strict_spec_set_A.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(rbm.AssociationSpecification(mol_defs["A"].association_defs[0], rbm.OccupationStatus.occupied_known_partner)),
-                                                                                  venn.UniversalSet()),
-                                                                venn.UniversalSet()))
-
-
+    # @todo check that the association domains are the correct ones
+    # @todo check the stuff for C and E
+    print(strict_spec_set_C)
 
 # todo: END####################
 
