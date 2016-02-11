@@ -246,8 +246,3 @@ class PolynomialTerm:
     @property
     def symbols(self):
         return self.monomial.symbols
-
-
-
-
-
