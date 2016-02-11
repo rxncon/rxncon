@@ -161,52 +161,6 @@ def source_state_set_from_reaction(reaction: rxn.Reaction) -> venn.Set:
         raise AssertionError
 
 
-# def find_connectivity_by_molecule_specifications(molecule_specifications: tg.List[rbm.MoleculeSpecification]) -> tg.List[tg.List[rbm.MoleculeSpecification]]:
-#
-#     connected_specifications = []
-#     while molecule_specifications:
-#         mol_spec = molecule_specifications.pop()
-#         if mol_spec.occupied_association_specs():
-#              states = []
-#             for occupied_molecule_spec in mol_spec.occupied_association_specs():
-#                 states.append(occupied_molecule_spec.association_def.association_def.matching_state)
-#             for state in states:
-#                 connected_specifications.append(complexes_from_association_spec_from_state(state,
-#                                                                                 mol_spec, molecule_specifications,
-#                                                                                 molecule_specifications))
-#         else:
-#             connected_specifications.append([mol_spec])
-#
-#
-# def complexes_from_association_spec_from_state(state: sta.State,
-#                                     mol_spec: rbm.MoleculeSpecification,
-#                                     molecule_specifications: tg.List[rbm.MoleculeSpecification]):
-#     states = [state]
-#     already = []
-#     while states:
-#         states, already = _get_complex_layer(states, mol_spec, molecule_specifications, already)
-#
-#
-#
-# def _get_complex_layer(states: tg.List[sta.State], molecule_spec: rbm.MoleculeSpecification,
-#                        molecule_specifications:tg.List[rbm.MoleculeSpecification],
-#                        already: list):
-#
-#     connectors = already
-#     new_connections = []
-#     for state in states:
-#         if state not in connectors:
-#             connectors.append(state)
-#         if state.first_component.name == molecule_spec.molecule_def.name:
-#             new_connections.append(state.second_component)
-#         else:
-#             new_connections.append(state.first_component)
-#
-#     for new_connection in new_connections:
-#         for molecule_specification in molecule_specifications:
-#             if new_connection.name == molecule_specification.molecule_def.name:
-#                 pass
-
 def reactants_from_specs(molecule_specifications: tg.List[rbm.MoleculeSpecification]) -> tg.List[rbm.Reactant]:
 
     reactants = []
@@ -225,6 +179,19 @@ def reactants_from_specs(molecule_specifications: tg.List[rbm.MoleculeSpecificat
 
     states_in_complex = complexes_by_state_connection(states)
 
+
+    for states in states_in_complex:
+        molecule_specifications = []
+        bindings = []
+        for state in states:
+            if specs_in_complexes[state][0][0] not in molecule_specifications:
+                molecule_specifications.append(specs_in_complexes[state][0][0])
+            if specs_in_complexes[state][1][0] not in molecule_specifications:
+                molecule_specifications.append(specs_in_complexes[state][1][0])
+            binding = rbm.Binding((molecule_specifications.index(specs_in_complexes[state][0][0]), specs_in_complexes[state][0][1]),
+                                  (molecule_specifications.index(specs_in_complexes[state][1][0]), specs_in_complexes[state][1][1]))
+            bindings.append(binding)
+        reactants.append(rbm.ComplexReactant(molecule_specifications, bindings))
     return reactants
 
 
@@ -232,20 +199,26 @@ def complexes_by_state_connection(states: tg.List[sta.State]):
     states_in_complex = []
     while states:
         state = states.pop()
-        states, connected_states = _find_connectectivity_of_state(state, states)
+        states, connected_states = _find_connectivity_of_state(state, states, connected_states)
         states_in_complex.append(connected_states)
+
+
     return states_in_complex
 
 
-def _find_connectectivity_of_state(state: sta.State, states: tg.List[sta.State]):
+def _find_connectivity_of_state(state: sta.State, states: tg.List[sta.State]):
     connected_states = [state]
+    not_connected_states = []
     new_states = []
     for connected_state in states:
-        if {connected_state.first_component.name, connected_state.second_component.name} | \
+        if {connected_state.first_component.name, connected_state.second_component.name} & \
                 {state.first_component.name, state.second_component.name}:
             connected_states.append(connected_state)
         else:
-            new_states.append(connected_state)
+            not_connected_states.append(connected_state)
+
+    #for state in not_connected_states:
+    #    states, connected_states = complexes_by_state_connection(new_states)
     return new_states, connected_states
 
 
