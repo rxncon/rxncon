@@ -8,8 +8,8 @@ import rxncon.core.state as sta
 import rxncon.semantics.molecule
 import rxncon.simulation.rule_based.rule_based_model as rbm
 import rxncon.venntastic.sets as venn
-from rxncon.semantics.molecule_from_rxncon import state_set_from_contingencies, \
-    contingency_configurations_from_quantitative_contingencies, source_state_set_from_reaction, \
+from rxncon.semantics.molecule_from_rxncon import set_of_states_from_contingencies, \
+    contingency_configurations_from_quantitative_contingencies, source_set_of_states_from_reaction, \
     molecule_defs_from_rxncon
 
 
@@ -27,8 +27,8 @@ def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rxnc
                         reaction: rxn.Reaction) -> tg.List[rbm.Rule]:
     relevant_molecule_names = set(component.name for component in rxnconsys.components_for_reaction(reaction))
 
-    strict_contingency_state_set = state_set_from_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction))
-    source_state_set = source_state_set_from_reaction(reaction)
+    strict_contingency_state_set = set_of_states_from_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction))
+    source_state_set = source_set_of_states_from_reaction(reaction)
 
     quant_contingency_configurations = \
         contingency_configurations_from_quantitative_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))
@@ -45,7 +45,7 @@ def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rxnc
 
         for strict_term in strict_spec_set.to_union_list_form():
             for contingency in quant_contingency_configurations:
-                quant_contingency_state_set = state_set_from_contingencies([contingency])
+                quant_contingency_state_set = set_of_states_from_contingencies([contingency])
                 quant_term = mol_def.specification_set_from_state_set(quant_contingency_state_set)
 
                 lhs_sets.append(venn.Intersection(strict_term, quant_term))
