@@ -260,17 +260,23 @@ def _molecule_modifier_from_state_modifier(state_mod: sta.StateModifier) -> mol.
 def _update_defs(defs: tg.Set[mol.Definition], new_def: mol.Definition):
     if isinstance(new_def, mol.AssociationDefinition):
         matches = lambda x, y: x == y
-        update = lambda old_def, new_def: old_def.valid_partners.add(new_def.valid_partners)
+        update = lambda old_def, new_def: old_def.valid_partners.update(new_def.valid_partners)
     else:
         matches = lambda x, y: x.is_equivalent_to(y)
-        update = lambda old_def, new_def: old_def.valid_modifiers.add(new_def.valid_modifiers)
+        update = lambda old_def, new_def: old_def.valid_modifiers.update(new_def.valid_modifiers)
 
     found_updatable_def = False
+
+    #updated_defs = [update(the_def, new_def) if matches(the_def.spec, new_def.spec) else the_def for the_def in defs]
     for the_def in defs:
         if matches(the_def.spec, new_def.spec):
             update(the_def, new_def)
             found_updatable_def = True
+#    updated_defs = set(updated_defs)
 
     if not found_updatable_def:
         defs.add(new_def)
+    # else:
+    #     for updated_def in updated_defs:
+    #         if updated_def.
 

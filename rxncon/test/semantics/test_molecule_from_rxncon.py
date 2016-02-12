@@ -68,7 +68,7 @@ def test_MoleculeDefinitionSupervisor():
     assert list(mol_defs.molecule_definition_for_name("E").association_defs)[0] == list(expected_mol_def_E.association_defs)[0]
 
 
-def test_mmolecule_defs_from_rxncon_with_contingencies():
+def test_molecule_defs_from_rxncon_with_contingencies():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_dash_b = rfs.state_from_string('A--B')
 
@@ -136,3 +136,85 @@ def test_mmolecule_defs_from_rxncon_with_contingencies():
     assert mol_defs.molecule_definition_for_name("E").localization_def == expected_mol_def_E.localization_def
     assert len(mol_defs.molecule_definition_for_name("E").association_defs) == 1
     assert list(mol_defs.molecule_definition_for_name("E").association_defs)[0] == list(expected_mol_def_E.association_defs)[0]
+
+def test_molecule_defs_from_rxncon_modifiation_at_same_residue():
+    a_pplus_b = rfs.reaction_from_string('A_p+_B_[x]')
+    c_pplus_b = rfs.reaction_from_string('C_p+_B_[x]')
+
+
+    rxncon = rxs.RxnConSystem([a_pplus_b, c_pplus_b], [])
+
+    mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
+
+    universal_specA = spe.Specification("A", None, None, None)
+    universal_specB = spe.Specification("B", None, None, None)
+    universal_specC = spe.Specification("C", None, None, None)
+
+    specificationBp = spe.Specification("B", None, None, 'x')
+
+    expected_mol_def_B = mol.MoleculeDefinition(universal_specB, {mol.ModificationDefinition(specificationBp, {mol.Modifier.unmodified, mol.Modifier.phosphorylated})},
+                                                set(), mol.LocalizationDefinition(set()))
+
+    assert not mol_defs.molecule_definition_for_name("A").association_defs
+    assert not mol_defs.molecule_definition_for_name("A").modification_defs
+
+    assert not mol_defs.molecule_definition_for_name("C").association_defs
+    assert not mol_defs.molecule_definition_for_name("C").modification_defs
+
+    assert not mol_defs.molecule_definition_for_name("B").association_defs
+    assert mol_defs.molecule_definition_for_name("B").localization_def == expected_mol_def_B.localization_def
+
+def test_molecule_defs_from_rxncon_different_modifiation_at_same_residue():
+    a_pplus_b = rfs.reaction_from_string('A_p+_B_[(x)]')
+    c_pplus_b = rfs.reaction_from_string('C_ub+_B_[(x)]')
+
+
+    rxncon = rxs.RxnConSystem([a_pplus_b, c_pplus_b], [])
+
+    mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
+
+    universal_specB = spe.Specification("B", None, None, None)
+
+    specificationBp = spe.Specification("B", None, None, 'x')
+
+    expected_mol_def_B = mol.MoleculeDefinition(universal_specB, {mol.ModificationDefinition(specificationBp,
+                                                                                             {mol.Modifier.unmodified,
+                                                                                              mol.Modifier.phosphorylated,
+                                                                                              mol.Modifier.ubiquitinated})},
+                                                set(), mol.LocalizationDefinition(set()))
+
+    assert not mol_defs.molecule_definition_for_name("A").association_defs
+    assert not mol_defs.molecule_definition_for_name("A").modification_defs
+
+    assert not mol_defs.molecule_definition_for_name("C").association_defs
+    assert not mol_defs.molecule_definition_for_name("C").modification_defs
+
+    assert not mol_defs.molecule_definition_for_name("B").association_defs
+    assert mol_defs.molecule_definition_for_name("B").localization_def == expected_mol_def_B.localization_def
+    assert list(mol_defs.molecule_definition_for_name("B").modification_defs)[0].spec == list(expected_mol_def_B.modification_defs)[0].spec
+    assert len(list(mol_defs.molecule_definition_for_name("B").modification_defs)[0].valid_modifiers.intersection(list(expected_mol_def_B.modification_defs)[0].valid_modifiers)) == 3
+
+def test_molecule_defs_from_rxncon_binding_same_domain():
+    a_pplus_b = rfs.reaction_from_string('A_ppi_B_[x]')
+    c_pplus_b = rfs.reaction_from_string('C_ppi_B_[x]')
+
+
+    rxncon = rxs.RxnConSystem([a_pplus_b, c_pplus_b], [])
+
+    mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
+
+    universal_specB = spe.Specification("B", None, None, None)
+
+    specificationBbound = spe.Specification("B", "x", None, None)
+    specificationAiB = spe.Specification("A", "Bassoc", None, None)
+    specificationCiB = spe.Specification("C", "Bassoc", None, None)
+
+    expected_mol_def_B = mol.MoleculeDefinition(universal_specB, set(),
+                                                {mol.AssociationDefinition(specificationBbound, {specificationAiB, specificationCiB})}, mol.LocalizationDefinition(set()))
+
+
+    assert len(mol_defs.molecule_definition_for_name("B").association_defs) == 1
+    assert list(mol_defs.molecule_definition_for_name("B").association_defs)[0].spec == list(expected_mol_def_B.association_defs)[0].spec
+    assert len(list(mol_defs.molecule_definition_for_name("B").association_defs)[0].valid_partners) == 2
+    assert len(list(mol_defs.molecule_definition_for_name("B").association_defs)[0].valid_partners.intersection(list(expected_mol_def_B.association_defs)[0].valid_partners)) == 2
+
