@@ -17,64 +17,6 @@ import rxncon.input.quick.quick as qui
 
 
 # STRICT STATE SETS FROM STRICT CONTINGENCIES
-def test_state_set_from_contingencies():
-    a_ppi_b = rfs.reaction_from_string('A_ppi_B')
-    a_dash_b = rfs.state_from_string('A--B')
-
-    a_ppi_c = rfs.reaction_from_string('A_ppi_C')
-    a_dash_c = rfs.state_from_string('A--C')
-
-    b_ppi_e = rfs.reaction_from_string('B_ppi_E')
-    b_dash_e = rfs.state_from_string('B--E')
-
-    b_pplus_e = rfs.reaction_from_string('B_p+_E')
-    e_pplus = rfs.state_from_string("E-{P}")
-
-    cont_b_dash_e = con.Contingency(b_ppi_e, con.ContingencyType.requirement, eff.StateEffector(a_dash_b))  # B_ppi_E; ! A--B
-    cont_e_pplus = con.Contingency(b_ppi_e, con.ContingencyType.requirement, eff.StateEffector(e_pplus))  # B_ppi_E; ! E-{P}
-    cont_a_ppi_b = con.Contingency(a_ppi_b, con.ContingencyType.inhibition, eff.StateEffector(a_dash_c))  # A_ppi_B; x A--C
-
-    rxncon = rxs.RxnConSystem([b_ppi_e, a_ppi_b, a_ppi_c, b_pplus_e], [cont_e_pplus, cont_b_dash_e, cont_a_ppi_b])
-
-    strict_contingencies_state_set_b_ppi_e = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
-
-    strict_contingencies_state_set_a_ppi_b = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[1]))
-
-    strict_contingencies_state_set_a_ppi_c = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[2]))
-
-    strict_contingencies_state_set_b_pplus_e = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[3]))
-
-    expected_b_ppi_e_strict_cont = venn.Intersection(venn.PropertySet(e_pplus), venn.PropertySet(a_dash_b))
-    assert strict_contingencies_state_set_b_ppi_e.is_equivalent_to(expected_b_ppi_e_strict_cont)
-
-    expected_a_ppi_b_strict_cont = venn.Intersection(venn.UniversalSet(),venn.Complement(venn.PropertySet(a_dash_c)))
-    assert strict_contingencies_state_set_a_ppi_b.is_equivalent_to(expected_a_ppi_b_strict_cont)
-    assert strict_contingencies_state_set_a_ppi_b.is_equivalent_to(venn.Complement(venn.PropertySet(a_dash_c)))
-
-    expected_a_ppi_c_strict_cont = venn.UniversalSet()
-    assert strict_contingencies_state_set_a_ppi_c.is_equivalent_to(expected_a_ppi_c_strict_cont)
-
-    expected_b_pplus_e_strict_cont = venn.UniversalSet()
-    assert strict_contingencies_state_set_b_pplus_e.is_equivalent_to(expected_b_pplus_e_strict_cont)
-
-
-def test_state_set_from_contingencies_from_AND_complex():
-    quick = qui.Quick("""A_ppi_B; ! <comp>
-                        <comp>; AND A--C
-                        <comp>; AND C--E
-                        <comp>; AND B--F""")
-
-    a_dash_c = rfs.state_from_string("A--C")
-    c_dash_e = rfs.state_from_string("C--E")
-    b_dash_f = rfs.state_from_string("B--F")
-
-    rxncon = quick.rxncon_system
-
-    strict_cont_state_set = rxncon.semantics.molecule_from_rxncon.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
-
-
-    assert strict_cont_state_set.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(a_dash_c), venn.PropertySet(c_dash_e)),
-                                                                    venn.PropertySet(b_dash_f)))
 
 
 # todo: this does not belong here ####################
