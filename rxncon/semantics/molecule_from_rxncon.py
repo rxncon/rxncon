@@ -63,7 +63,7 @@ class MoleculeDefinitionSupervisor:
 
 # MATCHING MOLECULE DEFINITIONS WITH SETS OF STATES INTO ASSOC/MOD/LOC INSTANCES (_NOT_ MOLECULE INSTANCES YET)
 def set_of_instances_from_molecule_def_and_set_of_states(mol_def: mol.MoleculeDefinition, set_of_states: venn.Set) -> venn.Set:
-    if isinstance(set_of_states, venn.EmptySet()):
+    if set_of_states.is_equivalent_to(venn.EmptySet()):
         raise NotImplementedError
 
     elif set_of_states.is_equivalent_to(venn.UniversalSet()):
@@ -180,7 +180,8 @@ def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) 
 
     elif isinstance(state, sta.InterProteinInteractionState) or isinstance(state, sta.IntraProteinInteractionState):
         # Associations should match exactly.
-        first_defs = [x for x in mol_def.association_defs if x == state.first_component]
+        # todo: x.spec != state.first_component if we don't define domains, because of the default domain in x.spec
+        first_defs = [x for x in mol_def.association_defs if x.spec == state.first_component]
         matching_instances = []
         for matching_def in first_defs:
             if not negate:
@@ -190,7 +191,7 @@ def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) 
                 matching_instances.extend(mol.AssociationInstance(matching_def, mol.OccupationStatus.occupied_known_partner,
                                                                   state.second_component).complementary_instances())
 
-        second_defs = [x for x in mol_def.association_defs if x == state.second_component]
+        second_defs = [x for x in mol_def.association_defs if x.spec == state.second_component]
         matching_instances = []
         for matching_def in second_defs:
             if not negate:
