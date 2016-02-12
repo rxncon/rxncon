@@ -12,6 +12,9 @@ class Specification:
         self.subdomain = subdomain
         self.residue = residue
 
+    def __hash__(self) -> int:
+        return hash(str(self))
+
     def __str__(self) -> str:
         return sfr.string_from_component(self)
 

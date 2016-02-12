@@ -54,7 +54,8 @@ class MoleculeDefinitionSupervisor:
                     raise NotImplementedError
 
         for name in names:
-            self.molecule_definitions[name] = mol.MoleculeDefinition(name,
+            universal_specification = spe.Specification(name, None, None, None)
+            self.molecule_definitions[name] = mol.MoleculeDefinition(universal_specification,
                                                                      name_to_mod_defs[name],
                                                                      name_to_assoc_defs[name],
                                                                      mol.LocalizationDefinition(name_to_locs[name]))

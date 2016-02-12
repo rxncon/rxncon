@@ -4,6 +4,25 @@ import typecheck as tc
 
 import rxncon.core.specification as spe
 
+@unique
+class Modifier(Enum):
+    unmodified     = 'u'
+    phosphorylated = 'p'
+    ubiquitinated  = 'ub'
+    trucated       = 'truncated'
+
+@unique
+class OccupationStatus(Enum):
+    not_specified = 0
+    not_occupied = 1
+    occupied_known_partner = 2
+    occupied_unknown_partner = 3
+
+@unique
+class Compartment(Enum):
+    cell = 'cell'
+    cytosole = 'cytosole'
+    nucleus = 'nucleus'
 
 class Definition:
     pass
@@ -90,7 +109,7 @@ class ModificationDefinition(Definition):
 
     def __str__(self) -> str:
         return 'ModificationDefinition: Domain = {0}, Modifiers = {1}'\
-            .format(self.spec, ', '.join(self.valid_modifiers))
+            .format(self.spec, ', '.join(mod.value for mod in self.valid_modifiers))
 
 
 class ModificationInstance(Instance):
@@ -257,24 +276,3 @@ class Binding:
 
         if self.left_partner[0] == self.right_partner[0]:
             raise ValueError('Binding-molecule-indices are required to be distinct for each binding.')
-
-
-@unique
-class Modifier(Enum):
-    unmodified     = 'u'
-    phosphorylated = 'p'
-    ubiquitinated  = 'ub'
-    trucated       = 'truncated'
-
-@unique
-class OccupationStatus(Enum):
-    not_specified = 0
-    not_occupied = 1
-    occupied_known_partner = 2
-    occupied_unknown_partner = 3
-
-@unique
-class Compartment(Enum):
-    cell = 'cell'
-    cytosole = 'cytosole'
-    nucleus = 'nucleus'
