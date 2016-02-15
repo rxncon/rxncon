@@ -462,7 +462,7 @@ def test_set_of_states_from_contingencies_strict():
 
 
     expected_e_pplus = copy.deepcopy(e_pplus)
-    expected_e_pplus.substrate.domain = "Bsite"
+    expected_e_pplus.substrate.residue = "Bsite"
 
     strict_contingencies_state_set_b_ppi_e = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
 
@@ -497,25 +497,35 @@ def test_state_set_from_contingencies_from_AND_complex():
                         <comp>; AND C--E
                         <comp>; AND B--F""")
 
-    a_dash_c = rfs.state_from_string("A--C")
-    c_dash_e = rfs.state_from_string("C--E")
-    b_dash_f = rfs.state_from_string("B--F")
+
+    expected_a_dash_c = rfs.state_from_string("A--C")
+    expected_a_dash_c.first_component.domain = "Cassoc"
+    expected_a_dash_c.second_component.domain = "Aassoc"
+
+    expected_c_dash_e = rfs.state_from_string("C--E")
+    expected_c_dash_e.first_component.domain = "Eassoc"
+    expected_c_dash_e.second_component.domain = "Cassoc"
+
+    expected_b_dash_f = rfs.state_from_string("B--F")
+    expected_b_dash_f.first_component.domain = "Fassoc"
+    expected_b_dash_f.second_component.domain = "Bassoc"
 
     rxncon = quick.rxncon_system
 
     strict_cont_state_set = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
 
-    assert strict_cont_state_set.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(a_dash_c), venn.PropertySet(c_dash_e)),
-                                                                    venn.PropertySet(b_dash_f)))
+    assert strict_cont_state_set.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(expected_a_dash_c), venn.PropertySet(expected_c_dash_e)),
+                                                                    venn.PropertySet(expected_b_dash_f)))
 
 def test_source_set_of_states_from_reaction():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_dash_b = rfs.state_from_string('A--B')
     b_pplus_e = rfs.reaction_from_string('B_p+_E')
-    ephos = rfs.state_from_string('E-{P}')
+    e_pplus = rfs.state_from_string('E-{P}')
     b_pminus_e = rfs.reaction_from_string('B_p-_E')
     b_pt_e = rfs.reaction_from_string('B_pt_E')
-    b_phos = rfs.state_from_string('B-{P}')
+    b_pplus = rfs.state_from_string('B-{P}')
+
 
     rxncon = rxs.RxnConSystem([a_ppi_b, b_pplus_e, b_pminus_e, b_pt_e], [])
 
@@ -524,12 +534,27 @@ def test_source_set_of_states_from_reaction():
     set_b_pminus_e = mfr.source_set_of_states_from_reaction(rxncon.reactions[2])
     set_b_pt_e = mfr.source_set_of_states_from_reaction(rxncon.reactions[3])
 
-    assert set_a_ppi_b.is_equivalent_to(venn.Complement(venn.PropertySet(a_dash_b)))
-    assert set_b_pplus_e.is_equivalent_to(venn.Complement(venn.PropertySet(ephos)))
-    assert set_b_pminus_e.is_equivalent_to(venn.PropertySet(ephos))
+    expected_a_dash_b = copy.deepcopy(a_dash_b)
+    expected_a_dash_b.first_component.domain = "Bassoc"
+    expected_a_dash_b.second_component.domain = "Aassoc"
+
+    expected_b_pplus = copy.deepcopy(b_pplus)
+
+    # todo: B_pt_E are two reactions in one B_p+_E -> E_[Bside] and E_p-_B -> B_[Eside]
+    # todo: B_[n]_apt_B_[m] auto phosphortransfer B is the same molecule B_[n]_p+_B_[m] -> B_[m] and B_[m]_p-_B_[n] -> B_B[n]
+    # todo: B_apt_B auto phosphortransfer B is the same molecule B_p+_B -> B_[Bsite1] and B_p-_B -> B_B[Site2]
+
+    expected_b_pplus.substrate.residue = "Bsite"
+
+    expected_e_pplus = copy.deepcopy(e_pplus)
+    expected_e_pplus.substrate.residue = "Bsite"
+
+    assert set_a_ppi_b.is_equivalent_to(venn.Complement(venn.PropertySet(expected_a_dash_b)))
+    assert set_b_pplus_e.is_equivalent_to(venn.Complement(venn.PropertySet(expected_e_pplus)))
+    assert set_b_pminus_e.is_equivalent_to(venn.PropertySet(expected_e_pplus))
 
     #very nice that B should be phosphorilated even if there is no reaction for it (later we should test this)
-    assert set_b_pt_e.is_equivalent_to(venn.Intersection(venn.Complement(venn.PropertySet(ephos)), venn.PropertySet(b_phos)))
+    assert set_b_pt_e.is_equivalent_to(venn.Intersection(venn.Complement(venn.PropertySet(expected_e_pplus)), venn.PropertySet(expected_b_pplus)))
 
 
 def test_set_of_instances_from_molecule_def_and_set_of_states_ppi_no_contingency():
@@ -557,7 +582,7 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_requirement_relate
     strict_cont_state_set = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
     strict_spec_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(mol_defs.molecule_definition_for_name("A"), strict_cont_state_set)
 
-    assoc_def = [assoc_def for assoc_def in mol_defs.molecule_definition_for_name("A").association_defs if assoc_def.domain == "AssC"]
+    assoc_def = [assoc_def for assoc_def in mol_defs.molecule_definition_for_name("A").association_defs if assoc_def.spec.domain == "Cassoc"]
 
     assert strict_spec_set.is_equivalent_to(venn.PropertySet(
-        mol.AssociationInstance(spe.Specification(assoc_def[0]), mol.OccupationStatus.occupied_known_partner)))
+        mol.AssociationInstance(assoc_def[0], mol.OccupationStatus.occupied_known_partner,list(assoc_def[0].valid_partners)[0])))

@@ -135,36 +135,45 @@ def source_set_of_states_from_reaction(reaction: rxn.Reaction) -> venn.Set:
     product_state = reaction.product
 
     if not source_state and product_state:
-        return venn.Complement(venn.PropertySet(product_state))
+
+        return venn.Complement(default_domain_of_set_element_from_state_and_reaction(product_state, reaction))
 
     elif source_state and not product_state:
-        return venn.PropertySet(source_state)
+        return default_domain_of_set_element_from_state_and_reaction(source_state, reaction)
 
     elif source_state and product_state:
-        return venn.Intersection(venn.Complement(venn.PropertySet(product_state)), venn.PropertySet(source_state))
+        return venn.Intersection(venn.Complement(default_domain_of_set_element_from_state_and_reaction(product_state, reaction)),
+                                 default_domain_of_set_element_from_state_and_reaction(source_state, reaction))
 
     else:
         raise AssertionError
 
-def default_domain_of_effector_from_state_and_reaction(effector: eff.Effector, reaction: rxn.Reaction):
 
-    if isinstance(effector.expr, sta.CovalentModificationState):
-        effector_copy = copy.deepcopy(effector)
-        return venn.PropertySet(_mod_spec_domain_from_state(effector_copy.expr, reaction))
-    elif isinstance(effector.expr, sta.IntraProteinInteractionState) or isinstance(effector.expr, sta.InterProteinInteractionState):
-        effector_copy = copy.deepcopy(effector)
-        effector_copy.expr.first_component, effector_copy.expr.second_component = _assoc_spec_domain_from_state(effector_copy.expr)
-        return venn.PropertySet(effector_copy.expr)
-    elif isinstance(effector.expr, sta.TranslocationState):
+def default_domain_of_set_element_from_state_and_reaction(element_of_set: tg.Union[eff.Effector, sta.State], reaction: rxn.Reaction):
+    if isinstance(element_of_set, eff.Effector):
+        state = element_of_set.expr
+    elif isinstance(element_of_set, sta.State):
+        state = element_of_set
+    else:
+        raise NotImplementedError
+
+    if isinstance(state, sta.CovalentModificationState):
+        state_copy = copy.deepcopy(state)
+        return venn.PropertySet(_mod_spec_domain_from_state(state_copy, reaction))
+    elif isinstance(state, sta.IntraProteinInteractionState) or isinstance(state, sta.InterProteinInteractionState):
+        state_copy = copy.deepcopy(state)
+        state_copy.first_component, state_copy.second_component = _assoc_spec_domain_from_state(state_copy)
+        return venn.PropertySet(state_copy)
+    elif isinstance(state, sta.TranslocationState):
         pass
-    elif isinstance(effector.expr, sta.SynthesisDegradationState):
+    elif isinstance(state, sta.SynthesisDegradationState):
         pass
     else:
         raise NotImplementedError
 
 def set_of_states_from_effector(effector: eff.Effector, reaction: rxn.Reaction) -> venn.Set:
     if isinstance(effector, eff.StateEffector):
-        return default_domain_of_effector_from_state_and_reaction(effector, reaction)
+        return default_domain_of_set_element_from_state_and_reaction(effector, reaction)
 
     elif isinstance(effector, eff.NotEffector):
         return venn.Complement(set_of_states_from_effector(effector.expr, reaction))
@@ -196,7 +205,6 @@ def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) 
 
     elif isinstance(state, sta.InterProteinInteractionState) or isinstance(state, sta.IntraProteinInteractionState):
         # Associations should match exactly.
-        # todo: x.spec != state.first_component if we don't define domains, because of the default domain in x.spec
         first_defs = [x for x in mol_def.association_defs if x.spec == state.first_component]
         matching_instances = []
         for matching_def in first_defs:
@@ -208,7 +216,7 @@ def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) 
                                                                   state.second_component).complementary_instances())
 
         second_defs = [x for x in mol_def.association_defs if x.spec == state.second_component]
-        matching_instances = []
+        #matching_instances = []
         for matching_def in second_defs:
             if not negate:
                 matching_instances.append(mol.AssociationInstance(matching_def, mol.OccupationStatus.occupied_known_partner,
@@ -220,21 +228,25 @@ def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) 
     else:
         raise NotImplementedError
 
+    return matching_instances
+
 def _mod_spec_domain_from_state(state: sta.CovalentModificationState, reaction: rxn.Reaction):
 
     spec = state.substrate
     if not spec.residue:
         spec.residue = _kinase_residue_name(reaction.subject)
 
-    return spec
+    return state
+
 
 def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, reaction: rxn.Reaction):
 
-    spec = _mod_spec_domain_from_state(state, reaction)
-    mod_def = mol.ModificationDefinition(spec,
+    state = _mod_spec_domain_from_state(state, reaction)
+    mod_def = mol.ModificationDefinition(state.substrate,
                                          {mol.Modifier.unmodified, _molecule_modifier_from_state_modifier(state.modifier)})
 
     return mod_def
+
 
 def _assoc_spec_domain_from_state(state: tg.Union[sta.InterProteinInteractionState, sta.IntraProteinInteractionState]):
     first_spec = state.first_component
