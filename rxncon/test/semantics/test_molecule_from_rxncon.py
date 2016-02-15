@@ -1,3 +1,5 @@
+import copy
+
 import rxncon.semantics.molecule_from_rxncon as mfr
 import rxncon.semantics.molecule as mol
 import rxncon.syntax.rxncon_from_string as rfs
@@ -226,13 +228,20 @@ def test_molecule_defs_from_rxncon_binding_same_domain():
 
 # TESTING EFFECTOR TO STATES
 def test_set_of_states_from_effector_state_effector():
-    a_dash_c = rfs.state_from_string('A--C')
+    a_ppi_c = rfs.reaction_from_string("A_ppi_C")
+    a_dash_d = rfs.state_from_string('A--D')
 
-    effector_a_dash_c = eff.StateEffector(a_dash_c)
+    #todo: the StateEffector gets changed due to the application of set_of_states_from_effector
+    #todo: set deepcopy
+    cont = con.Contingency(a_ppi_c, con.ContingencyType.requirement, eff.StateEffector(a_dash_d))
 
-    set_of_state_effector_a_dash_c = mfr.set_of_states_from_effector(effector_a_dash_c)
+    expected_a_dash_d = copy.deepcopy(a_dash_d)
+    expected_a_dash_d.first_component.domain = "Dassoc"
+    expected_a_dash_d.second_component.domain = "Aassoc"
 
-    assert set_of_state_effector_a_dash_c.is_equivalent_to(venn.PropertySet(a_dash_c))
+    set_of_state_effector_a_dash_d = mfr.set_of_states_from_effector(cont.effector, cont.target)
+    assert set_of_state_effector_a_dash_d.is_equivalent_to(venn.PropertySet(expected_a_dash_d))
+
 
 def test_set_of_states_from_effector_AND_effector():
     quick = qui.Quick("""A_ppi_B; ! <comp>
@@ -240,16 +249,26 @@ def test_set_of_states_from_effector_AND_effector():
                         <comp>; AND C--E
                         <comp>; AND B--F""")
 
-    a_dash_c = rfs.state_from_string("A--C")
-    c_dash_e = rfs.state_from_string("C--E")
-    b_dash_f = rfs.state_from_string("B--F")
+    # don't have to deepcopy because two states are different objects anyway
+    expected_a_dash_c = rfs.state_from_string("A--C")
+    expected_a_dash_c.first_component.domain = "Cassoc"
+    expected_a_dash_c.second_component.domain = "Aassoc"
+
+    expected_c_dash_e = rfs.state_from_string("C--E")
+    expected_c_dash_e.first_component.domain = "Eassoc"
+    expected_c_dash_e.second_component.domain = "Cassoc"
+
+    expected_b_dash_f = rfs.state_from_string("B--F")
+    expected_b_dash_f.first_component.domain = "Fassoc"
+    expected_b_dash_f.second_component.domain = "Bassoc"
+
 
     rxncon = quick.rxncon_system
 
-    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector)
-    assert set_of_state_AND_effector.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(a_dash_c),
-                                                                                          venn.PropertySet(c_dash_e)),
-                                                                        venn.PropertySet(b_dash_f)))
+    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector,rxncon.contingencies[0].target)
+    assert set_of_state_AND_effector.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(expected_a_dash_c),
+                                                                                          venn.PropertySet(expected_c_dash_e)),
+                                                                        venn.PropertySet(expected_b_dash_f)))
 
 
 def test_set_of_states_from_effector_OR_effector():
@@ -258,16 +277,25 @@ def test_set_of_states_from_effector_OR_effector():
                         <comp>; OR C--E
                         <comp>; OR B--F""")
 
-    a_dash_c = rfs.state_from_string("A--C")
-    c_dash_e = rfs.state_from_string("C--E")
-    b_dash_f = rfs.state_from_string("B--F")
+    # don't have to deepcopy because two states are different objects anyway
+    expected_a_dash_c = rfs.state_from_string("A--C")
+    expected_a_dash_c.first_component.domain = "Cassoc"
+    expected_a_dash_c.second_component.domain = "Aassoc"
+
+    expected_c_dash_e = rfs.state_from_string("C--E")
+    expected_c_dash_e.first_component.domain = "Eassoc"
+    expected_c_dash_e.second_component.domain = "Cassoc"
+
+    expected_b_dash_f = rfs.state_from_string("B--F")
+    expected_b_dash_f.first_component.domain = "Fassoc"
+    expected_b_dash_f.second_component.domain = "Bassoc"
 
     rxncon = quick.rxncon_system
 
-    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector)
-    assert set_of_state_AND_effector.is_equivalent_to(venn.Union(venn.Union(venn.PropertySet(a_dash_c),
-                                                                                          venn.PropertySet(c_dash_e)),
-                                                                        venn.PropertySet(b_dash_f)))
+    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector, rxncon.contingencies[0].target)
+    assert set_of_state_AND_effector.is_equivalent_to(venn.Union(venn.Union(venn.PropertySet(expected_a_dash_c),
+                                                                                          venn.PropertySet(expected_c_dash_e)),
+                                                                        venn.PropertySet(expected_b_dash_f)))
 
 
 def test_set_of_states_from_effector_AND_OR_effector():
@@ -279,17 +307,29 @@ def test_set_of_states_from_effector_AND_OR_effector():
                         <c2>; OR B--F
                         <c2>; OR B--D""")
 
-    a_dash_c = rfs.state_from_string("A--C")
-    c_dash_e = rfs.state_from_string("C--E")
-    b_dash_f = rfs.state_from_string("B--F")
-    b_dash_d = rfs.state_from_string("B--D")
+    # don't have to deepcopy because two states are different objects anyway
+    expected_a_dash_c = rfs.state_from_string("A--C")
+    expected_a_dash_c.first_component.domain = "Cassoc"
+    expected_a_dash_c.second_component.domain = "Aassoc"
+
+    expected_c_dash_e = rfs.state_from_string("C--E")
+    expected_c_dash_e.first_component.domain = "Eassoc"
+    expected_c_dash_e.second_component.domain = "Cassoc"
+
+    expected_b_dash_f = rfs.state_from_string("B--F")
+    expected_b_dash_f.first_component.domain = "Fassoc"
+    expected_b_dash_f.second_component.domain = "Bassoc"
+
+    expected_b_dash_d = rfs.state_from_string("B--D")
+    expected_b_dash_d.first_component.domain = "Dassoc"
+    expected_b_dash_d.second_component.domain = "Bassoc"
 
     rxncon = quick.rxncon_system
 
-    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector)
-    assert set_of_state_AND_effector.is_equivalent_to(venn.Intersection(venn.Union(venn.PropertySet(a_dash_c),
-                                                                                          venn.PropertySet(c_dash_e)),
-                                                                        venn.Union(venn.PropertySet(b_dash_f),venn.PropertySet(b_dash_d))))
+    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector, rxncon.contingencies[0].target)
+    assert set_of_state_AND_effector.is_equivalent_to(venn.Intersection(venn.Union(venn.PropertySet(expected_a_dash_c),
+                                                                                          venn.PropertySet(expected_c_dash_e)),
+                                                                        venn.Union(venn.PropertySet(expected_b_dash_f),venn.PropertySet(expected_b_dash_d))))
 
 
 def test_set_of_states_from_effector_OR_AND_effector():
@@ -301,17 +341,30 @@ def test_set_of_states_from_effector_OR_AND_effector():
                         <c2>; AND B--F
                         <c2>; AND B--D""")
 
-    a_dash_c = rfs.state_from_string("A--C")
-    c_dash_e = rfs.state_from_string("C--E")
-    b_dash_f = rfs.state_from_string("B--F")
-    b_dash_d = rfs.state_from_string("B--D")
+    # don't have to deepcopy because two states are different objects anyway
+    expected_a_dash_c = rfs.state_from_string("A--C")
+    expected_a_dash_c.first_component.domain = "Cassoc"
+    expected_a_dash_c.second_component.domain = "Aassoc"
+
+    expected_c_dash_e = rfs.state_from_string("C--E")
+    expected_c_dash_e.first_component.domain = "Eassoc"
+    expected_c_dash_e.second_component.domain = "Cassoc"
+
+    expected_b_dash_f = rfs.state_from_string("B--F")
+    expected_b_dash_f.first_component.domain = "Fassoc"
+    expected_b_dash_f.second_component.domain = "Bassoc"
+
+    expected_b_dash_d = rfs.state_from_string("B--D")
+    expected_b_dash_d.first_component.domain = "Dassoc"
+    expected_b_dash_d.second_component.domain = "Bassoc"
+
 
     rxncon = quick.rxncon_system
 
-    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector)
-    assert set_of_state_AND_effector.is_equivalent_to(venn.Union(venn.Intersection(venn.PropertySet(a_dash_c),
-                                                                                          venn.PropertySet(c_dash_e)),
-                                                                        venn.Intersection(venn.PropertySet(b_dash_f),venn.PropertySet(b_dash_d))))
+    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector, rxncon.contingencies[0].target)
+    assert set_of_state_AND_effector.is_equivalent_to(venn.Union(venn.Intersection(venn.PropertySet(expected_a_dash_c),
+                                                                                          venn.PropertySet(expected_c_dash_e)),
+                                                                        venn.Intersection(venn.PropertySet(expected_b_dash_f),venn.PropertySet(expected_b_dash_d))))
 
 
 def test_set_of_states_from_effector_OR_AND_NOT_effector():
@@ -322,17 +375,26 @@ def test_set_of_states_from_effector_OR_AND_NOT_effector():
                         <c1>; AND C--E
                         <c2>; NOT B--D""")
 
-    a_dash_c = rfs.state_from_string("A--C")
-    c_dash_e = rfs.state_from_string("C--E")
-    b_dash_f = rfs.state_from_string("B--F")
-    b_dash_d = rfs.state_from_string("B--D")
+    # don't have to deepcopy because two states are different objects anyway
+    expected_a_dash_c = rfs.state_from_string("A--C")
+    expected_a_dash_c.first_component.domain = "Cassoc"
+    expected_a_dash_c.second_component.domain = "Aassoc"
+
+    expected_c_dash_e = rfs.state_from_string("C--E")
+    expected_c_dash_e.first_component.domain = "Eassoc"
+    expected_c_dash_e.second_component.domain = "Cassoc"
+
+    expected_b_dash_d = rfs.state_from_string("B--D")
+    expected_b_dash_d.first_component.domain = "Dassoc"
+    expected_b_dash_d.second_component.domain = "Bassoc"
+
 
     rxncon = quick.rxncon_system
 
-    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector)
-    assert set_of_state_AND_effector.is_equivalent_to(venn.Union(venn.Intersection(venn.PropertySet(a_dash_c),
-                                                                                          venn.PropertySet(c_dash_e)),
-                                                                        venn.Complement(venn.PropertySet(b_dash_d))))
+    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector, rxncon.contingencies[0].target)
+    assert set_of_state_AND_effector.is_equivalent_to(venn.Union(venn.Intersection(venn.PropertySet(expected_a_dash_c),
+                                                                                          venn.PropertySet(expected_c_dash_e)),
+                                                                        venn.Complement(venn.PropertySet(expected_b_dash_d))))
 
 
 def test_set_of_states_from_effector_OR_AND_NOT_complex_effector():
@@ -345,18 +407,30 @@ def test_set_of_states_from_effector_OR_AND_NOT_complex_effector():
                         <c3>; AND B--F
                         <c3>; AND B--D""")
 
-    a_dash_c = rfs.state_from_string("A--C")
-    c_dash_e = rfs.state_from_string("C--E")
-    b_dash_f = rfs.state_from_string("B--F")
-    b_dash_d = rfs.state_from_string("B--D")
+    expected_a_dash_c = rfs.state_from_string("A--C")
+    expected_a_dash_c.first_component.domain = "Cassoc"
+    expected_a_dash_c.second_component.domain = "Aassoc"
+
+    expected_c_dash_e = rfs.state_from_string("C--E")
+    expected_c_dash_e.first_component.domain = "Eassoc"
+    expected_c_dash_e.second_component.domain = "Cassoc"
+
+    expected_b_dash_f = rfs.state_from_string("B--F")
+    expected_b_dash_f.first_component.domain = "Fassoc"
+    expected_b_dash_f.second_component.domain = "Bassoc"
+
+    expected_b_dash_d = rfs.state_from_string("B--D")
+    expected_b_dash_d.first_component.domain = "Dassoc"
+    expected_b_dash_d.second_component.domain = "Bassoc"
+
 
     rxncon = quick.rxncon_system
 
-    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector)
-    assert set_of_state_AND_effector.is_equivalent_to(venn.Union(venn.Intersection(venn.PropertySet(a_dash_c),
-                                                                                          venn.PropertySet(c_dash_e)),
-                                                                        venn.Complement(venn.Intersection(venn.PropertySet(b_dash_d),
-                                                                                                          venn.PropertySet(b_dash_f)))))
+    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector, rxncon.contingencies[0].target)
+    assert set_of_state_AND_effector.is_equivalent_to(venn.Union(venn.Intersection(venn.PropertySet(expected_a_dash_c),
+                                                                                          venn.PropertySet(expected_c_dash_e)),
+                                                                        venn.Complement(venn.Intersection(venn.PropertySet(expected_b_dash_d),
+                                                                                                          venn.PropertySet(expected_b_dash_f)))))
 
 # TESTING CONTINGENCIES TO SETS OF STATES
 def test_set_of_states_from_contingencies_strict():
@@ -377,6 +451,19 @@ def test_set_of_states_from_contingencies_strict():
 
     rxncon = rxs.RxnConSystem([b_ppi_e, a_ppi_b, a_ppi_c, b_pplus_e], [cont_e_pplus, cont_b_dash_e, cont_a_ppi_b])
 
+
+    expected_a_dash_b = copy.deepcopy(a_dash_b)
+    expected_a_dash_b.first_component.domain = "Bassoc"
+    expected_a_dash_b.second_component.domain = "Aassoc"
+
+    expected_a_dash_c = copy.deepcopy(a_dash_c)
+    expected_a_dash_c.first_component.domain = "Cassoc"
+    expected_a_dash_c.second_component.domain = "Aassoc"
+
+
+    expected_e_pplus = copy.deepcopy(e_pplus)
+    expected_e_pplus.substrate.domain = "Bsite"
+
     strict_contingencies_state_set_b_ppi_e = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
 
     strict_contingencies_state_set_a_ppi_b = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[1]))
@@ -385,12 +472,12 @@ def test_set_of_states_from_contingencies_strict():
 
     strict_contingencies_state_set_b_pplus_e = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[3]))
 
-    expected_b_ppi_e_strict_cont = venn.Intersection(venn.PropertySet(e_pplus), venn.PropertySet(a_dash_b))
+    expected_b_ppi_e_strict_cont = venn.Intersection(venn.PropertySet(expected_e_pplus), venn.PropertySet(expected_a_dash_b))
     assert strict_contingencies_state_set_b_ppi_e.is_equivalent_to(expected_b_ppi_e_strict_cont)
 
-    expected_a_ppi_b_strict_cont = venn.Intersection(venn.UniversalSet(),venn.Complement(venn.PropertySet(a_dash_c)))
+    expected_a_ppi_b_strict_cont = venn.Intersection(venn.UniversalSet(),venn.Complement(venn.PropertySet(expected_a_dash_c)))
     assert strict_contingencies_state_set_a_ppi_b.is_equivalent_to(expected_a_ppi_b_strict_cont)
-    assert strict_contingencies_state_set_a_ppi_b.is_equivalent_to(venn.Complement(venn.PropertySet(a_dash_c)))
+    assert strict_contingencies_state_set_a_ppi_b.is_equivalent_to(venn.Complement(venn.PropertySet(expected_a_dash_c)))
 
     expected_a_ppi_c_strict_cont = venn.UniversalSet()
     assert strict_contingencies_state_set_a_ppi_c.is_equivalent_to(expected_a_ppi_c_strict_cont)
@@ -443,8 +530,6 @@ def test_source_set_of_states_from_reaction():
 
     #very nice that B should be phosphorilated even if there is no reaction for it (later we should test this)
     assert set_b_pt_e.is_equivalent_to(venn.Intersection(venn.Complement(venn.PropertySet(ephos)), venn.PropertySet(b_phos)))
-
-
 
 
 def test_set_of_instances_from_molecule_def_and_set_of_states_ppi_no_contingency():
