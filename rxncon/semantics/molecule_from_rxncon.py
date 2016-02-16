@@ -112,10 +112,10 @@ def set_of_states_from_contingencies(contingencies: tg.List[con.Contingency]) ->
 
     for contingency in contingencies:
         if contingency.type == con.ContingencyType.requirement:
-            requirements.append(set_of_states_from_effector(contingency.effector, contingency.target))
+            requirements.append(set_of_states_from_effector(contingency.effector))
 
         elif contingency.type == con.ContingencyType.inhibition:
-            inhibitions.append(set_of_states_from_effector(contingency.effector, contingency.target))
+            inhibitions.append(set_of_states_from_effector(contingency.effector))
 
     required_set = venn.nested_expression_from_list_and_binary_op(requirements, venn.Intersection)
     inhibited_set = venn.Complement(venn.nested_expression_from_list_and_binary_op(inhibitions, venn.Union))
@@ -136,53 +136,31 @@ def source_set_of_states_from_reaction(reaction: rxn.Reaction) -> venn.Set:
 
     if not source_state and product_state:
 
-        return venn.Complement(default_domain_of_set_element_from_state_and_reaction(product_state, reaction))
+        return venn.Complement(venn.PropertySet(product_state))
 
     elif source_state and not product_state:
-        return default_domain_of_set_element_from_state_and_reaction(source_state, reaction)
+        return venn.PropertySet(source_state)
 
     elif source_state and product_state:
-        return venn.Intersection(venn.Complement(default_domain_of_set_element_from_state_and_reaction(product_state, reaction)),
-                                 default_domain_of_set_element_from_state_and_reaction(source_state, reaction))
+        return venn.Intersection(venn.Complement(venn.PropertySet(product_state)),
+                                 venn.PropertySet(source_state))
 
     else:
         raise AssertionError
 
 
-def default_domain_of_set_element_from_state_and_reaction(element_of_set: tg.Union[eff.Effector, sta.State], reaction: rxn.Reaction):
-    if isinstance(element_of_set, eff.Effector):
-        state = element_of_set.expr
-    elif isinstance(element_of_set, sta.State):
-        state = element_of_set
-    else:
-        raise NotImplementedError
-
-    if isinstance(state, sta.CovalentModificationState):
-        state_copy = copy.deepcopy(state)
-        return venn.PropertySet(_mod_spec_domain_from_state(state_copy, reaction))
-    elif isinstance(state, sta.IntraProteinInteractionState) or isinstance(state, sta.InterProteinInteractionState):
-        state_copy = copy.deepcopy(state)
-        state_copy.first_component, state_copy.second_component = _assoc_spec_domain_from_state(state_copy)
-        return venn.PropertySet(state_copy)
-    elif isinstance(state, sta.TranslocationState):
-        pass
-    elif isinstance(state, sta.SynthesisDegradationState):
-        pass
-    else:
-        raise NotImplementedError
-
-def set_of_states_from_effector(effector: eff.Effector, reaction: rxn.Reaction) -> venn.Set:
+def set_of_states_from_effector(effector: eff.Effector) -> venn.Set:
     if isinstance(effector, eff.StateEffector):
-        return default_domain_of_set_element_from_state_and_reaction(effector, reaction)
+        return venn.PropertySet(effector.expr)
 
     elif isinstance(effector, eff.NotEffector):
-        return venn.Complement(set_of_states_from_effector(effector.expr, reaction))
+        return venn.Complement(set_of_states_from_effector(effector.expr))
 
     elif isinstance(effector, eff.AndEffector):
-        return venn.Intersection(set_of_states_from_effector(effector.left_expr, reaction), set_of_states_from_effector(effector.right_expr, reaction))
+        return venn.Intersection(set_of_states_from_effector(effector.left_expr), set_of_states_from_effector(effector.right_expr))
 
     elif isinstance(effector, eff.OrEffector):
-        return venn.Union(set_of_states_from_effector(effector.left_expr, reaction), set_of_states_from_effector(effector.right_expr, reaction))
+        return venn.Union(set_of_states_from_effector(effector.left_expr), set_of_states_from_effector(effector.right_expr))
 
     else:
         raise AssertionError
@@ -204,31 +182,37 @@ def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) 
         return matching_instances
 
     elif isinstance(state, sta.InterProteinInteractionState) or isinstance(state, sta.IntraProteinInteractionState):
-        # Associations should match exactly.
-        first_defs = [x for x in mol_def.association_defs if x.spec == state.first_component]
+        first_defs = [x for x in mol_def.association_defs if x.spec.is_subspecification_of(state.first_component)]
         matching_instances = []
         for matching_def in first_defs:
+            partners = [spec for spec in matching_def.valid_partners if spec.is_subspecification_of(state.second_component)]
+            assert len(partners) == 1
+
             if not negate:
                 matching_instances.append(mol.AssociationInstance(matching_def, mol.OccupationStatus.occupied_known_partner,
-                                                                  state.second_component))
+                                                                  partners[0]))
             else:
                 matching_instances.extend(mol.AssociationInstance(matching_def, mol.OccupationStatus.occupied_known_partner,
                                                                   state.second_component).complementary_instances())
 
-        second_defs = [x for x in mol_def.association_defs if x.spec == state.second_component]
-        #matching_instances = []
+        second_defs = [x for x in mol_def.association_defs if x.spec.is_subspecification_of(state.second_component)]
+
         for matching_def in second_defs:
+            partners = [spec for spec in matching_def.valid_partners if spec.is_subspecification_of(state.first_component)]
+            assert len(partners) == 1
+
             if not negate:
                 matching_instances.append(mol.AssociationInstance(matching_def, mol.OccupationStatus.occupied_known_partner,
-                                                                  state.first_component))
+                                                                  partners[0]))
             else:
                 matching_instances.extend(mol.AssociationInstance(matching_def, mol.OccupationStatus.occupied_known_partner,
-                                                                  state.first_component).complementary_instances())
+                                                                  partners[0]).complementary_instances())
 
     else:
         raise NotImplementedError
 
     return matching_instances
+
 
 def _mod_spec_domain_from_state(state: sta.CovalentModificationState, reaction: rxn.Reaction):
 

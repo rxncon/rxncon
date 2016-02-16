@@ -179,7 +179,7 @@ class AssociationInstance(Instance):
     @tc.typecheck
     def __eq__(self, other: Instance) -> bool:
         return isinstance(other, AssociationInstance) and self.association_def == other.association_def and \
-            self.occupation_status == other.occupation_status
+            self.occupation_status == other.occupation_status and self.partner == other.partner
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -188,7 +188,7 @@ class AssociationInstance(Instance):
         return str(self)
 
     def __str__(self) -> str:
-        return 'AssociationSpecification: Domain = {0}, occupation_status = {1}'\
+        return 'AssociationInstance: Domain = {0}, occupation_status = {1}'\
             .format(self.association_def.spec, self.occupation_status)
 
     def complementary_instances(self):

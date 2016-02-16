@@ -73,7 +73,7 @@ def test_MoleculeDefinitionSupervisor():
     assert list(mol_defs.molecule_definition_for_name("E").association_defs)[0] == list(expected_mol_def_E.association_defs)[0]
 
 
-def test_molecule_defs_from_rxncon_with_contingencies():
+def test_MoleculeDefinitionSupervisor_with_contingencies():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_dash_b = rfs.state_from_string('A--B')
 
@@ -231,16 +231,10 @@ def test_set_of_states_from_effector_state_effector():
     a_ppi_c = rfs.reaction_from_string("A_ppi_C")
     a_dash_d = rfs.state_from_string('A--D')
 
-    #todo: the StateEffector gets changed due to the application of set_of_states_from_effector
-    #todo: set deepcopy
     cont = con.Contingency(a_ppi_c, con.ContingencyType.requirement, eff.StateEffector(a_dash_d))
 
-    expected_a_dash_d = copy.deepcopy(a_dash_d)
-    expected_a_dash_d.first_component.domain = "Dassoc"
-    expected_a_dash_d.second_component.domain = "Aassoc"
-
-    set_of_state_effector_a_dash_d = mfr.set_of_states_from_effector(cont.effector, cont.target)
-    assert set_of_state_effector_a_dash_d.is_equivalent_to(venn.PropertySet(expected_a_dash_d))
+    set_of_state_effector_a_dash_d = mfr.set_of_states_from_effector(cont.effector)
+    assert set_of_state_effector_a_dash_d.is_equivalent_to(venn.PropertySet(a_dash_d))
 
 
 def test_set_of_states_from_effector_AND_effector():
@@ -249,23 +243,14 @@ def test_set_of_states_from_effector_AND_effector():
                         <comp>; AND C--E
                         <comp>; AND B--F""")
 
-    # don't have to deepcopy because two states are different objects anyway
     expected_a_dash_c = rfs.state_from_string("A--C")
-    expected_a_dash_c.first_component.domain = "Cassoc"
-    expected_a_dash_c.second_component.domain = "Aassoc"
-
     expected_c_dash_e = rfs.state_from_string("C--E")
-    expected_c_dash_e.first_component.domain = "Eassoc"
-    expected_c_dash_e.second_component.domain = "Cassoc"
-
     expected_b_dash_f = rfs.state_from_string("B--F")
-    expected_b_dash_f.first_component.domain = "Fassoc"
-    expected_b_dash_f.second_component.domain = "Bassoc"
-
 
     rxncon = quick.rxncon_system
 
-    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector,rxncon.contingencies[0].target)
+    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector)
+
     assert set_of_state_AND_effector.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(expected_a_dash_c),
                                                                                           venn.PropertySet(expected_c_dash_e)),
                                                                         venn.PropertySet(expected_b_dash_f)))
@@ -564,10 +549,9 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_ppi_no_contingency
     mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
 
     strict_cont_state_set = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
+    strict_instances_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(mol_defs.molecule_definition_for_name("A"), strict_cont_state_set)
 
-    strict_spec_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(mol_defs.molecule_definition_for_name("A"), strict_cont_state_set)
-
-    assert strict_spec_set.is_equivalent_to(venn.UniversalSet())
+    assert strict_instances_set.is_equivalent_to(venn.UniversalSet())
 
 
 def test_set_of_instances_from_molecule_def_and_set_of_states_requirement_related():
@@ -580,9 +564,16 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_requirement_relate
     mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
 
     strict_cont_state_set = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
-    strict_spec_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(mol_defs.molecule_definition_for_name("A"), strict_cont_state_set)
+    strict_instances_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(mol_defs.molecule_definition_for_name("A"), strict_cont_state_set)
 
-    assoc_def = [assoc_def for assoc_def in mol_defs.molecule_definition_for_name("A").association_defs if assoc_def.spec.domain == "Cassoc"]
+    assoc_defs = [assoc_def for assoc_def in mol_defs.molecule_definition_for_name("A").association_defs if assoc_def.spec.domain == "Cassoc"]
+    assoc_def = assoc_defs[0]
 
-    assert strict_spec_set.is_equivalent_to(venn.PropertySet(
-        mol.AssociationInstance(assoc_def[0], mol.OccupationStatus.occupied_known_partner,list(assoc_def[0].valid_partners)[0])))
+    assert isinstance(assoc_def, mol.AssociationDefinition)
+    assert assoc_def.spec == spe.Specification('A', 'Cassoc', None, None)
+
+    expected_assoc_instance = mol.AssociationInstance(assoc_def,
+                                                      mol.OccupationStatus.occupied_known_partner,
+                                                      spe.Specification('C', 'Aassoc', None, None))
+
+    assert strict_instances_set.is_equivalent_to(venn.PropertySet(expected_assoc_instance))
