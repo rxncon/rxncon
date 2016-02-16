@@ -182,7 +182,11 @@ def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) 
         return matching_instances
 
     elif isinstance(state, sta.InterProteinInteractionState) or isinstance(state, sta.IntraProteinInteractionState):
-        first_defs = [x for x in mol_def.association_defs if x.spec.is_subspecification_of(state.first_component)]
+        first_defs = [assoc_def for assoc_def in mol_def.association_defs
+                      for valid_partner_spec in assoc_def.valid_partners
+                      if assoc_def.spec.is_subspecification_of(state.first_component) and
+                      valid_partner_spec.is_subspecification_of(state.second_component)]
+        assert len(first_defs) <= 1
         matching_instances = []
         for matching_def in first_defs:
             partners = [spec for spec in matching_def.valid_partners if spec.is_subspecification_of(state.second_component)]
@@ -195,8 +199,11 @@ def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) 
                 matching_instances.extend(mol.AssociationInstance(matching_def, mol.OccupationStatus.occupied_known_partner,
                                                                   state.second_component).complementary_instances())
 
-        second_defs = [x for x in mol_def.association_defs if x.spec.is_subspecification_of(state.second_component)]
-
+        second_defs = [assoc_def for assoc_def in mol_def.association_defs
+                       for valid_partner_spec in assoc_def.valid_partners
+                       if assoc_def.spec.is_subspecification_of(state.second_component) and
+                       valid_partner_spec.is_subspecification_of(state.first_component)]
+        assert len(second_defs) <= 1
         for matching_def in second_defs:
             partners = [spec for spec in matching_def.valid_partners if spec.is_subspecification_of(state.first_component)]
             assert len(partners) == 1
