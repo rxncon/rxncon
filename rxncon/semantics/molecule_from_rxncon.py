@@ -197,7 +197,7 @@ def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) 
                                                                   partners[0]))
             else:
                 matching_instances.extend(mol.AssociationInstance(matching_def, mol.OccupationStatus.occupied_known_partner,
-                                                                  state.second_component).complementary_instances())
+                                                                  partners[0]).complementary_instances())
 
         second_defs = [assoc_def for assoc_def in mol_def.association_defs
                        for valid_partner_spec in assoc_def.valid_partners

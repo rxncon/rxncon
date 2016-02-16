@@ -192,10 +192,11 @@ class AssociationInstance(Instance):
             .format(self.association_def.spec, self.occupation_status)
 
     def complementary_instances(self):
+        # todo: is this correct?
         if self.occupation_status == OccupationStatus.occupied_known_partner:
-            return [AssociationInstance(self.association_def, OccupationStatus.not_occupied)]
+            return [AssociationInstance(self.association_def, OccupationStatus.not_occupied, self.partner)]
         elif self.occupation_status == OccupationStatus.not_occupied:
-            return [AssociationInstance(self.association_def, OccupationStatus.occupied_known_partner)]
+            return [AssociationInstance(self.association_def, OccupationStatus.occupied_known_partner, self.partner)]
         else:
             raise NotImplementedError
 

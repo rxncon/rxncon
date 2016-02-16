@@ -73,7 +73,7 @@ def test_MoleculeDefinitionSupervisor():
     assert list(mol_defs.molecule_definition_for_name("E").association_defs)[0] == list(expected_mol_def_E.association_defs)[0]
 
 
-def test_MoleculeDefinitionSupervisor_with_contingencies():
+def test_MoleculeDefinitionSupervisor_WITH_contingencies():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_dash_b = rfs.state_from_string('A--B')
 
@@ -143,7 +143,7 @@ def test_MoleculeDefinitionSupervisor_with_contingencies():
     assert list(mol_defs.molecule_definition_for_name("E").association_defs)[0] == list(expected_mol_def_E.association_defs)[0]
 
 
-def test_molecule_defs_from_rxncon_modifiation_at_same_residue():
+def test_MoleculeDefinitionSupervisor_FOR_rxncon_modifiation_at_same_residue():
     a_pplus_b = rfs.reaction_from_string('A_p+_B_[(x)]')
     c_pplus_b = rfs.reaction_from_string('C_p+_B_[(x)]')
 
@@ -152,9 +152,7 @@ def test_molecule_defs_from_rxncon_modifiation_at_same_residue():
 
     mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
 
-    universal_specA = spe.Specification("A", None, None, None)
     universal_specB = spe.Specification("B", None, None, None)
-    universal_specC = spe.Specification("C", None, None, None)
 
     specificationBp = spe.Specification("B", None, None, 'x')
 
@@ -172,7 +170,7 @@ def test_molecule_defs_from_rxncon_modifiation_at_same_residue():
     assert len(list(mol_defs.molecule_definition_for_name("B").modification_defs)[0].valid_modifiers.intersection(list(expected_mol_def_B.modification_defs)[0].valid_modifiers)) == 2
 
 
-def test_molecule_defs_from_rxncon_different_modifiation_at_same_residue():
+def test_MoleculeDefinitionSupervisor_FOR_rxncon_different_modifiation_at_same_residue():
     a_pplus_b = rfs.reaction_from_string('A_p+_B_[(x)]')
     c_pplus_b = rfs.reaction_from_string('C_ub+_B_[(x)]')
 
@@ -202,7 +200,8 @@ def test_molecule_defs_from_rxncon_different_modifiation_at_same_residue():
     assert list(mol_defs.molecule_definition_for_name("B").modification_defs)[0].spec == list(expected_mol_def_B.modification_defs)[0].spec
     assert len(list(mol_defs.molecule_definition_for_name("B").modification_defs)[0].valid_modifiers.intersection(list(expected_mol_def_B.modification_defs)[0].valid_modifiers)) == 3
 
-def test_molecule_defs_from_rxncon_binding_same_domain():
+
+def test_MoleculeDefinitionSupervisor_FOR_rxncon_binding_same_domain():
     a_pplus_b = rfs.reaction_from_string('A_ppi_B_[x]')
     c_pplus_b = rfs.reaction_from_string('C_ppi_B_[x]')
 
@@ -226,8 +225,9 @@ def test_molecule_defs_from_rxncon_binding_same_domain():
     assert len(list(mol_defs.molecule_definition_for_name("B").association_defs)[0].valid_partners) == 2
     assert len(list(mol_defs.molecule_definition_for_name("B").association_defs)[0].valid_partners.intersection(list(expected_mol_def_B.association_defs)[0].valid_partners)) == 2
 
+
 # TESTING EFFECTOR TO STATES
-def test_set_of_states_from_effector_state_effector():
+def test_set_of_states_from_effector_FOR_state_effector():
     a_ppi_c = rfs.reaction_from_string("A_ppi_C")
     a_dash_d = rfs.state_from_string('A--D')
 
@@ -237,7 +237,7 @@ def test_set_of_states_from_effector_state_effector():
     assert set_of_state_effector_a_dash_d.is_equivalent_to(venn.PropertySet(a_dash_d))
 
 
-def test_set_of_states_from_effector_AND_effector():
+def test_set_of_states_from_effector_FOR_and_effector():
     quick = qui.Quick("""A_ppi_B; ! <comp>
                         <comp>; AND A--C
                         <comp>; AND C--E
@@ -256,7 +256,7 @@ def test_set_of_states_from_effector_AND_effector():
                                                                         venn.PropertySet(expected_b_dash_f)))
 
 
-def test_set_of_states_from_effector_OR_effector():
+def test_set_of_states_from_effector_FOR_or_effector():
     quick = qui.Quick("""A_ppi_B; ! <comp>
                         <comp>; OR A--C
                         <comp>; OR C--E
@@ -274,7 +274,7 @@ def test_set_of_states_from_effector_OR_effector():
                                                                         venn.PropertySet(expected_b_dash_f)))
 
 
-def test_set_of_states_from_effector_AND_OR_effector():
+def test_set_of_states_from_effector_FOR_and_or_effector():
     quick = qui.Quick("""A_ppi_B; ! <comp>
                         <comp>; AND <c1>
                         <comp>; AND <c2>
@@ -296,7 +296,7 @@ def test_set_of_states_from_effector_AND_OR_effector():
                                                                         venn.Union(venn.PropertySet(expected_b_dash_f),venn.PropertySet(expected_b_dash_d))))
 
 
-def test_set_of_states_from_effector_OR_AND_effector():
+def test_set_of_states_from_effector_FOR_or_and_effector():
     quick = qui.Quick("""A_ppi_B; ! <comp>
                         <comp>; OR <c1>
                         <comp>; OR <c2>
@@ -319,7 +319,7 @@ def test_set_of_states_from_effector_OR_AND_effector():
                                                                         venn.Intersection(venn.PropertySet(expected_b_dash_f),venn.PropertySet(expected_b_dash_d))))
 
 
-def test_set_of_states_from_effector_OR_AND_NOT_effector():
+def test_set_of_states_from_effector_FOR_or_and_not_effector():
     quick = qui.Quick("""A_ppi_B; ! <comp>
                         <comp>; OR <c1>
                         <comp>; OR <c2>
@@ -340,7 +340,7 @@ def test_set_of_states_from_effector_OR_AND_NOT_effector():
                                                                         venn.Complement(venn.PropertySet(expected_b_dash_d))))
 
 
-def test_set_of_states_from_effector_OR_AND_NOT_complex_effector():
+def test_set_of_states_from_effector_FOR_or_and_not_complex_effector():
     quick = qui.Quick("""A_ppi_B; ! <comp>
                         <comp>; OR <c1>
                         <comp>; OR <c2>
@@ -364,7 +364,7 @@ def test_set_of_states_from_effector_OR_AND_NOT_complex_effector():
                                                                                                           venn.PropertySet(expected_b_dash_f)))))
 
 # TESTING CONTINGENCIES TO SETS OF STATES
-def test_set_of_states_from_contingencies_strict():
+def test_set_of_states_FOR_contingencies_strict():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_dash_b = rfs.state_from_string('A--B')
 
@@ -404,12 +404,12 @@ def test_set_of_states_from_contingencies_strict():
     assert strict_contingencies_state_set_b_pplus_e.is_equivalent_to(expected_b_pplus_e_strict_cont)
 
 
-def test_set_of_states_from_contingencies_quant():
+def test_set_of_states_from_contingencies_FOR_quant():
     # todo
     pass
 
 
-def test_state_set_from_contingencies_from_AND_complex():
+def test_state_set_from_contingencies_FOR_AND_complex():
     quick = qui.Quick("""A_ppi_B; ! <comp>
                         <comp>; AND A--C
                         <comp>; AND C--E
@@ -427,7 +427,7 @@ def test_state_set_from_contingencies_from_AND_complex():
     assert strict_cont_state_set.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(expected_a_dash_c), venn.PropertySet(expected_c_dash_e)),
                                                                     venn.PropertySet(expected_b_dash_f)))
 
-def test_source_set_of_states_from_reaction():
+def test_source_set_of_states_FOR_reaction():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_dash_b = rfs.state_from_string('A--B')
     b_pplus_e = rfs.reaction_from_string('B_p+_E')
@@ -456,7 +456,7 @@ def test_source_set_of_states_from_reaction():
     assert set_b_pt_e.is_equivalent_to(venn.Intersection(venn.Complement(venn.PropertySet(e_pplus)), venn.PropertySet(b_pplus)))
 
 
-def test_set_of_instances_from_molecule_def_and_set_of_states_ppi_no_contingency():
+def test_set_of_instances_from_molecule_def_and_set_of_states_FOR_ppi_no_contingency():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     rxncon = rxs.RxnConSystem([a_ppi_b], [])
 
@@ -468,7 +468,7 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_ppi_no_contingency
     assert strict_instances_set.is_equivalent_to(venn.UniversalSet())
 
 
-def test_set_of_instances_from_molecule_def_and_set_of_states_requirement_related():
+def test_set_of_instances_FROM_molecule_def_and_set_of_states_FOR_requirement_related():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_ppi_c = rfs.reaction_from_string('A_ppi_C')
     a_dash_c = rfs.state_from_string('A--C')
@@ -488,6 +488,30 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_requirement_relate
 
     expected_assoc_instance = mol.AssociationInstance(assoc_def,
                                                       mol.OccupationStatus.occupied_known_partner,
+                                                      spe.Specification('C', 'Aassoc', None, None))
+
+    assert strict_instances_set.is_equivalent_to(venn.PropertySet(expected_assoc_instance))
+
+
+def test_set_of_instances_from_molecule_def_and_set_of_states_FOR_inhibition_related():
+    a_ppi_b = rfs.reaction_from_string('A_ppi_B')
+    a_ppi_c = rfs.reaction_from_string('A_ppi_C')
+    a_dash_c = rfs.state_from_string('A--C')
+
+    cont = con.Contingency(a_ppi_b, con.ContingencyType.inhibition, eff.StateEffector(a_dash_c))
+    rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c], [cont])
+    mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
+
+    strict_cont_state_set = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
+    strict_instances_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(mol_defs.molecule_definition_for_name("A"), strict_cont_state_set)
+
+    assoc_defs = [assoc_def for assoc_def in mol_defs.molecule_definition_for_name("A").association_defs if assoc_def.spec.domain == "Cassoc"]
+    assoc_def = assoc_defs[0]
+    assert isinstance(assoc_def, mol.AssociationDefinition)
+    assert assoc_def.spec == spe.Specification('A', 'Cassoc', None, None)
+
+    expected_assoc_instance = mol.AssociationInstance(assoc_def,
+                                                      mol.OccupationStatus.not_occupied,
                                                       spe.Specification('C', 'Aassoc', None, None))
 
     assert strict_instances_set.is_equivalent_to(venn.PropertySet(expected_assoc_instance))
