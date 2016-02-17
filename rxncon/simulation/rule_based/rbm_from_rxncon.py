@@ -1,6 +1,10 @@
+from typing import List
+from collections import defaultdict
+
 import rxncon.core.rxncon_system as rxs
 import rxncon.semantics.molecule_from_rxncon as mfr
 import rxncon.venntastic.sets as venn
+import rxncon.semantics.molecule as mol
 
 
 class RuleBasedModelSupervisor:
@@ -18,6 +22,8 @@ class RuleBasedModelSupervisor:
             strict_contingency_state_set = mfr.set_of_states_from_contingencies(self.rxncon.strict_contingencies_for_reaction(reaction))
             source_state_set = mfr.source_set_of_states_from_reaction(reaction)
 
+            molecule_name_to_lhs_to_rhs = defaultdict(list)
+
             for molecule in self.molecules:
                 instance_set_from_contingencies = mfr.set_of_instances_from_molecule_def_and_set_of_states(
                     self.mol_def_supervisor.molecule_definition_for_name(molecule),
@@ -34,9 +40,24 @@ class RuleBasedModelSupervisor:
                 )
 
                 for disjunct_set in disjunct_instance_sets_from_contingencies:
-                    lhs = venn.Intersection(venn.Complement(instance_set_from_source), disjunct_set)
-                    rhs = venn.Intersection(instance_set_from_source, disjunct_set)
+                    lhs = mfr.molecule_instance_from_molecule_def_and_set_of_instances(
+                        self.mol_def_supervisor.molecule_definition_for_name(molecule),
+                        venn.Intersection(venn.Complement(instance_set_from_source), disjunct_set)
+                    )
+
+                    rhs = mfr.molecule_instance_from_molecule_def_and_set_of_instances(
+                        self.mol_def_supervisor.molecule_definition_for_name(molecule),
+                        venn.Intersection(instance_set_from_source, disjunct_set)
+                    )
+
+                    molecule_name_to_lhs_to_rhs[molecule].append((lhs, rhs))
 
 
+
+
+class RulePrototype:
+    def __init__(self, lhs: List[mol.MoleculeInstance], rhs: List[mol.MoleculeInstance]):
+        self.lhs = lhs
+        self.rhs = rhs
 
 

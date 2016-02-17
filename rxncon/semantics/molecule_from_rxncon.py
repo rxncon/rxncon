@@ -99,6 +99,29 @@ def set_of_instances_from_molecule_def_and_set_of_states(mol_def: mol.MoleculeDe
         )
 
 
+# CREATING A CONCRETE MOLECULE INSTANCE FROM THE SET OF ASSOC/MOD/LOC INSTANCES
+def molecule_instance_from_molecule_def_and_set_of_instances(mol_def: mol.MoleculeDefinition, set_of_instances: venn.Set) -> mol.ModificationInstance:
+    instances = set_of_instances.to_nested_list_form()
+    assert len(instances) == 1
+
+    instances = instances[0]
+    assoc_instances = set()
+    mod_instances = set()
+    loc = None
+
+    for instance in instances:
+        if isinstance(instance, mol.ModificationInstance):
+            mod_instances.add(instance)
+        elif isinstance(instance, mol.AssociationInstance):
+            assoc_instances.add(instance)
+        elif isinstance(instance, mol.LocalizationInstance):
+            if loc:
+                raise AssertionError
+            loc = instance
+
+    return mol.MoleculeInstance(mol_def, mod_instances, assoc_instances, loc)
+
+
 # CONVERTING CONTINGENCIES TO SETS OF STATES
 def set_of_states_from_contingencies(contingencies: tg.List[con.Contingency]) -> venn.Set:
     if not contingencies:
