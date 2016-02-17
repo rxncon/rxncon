@@ -544,3 +544,61 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_and_inhibi
                                                       spe.Specification('C', 'Aassoc', None, None))
 
     assert strict_instances_set.is_equivalent_to(venn.PropertySet(expected_assoc_instance))
+
+
+def test_set_of_instances_from_complex_system():
+    a_ppi_b = rfs.reaction_from_string('A_ppi_B')
+    a_dash_b = rfs.state_from_string('A--B')
+    b_ppi_e = rfs.reaction_from_string('B_ppi_E')
+    b_pplus_e = rfs.reaction_from_string('B_p+_E')
+    e_pplus = rfs.state_from_string("E-{P}")
+
+    cont_b_dash_e = con.Contingency(b_ppi_e, con.ContingencyType.requirement, eff.StateEffector(a_dash_b))  # B_ppi_E; ! A--B
+    cont_e_pplus = con.Contingency(b_ppi_e, con.ContingencyType.requirement, eff.StateEffector(e_pplus))  # B_ppi_E; ! E-{P}
+
+    rxncon = rxs.RxnConSystem([b_ppi_e, a_ppi_b, b_pplus_e], [cont_e_pplus, cont_b_dash_e])
+    mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
+
+    # TEST MOLECULE A
+    actual_A_set_of_instances = mfr.set_of_instances_from_molecule_def_and_set_of_states(
+        mol_defs.molecule_definition_for_name('A'),
+        mfr.set_of_states_from_contingencies([cont_b_dash_e, cont_e_pplus])
+    )
+
+    assoc_def_A_to_B = mol.AssociationDefinition(spe.Specification('A', 'Bassoc', None, None),
+                                                 {spe.Specification('B', 'Aassoc', None, None)})
+    expected_A_set_of_instances = venn.PropertySet(mol.AssociationInstance(assoc_def_A_to_B,
+                                                                           mol.OccupationStatus.occupied_known_partner,
+                                                                           spe.Specification('B', 'Aassoc', None, None)))
+
+    assert actual_A_set_of_instances.is_equivalent_to(expected_A_set_of_instances)
+
+    # TEST MOLECULE B
+    actual_B_set_of_instances = mfr.set_of_instances_from_molecule_def_and_set_of_states(
+        mol_defs.molecule_definition_for_name('B'),
+        mfr.set_of_states_from_contingencies([cont_b_dash_e, cont_e_pplus])
+    )
+
+    assoc_def_B_to_A = mol.AssociationDefinition(spe.Specification('B', 'Aassoc', None, None),
+                                                 {spe.Specification('A', 'Bassoc', None, None)})
+    expected_B_set_of_instances = venn.PropertySet(mol.AssociationInstance(assoc_def_B_to_A,
+                                                                           mol.OccupationStatus.occupied_known_partner,
+                                                                           spe.Specification('A', 'Bassoc', None, None)))
+
+    assert actual_B_set_of_instances.is_equivalent_to(expected_B_set_of_instances)
+
+    # TEST MOLECULE E
+    actual_E_set_of_instances = mfr.set_of_instances_from_molecule_def_and_set_of_states(
+        mol_defs.molecule_definition_for_name('E'),
+        mfr.set_of_states_from_contingencies([cont_b_dash_e, cont_e_pplus])
+    )
+
+    mod_def_E = mol.ModificationDefinition(
+        spe.Specification('E', None, None, 'Bsite'),
+        {mol.Modifier.unmodified, mol.Modifier.phosphorylated}
+    )
+
+    expected_E_set_of_instances = venn.PropertySet(mol.ModificationInstance(mod_def_E,
+                                                                            mol.Modifier.phosphorylated))
+
+    assert actual_E_set_of_instances.is_equivalent_to(expected_E_set_of_instances)
