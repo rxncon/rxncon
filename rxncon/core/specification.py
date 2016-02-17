@@ -4,8 +4,7 @@ from typing import Optional
 import rxncon.syntax.string_from_rxncon as sfr
 
 
-class Component:
-    """Component specifies at some resolution a component of a Reaction or a State."""
+class Specification:
     @tc.typecheck
     def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
         self.name = name
@@ -13,22 +12,28 @@ class Component:
         self.subdomain = subdomain
         self.residue = residue
 
+    def __hash__(self) -> int:
+        return hash(str(self))
+
+    def __repr__(self):
+        return str(self)
+
     def __str__(self) -> str:
         return sfr.string_from_component(self)
 
     @tc.typecheck
-    def __eq__(self, other: 'Component') -> bool:
+    def __eq__(self, other: 'Specification') -> bool:
         return self.name == other.name and self.domain == other.domain and self.subdomain == other.subdomain and self.residue == other.residue
 
     @tc.typecheck
-    def is_equivalent_to(self, other: 'Component') -> bool:
+    def is_equivalent_to(self, other: 'Specification') -> bool:
         if (self.name == other.name) and self.residue and (self.residue == other.residue):
             return True
         else:
             return self == other
 
     @tc.typecheck
-    def is_subspecification_of(self, other: 'Component') -> bool:
+    def is_subspecification_of(self, other: 'Specification') -> bool:
         if self.is_equivalent_to(other):
             return True
 
@@ -45,7 +50,7 @@ class Component:
         return True
 
     @tc.typecheck
-    def is_superspecification_of(self, other: 'Component') -> bool:
+    def is_superspecification_of(self, other: 'Specification') -> bool:
         if self.is_equivalent_to(other):
             return True
 

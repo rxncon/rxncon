@@ -3,7 +3,7 @@ from enum import Enum, unique
 import typecheck as tc
 from typing import List
 
-import rxncon.core.component as com
+import rxncon.core.specification as com
 import rxncon.syntax.string_from_rxncon as sfr
 
 
@@ -30,13 +30,13 @@ class State:
         pass
 
     @abstractproperty
-    def components(self) -> List[com.Component]:
+    def components(self) -> List[com.Specification]:
         pass
 
 
 class CovalentModificationState(State):
     @tc.typecheck
-    def __init__(self, substrate: com.Component, modifier: StateModifier):
+    def __init__(self, substrate: com.Specification, modifier: StateModifier):
         self.substrate = substrate
         self.modifier = modifier
 
@@ -62,13 +62,13 @@ class CovalentModificationState(State):
 
     @property
     @tc.typecheck
-    def components(self) -> List[com.Component]:
+    def components(self) -> List[com.Specification]:
         return [self.substrate]
 
 
 class InterProteinInteractionState(State):
     @tc.typecheck
-    def __init__(self, first_component: com.Component, second_component: com.Component):
+    def __init__(self, first_component: com.Specification, second_component: com.Specification):
         self.first_component = first_component
         self.second_component = second_component
 
@@ -95,13 +95,13 @@ class InterProteinInteractionState(State):
 
     @property
     @tc.typecheck
-    def components(self) -> List[com.Component]:
+    def components(self) -> List[com.Specification]:
         return [self.first_component, self.second_component]
 
 
 class IntraProteinInteractionState(State):
     @tc.typecheck
-    def __init__(self, first_component: com.Component, second_component: com.Component):
+    def __init__(self, first_component: com.Specification, second_component: com.Specification):
         assert first_component.name == second_component.name
         self.first_component = first_component
         self.second_component = second_component
@@ -129,13 +129,13 @@ class IntraProteinInteractionState(State):
 
     @property
     @tc.typecheck
-    def components(self) -> List[com.Component]:
+    def components(self) -> List[com.Specification]:
         return [self.first_component, self.second_component]
 
 
 class SynthesisDegradationState(State):
     @tc.typecheck
-    def __init__(self, component: com.Component):
+    def __init__(self, component: com.Specification):
         self.component = component
 
     @tc.typecheck
@@ -158,13 +158,13 @@ class SynthesisDegradationState(State):
 
     @property
     @tc.typecheck
-    def components(self) -> List[com.Component]:
+    def components(self) -> List[com.Specification]:
         return [self.component]
 
 
 class TranslocationState(State):
     @tc.typecheck
-    def __init__(self, substrate: com.Component, compartment: str):
+    def __init__(self, substrate: com.Specification, compartment: str):
         self.substrate = substrate
         self.compartment = compartment
 
@@ -191,7 +191,7 @@ class TranslocationState(State):
 
     @property
     @tc.typecheck
-    def components(self) -> List[com.Component]:
+    def components(self) -> List[com.Specification]:
         return [self.substrate]
 
 
@@ -213,5 +213,5 @@ class InputState(State):
 
     @property
     @tc.typecheck
-    def components(self) -> List[com.Component]:
+    def components(self) -> List[com.Specification]:
         return []

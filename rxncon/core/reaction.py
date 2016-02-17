@@ -3,7 +3,7 @@ from enum import Enum, unique
 from typing import List, Optional
 import typecheck as tc
 
-import rxncon.core.component as com
+import rxncon.core.specification as com
 import rxncon.core.error as err
 import rxncon.core.state as sta
 import rxncon.syntax.string_from_rxncon as sfr
@@ -140,7 +140,7 @@ VERB_REACTION_TABLE = {
 
 class Reaction:
     @tc.typecheck
-    def __init__(self, subject: com.Component, verb: Verb, object: com.Component,
+    def __init__(self, subject: com.Specification, verb: Verb, object: com.Specification,
                  reaction_class: ReactionClass, directionality: Directionality, influence: Influence,
                  isomerism: Isomerism, modifier: CovalentReactionModifier):
         self.subject = subject
