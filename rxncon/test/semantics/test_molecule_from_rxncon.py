@@ -467,19 +467,30 @@ def test_source_set_of_states_for_reaction():
 
 
 # TESTING SETS OF STATES TO SETS OF INSTANCES
-def test_set_of_instances_from_molecule_def_and_set_of_states_FOR_ppi_no_contingency():
+def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_no_contingency():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     rxncon = rxs.RxnConSystem([a_ppi_b], [])
-
     mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
 
-    strict_cont_state_set = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
-    strict_instances_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(mol_defs.molecule_definition_for_name("A"), strict_cont_state_set)
+    strict_cont_state_set = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
+    assert strict_cont_state_set.is_equivalent_to(venn.UniversalSet())
 
+    # Now test the molecule instances that get created by taking into account the strict contingencies. Note that this
+    # does not take into account the source contingency (i.e. A not bound to B).
+    strict_instances_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(
+        mol_defs.molecule_definition_for_name('A'),
+        strict_cont_state_set
+    )
+    assert strict_instances_set.is_equivalent_to(venn.UniversalSet())
+
+    strict_instances_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(
+        mol_defs.molecule_definition_for_name('B'),
+        strict_cont_state_set
+    )
     assert strict_instances_set.is_equivalent_to(venn.UniversalSet())
 
 
-def test_set_of_instances_FROM_molecule_def_and_set_of_states_FOR_requirement_related():
+def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_and_requirement_contingency():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_ppi_c = rfs.reaction_from_string('A_ppi_C')
     a_dash_c = rfs.state_from_string('A--C')
@@ -488,11 +499,14 @@ def test_set_of_instances_FROM_molecule_def_and_set_of_states_FOR_requirement_re
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c], [cont])
     mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
 
-    strict_cont_state_set = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
-    strict_instances_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(mol_defs.molecule_definition_for_name("A"), strict_cont_state_set)
+    mol_def_A = mol_defs.molecule_definition_for_name('A')
 
-    assoc_defs = [assoc_def for assoc_def in mol_defs.molecule_definition_for_name("A").association_defs if assoc_def.spec.domain == "Cassoc"]
-    assoc_def = assoc_defs[0]
+    strict_cont_state_set = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
+    strict_instances_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(mol_def_A, strict_cont_state_set)
+
+    assoc_defs_A_to_C = [assoc_def for assoc_def in mol_def_A.association_defs if assoc_def.spec.domain == "Cassoc"]
+    assert len(assoc_defs_A_to_C) == 1
+    assoc_def = assoc_defs_A_to_C[0]
 
     assert isinstance(assoc_def, mol.AssociationDefinition)
     assert assoc_def.spec == spe.Specification('A', 'Cassoc', None, None)
@@ -504,7 +518,7 @@ def test_set_of_instances_FROM_molecule_def_and_set_of_states_FOR_requirement_re
     assert strict_instances_set.is_equivalent_to(venn.PropertySet(expected_assoc_instance))
 
 
-def test_set_of_instances_from_molecule_def_and_set_of_states_FOR_inhibition_related():
+def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_and_inhibition_contingency():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_ppi_c = rfs.reaction_from_string('A_ppi_C')
     a_dash_c = rfs.state_from_string('A--C')
@@ -513,11 +527,15 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_FOR_inhibition_rel
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c], [cont])
     mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
 
-    strict_cont_state_set = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
-    strict_instances_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(mol_defs.molecule_definition_for_name("A"), strict_cont_state_set)
+    mol_def_A = mol_defs.molecule_definition_for_name('A')
 
-    assoc_defs = [assoc_def for assoc_def in mol_defs.molecule_definition_for_name("A").association_defs if assoc_def.spec.domain == "Cassoc"]
-    assoc_def = assoc_defs[0]
+    strict_cont_state_set = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
+    strict_instances_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(mol_def_A, strict_cont_state_set)
+
+    assoc_defs_A_to_C = [assoc_def for assoc_def in mol_def_A.association_defs if assoc_def.spec.domain == "Cassoc"]
+    assert len(assoc_defs_A_to_C) == 1
+    assoc_def = assoc_defs_A_to_C[0]
+
     assert isinstance(assoc_def, mol.AssociationDefinition)
     assert assoc_def.spec == spe.Specification('A', 'Cassoc', None, None)
 
