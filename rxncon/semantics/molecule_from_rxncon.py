@@ -18,6 +18,7 @@ class MoleculeDefinitionSupervisor:
         self.rxnconsys = rxnconsys
         self.molecule_definitions = {}
         self._generate_molecule_definitions()
+        self.molecules = self.molecule_definitions.keys()
 
     def molecule_definition_for_name(self, name: str) -> mol.MoleculeDefinition:
         return self.molecule_definitions[name]
