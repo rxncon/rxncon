@@ -11,7 +11,8 @@ import rxncon.venntastic.sets as venn
 import rxncon.input.quick.quick as qui
 
 
-def test_MoleculeDefinitionSupervisor():
+# TESTING MOLECULE DEFINITION CREATION BY MOLECULEDEFINITIONSUPERVISOR
+def test_molecule_definitions_no_contingencies():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_ppi_c = rfs.reaction_from_string('A_ppi_C')
     b_ppi_e = rfs.reaction_from_string('B_ppi_E')
@@ -21,59 +22,59 @@ def test_MoleculeDefinitionSupervisor():
 
     mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
 
-    universal_specA = spe.Specification("A", None, None, None)
-    universal_specB = spe.Specification("B", None, None, None)
-    universal_specC = spe.Specification("C", None, None, None)
-    universal_specE = spe.Specification("E", None, None, None)
+    spec_A = spe.Specification("A", None, None, None)
+    spec_B = spe.Specification("B", None, None, None)
+    spec_C = spe.Specification("C", None, None, None)
+    spec_E = spe.Specification("E", None, None, None)
 
-    specificationAiB = spe.Specification("A", 'Bassoc', None, None)
-    specificationBiA = spe.Specification("B", 'Aassoc', None, None)
+    spec_A_Bassoc = spe.Specification("A", 'Bassoc', None, None)
+    spec_B_Aassoc = spe.Specification("B", 'Aassoc', None, None)
+    spec_A_Cassoc = spe.Specification("A", 'Cassoc', None, None)
+    spec_C_Aassoc = spe.Specification("C", 'Aassoc', None, None)
 
-    specificationAiC = spe.Specification("A", 'Cassoc', None, None)
-    specificationCiA = spe.Specification("C", 'Aassoc', None, None)
+    spec_B_Eassoc = spe.Specification("B", 'Eassoc', None, None)
+    spec_E_Bassoc = spe.Specification("E", 'Bassoc', None, None)
+    spec_E_Bsite = spe.Specification("E", None, None, 'Bsite')
 
-    specificationBiE = spe.Specification("B", 'Eassoc', None, None)
-    specificationEiB = spe.Specification("E", 'Bassoc', None, None)
-    specificationEp = spe.Specification("E", None, None, 'Bsite')
+    expected_mol_def_A = mol.MoleculeDefinition(
+        spec_A,
+        set(),
+        {mol.AssociationDefinition(spec_A_Bassoc, {spec_B_Aassoc}),
+         mol.AssociationDefinition(spec_A_Cassoc, {spec_C_Aassoc})},
+        None
+    )
 
+    expected_mol_def_B = mol.MoleculeDefinition(
+        spec_B,
+        set(),
+        {mol.AssociationDefinition(spec_B_Eassoc, {spec_E_Bassoc}),
+         mol.AssociationDefinition(spec_B_Aassoc, {spec_A_Bassoc})},
+        None
+    )
 
-    expected_mol_def_A = mol.MoleculeDefinition(universal_specA, set(), {mol.AssociationDefinition(specificationAiB, {specificationBiA}),
-                                                             mol.AssociationDefinition(specificationAiC, {specificationCiA})},
-                                                mol.LocalizationDefinition(set()))
-    expected_mol_def_B = mol.MoleculeDefinition(universal_specB, set(), {mol.AssociationDefinition(specificationBiE, {specificationEiB}),
-                                                                     mol.AssociationDefinition(specificationBiA, {specificationAiB})},
-                                                mol.LocalizationDefinition(set()))
-    expected_mol_def_C = mol.MoleculeDefinition(universal_specC, set(), {mol.AssociationDefinition(specificationCiA, {specificationAiC})},
-                                                mol.LocalizationDefinition(set()))
-    expected_mol_def_E = mol.MoleculeDefinition(universal_specE, {mol.ModificationDefinition(specificationEp,
-                                                                                            {mol.Modifier.unmodified, mol.Modifier.phosphorylated})},
-                                                                 {mol.AssociationDefinition(specificationEiB, {specificationBiE})},
-                                                                 mol.LocalizationDefinition(set()))
+    expected_mol_def_C = mol.MoleculeDefinition(
+        spec_C,
+        set(),
+        {mol.AssociationDefinition(spec_C_Aassoc, {spec_A_Cassoc})},
+        None
+    )
 
+    expected_mol_def_E = mol.MoleculeDefinition(
+        spec_E,
+        {mol.ModificationDefinition(spec_E_Bsite, {mol.Modifier.unmodified, mol.Modifier.phosphorylated})},
+        {mol.AssociationDefinition(spec_E_Bassoc, {spec_B_Eassoc})},
+        None
+    )
 
-    assert len(mol_defs.molecule_definition_for_name("A").association_defs) == 2
-    assert not mol_defs.molecule_definition_for_name("A").modification_defs
-    assert mol_defs.molecule_definition_for_name("A").localization_def == expected_mol_def_A.localization_def
-    assert list(mol_defs.molecule_definition_for_name("A").association_defs)[0] != list(mol_defs.molecule_definition_for_name("A").association_defs)[1]
-    assert list(mol_defs.molecule_definition_for_name("A").association_defs)[0] in [list(expected_mol_def_A.association_defs)[0], list(expected_mol_def_A.association_defs)[1]]
-    assert list(mol_defs.molecule_definition_for_name("A").association_defs)[1] in [list(expected_mol_def_A.association_defs)[0], list(expected_mol_def_A.association_defs)[1]]
-
-    assert not mol_defs.molecule_definition_for_name("B").modification_defs
-    assert len(mol_defs.molecule_definition_for_name("B").association_defs) == 2
-    assert mol_defs.molecule_definition_for_name("B").localization_def == expected_mol_def_B.localization_def
-    assert list(mol_defs.molecule_definition_for_name("B").association_defs)[0] != list(mol_defs.molecule_definition_for_name("B").association_defs)[1]
-    assert list(mol_defs.molecule_definition_for_name("B").association_defs)[0] in [list(expected_mol_def_B.association_defs)[0], list(expected_mol_def_B.association_defs)[1]]
-    assert list(mol_defs.molecule_definition_for_name("B").association_defs)[1] in [list(expected_mol_def_B.association_defs)[0], list(expected_mol_def_B.association_defs)[1]]
-
-    assert mol_defs.molecule_definition_for_name("C") == expected_mol_def_C
-
-    assert mol_defs.molecule_definition_for_name("E").modification_defs == expected_mol_def_E.modification_defs
-    assert mol_defs.molecule_definition_for_name("E").localization_def == expected_mol_def_E.localization_def
-    assert len(mol_defs.molecule_definition_for_name("E").association_defs) == 1
-    assert list(mol_defs.molecule_definition_for_name("E").association_defs)[0] == list(expected_mol_def_E.association_defs)[0]
+    assert mol_defs.molecule_definition_for_name('A') == expected_mol_def_A
+    assert mol_defs.molecule_definition_for_name('B') == expected_mol_def_B
+    assert mol_defs.molecule_definition_for_name('C') == expected_mol_def_C
+    assert mol_defs.molecule_definition_for_name('E') == expected_mol_def_E
 
 
-def test_MoleculeDefinitionSupervisor_WITH_contingencies():
+def test_molecule_definitions_with_contingencies():
+    # Contains the same molecules (having the same definitions) as the previous tests, but this RxnCon system includes
+    # contingencies.
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_dash_b = rfs.state_from_string('A--B')
 
@@ -92,138 +93,176 @@ def test_MoleculeDefinitionSupervisor_WITH_contingencies():
 
     mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
 
-    universal_specA = spe.Specification("A", None, None, None)
-    universal_specB = spe.Specification("B", None, None, None)
-    universal_specC = spe.Specification("C", None, None, None)
-    universal_specE = spe.Specification("E", None, None, None)
+    spec_A = spe.Specification("A", None, None, None)
+    spec_B = spe.Specification("B", None, None, None)
+    spec_C = spe.Specification("C", None, None, None)
+    spec_E = spe.Specification("E", None, None, None)
 
-    specificationAiB = spe.Specification("A", 'Bassoc', None, None)
-    specificationBiA = spe.Specification("B", 'Aassoc', None, None)
+    spec_A_Bassoc = spe.Specification("A", 'Bassoc', None, None)
+    spec_B_Aassoc = spe.Specification("B", 'Aassoc', None, None)
 
-    specificationAiC = spe.Specification("A", 'Cassoc', None, None)
-    specificationCiA = spe.Specification("C", 'Aassoc', None, None)
+    spec_A_Cassoc = spe.Specification("A", 'Cassoc', None, None)
+    spec_C_Aassoc = spe.Specification("C", 'Aassoc', None, None)
 
-    specificationBiE = spe.Specification("B", 'Eassoc', None, None)
-    specificationEiB = spe.Specification("E", 'Bassoc', None, None)
-    specificationEp = spe.Specification("E", None, None, 'Bsite')
+    spec_B_Eassoc = spe.Specification("B", 'Eassoc', None, None)
+    spec_E_Bassoc = spe.Specification("E", 'Bassoc', None, None)
+    spec_E_p = spe.Specification("E", None, None, 'Bsite')
+
+    expected_mol_def_A = mol.MoleculeDefinition(
+        spec_A,
+        set(),
+        {mol.AssociationDefinition(spec_A_Bassoc, {spec_B_Aassoc}),
+         mol.AssociationDefinition(spec_A_Cassoc, {spec_C_Aassoc})},
+        None
+    )
+
+    expected_mol_def_B = mol.MoleculeDefinition(
+        spec_B,
+        set(),
+        {mol.AssociationDefinition(spec_B_Eassoc, {spec_E_Bassoc}),
+         mol.AssociationDefinition(spec_B_Aassoc, {spec_A_Bassoc})},
+        None
+    )
+
+    expected_mol_def_C = mol.MoleculeDefinition(
+        spec_C,
+        set(),
+        {mol.AssociationDefinition(spec_C_Aassoc, {spec_A_Cassoc})},
+        None
+    )
+
+    expected_mol_def_E = mol.MoleculeDefinition(
+        spec_E,
+        {mol.ModificationDefinition(spec_E_p, {mol.Modifier.unmodified, mol.Modifier.phosphorylated})},
+        {mol.AssociationDefinition(spec_E_Bassoc, {spec_B_Eassoc})},
+        None
+    )
+
+    assert mol_defs.molecule_definition_for_name('A') == expected_mol_def_A
+    assert mol_defs.molecule_definition_for_name('B') == expected_mol_def_B
+    assert mol_defs.molecule_definition_for_name('C') == expected_mol_def_C
+    assert mol_defs.molecule_definition_for_name('E') == expected_mol_def_E
 
 
-    expected_mol_def_A = mol.MoleculeDefinition(universal_specA, set(), {mol.AssociationDefinition(specificationAiB, {specificationBiA}),
-                                                             mol.AssociationDefinition(specificationAiC, {specificationCiA})},
-                                                mol.LocalizationDefinition(set()))
-    expected_mol_def_B = mol.MoleculeDefinition(universal_specB, set(), {mol.AssociationDefinition(specificationBiE, {specificationEiB}),
-                                                                     mol.AssociationDefinition(specificationBiA, {specificationAiB})},
-                                                mol.LocalizationDefinition(set()))
-    expected_mol_def_C = mol.MoleculeDefinition(universal_specC, set(), {mol.AssociationDefinition(specificationCiA, {specificationAiC})},
-                                                mol.LocalizationDefinition(set()))
-    expected_mol_def_E = mol.MoleculeDefinition(universal_specE, {mol.ModificationDefinition(specificationEp,
-                                                                                            {mol.Modifier.unmodified, mol.Modifier.phosphorylated})},
-                                                                 {mol.AssociationDefinition(specificationEiB, {specificationBiE})},
-                                                                 mol.LocalizationDefinition(set()))
-
-    assert len(mol_defs.molecule_definition_for_name("A").association_defs) == 2
-    assert not mol_defs.molecule_definition_for_name("A").modification_defs
-    assert mol_defs.molecule_definition_for_name("A").localization_def == expected_mol_def_A.localization_def
-    assert list(mol_defs.molecule_definition_for_name("A").association_defs)[0] != list(mol_defs.molecule_definition_for_name("A").association_defs)[1]
-    assert list(mol_defs.molecule_definition_for_name("A").association_defs)[0] in [list(expected_mol_def_A.association_defs)[0], list(expected_mol_def_A.association_defs)[1]]
-    assert list(mol_defs.molecule_definition_for_name("A").association_defs)[1] in [list(expected_mol_def_A.association_defs)[0], list(expected_mol_def_A.association_defs)[1]]
-
-    assert not mol_defs.molecule_definition_for_name("B").modification_defs
-    assert len(mol_defs.molecule_definition_for_name("B").association_defs) == 2
-    assert mol_defs.molecule_definition_for_name("B").localization_def == expected_mol_def_B.localization_def
-    assert list(mol_defs.molecule_definition_for_name("B").association_defs)[0] != list(mol_defs.molecule_definition_for_name("B").association_defs)[1]
-    assert list(mol_defs.molecule_definition_for_name("B").association_defs)[0] in [list(expected_mol_def_B.association_defs)[0], list(expected_mol_def_B.association_defs)[1]]
-    assert list(mol_defs.molecule_definition_for_name("B").association_defs)[1] in [list(expected_mol_def_B.association_defs)[0], list(expected_mol_def_B.association_defs)[1]]
-
-    assert mol_defs.molecule_definition_for_name("C") == expected_mol_def_C
-
-    assert mol_defs.molecule_definition_for_name("E").modification_defs == expected_mol_def_E.modification_defs
-    assert mol_defs.molecule_definition_for_name("E").localization_def == expected_mol_def_E.localization_def
-    assert len(mol_defs.molecule_definition_for_name("E").association_defs) == 1
-    assert list(mol_defs.molecule_definition_for_name("E").association_defs)[0] == list(expected_mol_def_E.association_defs)[0]
-
-
-def test_MoleculeDefinitionSupervisor_FOR_rxncon_modifiation_at_same_residue():
+def test_molecule_definitions_multiple_kinases_same_modification_at_same_residue():
     a_pplus_b = rfs.reaction_from_string('A_p+_B_[(x)]')
     c_pplus_b = rfs.reaction_from_string('C_p+_B_[(x)]')
 
-
     rxncon = rxs.RxnConSystem([a_pplus_b, c_pplus_b], [])
 
     mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
 
-    universal_specB = spe.Specification("B", None, None, None)
+    spec_A = spe.Specification('A', None, None, None)
+    spec_B = spe.Specification("B", None, None, None)
+    spec_C = spe.Specification('C', None, None, None)
 
-    specificationBp = spe.Specification("B", None, None, 'x')
+    spec_B_p = spe.Specification("B", None, None, 'x')
 
-    expected_mol_def_B = mol.MoleculeDefinition(universal_specB, {mol.ModificationDefinition(specificationBp, {mol.Modifier.unmodified, mol.Modifier.phosphorylated})},
-                                                set(), mol.LocalizationDefinition(set()))
+    expected_mol_def_A = mol.MoleculeDefinition(
+        spec_A,
+        set(),
+        set(),
+        None
+    )
 
-    assert not mol_defs.molecule_definition_for_name("A").association_defs
-    assert not mol_defs.molecule_definition_for_name("A").modification_defs
+    expected_mol_def_B = mol.MoleculeDefinition(
+        spec_B,
+        {mol.ModificationDefinition(spec_B_p, {mol.Modifier.unmodified, mol.Modifier.phosphorylated})},
+        set(),
+        None
+    )
 
-    assert not mol_defs.molecule_definition_for_name("C").association_defs
-    assert not mol_defs.molecule_definition_for_name("C").modification_defs
+    expected_mol_def_C = mol.MoleculeDefinition(
+        spec_C,
+        set(),
+        set(),
+        None
+    )
 
-    assert not mol_defs.molecule_definition_for_name("B").association_defs
-    assert list(mol_defs.molecule_definition_for_name("B").modification_defs)[0].spec == list(expected_mol_def_B.modification_defs)[0].spec
-    assert len(list(mol_defs.molecule_definition_for_name("B").modification_defs)[0].valid_modifiers.intersection(list(expected_mol_def_B.modification_defs)[0].valid_modifiers)) == 2
+    assert mol_defs.molecule_definition_for_name('A') == expected_mol_def_A
+    assert mol_defs.molecule_definition_for_name('B') == expected_mol_def_B
+    assert mol_defs.molecule_definition_for_name('C') == expected_mol_def_C
 
 
-def test_MoleculeDefinitionSupervisor_FOR_rxncon_different_modifiation_at_same_residue():
+def test_molecule_definitions_multiple_kinases_different_modifications_at_same_residue():
     a_pplus_b = rfs.reaction_from_string('A_p+_B_[(x)]')
-    c_pplus_b = rfs.reaction_from_string('C_ub+_B_[(x)]')
+    c_ubplus_b = rfs.reaction_from_string('C_ub+_B_[(x)]')
 
-
-    rxncon = rxs.RxnConSystem([a_pplus_b, c_pplus_b], [])
+    rxncon = rxs.RxnConSystem([a_pplus_b, c_ubplus_b], [])
 
     mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
 
-    universal_specB = spe.Specification("B", None, None, None)
+    spec_A = spe.Specification('A', None, None, None)
+    spec_B = spe.Specification("B", None, None, None)
+    spec_C = spe.Specification('C', None, None, None)
+    spec_B_p = spe.Specification("B", None, None, 'x')
 
-    specificationBp = spe.Specification("B", None, None, 'x')
+    expected_mol_def_A = mol.MoleculeDefinition(
+        spec_A,
+        set(),
+        set(),
+        None
+    )
 
-    expected_mol_def_B = mol.MoleculeDefinition(universal_specB, {mol.ModificationDefinition(specificationBp,
-                                                                                             {mol.Modifier.unmodified,
-                                                                                              mol.Modifier.phosphorylated,
-                                                                                              mol.Modifier.ubiquitinated})},
-                                                set(), mol.LocalizationDefinition(set()))
+    expected_mol_def_B = mol.MoleculeDefinition(
+        spec_B,
+        {mol.ModificationDefinition(spec_B_p, {mol.Modifier.unmodified, mol.Modifier.phosphorylated, mol.Modifier.ubiquitinated})},
+        set(),
+        None
+    )
 
-    assert not mol_defs.molecule_definition_for_name("A").association_defs
-    assert not mol_defs.molecule_definition_for_name("A").modification_defs
+    expected_mol_def_C = mol.MoleculeDefinition(
+        spec_C,
+        set(),
+        set(),
+        None
+    )
 
-    assert not mol_defs.molecule_definition_for_name("C").association_defs
-    assert not mol_defs.molecule_definition_for_name("C").modification_defs
-
-    assert not mol_defs.molecule_definition_for_name("B").association_defs
-    assert mol_defs.molecule_definition_for_name("B").localization_def == expected_mol_def_B.localization_def
-    assert list(mol_defs.molecule_definition_for_name("B").modification_defs)[0].spec == list(expected_mol_def_B.modification_defs)[0].spec
-    assert len(list(mol_defs.molecule_definition_for_name("B").modification_defs)[0].valid_modifiers.intersection(list(expected_mol_def_B.modification_defs)[0].valid_modifiers)) == 3
+    assert mol_defs.molecule_definition_for_name('A') == expected_mol_def_A
+    assert mol_defs.molecule_definition_for_name('B') == expected_mol_def_B
+    assert mol_defs.molecule_definition_for_name('C') == expected_mol_def_C
 
 
-def test_MoleculeDefinitionSupervisor_FOR_rxncon_binding_same_domain():
+def test_molecule_definitions_multiple_partners_binding_same_domain():
     a_pplus_b = rfs.reaction_from_string('A_ppi_B_[x]')
     c_pplus_b = rfs.reaction_from_string('C_ppi_B_[x]')
 
-
     rxncon = rxs.RxnConSystem([a_pplus_b, c_pplus_b], [])
 
     mol_defs = mfr.MoleculeDefinitionSupervisor(rxncon)
 
-    universal_specB = spe.Specification("B", None, None, None)
+    spec_A = spe.Specification('A', None, None, None)
+    spec_B = spe.Specification("B", None, None, None)
+    spec_C = spe.Specification('C', None, None, None)
 
-    specificationBbound = spe.Specification("B", "x", None, None)
-    specificationAiB = spe.Specification("A", "Bassoc", None, None)
-    specificationCiB = spe.Specification("C", "Bassoc", None, None)
+    spec_B_x = spe.Specification("B", "x", None, None)
+    spec_A_Bassoc = spe.Specification("A", "Bassoc", None, None)
+    spec_C_Bassoc = spe.Specification("C", "Bassoc", None, None)
 
-    expected_mol_def_B = mol.MoleculeDefinition(universal_specB, set(),
-                                                {mol.AssociationDefinition(specificationBbound, {specificationAiB, specificationCiB})}, mol.LocalizationDefinition(set()))
+    expected_mol_def_A = mol.MoleculeDefinition(
+        spec_A,
+        set(),
+        {mol.AssociationDefinition(spec_A_Bassoc, {spec_B_x})},
+        None
+    )
 
+    expected_mol_def_B = mol.MoleculeDefinition(
+        spec_B,
+        set(),
+        {mol.AssociationDefinition(spec_B_x, {spec_A_Bassoc, spec_C_Bassoc})},
+        None
+    )
 
-    assert len(mol_defs.molecule_definition_for_name("B").association_defs) == 1
-    assert list(mol_defs.molecule_definition_for_name("B").association_defs)[0].spec == list(expected_mol_def_B.association_defs)[0].spec
-    assert len(list(mol_defs.molecule_definition_for_name("B").association_defs)[0].valid_partners) == 2
-    assert len(list(mol_defs.molecule_definition_for_name("B").association_defs)[0].valid_partners.intersection(list(expected_mol_def_B.association_defs)[0].valid_partners)) == 2
+    expected_mol_def_C = mol.MoleculeDefinition(
+        spec_C,
+        set(),
+        {mol.AssociationDefinition(spec_C_Bassoc, {spec_B_x})},
+        None
+    )
+
+    assert mol_defs.molecule_definition_for_name('A') == expected_mol_def_A
+    assert mol_defs.molecule_definition_for_name('B') == expected_mol_def_B
+    assert mol_defs.molecule_definition_for_name('C') == expected_mol_def_C
 
 
 # TESTING EFFECTOR TO STATES

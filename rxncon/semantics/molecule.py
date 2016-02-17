@@ -41,6 +41,10 @@ class MoleculeDefinition(Definition):
         self.spec = spec
         self.modification_defs = modification_defs
         self.association_defs = association_defs
+
+        if localization_def is None:
+            localization_def = LocalizationDefinition(set())
+
         self.localization_def = localization_def
 
     @tc.typecheck
@@ -102,7 +106,7 @@ class ModificationDefinition(Definition):
             self.valid_modifiers == other.valid_modifiers
 
     def __hash__(self) -> int:
-        return hash(str(self))
+        return hash('*mod-def* {0}'.format(self.spec.name))
 
     def __repr__(self):
         return str(self)
@@ -156,7 +160,7 @@ class AssociationDefinition(Definition):
             self.valid_partners == other.valid_partners
 
     def __hash__(self) -> int:
-        return hash(str(self))
+        return hash('*ass-def* {}'.format(self.spec.name))
 
     def __repr__(self) -> str:
         return str(self)
@@ -215,7 +219,7 @@ class LocalizationDefinition(Definition):
         return isinstance(other, LocalizationDefinition) and self.valid_compartments == other.valid_compartments
 
     def __hash__(self) -> int:
-        return hash(str(self))
+        return hash('*loc-def* with num of compartments {}'.format(len(self.valid_compartments)))
 
     def __str__(self) -> str:
         return 'LocalizationDefinition: {0}'.format(', '.join(str(x) for x in self.valid_compartments))

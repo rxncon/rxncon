@@ -19,7 +19,7 @@ class MoleculeDefinitionSupervisor:
         self.molecule_definitions = {}
         self._generate_molecule_definitions()
 
-    def molecule_definition_for_name(self, name: str):
+    def molecule_definition_for_name(self, name: str) -> mol.MoleculeDefinition:
         return self.molecule_definitions[name]
 
     def _generate_molecule_definitions(self):
