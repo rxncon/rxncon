@@ -266,7 +266,7 @@ def test_molecule_definitions_multiple_partners_binding_same_domain():
 
 
 # TESTING EFFECTOR TO STATES
-def test_set_of_states_from_effector_FOR_state_effector():
+def test_set_of_states_from_single_state_effector():
     a_ppi_c = rfs.reaction_from_string("A_ppi_C")
     a_dash_d = rfs.state_from_string('A--D')
 
@@ -276,7 +276,7 @@ def test_set_of_states_from_effector_FOR_state_effector():
     assert set_of_state_effector_a_dash_d.is_equivalent_to(venn.PropertySet(a_dash_d))
 
 
-def test_set_of_states_from_effector_FOR_and_effector():
+def test_set_of_states_from_nested_AND_effectors():
     quick = qui.Quick("""A_ppi_B; ! <comp>
                         <comp>; AND A--C
                         <comp>; AND C--E
@@ -295,7 +295,7 @@ def test_set_of_states_from_effector_FOR_and_effector():
                                                                         venn.PropertySet(expected_b_dash_f)))
 
 
-def test_set_of_states_from_effector_FOR_or_effector():
+def test_set_of_states_from_nested_OR_effectors():
     quick = qui.Quick("""A_ppi_B; ! <comp>
                         <comp>; OR A--C
                         <comp>; OR C--E
@@ -313,7 +313,7 @@ def test_set_of_states_from_effector_FOR_or_effector():
                                                                         venn.PropertySet(expected_b_dash_f)))
 
 
-def test_set_of_states_from_effector_FOR_and_or_effector():
+def test_set_of_states_from_nested_AND_OR_effector():
     quick = qui.Quick("""A_ppi_B; ! <comp>
                         <comp>; AND <c1>
                         <comp>; AND <c2>
@@ -335,7 +335,7 @@ def test_set_of_states_from_effector_FOR_and_or_effector():
                                                                         venn.Union(venn.PropertySet(expected_b_dash_f),venn.PropertySet(expected_b_dash_d))))
 
 
-def test_set_of_states_from_effector_FOR_or_and_effector():
+def test_set_of_states_from_nested_OR_AND_effector():
     quick = qui.Quick("""A_ppi_B; ! <comp>
                         <comp>; OR <c1>
                         <comp>; OR <c2>
@@ -358,28 +358,7 @@ def test_set_of_states_from_effector_FOR_or_and_effector():
                                                                         venn.Intersection(venn.PropertySet(expected_b_dash_f),venn.PropertySet(expected_b_dash_d))))
 
 
-def test_set_of_states_from_effector_FOR_or_and_not_effector():
-    quick = qui.Quick("""A_ppi_B; ! <comp>
-                        <comp>; OR <c1>
-                        <comp>; OR <c2>
-                        <c1>; AND A--C
-                        <c1>; AND C--E
-                        <c2>; NOT B--D""")
-
-    expected_a_dash_c = rfs.state_from_string("A--C")
-    expected_c_dash_e = rfs.state_from_string("C--E")
-    expected_b_dash_d = rfs.state_from_string("B--D")
-
-
-    rxncon = quick.rxncon_system
-
-    set_of_state_AND_effector = mfr.set_of_states_from_effector(rxncon.contingencies[0].effector)
-    assert set_of_state_AND_effector.is_equivalent_to(venn.Union(venn.Intersection(venn.PropertySet(expected_a_dash_c),
-                                                                                          venn.PropertySet(expected_c_dash_e)),
-                                                                        venn.Complement(venn.PropertySet(expected_b_dash_d))))
-
-
-def test_set_of_states_from_effector_FOR_or_and_not_complex_effector():
+def test_set_of_states_from_complex_effector():
     quick = qui.Quick("""A_ppi_B; ! <comp>
                         <comp>; OR <c1>
                         <comp>; OR <c2>
@@ -402,8 +381,9 @@ def test_set_of_states_from_effector_FOR_or_and_not_complex_effector():
                                                                         venn.Complement(venn.Intersection(venn.PropertySet(expected_b_dash_d),
                                                                                                           venn.PropertySet(expected_b_dash_f)))))
 
+
 # TESTING CONTINGENCIES TO SETS OF STATES
-def test_set_of_states_FOR_contingencies_strict():
+def test_set_of_states_from_strict_contingencies():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_dash_b = rfs.state_from_string('A--B')
 
@@ -421,20 +401,16 @@ def test_set_of_states_FOR_contingencies_strict():
 
     rxncon = rxs.RxnConSystem([b_ppi_e, a_ppi_b, a_ppi_c, b_pplus_e], [cont_e_pplus, cont_b_dash_e, cont_a_ppi_b])
 
-    strict_contingencies_state_set_b_ppi_e = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
-
-    strict_contingencies_state_set_a_ppi_b = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[1]))
-
-    strict_contingencies_state_set_a_ppi_c = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[2]))
-
-    strict_contingencies_state_set_b_pplus_e = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[3]))
+    strict_contingencies_state_set_b_ppi_e = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(b_ppi_e))
+    strict_contingencies_state_set_a_ppi_b = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
+    strict_contingencies_state_set_a_ppi_c = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_c))
+    strict_contingencies_state_set_b_pplus_e = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(b_pplus_e))
 
     expected_b_ppi_e_strict_cont = venn.Intersection(venn.PropertySet(e_pplus), venn.PropertySet(a_dash_b))
     assert strict_contingencies_state_set_b_ppi_e.is_equivalent_to(expected_b_ppi_e_strict_cont)
 
-    expected_a_ppi_b_strict_cont = venn.Intersection(venn.UniversalSet(),venn.Complement(venn.PropertySet(a_dash_c)))
+    expected_a_ppi_b_strict_cont = venn.Complement(venn.PropertySet(a_dash_c))
     assert strict_contingencies_state_set_a_ppi_b.is_equivalent_to(expected_a_ppi_b_strict_cont)
-    assert strict_contingencies_state_set_a_ppi_b.is_equivalent_to(venn.Complement(venn.PropertySet(a_dash_c)))
 
     expected_a_ppi_c_strict_cont = venn.UniversalSet()
     assert strict_contingencies_state_set_a_ppi_c.is_equivalent_to(expected_a_ppi_c_strict_cont)
@@ -448,12 +424,11 @@ def test_set_of_states_from_contingencies_FOR_quant():
     pass
 
 
-def test_state_set_from_contingencies_FOR_AND_complex():
+def test_set_of_states_from_strict_contingencies_AND():
     quick = qui.Quick("""A_ppi_B; ! <comp>
                         <comp>; AND A--C
                         <comp>; AND C--E
                         <comp>; AND B--F""")
-
 
     expected_a_dash_c = rfs.state_from_string("A--C")
     expected_c_dash_e = rfs.state_from_string("C--E")
@@ -461,12 +436,13 @@ def test_state_set_from_contingencies_FOR_AND_complex():
 
     rxncon = quick.rxncon_system
 
-    strict_cont_state_set = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rxncon.reactions[0]))
+    strict_cont_state_set = mfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rfs.reaction_from_string('A_ppi_B')))
 
     assert strict_cont_state_set.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(expected_a_dash_c), venn.PropertySet(expected_c_dash_e)),
                                                                     venn.PropertySet(expected_b_dash_f)))
 
-def test_source_set_of_states_FOR_reaction():
+
+def test_source_set_of_states_for_reaction():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_dash_b = rfs.state_from_string('A--B')
     b_pplus_e = rfs.reaction_from_string('B_p+_E')
@@ -475,13 +451,10 @@ def test_source_set_of_states_FOR_reaction():
     b_pt_e = rfs.reaction_from_string('B_pt_E')
     b_pplus = rfs.state_from_string('B-{P}')
 
-
-    rxncon = rxs.RxnConSystem([a_ppi_b, b_pplus_e, b_pminus_e, b_pt_e], [])
-
-    set_a_ppi_b = mfr.source_set_of_states_from_reaction(rxncon.reactions[0])
-    set_b_pplus_e = mfr.source_set_of_states_from_reaction(rxncon.reactions[1])
-    set_b_pminus_e = mfr.source_set_of_states_from_reaction(rxncon.reactions[2])
-    set_b_pt_e = mfr.source_set_of_states_from_reaction(rxncon.reactions[3])
+    set_a_ppi_b = mfr.source_set_of_states_from_reaction(a_ppi_b)
+    set_b_pplus_e = mfr.source_set_of_states_from_reaction(b_pplus_e)
+    set_b_pminus_e = mfr.source_set_of_states_from_reaction(b_pminus_e)
+    set_b_pt_e = mfr.source_set_of_states_from_reaction(b_pt_e)
 
     # todo: B_pt_E are two reactions in one B_p+_E -> E_[Bside] and E_p-_B -> B_[Eside]
     # todo: B_[n]_apt_B_[m] auto phosphortransfer B is the same molecule B_[n]_p+_B_[m] -> B_[m] and B_[m]_p-_B_[n] -> B_B[n]
@@ -490,11 +463,10 @@ def test_source_set_of_states_FOR_reaction():
     assert set_a_ppi_b.is_equivalent_to(venn.Complement(venn.PropertySet(a_dash_b)))
     assert set_b_pplus_e.is_equivalent_to(venn.Complement(venn.PropertySet(e_pplus)))
     assert set_b_pminus_e.is_equivalent_to(venn.PropertySet(e_pplus))
-
-    #very nice that B should be phosphorilated even if there is no reaction for it (later we should test this)
     assert set_b_pt_e.is_equivalent_to(venn.Intersection(venn.Complement(venn.PropertySet(e_pplus)), venn.PropertySet(b_pplus)))
 
 
+# TESTING SETS OF STATES TO SETS OF INSTANCES
 def test_set_of_instances_from_molecule_def_and_set_of_states_FOR_ppi_no_contingency():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     rxncon = rxs.RxnConSystem([a_ppi_b], [])
