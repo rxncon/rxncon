@@ -149,3 +149,73 @@ def test_set_of_instances_from_complex_system():
                                                                              mdf.Modifier.phosphorylated))
 
     assert actual_E_set_of_instances.is_equivalent_to(expected_E_set_of_instances)
+
+
+def test_molecule_instance_matches_state():
+    spec_A = spe.Specification("A", None, None, None)
+    spec_B = spe.Specification("B", None, None, None)
+
+    spec_A_Bassoc = spe.Specification("A", 'Bassoc', None, None)
+    spec_B_Aassoc = spe.Specification("B", 'Aassoc', None, None)
+
+    spec_A_psite = spe.Specification('A', None, None, 'psite')
+
+    mol_def_A = mdf.MoleculeDefinition(
+        spec_A,
+        {mdf.ModificationDefinition(spec_A_psite, {mdf.Modifier.unmodified, mdf.Modifier.phosphorylated})},
+        {mdf.AssociationDefinition(spec_A_Bassoc, {spec_B_Aassoc})},
+        None
+    )
+
+    assoc_inst_A_bound = mins.AssociationInstance(mdf.AssociationDefinition(spec_A_Bassoc, {spec_B_Aassoc}),
+                                                  mdf.OccupationStatus.occupied_known_partner,
+                                                  spec_B_Aassoc)
+
+    assoc_inst_A_free = mins.AssociationInstance(mdf.AssociationDefinition(spec_A_Bassoc, {spec_B_Aassoc}),
+                                                 mdf.OccupationStatus.not_occupied,
+                                                 None)
+
+    mod_inst_A_phos = mins.ModificationInstance(mdf.ModificationDefinition(spec_A_psite, {mdf.Modifier.unmodified, mdf.Modifier.phosphorylated}),
+                                                mdf.Modifier.phosphorylated)
+
+    mod_inst_A_unphos = mins.ModificationInstance(mdf.ModificationDefinition(spec_A_psite, {mdf.Modifier.unmodified, mdf.Modifier.phosphorylated}),
+                                                  mdf.Modifier.unmodified)
+
+    # A BOUND, UNPHOSPHORYLATED
+    mol_inst_A_bound_unphos = mins.MoleculeInstance(mol_def_A, {mod_inst_A_unphos}, {assoc_inst_A_bound}, None)
+    assert mir.molecule_instance_matches_state(mol_inst_A_bound_unphos,
+                                               rfs.state_from_string('A--B'),
+                                               False)
+
+    assert not mir.molecule_instance_matches_state(mol_inst_A_bound_unphos,
+                                                   rfs.state_from_string('A--B'),
+                                                   True)
+
+    assert not mir.molecule_instance_matches_state(mol_inst_A_bound_unphos,
+                                                   rfs.state_from_string('A-{p}'),
+                                                   False)
+
+    assert mir.molecule_instance_matches_state(mol_inst_A_bound_unphos,
+                                               rfs.state_from_string('A-{p}'),
+                                               True)
+
+    # A FREE, UNPHOSPHORYLATED
+    mol_inst_A_unbound_unphos = mins.MoleculeInstance(mol_def_A, {mod_inst_A_unphos}, {assoc_inst_A_free}, None)
+    assert not mir.molecule_instance_matches_state(mol_inst_A_unbound_unphos,
+                                                   rfs.state_from_string('A--B'),
+                                                   False)
+
+    assert mir.molecule_instance_matches_state(mol_inst_A_unbound_unphos,
+                                               rfs.state_from_string('A--B'),
+                                               True)
+
+    assert not mir.molecule_instance_matches_state(mol_inst_A_unbound_unphos,
+                                                   rfs.state_from_string('A-{p}'),
+                                                   False)
+
+    assert mir.molecule_instance_matches_state(mol_inst_A_unbound_unphos,
+                                               rfs.state_from_string('A-{p}'),
+                                               True)
+
+
+

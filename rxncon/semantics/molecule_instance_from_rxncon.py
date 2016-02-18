@@ -6,6 +6,7 @@ import rxncon.semantics.molecule_instance as mins
 import rxncon.venntastic.sets as venn
 from rxncon.semantics.molecule_definition_from_rxncon import molecule_modifier_from_state_modifier
 
+
 def set_of_instances_from_molecule_def_and_set_of_states(mol_def: mol.MoleculeDefinition, set_of_states: venn.Set) -> venn.Set:
     if set_of_states.is_equivalent_to(venn.EmptySet()):
         raise NotImplementedError
@@ -77,6 +78,24 @@ def molecule_instance_from_molecule_def_and_set_of_instances(mol_def: mol.Molecu
     return rxncon.semantics.molecule_instance.MoleculeInstance(mol_def, mod_instances, assoc_instances, loc)
 
 
+def molecule_instance_matches_state(mol_inst: mins.MoleculeInstance, state: sta.State, negate: bool) -> bool:
+    matching_instances = _instances(mol_inst.molecule_def, state, negate)
+
+    molecule_instances = []
+    for x in mol_inst.association_instances:
+        if x:
+            molecule_instances.append(x)
+
+    for x in mol_inst.modification_instances:
+        if x:
+            molecule_instances.append(x)
+
+    if mol_inst.localization_instance:
+        molecule_instances.append(mol_inst.localization_instance)
+
+    return any(x in matching_instances for x in molecule_instances)
+
+
 # PROTECTED HELPERS
 def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) -> tg.List[mins.Instance]:
     if isinstance(state, sta.CovalentModificationState):
@@ -134,5 +153,4 @@ def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) 
         raise NotImplementedError
 
     return matching_instances
-
 

@@ -7,6 +7,7 @@ from rxncon.semantics.molecule_definition import MoleculeDefinition, Modificatio
 
 import rxncon.core.specification as spe
 
+
 class Instance:
     pass
 
@@ -87,8 +88,15 @@ class AssociationInstance(Instance):
 
     @tc.typecheck
     def __eq__(self, other: Instance) -> bool:
-        return isinstance(other, AssociationInstance) and self.association_def == other.association_def and \
-            self.occupation_status == other.occupation_status and self.partner == other.partner
+        if not isinstance(other, AssociationInstance):
+            return False
+
+        if self.partner and other.partner:
+            return self.association_def == other.association_def and self.occupation_status == other.occupation_status and self.partner == other.partner
+        elif not self.partner and not other.partner:
+            return self.association_def == other.association_def and self.occupation_status == other.occupation_status
+        else:
+            return False
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -97,21 +105,26 @@ class AssociationInstance(Instance):
         return str(self)
 
     def __str__(self) -> str:
-        return 'AssociationInstance: Domain = {0}, occupation_status = {1}'\
-            .format(self.association_def.spec, self.occupation_status)
+        return 'AssociationInstance: Domain = {0}, occupation_status = {1}, partner = {2}'\
+            .format(self.association_def.spec, self.occupation_status, self.partner)
 
     def complementary_instances(self):
-        # todo: is this correct?
         if self.occupation_status == OccupationStatus.occupied_known_partner:
-            return [AssociationInstance(self.association_def, OccupationStatus.not_occupied, self.partner)]
+            unoccupied = AssociationInstance(self.association_def, OccupationStatus.not_occupied, None)
+            other_partners = [AssociationInstance(self.association_def, OccupationStatus.occupied_known_partner, x)
+                              for x in self.association_def.valid_partners if x != self.partner]
+
+            return other_partners + [unoccupied]
         elif self.occupation_status == OccupationStatus.not_occupied:
-            return [AssociationInstance(self.association_def, OccupationStatus.occupied_known_partner, self.partner)]
+            return [AssociationInstance(self.association_def, OccupationStatus.occupied_known_partner, x)
+                    for x in self.association_def.valid_partners]
         else:
             raise NotImplementedError
 
     def _validate(self):
         # For associations the molecule/domain/subdomain spec should match exactly.
-        assert self.partner in self.association_def.valid_partners
+        if self.partner:
+            assert self.partner in self.association_def.valid_partners
 
 
 class LocalizationInstance(Instance):
