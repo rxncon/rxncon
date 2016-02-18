@@ -58,25 +58,7 @@ class MoleculeDefinitionSupervisor:
                                                                      mol.LocalizationDefinition(name_to_locs[name]))
 
 
-def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, reaction: rxn.Reaction):
-
-    state = _mod_spec_domain_from_state(state, reaction)
-    mod_def = mol.ModificationDefinition(state.substrate,
-                                         {mol.Modifier.unmodified, _molecule_modifier_from_state_modifier(state.modifier)})
-
-    return mod_def
-
-
-def _assoc_defs_from_state(state: tg.Union[sta.InterProteinInteractionState, sta.IntraProteinInteractionState]):
-    first_spec, second_spec = _assoc_spec_domain_from_state(state)
-
-    first_def = mol.AssociationDefinition(first_spec, {second_spec})
-    second_def = mol.AssociationDefinition(second_spec, {first_spec})
-
-    return first_def, second_def
-
-
-def _molecule_modifier_from_state_modifier(state_mod: sta.StateModifier) -> mol.Modifier:
+def molecule_modifier_from_state_modifier(state_mod: sta.StateModifier) -> mol.Modifier:
     if state_mod == sta.StateModifier.phosphor:
         return mol.Modifier.phosphorylated
 
@@ -91,6 +73,24 @@ def _molecule_modifier_from_state_modifier(state_mod: sta.StateModifier) -> mol.
 
     else:
         raise NotImplementedError
+
+
+def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, reaction: rxn.Reaction):
+
+    state = _mod_spec_domain_from_state(state, reaction)
+    mod_def = mol.ModificationDefinition(state.substrate,
+                                         {mol.Modifier.unmodified, molecule_modifier_from_state_modifier(state.modifier)})
+
+    return mod_def
+
+
+def _assoc_defs_from_state(state: tg.Union[sta.InterProteinInteractionState, sta.IntraProteinInteractionState]):
+    first_spec, second_spec = _assoc_spec_domain_from_state(state)
+
+    first_def = mol.AssociationDefinition(first_spec, {second_spec})
+    second_def = mol.AssociationDefinition(second_spec, {first_spec})
+
+    return first_def, second_def
 
 
 def _update_defs(defs: tg.Set[mol.Definition], new_def: mol.Definition):

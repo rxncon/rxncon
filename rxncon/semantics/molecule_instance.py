@@ -2,10 +2,10 @@ from typing import Set, Optional, Tuple
 
 import typecheck as tc
 
-from rxncon.core import specification as spe
 from rxncon.semantics.molecule_definition import MoleculeDefinition, ModificationDefinition, AssociationDefinition, \
-    OccupationStatus, LocalizationDefinition, Compartment
+    LocalizationDefinition, Modifier, OccupationStatus, Compartment
 
+import rxncon.core.specification as spe
 
 class Instance:
     pass
