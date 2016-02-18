@@ -4,49 +4,49 @@ import rxncon.core.state as sta
 import rxncon.semantics.molecule_definition as mol
 import rxncon.semantics.molecule_instance as mins
 import rxncon.venntastic.sets as venn
-from rxncon.semantics.molecule_definition_from_rxncon import molecule_modifier_from_state_modifier
+from rxncon.semantics.molecule_definition_from_rxncon import mol_modifier_from_state_modifier
 
 
-def set_of_instances_from_molecule_def_and_set_of_states(mol_def: mol.MoleculeDefinition, set_of_states: venn.Set) -> venn.Set:
-    if set_of_states.is_equivalent_to(venn.EmptySet()):
+def property_set_from_mol_def_and_state_set(mol_def: mol.MoleculeDefinition, state_set: venn.Set) -> venn.Set:
+    if state_set.is_equivalent_to(venn.EmptySet()):
         raise NotImplementedError
 
-    elif set_of_states.is_equivalent_to(venn.UniversalSet()):
+    elif state_set.is_equivalent_to(venn.UniversalSet()):
         return venn.UniversalSet()
 
-    elif isinstance(set_of_states, venn.PropertySet):
-        instances = _instances(mol_def, set_of_states.value, negate=False)
-        if not instances:
+    elif isinstance(state_set, venn.PropertySet):
+        properties = _properties(mol_def, state_set.value, negate=False)
+        if not properties:
             return venn.UniversalSet()
         else:
-            return venn.nested_expression_from_list_and_binary_op([venn.PropertySet(x) for x in instances], venn.Union)
+            return venn.nested_expression_from_list_and_binary_op([venn.PropertySet(x) for x in properties], venn.Union)
 
-    elif isinstance(set_of_states, venn.Complement):
-        if not isinstance(set_of_states.expr, venn.PropertySet):
-            return set_of_instances_from_molecule_def_and_set_of_states(mol_def, set_of_states.simplified_form())
+    elif isinstance(state_set, venn.Complement):
+        if not isinstance(state_set.expr, venn.PropertySet):
+            return property_set_from_mol_def_and_state_set(mol_def, state_set.simplified_form())
 
-        instances = _instances(mol_def, set_of_states.expr.value, negate=True)
-        if not instances:
+        properties = _properties(mol_def, state_set.expr.value, negate=True)
+        if not properties:
             return venn.UniversalSet()
         else:
-            return venn.nested_expression_from_list_and_binary_op([venn.PropertySet(x) for x in instances], venn.Union)
+            return venn.nested_expression_from_list_and_binary_op([venn.PropertySet(x) for x in properties], venn.Union)
 
-    elif isinstance(set_of_states, venn.Union):
+    elif isinstance(state_set, venn.Union):
         return venn.Union(
-            set_of_instances_from_molecule_def_and_set_of_states(mol_def, set_of_states.left_expr),
-            set_of_instances_from_molecule_def_and_set_of_states(mol_def, set_of_states.right_expr)
+            property_set_from_mol_def_and_state_set(mol_def, state_set.left_expr),
+            property_set_from_mol_def_and_state_set(mol_def, state_set.right_expr)
         )
 
-    elif isinstance(set_of_states, venn.Intersection):
+    elif isinstance(state_set, venn.Intersection):
         return venn.Intersection(
-            set_of_instances_from_molecule_def_and_set_of_states(mol_def, set_of_states.left_expr),
-            set_of_instances_from_molecule_def_and_set_of_states(mol_def, set_of_states.right_expr)
+            property_set_from_mol_def_and_state_set(mol_def, state_set.left_expr),
+            property_set_from_mol_def_and_state_set(mol_def, state_set.right_expr)
         )
 
 
 # CREATING A CONCRETE MOLECULE INSTANCE FROM THE SET OF ASSOC/MOD/LOC INSTANCES
-def molecule_instance_from_molecule_def_and_set_of_instances(mol_def: mol.MoleculeDefinition, set_of_instances: venn.Set) -> mins.MoleculeInstance:
-    nested_instances = set_of_instances.to_nested_list_form()
+def mol_instance_from_mol_def_and_property_set(mol_def: mol.MoleculeDefinition, property_set: venn.Set) -> mins.MoleculeInstance:
+    nested_instances = property_set.to_nested_list_form()
     assert len(nested_instances) == 1
 
     instance_property_sets = nested_instances[0]
@@ -78,36 +78,36 @@ def molecule_instance_from_molecule_def_and_set_of_instances(mol_def: mol.Molecu
     return rxncon.semantics.molecule_instance.MoleculeInstance(mol_def, mod_instances, assoc_instances, loc)
 
 
-def molecule_instance_matches_state(mol_inst: mins.MoleculeInstance, state: sta.State, negate: bool) -> bool:
-    matching_instances = _instances(mol_inst.molecule_def, state, negate)
+def mol_instance_matches_state(mol_inst: mins.MoleculeInstance, state: sta.State, negate: bool) -> bool:
+    matching_properties = _properties(mol_inst.mol_def, state, negate)
 
-    molecule_instances = []
+    molecule_properties = []
     for x in mol_inst.association_properties:
         if x:
-            molecule_instances.append(x)
+            molecule_properties.append(x)
 
     for x in mol_inst.modification_properties:
         if x:
-            molecule_instances.append(x)
+            molecule_properties.append(x)
 
     if mol_inst.localization_property:
-        molecule_instances.append(mol_inst.localization_property)
+        molecule_properties.append(mol_inst.localization_property)
 
-    return any(x in matching_instances for x in molecule_instances)
+    return any(x in matching_properties for x in molecule_properties)
 
 
 # PROTECTED HELPERS
-def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) -> tg.List[mins.PropertyInstance]:
+def _properties(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) -> tg.List[mins.PropertyInstance]:
     if isinstance(state, sta.CovalentModificationState):
         matching_defs = [x for x in mol_def.modification_defs if x.spec.is_subspecification_of(state.substrate)]
         matching_instances = []
         for matching_def in matching_defs:
             if not negate:
                 matching_instances.append(mins.ModificationPropertyInstance(matching_def,
-                                                                            molecule_modifier_from_state_modifier(state.modifier)))
+                                                                            mol_modifier_from_state_modifier(state.modifier)))
             else:
                 matching_instances.extend(mins.ModificationPropertyInstance(matching_def,
-                                                                            molecule_modifier_from_state_modifier(state.modifier)).complementary_instances())
+                                                                            mol_modifier_from_state_modifier(state.modifier)).complementary_instances())
 
         return matching_instances
 

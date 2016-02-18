@@ -22,8 +22,8 @@ class RuleBasedModelSupervisor:
             for molecule in self.molecules:
                 mol_def = self.mol_defs[molecule]
 
-                lhs_instance_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(mol_def, source_set_of_states_from_reaction(reaction))
-                rhs_instance_set = mfr.set_of_instances_from_molecule_def_and_set_of_states(mol_def, venn.Complement(source_set_of_states_from_reaction(reaction)))
+                lhs_instance_set = mfr.property_set_from_mol_def_and_state_set(mol_def, source_set_of_states_from_reaction(reaction))
+                rhs_instance_set = mfr.property_set_from_mol_def_and_state_set(mol_def, venn.Complement(source_set_of_states_from_reaction(reaction)))
 
                 valid_lhs_to_rhs_pairs = _valid_pairs_for_reaction(reaction, lhs_instance_set, rhs_instance_set)
 

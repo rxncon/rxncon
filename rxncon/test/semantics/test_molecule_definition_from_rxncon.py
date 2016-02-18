@@ -62,10 +62,10 @@ def test_molecule_definitions_no_contingencies():
         None
     )
 
-    assert mol_defs.molecule_definition_for_name('A') == expected_mol_def_A
-    assert mol_defs.molecule_definition_for_name('B') == expected_mol_def_B
-    assert mol_defs.molecule_definition_for_name('C') == expected_mol_def_C
-    assert mol_defs.molecule_definition_for_name('E') == expected_mol_def_E
+    assert mol_defs.mol_def_for_name('A') == expected_mol_def_A
+    assert mol_defs.mol_def_for_name('B') == expected_mol_def_B
+    assert mol_defs.mol_def_for_name('C') == expected_mol_def_C
+    assert mol_defs.mol_def_for_name('E') == expected_mol_def_E
 
 
 def test_molecule_definitions_with_contingencies():
@@ -134,10 +134,10 @@ def test_molecule_definitions_with_contingencies():
         None
     )
 
-    assert mol_defs.molecule_definition_for_name('A') == expected_mol_def_A
-    assert mol_defs.molecule_definition_for_name('B') == expected_mol_def_B
-    assert mol_defs.molecule_definition_for_name('C') == expected_mol_def_C
-    assert mol_defs.molecule_definition_for_name('E') == expected_mol_def_E
+    assert mol_defs.mol_def_for_name('A') == expected_mol_def_A
+    assert mol_defs.mol_def_for_name('B') == expected_mol_def_B
+    assert mol_defs.mol_def_for_name('C') == expected_mol_def_C
+    assert mol_defs.mol_def_for_name('E') == expected_mol_def_E
 
 
 def test_molecule_definitions_multiple_kinases_same_modification_at_same_residue():
@@ -175,9 +175,9 @@ def test_molecule_definitions_multiple_kinases_same_modification_at_same_residue
         None
     )
 
-    assert mol_defs.molecule_definition_for_name('A') == expected_mol_def_A
-    assert mol_defs.molecule_definition_for_name('B') == expected_mol_def_B
-    assert mol_defs.molecule_definition_for_name('C') == expected_mol_def_C
+    assert mol_defs.mol_def_for_name('A') == expected_mol_def_A
+    assert mol_defs.mol_def_for_name('B') == expected_mol_def_B
+    assert mol_defs.mol_def_for_name('C') == expected_mol_def_C
 
 
 def test_molecule_definitions_multiple_kinases_different_modifications_at_same_residue():
@@ -214,9 +214,9 @@ def test_molecule_definitions_multiple_kinases_different_modifications_at_same_r
         None
     )
 
-    assert mol_defs.molecule_definition_for_name('A') == expected_mol_def_A
-    assert mol_defs.molecule_definition_for_name('B') == expected_mol_def_B
-    assert mol_defs.molecule_definition_for_name('C') == expected_mol_def_C
+    assert mol_defs.mol_def_for_name('A') == expected_mol_def_A
+    assert mol_defs.mol_def_for_name('B') == expected_mol_def_B
+    assert mol_defs.mol_def_for_name('C') == expected_mol_def_C
 
 
 def test_molecule_definitions_multiple_partners_binding_same_domain():
@@ -256,7 +256,7 @@ def test_molecule_definitions_multiple_partners_binding_same_domain():
         None
     )
 
-    assert mol_defs.molecule_definition_for_name('A') == expected_mol_def_A
-    assert mol_defs.molecule_definition_for_name('B') == expected_mol_def_B
-    assert mol_defs.molecule_definition_for_name('C') == expected_mol_def_C
+    assert mol_defs.mol_def_for_name('A') == expected_mol_def_A
+    assert mol_defs.mol_def_for_name('B') == expected_mol_def_B
+    assert mol_defs.mol_def_for_name('C') == expected_mol_def_C
 

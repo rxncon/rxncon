@@ -19,9 +19,9 @@ class RuleBasedModel:
 
     def _validate(self):
         for initial_condition in self.initial_conditions:
-            if initial_condition.molecule_specification.molecule_def not in self.molecule_defs:
+            if initial_condition.molecule_specification.mol_def not in self.molecule_defs:
                 raise ValueError('Initial condition {0} refers to unknown molecule def {1}.'
-                                 .format(initial_condition, initial_condition.molecule_specification.molecule_def))
+                                 .format(initial_condition, initial_condition.molecule_specification.mol_def))
 
         for rule in self.rules:
             for molecule in rule.molecules:
@@ -59,7 +59,7 @@ class Rule:
         molecules = []
         for side in [self.left_hand_side, self.right_hand_side]:
             if isinstance(side, MoleculeReactant) and side.molecule_specification.molecule_definition not in molecules:
-                molecules.append(side.molecule_specification.molecule_def)
+                molecules.append(side.molecule_specification.mol_def)
 
             elif isinstance(side, ComplexReactant):
                 [molecules.append(x) for x in side.molecules if x not in molecules]

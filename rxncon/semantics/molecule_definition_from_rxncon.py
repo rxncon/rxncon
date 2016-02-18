@@ -15,7 +15,7 @@ class MoleculeDefinitionSupervisor:
         self._generate_molecule_definitions()
         self.molecules = self.molecule_definitions.keys()
 
-    def molecule_definition_for_name(self, name: str) -> mol.MoleculeDefinition:
+    def mol_def_for_name(self, name: str) -> mol.MoleculeDefinition:
         return self.molecule_definitions[name]
 
     def _generate_molecule_definitions(self):
@@ -58,7 +58,7 @@ class MoleculeDefinitionSupervisor:
                                                                      mol.LocalizationPropertyDefinition(name_to_locs[name]))
 
 
-def molecule_modifier_from_state_modifier(state_mod: sta.StateModifier) -> mol.Modifier:
+def mol_modifier_from_state_modifier(state_mod: sta.StateModifier) -> mol.Modifier:
     if state_mod == sta.StateModifier.phosphor:
         return mol.Modifier.phosphorylated
 
@@ -79,7 +79,7 @@ def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, react
 
     state = _mod_spec_domain_from_state(state, reaction)
     mod_def = mol.ModificationPropertyDefinition(state.substrate,
-                                                 {mol.Modifier.unmodified, molecule_modifier_from_state_modifier(state.modifier)})
+                                                 {mol.Modifier.unmodified, mol_modifier_from_state_modifier(state.modifier)})
 
     return mod_def
 

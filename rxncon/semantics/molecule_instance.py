@@ -8,15 +8,14 @@ from rxncon.semantics.molecule_definition import MoleculeDefinition, Modificatio
 import rxncon.core.specification as spe
 
 
-
 class MoleculeInstance:
     @tc.typecheck
     def __init__(self,
-                 molecule_def: MoleculeDefinition,
+                 mol_def: MoleculeDefinition,
                  modification_properties: Set['ModificationPropertyInstance'],
                  association_properties: Set['AssociationPropertyInstance'],
                  localization_property: Optional['LocalizationPropertyInstance']):
-        self.molecule_def = molecule_def
+        self.mol_def = mol_def
         self.modification_properties = modification_properties
         self.association_properties = association_properties
         self.localization_property = localization_property
@@ -24,10 +23,10 @@ class MoleculeInstance:
     @tc.typecheck
     def __eq__(self, other: 'MoleculeInstance'):
         return isinstance(other, MoleculeInstance) and \
-            self.molecule_def == other.molecule_def and \
-               self.localization_property == other.localization_property and \
-               self.modification_properties == other.modification_properties and \
-               self.association_properties == other.association_properties
+            self.mol_def == other.mol_def and \
+            self.localization_property == other.localization_property and \
+            self.modification_properties == other.modification_properties and \
+            self.association_properties == other.association_properties
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -37,7 +36,7 @@ class MoleculeInstance:
 
     def __str__(self) -> str:
         return 'MoleculeSpecification: {0}, mod_instances = {1}. assoc_instances = {2}. loc_instances = {3}'\
-            .format(self.molecule_def.spec, ', '.join([str(x) for x in self.modification_properties]),
+            .format(self.mol_def.spec, ', '.join([str(x) for x in self.modification_properties]),
                     ', '.join(str(x) for x in self.association_properties), str(self.localization_property))
 
 

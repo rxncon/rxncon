@@ -22,14 +22,14 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_no_conting
 
     # Now test the molecule instances that get created by taking into account the strict contingencies. Note that this
     # does not take into account the source contingency (i.e. A not bound to B).
-    strict_instances_set = mir.set_of_instances_from_molecule_def_and_set_of_states(
-        mol_defs.molecule_definition_for_name('A'),
+    strict_instances_set = mir.property_set_from_mol_def_and_state_set(
+        mol_defs.mol_def_for_name('A'),
         strict_cont_state_set
     )
     assert strict_instances_set.is_equivalent_to(venn.UniversalSet())
 
-    strict_instances_set = mir.set_of_instances_from_molecule_def_and_set_of_states(
-        mol_defs.molecule_definition_for_name('B'),
+    strict_instances_set = mir.property_set_from_mol_def_and_state_set(
+        mol_defs.mol_def_for_name('B'),
         strict_cont_state_set
     )
     assert strict_instances_set.is_equivalent_to(venn.UniversalSet())
@@ -44,10 +44,10 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_and_requir
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c], [cont])
     mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon)
 
-    mol_def_A = mol_defs.molecule_definition_for_name('A')
+    mol_def_A = mol_defs.mol_def_for_name('A')
 
     strict_cont_state_set = rfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
-    strict_instances_set = mir.set_of_instances_from_molecule_def_and_set_of_states(mol_def_A, strict_cont_state_set)
+    strict_instances_set = mir.property_set_from_mol_def_and_state_set(mol_def_A, strict_cont_state_set)
 
     assoc_defs_A_to_C = [assoc_def for assoc_def in mol_def_A.association_defs if assoc_def.spec.domain == "Cassoc"]
     assert len(assoc_defs_A_to_C) == 1
@@ -72,10 +72,10 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_and_inhibi
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c], [cont])
     mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon)
 
-    mol_def_A = mol_defs.molecule_definition_for_name('A')
+    mol_def_A = mol_defs.mol_def_for_name('A')
 
     strict_cont_state_set = rfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
-    strict_instances_set = mir.set_of_instances_from_molecule_def_and_set_of_states(mol_def_A, strict_cont_state_set)
+    strict_instances_set = mir.property_set_from_mol_def_and_state_set(mol_def_A, strict_cont_state_set)
 
     assoc_defs_A_to_C = [assoc_def for assoc_def in mol_def_A.association_defs if assoc_def.spec.domain == "Cassoc"]
     assert len(assoc_defs_A_to_C) == 1
@@ -105,8 +105,8 @@ def test_set_of_instances_from_complex_system():
     mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon)
 
     # TEST MOLECULE A
-    actual_A_set_of_instances = mir.set_of_instances_from_molecule_def_and_set_of_states(
-        mol_defs.molecule_definition_for_name('A'),
+    actual_A_set_of_instances = mir.property_set_from_mol_def_and_state_set(
+        mol_defs.mol_def_for_name('A'),
         rfr.set_of_states_from_contingencies([cont_b_dash_e, cont_e_pplus])
     )
 
@@ -120,8 +120,8 @@ def test_set_of_instances_from_complex_system():
     assert actual_A_set_of_instances.is_equivalent_to(expected_A_set_of_instances)
 
     # TEST MOLECULE B
-    actual_B_set_of_instances = mir.set_of_instances_from_molecule_def_and_set_of_states(
-        mol_defs.molecule_definition_for_name('B'),
+    actual_B_set_of_instances = mir.property_set_from_mol_def_and_state_set(
+        mol_defs.mol_def_for_name('B'),
         rfr.set_of_states_from_contingencies([cont_b_dash_e, cont_e_pplus])
     )
 
@@ -135,8 +135,8 @@ def test_set_of_instances_from_complex_system():
     assert actual_B_set_of_instances.is_equivalent_to(expected_B_set_of_instances)
 
     # TEST MOLECULE E
-    actual_E_set_of_instances = mir.set_of_instances_from_molecule_def_and_set_of_states(
-        mol_defs.molecule_definition_for_name('E'),
+    actual_E_set_of_instances = mir.property_set_from_mol_def_and_state_set(
+        mol_defs.mol_def_for_name('E'),
         rfr.set_of_states_from_contingencies([cont_b_dash_e, cont_e_pplus])
     )
 
@@ -183,75 +183,75 @@ def test_molecule_instance_matches_state():
 
     # A BOUND, UNPHOSPHORYLATED
     mol_inst_A_bound_unphos = mins.MoleculeInstance(mol_def_A, {mod_inst_A_unphos}, {assoc_inst_A_bound}, None)
-    assert mir.molecule_instance_matches_state(mol_inst_A_bound_unphos,
-                                               rfs.state_from_string('A--B'),
-                                               False)
+    assert mir.mol_instance_matches_state(mol_inst_A_bound_unphos,
+                                          rfs.state_from_string('A--B'),
+                                          False)
 
-    assert not mir.molecule_instance_matches_state(mol_inst_A_bound_unphos,
-                                                   rfs.state_from_string('A--B'),
-                                                   True)
+    assert not mir.mol_instance_matches_state(mol_inst_A_bound_unphos,
+                                              rfs.state_from_string('A--B'),
+                                              True)
 
-    assert not mir.molecule_instance_matches_state(mol_inst_A_bound_unphos,
-                                                   rfs.state_from_string('A-{p}'),
-                                                   False)
+    assert not mir.mol_instance_matches_state(mol_inst_A_bound_unphos,
+                                              rfs.state_from_string('A-{p}'),
+                                              False)
 
-    assert mir.molecule_instance_matches_state(mol_inst_A_bound_unphos,
-                                               rfs.state_from_string('A-{p}'),
-                                               True)
+    assert mir.mol_instance_matches_state(mol_inst_A_bound_unphos,
+                                          rfs.state_from_string('A-{p}'),
+                                          True)
 
     # A FREE, UNPHOSPHORYLATED
     mol_inst_A_unbound_unphos = mins.MoleculeInstance(mol_def_A, {mod_inst_A_unphos}, {assoc_inst_A_free}, None)
-    assert not mir.molecule_instance_matches_state(mol_inst_A_unbound_unphos,
-                                                   rfs.state_from_string('A--B'),
-                                                   False)
+    assert not mir.mol_instance_matches_state(mol_inst_A_unbound_unphos,
+                                              rfs.state_from_string('A--B'),
+                                              False)
 
-    assert mir.molecule_instance_matches_state(mol_inst_A_unbound_unphos,
-                                               rfs.state_from_string('A--B'),
-                                               True)
+    assert mir.mol_instance_matches_state(mol_inst_A_unbound_unphos,
+                                          rfs.state_from_string('A--B'),
+                                          True)
 
-    assert not mir.molecule_instance_matches_state(mol_inst_A_unbound_unphos,
-                                                   rfs.state_from_string('A-{p}'),
-                                                   False)
+    assert not mir.mol_instance_matches_state(mol_inst_A_unbound_unphos,
+                                              rfs.state_from_string('A-{p}'),
+                                              False)
 
-    assert mir.molecule_instance_matches_state(mol_inst_A_unbound_unphos,
-                                               rfs.state_from_string('A-{p}'),
-                                               True)
+    assert mir.mol_instance_matches_state(mol_inst_A_unbound_unphos,
+                                          rfs.state_from_string('A-{p}'),
+                                          True)
 
     # A BOUND, PHOSPHORYLATED
     mol_inst_A_bound_phos = mins.MoleculeInstance(mol_def_A, {mod_inst_A_phos}, {assoc_inst_A_bound}, None)
-    assert mir.molecule_instance_matches_state(mol_inst_A_bound_phos,
-                                               rfs.state_from_string('A--B'),
-                                               False)
+    assert mir.mol_instance_matches_state(mol_inst_A_bound_phos,
+                                          rfs.state_from_string('A--B'),
+                                          False)
 
-    assert not mir.molecule_instance_matches_state(mol_inst_A_bound_phos,
-                                                   rfs.state_from_string('A--B'),
-                                                   True)
+    assert not mir.mol_instance_matches_state(mol_inst_A_bound_phos,
+                                              rfs.state_from_string('A--B'),
+                                              True)
 
-    assert mir.molecule_instance_matches_state(mol_inst_A_bound_phos,
-                                               rfs.state_from_string('A-{p}'),
-                                               False)
+    assert mir.mol_instance_matches_state(mol_inst_A_bound_phos,
+                                          rfs.state_from_string('A-{p}'),
+                                          False)
 
-    assert not mir.molecule_instance_matches_state(mol_inst_A_bound_phos,
-                                                   rfs.state_from_string('A-{p}'),
-                                                   True)
+    assert not mir.mol_instance_matches_state(mol_inst_A_bound_phos,
+                                              rfs.state_from_string('A-{p}'),
+                                              True)
 
     # A BOUND, PHOSPHORYLATED
     mol_inst_A_free_phos = mins.MoleculeInstance(mol_def_A, {mod_inst_A_phos}, {assoc_inst_A_free}, None)
-    assert not mir.molecule_instance_matches_state(mol_inst_A_free_phos,
-                                                   rfs.state_from_string('A--B'),
-                                                   False)
+    assert not mir.mol_instance_matches_state(mol_inst_A_free_phos,
+                                              rfs.state_from_string('A--B'),
+                                              False)
 
-    assert mir.molecule_instance_matches_state(mol_inst_A_free_phos,
-                                               rfs.state_from_string('A--B'),
-                                               True)
+    assert mir.mol_instance_matches_state(mol_inst_A_free_phos,
+                                          rfs.state_from_string('A--B'),
+                                          True)
 
-    assert mir.molecule_instance_matches_state(mol_inst_A_free_phos,
-                                               rfs.state_from_string('A-{p}'),
-                                               False)
+    assert mir.mol_instance_matches_state(mol_inst_A_free_phos,
+                                          rfs.state_from_string('A-{p}'),
+                                          False)
 
-    assert not mir.molecule_instance_matches_state(mol_inst_A_free_phos,
-                                                   rfs.state_from_string('A-{p}'),
-                                                   True)
+    assert not mir.mol_instance_matches_state(mol_inst_A_free_phos,
+                                              rfs.state_from_string('A-{p}'),
+                                              True)
 
 
 
