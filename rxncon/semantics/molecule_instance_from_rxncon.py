@@ -96,6 +96,12 @@ def mol_instance_matches_state(mol_inst: mins.MoleculeInstance, state: sta.State
     return any(x in matching_properties for x in molecule_properties)
 
 
+def mol_def_and_property_match_state(mol_def: mol.MoleculeDefinition, prop: mins.PropertyInstance, state: sta.State, negate: bool) -> bool:
+    matching_properties = _properties(mol_def, state, negate)
+
+    return prop in matching_properties
+
+
 # PROTECTED HELPERS
 def _properties(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) -> tg.List[mins.PropertyInstance]:
     if isinstance(state, sta.CovalentModificationState):
