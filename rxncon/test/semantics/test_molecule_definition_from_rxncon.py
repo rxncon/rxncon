@@ -3,6 +3,7 @@ import rxncon.core.effector as eff
 import rxncon.core.rxncon_system as rxs
 import rxncon.core.specification as spe
 import rxncon.semantics.molecule_definition as mol
+import rxncon.semantics.molecule_definition_from_rxncon as mdr
 import rxncon.syntax.rxncon_from_string as rfs
 
 
@@ -15,7 +16,7 @@ def test_molecule_definitions_no_contingencies():
     b_pplus_e = rfs.reaction_from_string('B_p+_E')
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c, b_ppi_e, b_pplus_e], [])
 
-    mol_defs = rxncon.semantics.molecule_definition_from_rxncon.MoleculeDefinitionSupervisor(rxncon)
+    mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon)
 
     spec_A = spe.Specification("A", None, None, None)
     spec_B = spe.Specification("B", None, None, None)
@@ -86,7 +87,7 @@ def test_molecule_definitions_with_contingencies():
     cont_a_ppi_b = con.Contingency(a_ppi_b, con.ContingencyType.inhibition, eff.StateEffector(a_dash_c))  # A_ppi_B; x A--C
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c, b_ppi_e, b_pplus_e], [cont_b_pplus_e, cont_b_dash_e, cont_a_ppi_b])
 
-    mol_defs = rxncon.semantics.molecule_definition_from_rxncon.MoleculeDefinitionSupervisor(rxncon)
+    mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon)
 
     spec_A = spe.Specification("A", None, None, None)
     spec_B = spe.Specification("B", None, None, None)
@@ -145,7 +146,7 @@ def test_molecule_definitions_multiple_kinases_same_modification_at_same_residue
 
     rxncon = rxs.RxnConSystem([a_pplus_b, c_pplus_b], [])
 
-    mol_defs = rxncon.semantics.molecule_definition_from_rxncon.MoleculeDefinitionSupervisor(rxncon)
+    mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon)
 
     spec_A = spe.Specification('A', None, None, None)
     spec_B = spe.Specification("B", None, None, None)
@@ -185,7 +186,7 @@ def test_molecule_definitions_multiple_kinases_different_modifications_at_same_r
 
     rxncon = rxs.RxnConSystem([a_pplus_b, c_ubplus_b], [])
 
-    mol_defs = rxncon.semantics.molecule_definition_from_rxncon.MoleculeDefinitionSupervisor(rxncon)
+    mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon)
 
     spec_A = spe.Specification('A', None, None, None)
     spec_B = spe.Specification("B", None, None, None)
@@ -224,7 +225,7 @@ def test_molecule_definitions_multiple_partners_binding_same_domain():
 
     rxncon = rxs.RxnConSystem([a_pplus_b, c_pplus_b], [])
 
-    mol_defs = rxncon.semantics.molecule_definition_from_rxncon.MoleculeDefinitionSupervisor(rxncon)
+    mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon)
 
     spec_A = spe.Specification('A', None, None, None)
     spec_B = spe.Specification("B", None, None, None)
