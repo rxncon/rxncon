@@ -3,7 +3,7 @@ from typing import List
 
 import typecheck as tc
 
-from rxncon.semantics.molecule import MoleculeInstance
+from rxncon.semantics.molecule_instance import MoleculeInstance
 
 
 class RuleBasedModel:

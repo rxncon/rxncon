@@ -1,65 +1,14 @@
-from enum import unique, Enum
-from typing import Optional, Tuple, Set
+from typing import Set, Optional, Tuple
+
 import typecheck as tc
 
-import rxncon.core.specification as spe
-
-@unique
-class Modifier(Enum):
-    unmodified     = 'u'
-    phosphorylated = 'p'
-    ubiquitinated  = 'ub'
-    trucated       = 'truncated'
-
-@unique
-class OccupationStatus(Enum):
-    not_specified = 0
-    not_occupied = 1
-    occupied_known_partner = 2
-    occupied_unknown_partner = 3
-
-@unique
-class Compartment(Enum):
-    cell = 'cell'
-    cytosole = 'cytosole'
-    nucleus = 'nucleus'
-
-class Definition:
-    pass
+from rxncon.core import specification as spe
+from rxncon.semantics.molecule_definition import MoleculeDefinition, ModificationDefinition, AssociationDefinition, \
+    OccupationStatus, LocalizationDefinition, Compartment
 
 
 class Instance:
     pass
-
-
-class MoleculeDefinition(Definition):
-    @tc.typecheck
-    def __init__(self, spec: spe.Specification,
-                 modification_defs: Set['ModificationDefinition'],
-                 association_defs: Set['AssociationDefinition'],
-                 localization_def: Optional['LocalizationDefinition']):
-        self.spec = spec
-        self.modification_defs = modification_defs
-        self.association_defs = association_defs
-
-        if localization_def is None:
-            localization_def = LocalizationDefinition(set())
-
-        self.localization_def = localization_def
-
-    @tc.typecheck
-    def __eq__(self, other: Definition) -> bool:
-        return isinstance(other, MoleculeDefinition) and self.spec == other.spec and self.localization_def == other.localization_def and \
-            other.modification_defs == self.modification_defs and other.association_defs == self.association_defs
-
-    def __hash__(self) -> int:
-        return hash(str(self))
-
-    def __repr__(self):
-        return str(self)
-
-    def __str__(self) -> str:
-        return 'MoleculeDefinition: {0}'.format(self.spec)
 
 
 class MoleculeInstance(Instance):
@@ -94,28 +43,6 @@ class MoleculeInstance(Instance):
                     ', '.join(str(x) for x in self.association_instances), str(self.localization_instance))
 
 
-class ModificationDefinition(Definition):
-    @tc.typecheck
-    def __init__(self, spec: spe.Specification, valid_modifiers: Set['Modifier']):
-        self.spec = spec
-        self.valid_modifiers = valid_modifiers
-
-    @tc.typecheck
-    def __eq__(self, other: Definition):
-        return isinstance(other, ModificationDefinition) and self.spec == other.spec and \
-            self.valid_modifiers == other.valid_modifiers
-
-    def __hash__(self) -> int:
-        return hash('*mod-def* {0}'.format(self.spec.name))
-
-    def __repr__(self):
-        return str(self)
-
-    def __str__(self) -> str:
-        return 'ModificationDefinition: Domain = {0}, Modifiers = {1}'\
-            .format(self.spec, ', '.join(mod.value for mod in self.valid_modifiers))
-
-
 class ModificationInstance(Instance):
     @tc.typecheck
     def __init__(self, modification_def: ModificationDefinition, modifier: 'Modifier'):
@@ -146,28 +73,6 @@ class ModificationInstance(Instance):
     def complementary_instances(self):
         return [ModificationInstance(self.modification_def, modifier) for modifier
                 in self.modification_def.valid_modifiers if modifier != self.modifier]
-
-
-class AssociationDefinition(Definition):
-    @tc.typecheck
-    def __init__(self, spec: spe.Specification, valid_partners: Set[spe.Specification]):
-        self.spec = spec
-        self.valid_partners = valid_partners
-
-    @tc.typecheck
-    def __eq__(self, other: Definition) -> bool:
-        return isinstance(other, AssociationDefinition) and self.spec == other.spec and \
-            self.valid_partners == other.valid_partners
-
-    def __hash__(self) -> int:
-        return hash('*ass-def* {}'.format(self.spec.name))
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def __str__(self) -> str:
-        return 'AssociationDefinition: Domain = {0}, valid_partners = {1}'\
-            .format(self.spec, ', '.join(str(x) for x in self.valid_partners))
 
 
 class AssociationInstance(Instance):
@@ -207,22 +112,6 @@ class AssociationInstance(Instance):
     def _validate(self):
         # For associations the molecule/domain/subdomain spec should match exactly.
         assert self.partner in self.association_def.valid_partners
-
-
-class LocalizationDefinition(Definition):
-    @tc.typecheck
-    def __init__(self, valid_compartments: Set[Compartment]):
-        self.valid_compartments = valid_compartments
-
-    @tc.typecheck
-    def __eq__(self, other: Definition):
-        return isinstance(other, LocalizationDefinition) and self.valid_compartments == other.valid_compartments
-
-    def __hash__(self) -> int:
-        return hash('*loc-def* with num of compartments {}'.format(len(self.valid_compartments)))
-
-    def __str__(self) -> str:
-        return 'LocalizationDefinition: {0}'.format(', '.join(str(x) for x in self.valid_compartments))
 
 
 class LocalizationInstance(Instance):
