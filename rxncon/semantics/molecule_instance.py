@@ -2,30 +2,27 @@ from typing import Set, Optional, Tuple
 
 import typecheck as tc
 
-from rxncon.semantics.molecule_definition import MoleculeDefinition, ModificationDefinition, AssociationDefinition, \
-    LocalizationDefinition, Modifier, OccupationStatus, Compartment
+from rxncon.semantics.molecule_definition import MoleculeDefinition, ModificationPropertyDefinition, AssociationPropertyDefinition, \
+    LocalizationPropertyDefinition, Modifier, OccupationStatus, Compartment
 
 import rxncon.core.specification as spe
 
 
-class Instance:
-    pass
 
-
-class MoleculeInstance(Instance):
+class MoleculeInstance:
     @tc.typecheck
     def __init__(self,
                  molecule_def: MoleculeDefinition,
-                 modification_instances: Set['ModificationInstance'],
-                 association_instances: Set['AssociationInstance'],
-                 localization_instance: Optional['LocalizationInstance']):
+                 modification_instances: Set['ModificationPropertyInstance'],
+                 association_instances: Set['AssociationPropertyInstance'],
+                 localization_instance: Optional['LocalizationPropertyInstance']):
         self.molecule_def = molecule_def
         self.modification_instances = modification_instances
         self.association_instances = association_instances
         self.localization_instance = localization_instance
 
     @tc.typecheck
-    def __eq__(self, other: Instance):
+    def __eq__(self, other: 'MoleculeInstance'):
         return isinstance(other, MoleculeInstance) and \
             self.molecule_def == other.molecule_def and \
             self.localization_instance == other.localization_instance and \
@@ -44,16 +41,20 @@ class MoleculeInstance(Instance):
                     ', '.join(str(x) for x in self.association_instances), str(self.localization_instance))
 
 
-class ModificationInstance(Instance):
+class PropertyInstance:
+    pass
+
+
+class ModificationPropertyInstance(PropertyInstance):
     @tc.typecheck
-    def __init__(self, modification_def: ModificationDefinition, modifier: 'Modifier'):
+    def __init__(self, modification_def: ModificationPropertyDefinition, modifier: 'Modifier'):
         self.modification_def = modification_def
         self.modifier = modifier
         self._validate()
 
     @tc.typecheck
-    def __eq__(self, other: Instance) -> bool:
-        return isinstance(other, ModificationInstance) and self.modification_def == other.modification_def and \
+    def __eq__(self, other: PropertyInstance) -> bool:
+        return isinstance(other, ModificationPropertyInstance) and self.modification_def == other.modification_def and \
             self.modifier == other.modifier
 
     def __hash__(self) -> bool:
@@ -72,13 +73,13 @@ class ModificationInstance(Instance):
                              .format(self.modifier, self.modification_def.spec))
 
     def complementary_instances(self):
-        return [ModificationInstance(self.modification_def, modifier) for modifier
+        return [ModificationPropertyInstance(self.modification_def, modifier) for modifier
                 in self.modification_def.valid_modifiers if modifier != self.modifier]
 
 
-class AssociationInstance(Instance):
+class AssociationPropertyInstance(PropertyInstance):
     @tc.typecheck
-    def __init__(self, association_def: AssociationDefinition, occupation_status: 'OccupationStatus',
+    def __init__(self, association_def: AssociationPropertyDefinition, occupation_status: 'OccupationStatus',
                  partner: Optional[spe.Specification]):
         self.association_def = association_def
         self.occupation_status = occupation_status
@@ -87,8 +88,8 @@ class AssociationInstance(Instance):
         self._validate()
 
     @tc.typecheck
-    def __eq__(self, other: Instance) -> bool:
-        if not isinstance(other, AssociationInstance):
+    def __eq__(self, other: PropertyInstance) -> bool:
+        if not isinstance(other, AssociationPropertyInstance):
             return False
 
         if self.partner and other.partner:
@@ -110,13 +111,13 @@ class AssociationInstance(Instance):
 
     def complementary_instances(self):
         if self.occupation_status == OccupationStatus.occupied_known_partner:
-            unoccupied = AssociationInstance(self.association_def, OccupationStatus.not_occupied, None)
-            other_partners = [AssociationInstance(self.association_def, OccupationStatus.occupied_known_partner, x)
+            unoccupied = AssociationPropertyInstance(self.association_def, OccupationStatus.not_occupied, None)
+            other_partners = [AssociationPropertyInstance(self.association_def, OccupationStatus.occupied_known_partner, x)
                               for x in self.association_def.valid_partners if x != self.partner]
 
             return other_partners + [unoccupied]
         elif self.occupation_status == OccupationStatus.not_occupied:
-            return [AssociationInstance(self.association_def, OccupationStatus.occupied_known_partner, x)
+            return [AssociationPropertyInstance(self.association_def, OccupationStatus.occupied_known_partner, x)
                     for x in self.association_def.valid_partners]
         else:
             raise NotImplementedError
@@ -126,17 +127,20 @@ class AssociationInstance(Instance):
         if self.partner:
             assert self.partner in self.association_def.valid_partners
 
+        if self.occupation_status == OccupationStatus.not_occupied:
+            assert not self.partner
 
-class LocalizationInstance(Instance):
+
+class LocalizationPropertyInstance(PropertyInstance):
     @tc.typecheck
-    def __init__(self, localization_def: LocalizationDefinition, compartment: Compartment):
+    def __init__(self, localization_def: LocalizationPropertyDefinition, compartment: Compartment):
         self.localization_def = localization_def
         self.compartment = compartment
         self._validate()
 
     @tc.typecheck
-    def __eq__(self, other: Instance) -> bool:
-        return isinstance(other, LocalizationInstance) and self.localization_def == other.localization_def and \
+    def __eq__(self, other: PropertyInstance) -> bool:
+        return isinstance(other, LocalizationPropertyInstance) and self.localization_def == other.localization_def and \
             self.compartment == other.compartment
 
     def __hash__(self) -> int:
@@ -154,13 +158,13 @@ class LocalizationInstance(Instance):
                              .format(self.compartment, ', '.join(str(x) for x in self.localization_def.valid_compartments)))
 
     def complementary_instances(self):
-        return [LocalizationInstance(self.localization_def, compartment) for compartment
+        return [LocalizationPropertyInstance(self.localization_def, compartment) for compartment
                 in self.localization_def.valid_compartments if compartment != self.compartment]
 
 
 class Binding:
     @tc.typecheck
-    def __init__(self, left_partner: Tuple[int, AssociationInstance], right_partner: Tuple[int, AssociationInstance]):
+    def __init__(self, left_partner: Tuple[int, AssociationPropertyInstance], right_partner: Tuple[int, AssociationPropertyInstance]):
         self.left_partner = left_partner
         self.right_partner = right_partner
         self._validate()

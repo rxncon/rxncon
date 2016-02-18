@@ -97,17 +97,17 @@ def molecule_instance_matches_state(mol_inst: mins.MoleculeInstance, state: sta.
 
 
 # PROTECTED HELPERS
-def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) -> tg.List[mins.Instance]:
+def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) -> tg.List[mins.PropertyInstance]:
     if isinstance(state, sta.CovalentModificationState):
         matching_defs = [x for x in mol_def.modification_defs if x.spec.is_subspecification_of(state.substrate)]
         matching_instances = []
         for matching_def in matching_defs:
             if not negate:
-                matching_instances.append(mins.ModificationInstance(matching_def,
-                                                                    molecule_modifier_from_state_modifier(state.modifier)))
+                matching_instances.append(mins.ModificationPropertyInstance(matching_def,
+                                                                            molecule_modifier_from_state_modifier(state.modifier)))
             else:
-                matching_instances.extend(mins.ModificationInstance(matching_def,
-                                                                    molecule_modifier_from_state_modifier(state.modifier)).complementary_instances())
+                matching_instances.extend(mins.ModificationPropertyInstance(matching_def,
+                                                                            molecule_modifier_from_state_modifier(state.modifier)).complementary_instances())
 
         return matching_instances
 
@@ -123,13 +123,13 @@ def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) 
             assert len(partners) == 1
 
             if not negate:
-                matching_instances.append(mins.AssociationInstance(matching_def,
-                                                                   mol.OccupationStatus.occupied_known_partner,
-                                                                   partners[0]))
+                matching_instances.append(mins.AssociationPropertyInstance(matching_def,
+                                                                           mol.OccupationStatus.occupied_known_partner,
+                                                                           partners[0]))
             else:
-                matching_instances.extend(mins.AssociationInstance(matching_def,
-                                                                   mol.OccupationStatus.occupied_known_partner,
-                                                                   partners[0]).complementary_instances())
+                matching_instances.extend(mins.AssociationPropertyInstance(matching_def,
+                                                                           mol.OccupationStatus.occupied_known_partner,
+                                                                           partners[0]).complementary_instances())
 
         second_defs = [assoc_def for assoc_def in mol_def.association_defs
                        for valid_partner_spec in assoc_def.valid_partners
@@ -141,13 +141,13 @@ def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) 
             assert len(partners) == 1
 
             if not negate:
-                matching_instances.append(mins.AssociationInstance(matching_def,
-                                                                   mol.OccupationStatus.occupied_known_partner,
-                                                                   partners[0]))
+                matching_instances.append(mins.AssociationPropertyInstance(matching_def,
+                                                                           mol.OccupationStatus.occupied_known_partner,
+                                                                           partners[0]))
             else:
-                matching_instances.extend(mins.AssociationInstance(matching_def,
-                                                                   mol.OccupationStatus.occupied_known_partner,
-                                                                   partners[0]).complementary_instances())
+                matching_instances.extend(mins.AssociationPropertyInstance(matching_def,
+                                                                           mol.OccupationStatus.occupied_known_partner,
+                                                                           partners[0]).complementary_instances())
 
     else:
         raise NotImplementedError

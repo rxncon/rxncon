@@ -35,30 +35,30 @@ def test_molecule_definitions_no_contingencies():
     expected_mol_def_A = mol.MoleculeDefinition(
         spec_A,
         set(),
-        {mol.AssociationDefinition(spec_A_Bassoc, {spec_B_Aassoc}),
-         mol.AssociationDefinition(spec_A_Cassoc, {spec_C_Aassoc})},
+        {mol.AssociationPropertyDefinition(spec_A_Bassoc, {spec_B_Aassoc}),
+         mol.AssociationPropertyDefinition(spec_A_Cassoc, {spec_C_Aassoc})},
         None
     )
 
     expected_mol_def_B = mol.MoleculeDefinition(
         spec_B,
         set(),
-        {mol.AssociationDefinition(spec_B_Eassoc, {spec_E_Bassoc}),
-         mol.AssociationDefinition(spec_B_Aassoc, {spec_A_Bassoc})},
+        {mol.AssociationPropertyDefinition(spec_B_Eassoc, {spec_E_Bassoc}),
+         mol.AssociationPropertyDefinition(spec_B_Aassoc, {spec_A_Bassoc})},
         None
     )
 
     expected_mol_def_C = mol.MoleculeDefinition(
         spec_C,
         set(),
-        {mol.AssociationDefinition(spec_C_Aassoc, {spec_A_Cassoc})},
+        {mol.AssociationPropertyDefinition(spec_C_Aassoc, {spec_A_Cassoc})},
         None
     )
 
     expected_mol_def_E = mol.MoleculeDefinition(
         spec_E,
-        {mol.ModificationDefinition(spec_E_Bsite, {mol.Modifier.unmodified, mol.Modifier.phosphorylated})},
-        {mol.AssociationDefinition(spec_E_Bassoc, {spec_B_Eassoc})},
+        {mol.ModificationPropertyDefinition(spec_E_Bsite, {mol.Modifier.unmodified, mol.Modifier.phosphorylated})},
+        {mol.AssociationPropertyDefinition(spec_E_Bassoc, {spec_B_Eassoc})},
         None
     )
 
@@ -107,30 +107,30 @@ def test_molecule_definitions_with_contingencies():
     expected_mol_def_A = mol.MoleculeDefinition(
         spec_A,
         set(),
-        {mol.AssociationDefinition(spec_A_Bassoc, {spec_B_Aassoc}),
-         mol.AssociationDefinition(spec_A_Cassoc, {spec_C_Aassoc})},
+        {mol.AssociationPropertyDefinition(spec_A_Bassoc, {spec_B_Aassoc}),
+         mol.AssociationPropertyDefinition(spec_A_Cassoc, {spec_C_Aassoc})},
         None
     )
 
     expected_mol_def_B = mol.MoleculeDefinition(
         spec_B,
         set(),
-        {mol.AssociationDefinition(spec_B_Eassoc, {spec_E_Bassoc}),
-         mol.AssociationDefinition(spec_B_Aassoc, {spec_A_Bassoc})},
+        {mol.AssociationPropertyDefinition(spec_B_Eassoc, {spec_E_Bassoc}),
+         mol.AssociationPropertyDefinition(spec_B_Aassoc, {spec_A_Bassoc})},
         None
     )
 
     expected_mol_def_C = mol.MoleculeDefinition(
         spec_C,
         set(),
-        {mol.AssociationDefinition(spec_C_Aassoc, {spec_A_Cassoc})},
+        {mol.AssociationPropertyDefinition(spec_C_Aassoc, {spec_A_Cassoc})},
         None
     )
 
     expected_mol_def_E = mol.MoleculeDefinition(
         spec_E,
-        {mol.ModificationDefinition(spec_E_p, {mol.Modifier.unmodified, mol.Modifier.phosphorylated})},
-        {mol.AssociationDefinition(spec_E_Bassoc, {spec_B_Eassoc})},
+        {mol.ModificationPropertyDefinition(spec_E_p, {mol.Modifier.unmodified, mol.Modifier.phosphorylated})},
+        {mol.AssociationPropertyDefinition(spec_E_Bassoc, {spec_B_Eassoc})},
         None
     )
 
@@ -163,7 +163,7 @@ def test_molecule_definitions_multiple_kinases_same_modification_at_same_residue
 
     expected_mol_def_B = mol.MoleculeDefinition(
         spec_B,
-        {mol.ModificationDefinition(spec_B_p, {mol.Modifier.unmodified, mol.Modifier.phosphorylated})},
+        {mol.ModificationPropertyDefinition(spec_B_p, {mol.Modifier.unmodified, mol.Modifier.phosphorylated})},
         set(),
         None
     )
@@ -202,7 +202,7 @@ def test_molecule_definitions_multiple_kinases_different_modifications_at_same_r
 
     expected_mol_def_B = mol.MoleculeDefinition(
         spec_B,
-        {mol.ModificationDefinition(spec_B_p, {mol.Modifier.unmodified, mol.Modifier.phosphorylated, mol.Modifier.ubiquitinated})},
+        {mol.ModificationPropertyDefinition(spec_B_p, {mol.Modifier.unmodified, mol.Modifier.phosphorylated, mol.Modifier.ubiquitinated})},
         set(),
         None
     )
@@ -238,21 +238,21 @@ def test_molecule_definitions_multiple_partners_binding_same_domain():
     expected_mol_def_A = mol.MoleculeDefinition(
         spec_A,
         set(),
-        {mol.AssociationDefinition(spec_A_Bassoc, {spec_B_x})},
+        {mol.AssociationPropertyDefinition(spec_A_Bassoc, {spec_B_x})},
         None
     )
 
     expected_mol_def_B = mol.MoleculeDefinition(
         spec_B,
         set(),
-        {mol.AssociationDefinition(spec_B_x, {spec_A_Bassoc, spec_C_Bassoc})},
+        {mol.AssociationPropertyDefinition(spec_B_x, {spec_A_Bassoc, spec_C_Bassoc})},
         None
     )
 
     expected_mol_def_C = mol.MoleculeDefinition(
         spec_C,
         set(),
-        {mol.AssociationDefinition(spec_C_Bassoc, {spec_B_x})},
+        {mol.AssociationPropertyDefinition(spec_C_Bassoc, {spec_B_x})},
         None
     )
 

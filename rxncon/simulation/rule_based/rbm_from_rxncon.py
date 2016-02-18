@@ -3,20 +3,19 @@ import itertools as itt
 
 import rxncon.core.contingency as con
 import rxncon.core.effector as eff
-import rxncon.semantics.molecule_definition_from_rxncon
-import rxncon.semantics.molecule_instance
+import rxncon.semantics.molecule_definition_from_rxncon as mdr
+import rxncon.semantics.molecule_instance as mins
 import rxncon.venntastic.sets as venn
 import rxncon.core.reaction as rxn
 import rxncon.core.rxncon_system as rxs
-import rxncon.semantics.molecule_definition as mol
 import rxncon.semantics.molecule_instance_from_rxncon as mfr
 
 
 class RuleBasedModelSupervisor:
     def __init__(self, rxncon: rxs.RxnConSystem):
         self.rxncon = rxncon
-        self.mol_defs = rxncon.semantics.molecule_definition_from_rxncon.MoleculeDefinitionSupervisor(rxncon).molecule_definitions
-        self.molecules = rxncon.semantics.molecule_definition_from_rxncon.MoleculeDefinitionSupervisor(rxncon).molecules
+        self.mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon).molecule_definitions
+        self.molecules = mdr.MoleculeDefinitionSupervisor(rxncon).molecules
 
     def _generate_rule_prototypes(self):
         for reaction in self.rxncon.reactions:
@@ -30,7 +29,7 @@ class RuleBasedModelSupervisor:
 
 
 class RulePrototype:
-    def __init__(self, lhs_molecules: tg.List[rxncon.semantics.molecule_instance.MoleculeInstance], rhs_molecules: tg.List[rxncon.semantics.molecule_instance.MoleculeInstance]):
+    def __init__(self, lhs_molecules: tg.List[mins.MoleculeInstance], rhs_molecules: tg.List[mins.MoleculeInstance]):
         self.lhs_molecules = lhs_molecules
         self.rhs_molecules = rhs_molecules
 
@@ -111,6 +110,8 @@ def _valid_pairs_for_reaction(reaction: rxn.Reaction, lhs: venn.Set, rhs: venn.S
     valid_pairs = []
 
     #for pair in all_pairs:
+
+
 
 
 

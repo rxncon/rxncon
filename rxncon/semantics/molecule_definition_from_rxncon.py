@@ -55,7 +55,7 @@ class MoleculeDefinitionSupervisor:
             self.molecule_definitions[name] = mol.MoleculeDefinition(universal_specification,
                                                                      name_to_mod_defs[name],
                                                                      name_to_assoc_defs[name],
-                                                                     mol.LocalizationDefinition(name_to_locs[name]))
+                                                                     mol.LocalizationPropertyDefinition(name_to_locs[name]))
 
 
 def molecule_modifier_from_state_modifier(state_mod: sta.StateModifier) -> mol.Modifier:
@@ -78,8 +78,8 @@ def molecule_modifier_from_state_modifier(state_mod: sta.StateModifier) -> mol.M
 def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, reaction: rxn.Reaction):
 
     state = _mod_spec_domain_from_state(state, reaction)
-    mod_def = mol.ModificationDefinition(state.substrate,
-                                         {mol.Modifier.unmodified, molecule_modifier_from_state_modifier(state.modifier)})
+    mod_def = mol.ModificationPropertyDefinition(state.substrate,
+                                                 {mol.Modifier.unmodified, molecule_modifier_from_state_modifier(state.modifier)})
 
     return mod_def
 
@@ -87,14 +87,14 @@ def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, react
 def _assoc_defs_from_state(state: tg.Union[sta.InterProteinInteractionState, sta.IntraProteinInteractionState]):
     first_spec, second_spec = _assoc_spec_domain_from_state(state)
 
-    first_def = mol.AssociationDefinition(first_spec, {second_spec})
-    second_def = mol.AssociationDefinition(second_spec, {first_spec})
+    first_def = mol.AssociationPropertyDefinition(first_spec, {second_spec})
+    second_def = mol.AssociationPropertyDefinition(second_spec, {first_spec})
 
     return first_def, second_def
 
 
-def _update_defs(defs: tg.Set[mol.Definition], new_def: mol.Definition):
-    if isinstance(new_def, mol.AssociationDefinition):
+def _update_defs(defs: tg.Set[mol.PropertyDefinition], new_def: mol.PropertyDefinition):
+    if isinstance(new_def, mol.AssociationPropertyDefinition):
         matches = lambda x, y: x == y
         update = lambda old_def, new_def: old_def.valid_partners.update(new_def.valid_partners)
     else:

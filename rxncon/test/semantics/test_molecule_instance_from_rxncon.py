@@ -53,12 +53,12 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_and_requir
     assert len(assoc_defs_A_to_C) == 1
     assoc_def = assoc_defs_A_to_C[0]
 
-    assert isinstance(assoc_def, mdf.AssociationDefinition)
+    assert isinstance(assoc_def, mdf.AssociationPropertyDefinition)
     assert assoc_def.spec == spe.Specification('A', 'Cassoc', None, None)
 
-    expected_assoc_instance = mins.AssociationInstance(assoc_def,
-                                                       mins.OccupationStatus.occupied_known_partner,
-                                                       spe.Specification('C', 'Aassoc', None, None))
+    expected_assoc_instance = mins.AssociationPropertyInstance(assoc_def,
+                                                               mins.OccupationStatus.occupied_known_partner,
+                                                               spe.Specification('C', 'Aassoc', None, None))
 
     assert strict_instances_set.is_equivalent_to(venn.PropertySet(expected_assoc_instance))
 
@@ -81,12 +81,12 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_and_inhibi
     assert len(assoc_defs_A_to_C) == 1
     assoc_def = assoc_defs_A_to_C[0]
 
-    assert isinstance(assoc_def, mdf.AssociationDefinition)
+    assert isinstance(assoc_def, mdf.AssociationPropertyDefinition)
     assert assoc_def.spec == spe.Specification('A', 'Cassoc', None, None)
 
-    expected_assoc_instance = mins.AssociationInstance(assoc_def,
-                                                       mdf.OccupationStatus.not_occupied,
-                                                       spe.Specification('C', 'Aassoc', None, None))
+    expected_assoc_instance = mins.AssociationPropertyInstance(assoc_def,
+                                                               mdf.OccupationStatus.not_occupied,
+                                                               None)
 
     assert strict_instances_set.is_equivalent_to(venn.PropertySet(expected_assoc_instance))
 
@@ -110,12 +110,12 @@ def test_set_of_instances_from_complex_system():
         rfr.set_of_states_from_contingencies([cont_b_dash_e, cont_e_pplus])
     )
 
-    assoc_def_A_to_B = mdf.AssociationDefinition(spe.Specification('A', 'Bassoc', None, None),
-                                                 {spe.Specification('B', 'Aassoc', None, None)})
+    assoc_def_A_to_B = mdf.AssociationPropertyDefinition(spe.Specification('A', 'Bassoc', None, None),
+                                                         {spe.Specification('B', 'Aassoc', None, None)})
     expected_A_set_of_instances = venn.PropertySet(
-        mins.AssociationInstance(assoc_def_A_to_B,
-                                 mdf.OccupationStatus.occupied_known_partner,
-                                 spe.Specification('B', 'Aassoc', None, None)))
+        mins.AssociationPropertyInstance(assoc_def_A_to_B,
+                                         mdf.OccupationStatus.occupied_known_partner,
+                                         spe.Specification('B', 'Aassoc', None, None)))
 
     assert actual_A_set_of_instances.is_equivalent_to(expected_A_set_of_instances)
 
@@ -125,12 +125,12 @@ def test_set_of_instances_from_complex_system():
         rfr.set_of_states_from_contingencies([cont_b_dash_e, cont_e_pplus])
     )
 
-    assoc_def_B_to_A = mdf.AssociationDefinition(spe.Specification('B', 'Aassoc', None, None),
-                                                 {spe.Specification('A', 'Bassoc', None, None)})
+    assoc_def_B_to_A = mdf.AssociationPropertyDefinition(spe.Specification('B', 'Aassoc', None, None),
+                                                         {spe.Specification('A', 'Bassoc', None, None)})
     expected_B_set_of_instances = venn.PropertySet(
-        mins.AssociationInstance(assoc_def_B_to_A,
-                                 mdf.OccupationStatus.occupied_known_partner,
-                                 spe.Specification('A', 'Bassoc', None, None)))
+        mins.AssociationPropertyInstance(assoc_def_B_to_A,
+                                         mdf.OccupationStatus.occupied_known_partner,
+                                         spe.Specification('A', 'Bassoc', None, None)))
 
     assert actual_B_set_of_instances.is_equivalent_to(expected_B_set_of_instances)
 
@@ -140,13 +140,13 @@ def test_set_of_instances_from_complex_system():
         rfr.set_of_states_from_contingencies([cont_b_dash_e, cont_e_pplus])
     )
 
-    mod_def_E = mdf.ModificationDefinition(
+    mod_def_E = mdf.ModificationPropertyDefinition(
         spe.Specification('E', None, None, 'Bsite'),
         {mdf.Modifier.unmodified, mdf.Modifier.phosphorylated}
     )
 
-    expected_E_set_of_instances = venn.PropertySet(mins.ModificationInstance(mod_def_E,
-                                                                             mdf.Modifier.phosphorylated))
+    expected_E_set_of_instances = venn.PropertySet(mins.ModificationPropertyInstance(mod_def_E,
+                                                                                     mdf.Modifier.phosphorylated))
 
     assert actual_E_set_of_instances.is_equivalent_to(expected_E_set_of_instances)
 
@@ -162,24 +162,24 @@ def test_molecule_instance_matches_state():
 
     mol_def_A = mdf.MoleculeDefinition(
         spec_A,
-        {mdf.ModificationDefinition(spec_A_psite, {mdf.Modifier.unmodified, mdf.Modifier.phosphorylated})},
-        {mdf.AssociationDefinition(spec_A_Bassoc, {spec_B_Aassoc})},
+        {mdf.ModificationPropertyDefinition(spec_A_psite, {mdf.Modifier.unmodified, mdf.Modifier.phosphorylated})},
+        {mdf.AssociationPropertyDefinition(spec_A_Bassoc, {spec_B_Aassoc})},
         None
     )
 
-    assoc_inst_A_bound = mins.AssociationInstance(mdf.AssociationDefinition(spec_A_Bassoc, {spec_B_Aassoc}),
-                                                  mdf.OccupationStatus.occupied_known_partner,
-                                                  spec_B_Aassoc)
+    assoc_inst_A_bound = mins.AssociationPropertyInstance(mdf.AssociationPropertyDefinition(spec_A_Bassoc, {spec_B_Aassoc}),
+                                                          mdf.OccupationStatus.occupied_known_partner,
+                                                          spec_B_Aassoc)
 
-    assoc_inst_A_free = mins.AssociationInstance(mdf.AssociationDefinition(spec_A_Bassoc, {spec_B_Aassoc}),
-                                                 mdf.OccupationStatus.not_occupied,
-                                                 None)
+    assoc_inst_A_free = mins.AssociationPropertyInstance(mdf.AssociationPropertyDefinition(spec_A_Bassoc, {spec_B_Aassoc}),
+                                                         mdf.OccupationStatus.not_occupied,
+                                                         None)
 
-    mod_inst_A_phos = mins.ModificationInstance(mdf.ModificationDefinition(spec_A_psite, {mdf.Modifier.unmodified, mdf.Modifier.phosphorylated}),
-                                                mdf.Modifier.phosphorylated)
+    mod_inst_A_phos = mins.ModificationPropertyInstance(mdf.ModificationPropertyDefinition(spec_A_psite, {mdf.Modifier.unmodified, mdf.Modifier.phosphorylated}),
+                                                        mdf.Modifier.phosphorylated)
 
-    mod_inst_A_unphos = mins.ModificationInstance(mdf.ModificationDefinition(spec_A_psite, {mdf.Modifier.unmodified, mdf.Modifier.phosphorylated}),
-                                                  mdf.Modifier.unmodified)
+    mod_inst_A_unphos = mins.ModificationPropertyInstance(mdf.ModificationPropertyDefinition(spec_A_psite, {mdf.Modifier.unmodified, mdf.Modifier.phosphorylated}),
+                                                          mdf.Modifier.unmodified)
 
     # A BOUND, UNPHOSPHORYLATED
     mol_inst_A_bound_unphos = mins.MoleculeInstance(mol_def_A, {mod_inst_A_unphos}, {assoc_inst_A_bound}, None)
@@ -216,6 +216,42 @@ def test_molecule_instance_matches_state():
     assert mir.molecule_instance_matches_state(mol_inst_A_unbound_unphos,
                                                rfs.state_from_string('A-{p}'),
                                                True)
+
+    # A BOUND, PHOSPHORYLATED
+    mol_inst_A_bound_phos = mins.MoleculeInstance(mol_def_A, {mod_inst_A_phos}, {assoc_inst_A_bound}, None)
+    assert mir.molecule_instance_matches_state(mol_inst_A_bound_phos,
+                                               rfs.state_from_string('A--B'),
+                                               False)
+
+    assert not mir.molecule_instance_matches_state(mol_inst_A_bound_phos,
+                                                   rfs.state_from_string('A--B'),
+                                                   True)
+
+    assert mir.molecule_instance_matches_state(mol_inst_A_bound_phos,
+                                               rfs.state_from_string('A-{p}'),
+                                               False)
+
+    assert not mir.molecule_instance_matches_state(mol_inst_A_bound_phos,
+                                                   rfs.state_from_string('A-{p}'),
+                                                   True)
+
+    # A BOUND, PHOSPHORYLATED
+    mol_inst_A_free_phos = mins.MoleculeInstance(mol_def_A, {mod_inst_A_phos}, {assoc_inst_A_free}, None)
+    assert not mir.molecule_instance_matches_state(mol_inst_A_free_phos,
+                                                   rfs.state_from_string('A--B'),
+                                                   False)
+
+    assert mir.molecule_instance_matches_state(mol_inst_A_free_phos,
+                                               rfs.state_from_string('A--B'),
+                                               True)
+
+    assert mir.molecule_instance_matches_state(mol_inst_A_free_phos,
+                                               rfs.state_from_string('A-{p}'),
+                                               False)
+
+    assert not mir.molecule_instance_matches_state(mol_inst_A_free_phos,
+                                                   rfs.state_from_string('A-{p}'),
+                                                   True)
 
 
 
