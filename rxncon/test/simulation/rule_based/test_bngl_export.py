@@ -89,7 +89,7 @@ def test_string_from_complex_reactant(simple_molecule_spec):
 
     complex_reactant = rbm.ComplexReactant(
             [bound_molecule_a, bound_molecule_b],
-            [rxncon.semantics.molecule_instance.Binding(left_partner=(0, bound_molecule_a.association_specs[0]), right_partner=(1, bound_molecule_b.association_instances[0]))]
+            [rxncon.semantics.molecule_instance.Binding(left_partner=(0, bound_molecule_a.association_specs[0]), right_partner=(1, bound_molecule_b.association_properties[0]))]
     )
 
     assert bex.string_from_complex_reactant(complex_reactant) == \
@@ -176,8 +176,8 @@ def simple_rule_based_model():
     reactant_a_unbound = rbm.MoleculeReactant(mol_spec_a_unbound)
     reactant_b_unbound = rbm.MoleculeReactant(mol_spec_b_unbound)
 
-    binding = rxncon.semantics.molecule_instance.Binding((0, mol_spec_a_bound.association_instances[0]),
-                                                         (1, mol_spec_b_bound.association_instances[0]))
+    binding = rxncon.semantics.molecule_instance.Binding((0, mol_spec_a_bound.association_properties[0]),
+                                                         (1, mol_spec_b_bound.association_properties[0]))
 
     reactant_ab = rbm.ComplexReactant([mol_spec_a_bound, mol_spec_b_bound], [binding])
 

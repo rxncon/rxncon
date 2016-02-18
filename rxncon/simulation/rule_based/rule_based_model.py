@@ -115,7 +115,7 @@ class ComplexReactant(Reactant):
             .format(', '.join(str(x) for x in self.molecules), ', '.join(str(x) for x in self.bindings))
 
     def _validate(self):
-        unique_localizations = {molecule.localization_instance for molecule in self.molecules}
+        unique_localizations = {molecule.localization_property for molecule in self.molecules}
         if len(unique_localizations) > 1:
             raise ValueError('Molecules making up a ComplexReactant cannot be in different localizations: {0}.'
                              .format(', '.join(str(x) for x in unique_localizations)))

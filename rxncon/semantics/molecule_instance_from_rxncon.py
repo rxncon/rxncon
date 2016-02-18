@@ -82,16 +82,16 @@ def molecule_instance_matches_state(mol_inst: mins.MoleculeInstance, state: sta.
     matching_instances = _instances(mol_inst.molecule_def, state, negate)
 
     molecule_instances = []
-    for x in mol_inst.association_instances:
+    for x in mol_inst.association_properties:
         if x:
             molecule_instances.append(x)
 
-    for x in mol_inst.modification_instances:
+    for x in mol_inst.modification_properties:
         if x:
             molecule_instances.append(x)
 
-    if mol_inst.localization_instance:
-        molecule_instances.append(mol_inst.localization_instance)
+    if mol_inst.localization_property:
+        molecule_instances.append(mol_inst.localization_property)
 
     return any(x in matching_instances for x in molecule_instances)
 

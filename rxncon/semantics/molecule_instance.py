@@ -13,21 +13,21 @@ class MoleculeInstance:
     @tc.typecheck
     def __init__(self,
                  molecule_def: MoleculeDefinition,
-                 modification_instances: Set['ModificationPropertyInstance'],
-                 association_instances: Set['AssociationPropertyInstance'],
-                 localization_instance: Optional['LocalizationPropertyInstance']):
+                 modification_properties: Set['ModificationPropertyInstance'],
+                 association_properties: Set['AssociationPropertyInstance'],
+                 localization_property: Optional['LocalizationPropertyInstance']):
         self.molecule_def = molecule_def
-        self.modification_instances = modification_instances
-        self.association_instances = association_instances
-        self.localization_instance = localization_instance
+        self.modification_properties = modification_properties
+        self.association_properties = association_properties
+        self.localization_property = localization_property
 
     @tc.typecheck
     def __eq__(self, other: 'MoleculeInstance'):
         return isinstance(other, MoleculeInstance) and \
             self.molecule_def == other.molecule_def and \
-            self.localization_instance == other.localization_instance and \
-            self.modification_instances == other.modification_instances and \
-            self.association_instances == other.association_instances
+               self.localization_property == other.localization_property and \
+               self.modification_properties == other.modification_properties and \
+               self.association_properties == other.association_properties
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -37,8 +37,8 @@ class MoleculeInstance:
 
     def __str__(self) -> str:
         return 'MoleculeSpecification: {0}, mod_instances = {1}. assoc_instances = {2}. loc_instances = {3}'\
-            .format(self.molecule_def.spec, ', '.join([str(x) for x in self.modification_instances]),
-                    ', '.join(str(x) for x in self.association_instances), str(self.localization_instance))
+            .format(self.molecule_def.spec, ', '.join([str(x) for x in self.modification_properties]),
+                    ', '.join(str(x) for x in self.association_properties), str(self.localization_property))
 
 
 class PropertyInstance:
