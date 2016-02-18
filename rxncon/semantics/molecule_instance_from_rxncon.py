@@ -1,15 +1,10 @@
 import typing as tg
 
-import rxncon.core.reaction as rxn
-import rxncon.core.specification as spe
 import rxncon.core.state as sta
 import rxncon.semantics.molecule_definition as mol
 import rxncon.semantics.molecule_instance
 import rxncon.venntastic.sets as venn
 
-
-# MATCHING MOLECULE DEFINITIONS WITH SETS OF STATES INTO ASSOC/MOD/LOC INSTANCES (_NOT_ MOLECULE INSTANCES YET)
-from rxncon.semantics.molecule_definition_from_rxncon import _molecule_modifier_from_state_modifier
 
 
 def set_of_instances_from_molecule_def_and_set_of_states(mol_def: mol.MoleculeDefinition, set_of_states: venn.Set) -> venn.Set:
@@ -137,35 +132,5 @@ def _instances(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) 
         raise NotImplementedError
 
     return matching_instances
-
-
-def _mod_spec_domain_from_state(state: sta.CovalentModificationState, reaction: rxn.Reaction):
-
-    spec = state.substrate
-    if not spec.residue:
-        spec.residue = _kinase_residue_name(reaction.subject)
-
-    return state
-
-
-def _assoc_spec_domain_from_state(state: tg.Union[sta.InterProteinInteractionState, sta.IntraProteinInteractionState]):
-    first_spec = state.first_component
-    second_spec = state.second_component
-
-    if not first_spec.domain:
-        first_spec.domain = _assoc_domain_from_partner_spec(state.second_component)
-
-    if not second_spec.domain:
-        second_spec.domain = _assoc_domain_from_partner_spec(state.first_component)
-
-    return first_spec, second_spec
-
-
-def _kinase_residue_name(spec: spe.Specification) -> str:
-    return '{0}site'.format(spec.name)
-
-
-def _assoc_domain_from_partner_spec(spec: spe.Specification) -> str:
-    return '{0}assoc'.format(spec.name)
 
 

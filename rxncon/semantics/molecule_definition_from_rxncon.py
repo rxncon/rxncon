@@ -1,10 +1,11 @@
 import typing as tg
 from collections import defaultdict
 
-from rxncon.core import rxncon_system as rxs, state, state, state, state, specification, state, reaction, state, state, \
-    state, state, state, state, state
-from rxncon.semantics import molecule_definition as mol
-from rxncon.semantics.molecule_instance_from_rxncon import _mod_spec_domain_from_state, _assoc_spec_domain_from_state
+import rxncon.core.rxncon_system as rxs
+import rxncon.semantics.molecule_definition as mol
+import rxncon.core.state as sta
+import rxncon.core.reaction as rxn
+import rxncon.core.specification as spe
 
 
 class MoleculeDefinitionSupervisor:
@@ -105,3 +106,33 @@ def _update_defs(defs: tg.Set[mol.Definition], new_def: mol.Definition):
 
     if not found_updatable_def:
         defs.add(new_def)
+
+
+def _mod_spec_domain_from_state(state: sta.CovalentModificationState, reaction: rxn.Reaction):
+
+    spec = state.substrate
+    if not spec.residue:
+        spec.residue = _kinase_residue_name(reaction.subject)
+
+    return state
+
+
+def _assoc_spec_domain_from_state(state: tg.Union[sta.InterProteinInteractionState, sta.IntraProteinInteractionState]):
+    first_spec = state.first_component
+    second_spec = state.second_component
+
+    if not first_spec.domain:
+        first_spec.domain = _assoc_domain_from_partner_spec(state.second_component)
+
+    if not second_spec.domain:
+        second_spec.domain = _assoc_domain_from_partner_spec(state.first_component)
+
+    return first_spec, second_spec
+
+
+def _kinase_residue_name(spec: spe.Specification) -> str:
+    return '{0}site'.format(spec.name)
+
+
+def _assoc_domain_from_partner_spec(spec: spe.Specification) -> str:
+    return '{0}assoc'.format(spec.name)

@@ -2,7 +2,6 @@ from enum import unique, Enum
 from typing import Optional, Set
 
 import typecheck as tc
-
 import rxncon.core.specification as spe
 
 
