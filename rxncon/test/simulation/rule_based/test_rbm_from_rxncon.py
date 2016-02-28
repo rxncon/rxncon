@@ -69,7 +69,7 @@ def test_set_of_states_from_single_state_effector():
 
     cont = con.Contingency(a_ppi_c, con.ContingencyType.requirement, eff.StateEffector(a_dash_d))
 
-    set_of_state_effector_a_dash_d = rxncon.simulation.rule_based.rbm_from_rxncon.set_of_states_from_effector(cont.effector)
+    set_of_state_effector_a_dash_d = rxncon.simulation.rule_based.rbm_from_rxncon.state_set_from_effector(cont.effector)
     assert set_of_state_effector_a_dash_d.is_equivalent_to(venn.PropertySet(a_dash_d))
 
 
@@ -247,10 +247,10 @@ def test_source_set_of_states_for_reaction():
     b_pt_e = rfs.reaction_from_string('B_pt_E')
     b_pplus = rfs.state_from_string('B-{P}')
 
-    set_a_ppi_b = rxncon.simulation.rule_based.rbm_from_rxncon.source_set_of_states_from_reaction(a_ppi_b)
-    set_b_pplus_e = rxncon.simulation.rule_based.rbm_from_rxncon.source_set_of_states_from_reaction(b_pplus_e)
-    set_b_pminus_e = rxncon.simulation.rule_based.rbm_from_rxncon.source_set_of_states_from_reaction(b_pminus_e)
-    set_b_pt_e = rxncon.simulation.rule_based.rbm_from_rxncon.source_set_of_states_from_reaction(b_pt_e)
+    set_a_ppi_b = rxncon.simulation.rule_based.rbm_from_rxncon.source_state_set_from_reaction(a_ppi_b)
+    set_b_pplus_e = rxncon.simulation.rule_based.rbm_from_rxncon.source_state_set_from_reaction(b_pplus_e)
+    set_b_pminus_e = rxncon.simulation.rule_based.rbm_from_rxncon.source_state_set_from_reaction(b_pminus_e)
+    set_b_pt_e = rxncon.simulation.rule_based.rbm_from_rxncon.source_state_set_from_reaction(b_pt_e)
 
     # todo: B_pt_E are two reactions in one B_p+_E -> E_[Bside] and E_p-_B -> B_[Eside]
     # todo: B_[n]_apt_B_[m] auto phosphortransfer B is the same molecule B_[n]_p+_B_[m] -> B_[m] and B_[m]_p-_B_[n] -> B_B[n]

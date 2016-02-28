@@ -17,7 +17,7 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_no_conting
     rxncon = rxs.RxnConSystem([a_ppi_b], [])
     mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon)
 
-    strict_cont_state_set = rfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
+    strict_cont_state_set = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
     assert strict_cont_state_set.is_equivalent_to(venn.UniversalSet())
 
     # Now test the molecule instances that get created by taking into account the strict contingencies. Note that this
@@ -46,7 +46,7 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_and_requir
 
     mol_def_A = mol_defs.mol_def_for_name('A')
 
-    strict_cont_state_set = rfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
+    strict_cont_state_set = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
     strict_instances_set = mir.property_set_from_mol_def_and_state_set(mol_def_A, strict_cont_state_set)
 
     assoc_defs_A_to_C = [assoc_def for assoc_def in mol_def_A.association_defs if assoc_def.spec.domain == "Cassoc"]
@@ -74,7 +74,7 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_and_inhibi
 
     mol_def_A = mol_defs.mol_def_for_name('A')
 
-    strict_cont_state_set = rfr.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
+    strict_cont_state_set = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
     strict_instances_set = mir.property_set_from_mol_def_and_state_set(mol_def_A, strict_cont_state_set)
 
     assoc_defs_A_to_C = [assoc_def for assoc_def in mol_def_A.association_defs if assoc_def.spec.domain == "Cassoc"]
@@ -107,7 +107,7 @@ def test_set_of_instances_from_complex_system():
     # TEST MOLECULE A
     actual_A_set_of_instances = mir.property_set_from_mol_def_and_state_set(
         mol_defs.mol_def_for_name('A'),
-        rfr.set_of_states_from_contingencies([cont_b_dash_e, cont_e_pplus])
+        rfr.state_set_from_contingencies([cont_b_dash_e, cont_e_pplus])
     )
 
     assoc_def_A_to_B = mdf.AssociationPropertyDefinition(spe.Specification('A', 'Bassoc', None, None),
@@ -122,7 +122,7 @@ def test_set_of_instances_from_complex_system():
     # TEST MOLECULE B
     actual_B_set_of_instances = mir.property_set_from_mol_def_and_state_set(
         mol_defs.mol_def_for_name('B'),
-        rfr.set_of_states_from_contingencies([cont_b_dash_e, cont_e_pplus])
+        rfr.state_set_from_contingencies([cont_b_dash_e, cont_e_pplus])
     )
 
     assoc_def_B_to_A = mdf.AssociationPropertyDefinition(spe.Specification('B', 'Aassoc', None, None),
@@ -137,7 +137,7 @@ def test_set_of_instances_from_complex_system():
     # TEST MOLECULE E
     actual_E_set_of_instances = mir.property_set_from_mol_def_and_state_set(
         mol_defs.mol_def_for_name('E'),
-        rfr.set_of_states_from_contingencies([cont_b_dash_e, cont_e_pplus])
+        rfr.state_set_from_contingencies([cont_b_dash_e, cont_e_pplus])
     )
 
     mod_def_E = mdf.ModificationPropertyDefinition(
