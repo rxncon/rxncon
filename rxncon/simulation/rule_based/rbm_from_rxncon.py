@@ -5,22 +5,75 @@ import rxncon.core.contingency as con
 import rxncon.core.effector as eff
 import rxncon.core.reaction as rxn
 import rxncon.core.rxncon_system as rxs
+import rxncon.core.specification as spe
 import rxncon.venntastic.sets as venn
 import rxncon.semantics.molecule_instance_from_rxncon as mfr
 import rxncon.semantics.molecule_definition_from_rxncon as mdr
 import rxncon.semantics.molecule_instance as mins
 import rxncon.semantics.molecule_definition as mdf
+import rxncon.simulation.rule_based.rule_based_model as rbm
 
 
+class RuleBasedModelSupervisor:
+    def __init__(self, rxnconsys: rxs.RxnConSystem, disjunctify: bool=True):
+        self.rxnconsys = rxnconsys
+        self.mol_defs = mdr.MoleculeDefinitionSupervisor(self.rxnconsys).molecule_definitions
+        self.rules = []  # type: tg.List[rbm.Rule]
+        self.rule_based_model = None
+        self._generate_rules(disjunctify)
+        self._construct_rule_based_model()
+
+        self._validate()
+
+    def _generate_rules(self, disjunctify: bool):
+        for reaction in self.rxnconsys.reactions:
+            strict_conts = self.rxnconsys.strict_contingencies_for_reaction(reaction)
+            involved_molecules = involved_molecule_specs_for_reaction_and_contingencies(reaction, strict_conts)
+            mol_instance_pairs = []
+
+            for mol_def in self.mol_defs:
+                if mol_def.spec in involved_molecules:
+                    mol_instance_pairs.append(mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(mol_def, reaction, strict_conts, disjunctify))
+
+            rules_of_mol_instances = lhs_rhs_product(mol_instance_pairs)
+            for rule_of_mol_instance in rules_of_mol_instances:
+                lhs_reactants = reactants_from_molecule_instances(rule_of_mol_instance[0])
+                rhs_reactants = reactants_from_molecule_instances(rule_of_mol_instance[1])
+                self.rules.append(rbm.Rule(lhs_reactants, rhs_reactants, arrow_from_reaction(reaction), None))
+
+    def _construct_rule_based_model(self):
+        self.rule_based_model = rbm.RuleBasedModel(self.mol_defs, self.rules, None, None)
+
+    def _validate(self):
+        pass
 
 
+def involved_molecule_specs_for_reaction_and_contingencies(reaction: rxn.Reaction,
+                                                           strict_cont: tg.List[con.Contingency]) -> tg.List[spe.Specification]:
+    pass
+
+
+def reactants_from_molecule_instances(molecules: tg.List[mins.MoleculeInstance]) -> tg.List[rbm.Reactant]:
+    pass
+
+
+def lhs_rhs_product(reaction_molecules: tg.List[tg.List[tg.Tuple[mins.MoleculeInstance, mins.MoleculeInstance]]])\
+        -> tg.List[tg.Tuple[tg.List[mins.MoleculeInstance], tg.List[mins.MoleculeInstance]]]:
+    mol_product = itt.product(reaction_molecules)
+
+    lhs_rhs = []
+
+    for x in mol_product:
+        lhs_rhs.append(tuple(zip(*x)))
+
+    return lhs_rhs
 
 
 def mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(mol_def: mdf.MoleculeDefinition,
                                                                    reaction: rxn.Reaction,
                                                                    contingencies: tg.List[con.Contingency],
                                                                    disjunctify: bool=True) \
-        -> tg.Tuple[mins.MoleculeInstance, mins.MoleculeInstance]:
+        -> tg.List[tg.Tuple[mins.MoleculeInstance, mins.MoleculeInstance]]:
     property_sets = mol_property_sets_from_mol_def_and_state_sets(mol_def, state_set_from_contingencies(contingencies), disjunctify)
 
     lhs_rhs_property_set_pairs = \
@@ -53,7 +106,8 @@ def mol_property_sets_from_mol_def_and_state_sets(mol_def: mdf.MoleculeDefinitio
         return prop_sets
 
 
-def mol_property_pairs_from_mol_def_and_source_state_set(mol_def: mdf.MoleculeDefinition, state_set: venn.Set):
+def mol_property_pairs_from_mol_def_and_source_state_set(mol_def: mdf.MoleculeDefinition, state_set: venn.Set) \
+        -> tg.Tuple[venn.PropertySet, venn.PropertySet]:
     lhs_sets = mfr.property_set_from_mol_def_and_state_set(mol_def, state_set).to_union_list_form()
     rhs_sets = mfr.property_set_from_mol_def_and_state_set(mol_def, venn.Complement(state_set)).to_union_list_form()
 
@@ -144,7 +198,5 @@ def state_set_from_effector(effector: eff.Effector) -> venn.Set:
 
     else:
         raise AssertionError
-
-
 
 
