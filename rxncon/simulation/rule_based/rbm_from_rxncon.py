@@ -12,37 +12,72 @@ import rxncon.semantics.molecule_instance as mins
 import rxncon.semantics.molecule_definition as mdf
 
 
-class RuleBasedModelSupervisor:
-    def __init__(self, rxncon: rxs.RxnConSystem):
-        self.rxncon = rxncon
-        self.mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon).molecule_definitions
-
-    def _generate_rule_prototypes(self):
-        for reaction in self.rxncon.reactions:
-            for mol_def in self.mol_defs.values():
-                lhs_property_set = \
-                    mfr.property_set_from_mol_def_and_state_set(mol_def, source_state_set_from_reaction(reaction))
-                rhs_property_set = \
-                    mfr.property_set_from_mol_def_and_state_set(mol_def, venn.Complement(source_state_set_from_reaction(reaction)))
-
-                valid_lhs_to_rhs_pairs = _valid_property_set_pairs_for_mol_def_and_reaction(mol_def,
-                                                                                            reaction,
-                                                                                            lhs_property_set,
-                                                                                            rhs_property_set)
-
-                contingency_property_set = mfr.property_set_from_mol_def_and_state_set(
-                    mol_def,
-                    state_set_from_contingencies(self.rxncon.strict_contingencies_for_reaction(reaction))
-                )
 
 
 
 
+def mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(mol_def: mdf.MoleculeDefinition,
+                                                                   reaction: rxn.Reaction,
+                                                                   contingencies: tg.List[con.Contingency],
+                                                                   disjunctify: bool=True) \
+        -> tg.Tuple[mins.MoleculeInstance, mins.MoleculeInstance]:
+    property_sets = mol_property_sets_from_mol_def_and_state_sets(mol_def, state_set_from_contingencies(contingencies), disjunctify)
 
-class RulePrototype:
-    def __init__(self, lhs_molecules: tg.List[mins.MoleculeInstance], rhs_molecules: tg.List[mins.MoleculeInstance]):
-        self.lhs_molecules = lhs_molecules
-        self.rhs_molecules = rhs_molecules
+    lhs_rhs_property_set_pairs = \
+        [x for x in mol_property_pairs_from_mol_def_and_source_state_set(mol_def, source_state_set_from_reaction(reaction))
+         if is_property_pair_valid_for_reaction(mol_def, x, reaction)]
+
+    assert len(lhs_rhs_property_set_pairs) == 1
+    lhs_source = lhs_rhs_property_set_pairs[0][0]
+    rhs_source = lhs_rhs_property_set_pairs[0][1]
+
+    pairs = []
+    for property_set in property_sets:
+        lhs_molecule = mfr.mol_instance_from_mol_def_and_property_set(mol_def, venn.Intersection(property_set, lhs_source))
+        rhs_molecule = mfr.mol_instance_from_mol_def_and_property_set(mol_def, venn.Intersection(property_set, rhs_source))
+
+        pairs.append((lhs_molecule, rhs_molecule))
+
+    return pairs
+
+
+def mol_property_sets_from_mol_def_and_state_sets(mol_def: mdf.MoleculeDefinition,
+                                                  state_set: venn.Set,
+                                                  disjunctify: bool=True) -> tg.List[venn.Set]:
+    prop_sets = mfr.property_set_from_mol_def_and_state_set(mol_def, state_set).to_union_list_form()
+
+    if disjunctify:
+        return venn.gram_schmidt_disjunctify(prop_sets)
+
+    else:
+        return prop_sets
+
+
+def mol_property_pairs_from_mol_def_and_source_state_set(mol_def: mdf.MoleculeDefinition, state_set: venn.Set):
+    lhs_sets = mfr.property_set_from_mol_def_and_state_set(mol_def, state_set).to_union_list_form()
+    rhs_sets = mfr.property_set_from_mol_def_and_state_set(mol_def, venn.Complement(state_set)).to_union_list_form()
+
+    tuples = []
+    for lhs in lhs_sets:
+        for rhs in rhs_sets:
+            tuples.append((lhs, rhs))
+
+    return tuples
+
+
+def is_property_pair_valid_for_reaction(mol_def: mdf.MoleculeDefinition,
+                                        prop_tuple: tg.Tuple[venn.Set, venn.Set],
+                                        reaction: rxn.Reaction) -> bool:
+    lhs = prop_tuple[0].simplified_form()
+    assert isinstance(lhs, venn.PropertySet)
+    lhs_prop = lhs.value
+
+    rhs = prop_tuple[1].simplified_form()
+    assert isinstance(rhs, venn.PropertySet)
+    rhs_prop = rhs.value
+
+    return mfr.mol_def_and_property_match_state(mol_def, lhs_prop, reaction.source, negate=False) and\
+        mfr.mol_def_and_property_match_state(mol_def, rhs_prop, reaction.product, negate=False)
 
 
 def state_set_from_contingencies(contingencies: tg.List[con.Contingency]) -> venn.Set:
@@ -81,7 +116,6 @@ def source_state_set_from_reaction(reaction: rxn.Reaction) -> venn.Set:
     product_state = reaction.product
 
     if not source_state and product_state:
-
         return venn.Complement(venn.PropertySet(product_state))
 
     elif source_state and not product_state:
@@ -110,35 +144,6 @@ def state_set_from_effector(effector: eff.Effector) -> venn.Set:
 
     else:
         raise AssertionError
-
-
-def _valid_property_set_pairs_for_mol_def_and_reaction(mol_def: mdf.MoleculeDefinition,
-                                                       reaction: rxn.Reaction,
-                                                       lhs: venn.Set,
-                                                       rhs: venn.Set) -> tg.Tuple[venn.Set, venn.Set]:
-    # These lists contain molecule property sets, we only want to keep the (lhs, rhs) pairs that are consistent with
-    # the source/product states as given in the reaction definition.
-    lhs_terms = lhs.to_union_list_form()
-    rhs_terms = rhs.to_union_list_form()
-
-    all_pairs = itt.product(lhs_terms, rhs_terms)
-
-    valid_pairs = []
-
-    for pair in all_pairs:
-        if pair[0] and pair[1]:
-            if mfr.mol_def_and_property_match_state(mol_def, pair[0], reaction.source, False) and \
-               mfr.mol_def_and_property_match_state(mol_def, pair[1], reaction.product, False):
-                valid_pairs.append(pair)
-        elif pair[0] and not pair[1]:
-            if mfr.mol_def_and_property_match_state(mol_def, pair[0], reaction.source, False) and not reaction.product:
-                valid_pairs.append(pair)
-        elif not pair[0] and pair[1]:
-            if mfr.mol_def_and_property_match_state(mol_def, pair[1], reaction.product, False) and not reaction.source:
-                valid_pairs.append(pair)
-
-    return valid_pairs
-
 
 
 
