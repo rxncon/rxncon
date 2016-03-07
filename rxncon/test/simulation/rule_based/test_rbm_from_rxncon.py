@@ -1,76 +1,34 @@
 import pytest
-
+import typing as tp
 import rxncon.core.rxncon_system as rxs
 import rxncon.simulation
 import rxncon.syntax.rxncon_from_string as rfs
 import rxncon.core.contingency as con
+import rxncon.core.specification as spec
 import rxncon.core.effector as eff
 import rxncon.simulation.rule_based.rbm_from_rxncon as rfr
 from rxncon.core import contingency as con, effector, effector, effector, effector, rxncon_system
 from rxncon.input.quick import quick as qui
 from rxncon.syntax import rxncon_from_string as rfs
 from rxncon.venntastic import sets as venn
+import rxncon.semantics.molecule_definition_from_rxncon as mdr
+import rxncon.semantics.molecule_instance as moi
 
 
-def test_single_rule():
-    c_phos_a = rfs.reaction_from_string('C_p+_A_[x]')
-    a_phos = rfs.state_from_string('A_[x]-{p}')
-    a_phos_b = rfs.reaction_from_string('A_p+_B')
+def test_set_of_states_from_single_state_effector(simple_system: rxs.RxnConSystem):
+    cont1 = simple_system.contingencies[0]
+    cont2 = simple_system.contingencies[1]
 
-    cont = con.Contingency(a_phos_b, con.ContingencyType.requirement, eff.StateEffector(a_phos))
+    state_set_of_effector_cont1 = rfr.state_set_from_effector(cont1.effector)
+    state_set_of_effector_cont2 = rfr.state_set_from_effector(cont2.effector)
 
-    rxncon = rxs.RxnConSystem([c_phos_a, a_phos_b], [cont])
-    rule_supervisor = rfr.RuleBasedModelSupervisor(rxncon)
+    assert cont1.target == rfs.reaction_from_string('X_ppi_Y')
+    assert cont1.type == con.ContingencyType.requirement
+    assert state_set_of_effector_cont1.is_equivalent_to(venn.PropertySet(rfs.state_from_string('X-{P}')))
 
-    for rule in rule_supervisor.rules:
-        print()
-        print(rule)
-
-
-
-# def test_single_ppi_rule():
-#     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
-#     a_ppi_c = rfs.reaction_from_string('A_ppi_C')
-#     #c_ppi_f = rfs.reaction_from_string('C_ppi_F')
-#     b_ppi_e = rfs.reaction_from_string('B_ppi_E')
-#     a_dash_dash_c = rfs.state_from_string('A--C')
-#     b_dash_dash_e = rfs.state_from_string('B--E')
-#     #c_dash_dash_f = rfs.state_from_string('C--F')
-#     # A--B
-#     cont_A = con.Contingency(a_ppi_b, con.ContingencyType.requirement, eff.StateEffector(a_dash_dash_c))
-#     cont_B = con.Contingency(a_ppi_b, con.ContingencyType.requirement, eff.StateEffector(b_dash_dash_e))
-#     #cont_C = con.Contingency(a_ppi_c, con.ContingencyType.requirement, eff.StateEffector(c_dash_dash_f))
-#     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c, b_ppi_e], [cont_A, cont_B])
-#
-#     rules = rfr.rules_from_rxncon(rxncon)
-
-@pytest.fixture
-def simple_system():
-    phosphorylation_reaction_1 = rfs.reaction_from_string('A_p+_X')
-    phosphorylation_reaction_2 = rfs.reaction_from_string('B_p+_X')
-    phosphorylation_reaction_3 = rfs.reaction_from_string('C_p+_X')
-
-    binding_reaction = rfs.reaction_from_string('X_ppi_Y')
-    phosphorylated_state = rfs.state_from_string('X-{p}')
-
-    binding_contingency = con.Contingency(binding_reaction,
-                                          con.ContingencyType.requirement,
-                                          eff.StateEffector(phosphorylated_state))
-
-    reactions = [phosphorylation_reaction_1, phosphorylation_reaction_2, phosphorylation_reaction_3, binding_reaction]
-    contingencies = [binding_contingency]
-
-    return rxs.RxnConSystem(reactions, contingencies)
-
-
-def test_set_of_states_from_single_state_effector():
-    a_ppi_c = rfs.reaction_from_string("A_ppi_C")
-    a_dash_d = rfs.state_from_string('A--D')
-
-    cont = con.Contingency(a_ppi_c, con.ContingencyType.requirement, eff.StateEffector(a_dash_d))
-
-    set_of_state_effector_a_dash_d = rxncon.simulation.rule_based.rbm_from_rxncon.state_set_from_effector(cont.effector)
-    assert set_of_state_effector_a_dash_d.is_equivalent_to(venn.PropertySet(a_dash_d))
+    assert cont2.target == rfs.reaction_from_string('X_ppi_Y')
+    assert cont2.type == con.ContingencyType.inhibition
+    assert state_set_of_effector_cont2.is_equivalent_to(venn.PropertySet(rfs.state_from_string('A--X')))
 
 
 def test_set_of_states_from_nested_AND_effectors():
@@ -85,7 +43,7 @@ def test_set_of_states_from_nested_AND_effectors():
 
     rxncon = quick.rxncon_system
 
-    set_of_state_AND_effector = rxncon.simulation.rule_based.rbm_from_rxncon.set_of_states_from_effector(rxncon.contingencies[0].effector)
+    set_of_state_AND_effector = rfr.state_set_from_effector(rxncon.contingencies[0].effector)
 
     assert set_of_state_AND_effector.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(expected_a_dash_c),
                                                                                           venn.PropertySet(expected_c_dash_e)),
@@ -104,7 +62,7 @@ def test_set_of_states_from_nested_OR_effectors():
 
     rxncon = quick.rxncon_system
 
-    set_of_state_AND_effector = rxncon.simulation.rule_based.rbm_from_rxncon.set_of_states_from_effector(rxncon.contingencies[0].effector)
+    set_of_state_AND_effector = rfr.state_set_from_effector(rxncon.contingencies[0].effector)
     assert set_of_state_AND_effector.is_equivalent_to(venn.Union(venn.Union(venn.PropertySet(expected_a_dash_c),
                                                                                           venn.PropertySet(expected_c_dash_e)),
                                                                         venn.PropertySet(expected_b_dash_f)))
@@ -126,7 +84,7 @@ def test_set_of_states_from_nested_AND_OR_effector():
 
     rxncon = quick.rxncon_system
 
-    set_of_state_AND_effector = rxncon.simulation.rule_based.rbm_from_rxncon.set_of_states_from_effector(rxncon.contingencies[0].effector)
+    set_of_state_AND_effector = rfr.state_set_from_effector(rxncon.contingencies[0].effector)
     assert set_of_state_AND_effector.is_equivalent_to(venn.Intersection(venn.Union(venn.PropertySet(expected_a_dash_c),
                                                                                           venn.PropertySet(expected_c_dash_e)),
                                                                         venn.Union(venn.PropertySet(expected_b_dash_f),venn.PropertySet(expected_b_dash_d))))
@@ -149,7 +107,7 @@ def test_set_of_states_from_nested_OR_AND_effector():
 
     rxncon = quick.rxncon_system
 
-    set_of_state_AND_effector = rxncon.simulation.rule_based.rbm_from_rxncon.set_of_states_from_effector(rxncon.contingencies[0].effector)
+    set_of_state_AND_effector = rfr.state_set_from_effector(rxncon.contingencies[0].effector)
     assert set_of_state_AND_effector.is_equivalent_to(venn.Union(venn.Intersection(venn.PropertySet(expected_a_dash_c),
                                                                                           venn.PropertySet(expected_c_dash_e)),
                                                                         venn.Intersection(venn.PropertySet(expected_b_dash_f),venn.PropertySet(expected_b_dash_d))))
@@ -172,14 +130,16 @@ def test_set_of_states_from_complex_effector():
 
     rxncon = quick.rxncon_system
 
-    set_of_state_AND_effector = rxncon.simulation.rule_based.rbm_from_rxncon.set_of_states_from_effector(rxncon.contingencies[0].effector)
+    set_of_state_AND_effector = rfr.state_set_from_effector(rxncon.contingencies[0].effector)
     assert set_of_state_AND_effector.is_equivalent_to(venn.Union(venn.Intersection(venn.PropertySet(expected_a_dash_c),
                                                                                           venn.PropertySet(expected_c_dash_e)),
                                                                         venn.Complement(venn.Intersection(venn.PropertySet(expected_b_dash_d),
                                                                                                           venn.PropertySet(expected_b_dash_f)))))
 
 
-def test_set_of_states_from_strict_contingencies():
+def test_state_set_from_contingencies(simple_system):
+
+
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     a_dash_b = rfs.state_from_string('A--B')
 
@@ -197,10 +157,10 @@ def test_set_of_states_from_strict_contingencies():
 
     rxncon = rxs.RxnConSystem([b_ppi_e, a_ppi_b, a_ppi_c, b_pplus_e], [cont_e_pplus, cont_b_dash_e, cont_a_ppi_b])
 
-    strict_contingencies_state_set_b_ppi_e = rxncon.simulation.rule_based.rbm_from_rxncon.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(b_ppi_e))
-    strict_contingencies_state_set_a_ppi_b = rxncon.simulation.rule_based.rbm_from_rxncon.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
-    strict_contingencies_state_set_a_ppi_c = rxncon.simulation.rule_based.rbm_from_rxncon.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_c))
-    strict_contingencies_state_set_b_pplus_e = rxncon.simulation.rule_based.rbm_from_rxncon.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(b_pplus_e))
+    strict_contingencies_state_set_b_ppi_e = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(b_ppi_e))
+    strict_contingencies_state_set_a_ppi_b = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
+    strict_contingencies_state_set_a_ppi_c = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_c))
+    strict_contingencies_state_set_b_pplus_e = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(b_pplus_e))
 
     expected_b_ppi_e_strict_cont = venn.Intersection(venn.PropertySet(e_pplus), venn.PropertySet(a_dash_b))
     assert strict_contingencies_state_set_b_ppi_e.is_equivalent_to(expected_b_ppi_e_strict_cont)
@@ -232,31 +192,181 @@ def test_set_of_states_from_strict_contingencies_AND():
 
     rxncon = quick.rxncon_system
 
-    strict_cont_state_set = rxncon.simulation.rule_based.rbm_from_rxncon.set_of_states_from_contingencies(rxncon.strict_contingencies_for_reaction(rfs.reaction_from_string('A_ppi_B')))
+    strict_cont_state_set = rfr.state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(rfs.reaction_from_string('A_ppi_B')))
 
     assert strict_cont_state_set.is_equivalent_to(venn.Intersection(venn.Intersection(venn.PropertySet(expected_a_dash_c), venn.PropertySet(expected_c_dash_e)),
                                                                     venn.PropertySet(expected_b_dash_f)))
 
 
-def test_source_set_of_states_for_reaction():
-    a_ppi_b = rfs.reaction_from_string('A_ppi_B')
-    a_dash_b = rfs.state_from_string('A--B')
-    b_pplus_e = rfs.reaction_from_string('B_p+_E')
-    e_pplus = rfs.state_from_string('E-{P}')
-    b_pminus_e = rfs.reaction_from_string('B_p-_E')
-    b_pt_e = rfs.reaction_from_string('B_pt_E')
-    b_pplus = rfs.state_from_string('B-{P}')
+def test_source_state_set_from_reaction(simple_system: rxs.RxnConSystem):
 
-    set_a_ppi_b = rxncon.simulation.rule_based.rbm_from_rxncon.source_state_set_from_reaction(a_ppi_b)
-    set_b_pplus_e = rxncon.simulation.rule_based.rbm_from_rxncon.source_state_set_from_reaction(b_pplus_e)
-    set_b_pminus_e = rxncon.simulation.rule_based.rbm_from_rxncon.source_state_set_from_reaction(b_pminus_e)
-    set_b_pt_e = rxncon.simulation.rule_based.rbm_from_rxncon.source_state_set_from_reaction(b_pt_e)
+    phosphorylation_reaction_X = simple_system.reactions[0]
+    phosphorylation_reaction_X_at_resi = simple_system.reactions[1]
+    ubiquitination_reaction_X_at_resi = simple_system.reactions[2]
+    dephosphorylation_reaction_X = simple_system.reactions[3]
+    phosphortransfer_reaction_X = simple_system.reactions[4]
+    binding_reaction_A_X = simple_system.reactions[5]
+    binding_reaction_Y_X = simple_system.reactions[6]
 
-    # todo: B_pt_E are two reactions in one B_p+_E -> E_[Bside] and E_p-_B -> B_[Eside]
+    assert rfr.source_state_set_from_reaction(phosphorylation_reaction_X).is_equivalent_to(venn.Complement(
+                                                                                                venn.PropertySet(
+                                                                                                    rfs.state_from_string(
+                                                                                                        'X_[(Asite)]-{P}'))))
+    assert rfr.source_state_set_from_reaction(phosphorylation_reaction_X_at_resi).is_equivalent_to(venn.Complement(
+                                                                                                        venn.PropertySet(
+                                                                                                            rfs.state_from_string('X_(r)-{P}'))))
+    assert rfr.source_state_set_from_reaction(ubiquitination_reaction_X_at_resi).is_equivalent_to(venn.Complement(
+                                                                                                        venn.PropertySet(
+                                                                                                            rfs.state_from_string('X_(r)-{Ub}'))))
+    assert rfr.source_state_set_from_reaction(dephosphorylation_reaction_X).is_equivalent_to(venn.PropertySet(rfs.state_from_string('X_[(Bsite)]-{P}')))
+
+    # todo: B_pt_E are two reactions in one E_p+_X -> X_[Eside] and X_p-_E -> E_[Xside]
     # todo: B_[n]_apt_B_[m] auto phosphortransfer B is the same molecule B_[n]_p+_B_[m] -> B_[m] and B_[m]_p-_B_[n] -> B_B[n]
     # todo: B_apt_B auto phosphortransfer B is the same molecule B_p+_B -> B_[Bsite1] and B_p-_B -> B_B[Site2]
 
-    assert set_a_ppi_b.is_equivalent_to(venn.Complement(venn.PropertySet(a_dash_b)))
-    assert set_b_pplus_e.is_equivalent_to(venn.Complement(venn.PropertySet(e_pplus)))
-    assert set_b_pminus_e.is_equivalent_to(venn.PropertySet(e_pplus))
-    assert set_b_pt_e.is_equivalent_to(venn.Intersection(venn.Complement(venn.PropertySet(e_pplus)), venn.PropertySet(b_pplus)))
+    assert rfr.source_state_set_from_reaction(phosphortransfer_reaction_X).is_equivalent_to(venn.Intersection(venn.Complement(venn.PropertySet(rfs.state_from_string('X_[(Esite)]-{p}'))),
+                                                                                                              venn.PropertySet(rfs.state_from_string('E_[(Esite)]-{p}'))))
+    assert rfr.source_state_set_from_reaction(binding_reaction_A_X).is_equivalent_to(venn.Complement(venn.PropertySet(rfs.state_from_string('A_[Xassoc]--X_[d]'))))
+    assert rfr.source_state_set_from_reaction(binding_reaction_Y_X).is_equivalent_to(venn.Complement(venn.PropertySet(rfs.state_from_string('Y_[Xassoc]--X_[d]'))))
+
+
+def test_mol_property_pairs_from_mol_def_and_source_state_set(simple_system):
+    mol_defs = mdr.MoleculeDefinitionSupervisor(simple_system).molecule_definitions
+    mol_def_X = mol_defs['X']
+
+    phosphorylation_reaction_X = simple_system.reactions[0]
+    phosphorylation_reaction_X_at_resi = simple_system.reactions[1]
+    ubiquitination_reaction_X_at_resi = simple_system.reactions[2]
+    dephosphorylation_reaction_X = simple_system.reactions[3]
+    phosphortransfer_reaction_X = simple_system.reactions[4]
+    binding_reaction_A_X = simple_system.reactions[5]
+    binding_reaction_Y_X = simple_system.reactions[6]
+
+
+    mol_prop_pair_phosphorylation_reaction_X = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
+                                                                                                        rfr.source_state_set_from_reaction(phosphorylation_reaction_X))
+    assert len(mol_prop_pair_phosphorylation_reaction_X) == 1
+    assert len(mol_prop_pair_phosphorylation_reaction_X[0]) == 2
+
+    mod_defs = [x for x in mol_def_X.modification_defs if x.spec.residue == "Asite"]
+    assert len(mod_defs) == 1
+    mod_def_Asite = mod_defs[0]
+    assert mol_prop_pair_phosphorylation_reaction_X[0][0] == venn.PropertySet(moi.ModificationPropertyInstance(mod_def_Asite, moi.Modifier.unmodified))
+    assert mol_prop_pair_phosphorylation_reaction_X[0][1] == venn.PropertySet(moi.ModificationPropertyInstance(mod_def_Asite, moi.Modifier.phosphorylated))
+
+
+    mol_prop_pair_phosphorylation_reaction_X_at_resi = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
+                                                                                                                rfr.source_state_set_from_reaction(phosphorylation_reaction_X_at_resi))
+
+    assert len(mol_prop_pair_phosphorylation_reaction_X_at_resi) == 2
+    assert len(mol_prop_pair_phosphorylation_reaction_X_at_resi[0]) == 2
+    assert len(mol_prop_pair_phosphorylation_reaction_X_at_resi[1]) == 2
+
+    mod_defs = [x for x in mol_def_X.modification_defs if x.spec.residue == "r"]
+    assert len(mod_defs) == 1
+    mod_def_r = mod_defs[0]
+
+    assert mol_prop_pair_phosphorylation_reaction_X_at_resi[0][0] != mol_prop_pair_phosphorylation_reaction_X_at_resi[1][0]
+    assert mol_prop_pair_phosphorylation_reaction_X_at_resi[0][1] == venn.PropertySet(moi.ModificationPropertyInstance(mod_def_r, moi.Modifier.phosphorylated))
+    assert mol_prop_pair_phosphorylation_reaction_X_at_resi[1][1] == venn.PropertySet(moi.ModificationPropertyInstance(mod_def_r, moi.Modifier.phosphorylated))
+
+
+    mol_prop_pair_ubiquitination_reaction_X_at_resi = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
+                                                                                                               rfr.source_state_set_from_reaction(ubiquitination_reaction_X_at_resi))
+
+    assert len(mol_prop_pair_ubiquitination_reaction_X_at_resi) == 2
+    assert len(mol_prop_pair_ubiquitination_reaction_X_at_resi[0]) == 2
+    assert len(mol_prop_pair_ubiquitination_reaction_X_at_resi[1]) == 2
+
+
+    assert mol_prop_pair_ubiquitination_reaction_X_at_resi[0][0] != mol_prop_pair_ubiquitination_reaction_X_at_resi[1][0]
+    assert mol_prop_pair_ubiquitination_reaction_X_at_resi[0][1] == venn.PropertySet(moi.ModificationPropertyInstance(mod_def_r, moi.Modifier.ubiquitinated))
+    assert mol_prop_pair_ubiquitination_reaction_X_at_resi[1][1] == venn.PropertySet(moi.ModificationPropertyInstance(mod_def_r, moi.Modifier.ubiquitinated))
+
+
+    mol_prop_pair_dephosphorylation_reaction_X = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
+                                                                                                          rfr.source_state_set_from_reaction(dephosphorylation_reaction_X))
+
+
+    assert len(mol_prop_pair_dephosphorylation_reaction_X) == 1
+    assert len(mol_prop_pair_dephosphorylation_reaction_X[0]) == 2
+
+    mod_defs = [x for x in mol_def_X.modification_defs if x.spec.residue == "Bsite"]
+    assert len(mod_defs) == 1
+    mod_def_Bsite = mod_defs[0]
+
+    assert mol_prop_pair_dephosphorylation_reaction_X[0][0] == venn.PropertySet(moi.ModificationPropertyInstance(mod_def_Bsite, moi.Modifier.phosphorylated))
+    assert mol_prop_pair_dephosphorylation_reaction_X[0][1] == venn.PropertySet(moi.ModificationPropertyInstance(mod_def_Bsite, moi.Modifier.unmodified))
+
+
+    mol_prop_pair_binding_reaction_A_X = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
+                                                                                                  rfr.source_state_set_from_reaction(binding_reaction_A_X))
+
+    assert len(mol_prop_pair_binding_reaction_A_X) == 2
+    assert len(mol_prop_pair_binding_reaction_A_X[0]) == 2
+    assert len(mol_prop_pair_binding_reaction_A_X[1]) == 2
+
+    assoc_defs = [x for x in mol_def_X.association_defs if x.spec.domain == "d"]
+    assert len(assoc_defs) == 1
+    assoc_def_d = assoc_defs[0]
+
+    assert mol_prop_pair_binding_reaction_A_X[0][0] != mol_prop_pair_binding_reaction_A_X[1][0]
+    assert mol_prop_pair_binding_reaction_A_X[0][1] == venn.PropertySet(moi.AssociationPropertyInstance(assoc_def_d,
+                                                                                                        moi.OccupationStatus.occupied_known_partner,
+                                                                                                        spec.Specification('A', 'Xassoc', None, None)))
+    assert mol_prop_pair_binding_reaction_A_X[1][1] == venn.PropertySet(moi.AssociationPropertyInstance(assoc_def_d,
+                                                                                                        moi.OccupationStatus.occupied_known_partner,
+                                                                                                        spec.Specification('A', 'Xassoc', None, None)))
+    mol_prop_pair_binding_reaction_Y_X = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
+                                                                                                  rfr.source_state_set_from_reaction(binding_reaction_Y_X))
+
+    assert len(mol_prop_pair_binding_reaction_Y_X) == 2
+    assert len(mol_prop_pair_binding_reaction_Y_X[0]) == 2
+    assert len(mol_prop_pair_binding_reaction_Y_X[1]) == 2
+
+    assert mol_prop_pair_binding_reaction_Y_X[0][0] != mol_prop_pair_binding_reaction_Y_X[1][0]
+    assert mol_prop_pair_binding_reaction_Y_X[0][1] == venn.PropertySet(moi.AssociationPropertyInstance(assoc_def_d,
+                                                                                                        moi.OccupationStatus.occupied_known_partner,
+                                                                                                        spec.Specification('Y', 'Xassoc', None, None)))
+    assert mol_prop_pair_binding_reaction_Y_X[1][1] == venn.PropertySet(moi.AssociationPropertyInstance(assoc_def_d,
+                                                                                                        moi.OccupationStatus.occupied_known_partner,
+                                                                                                        spec.Specification('Y', 'Xassoc', None, None)))
+    #is_property_pair_valid_for_reaction(mol_def, x, reaction)
+
+    mol_prop_pair_phosphortransfer_reaction_X = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
+                                                                                                         rfr.source_state_set_from_reaction(phosphortransfer_reaction_X))
+
+    assert len(mol_prop_pair_phosphortransfer_reaction_X) == 2
+    assert len(mol_prop_pair_phosphortransfer_reaction_X[0]) == 2
+    assert len(mol_prop_pair_phosphortransfer_reaction_X[1]) == 2
+
+
+
+@pytest.fixture
+def simple_system():
+    phosphorylation_reaction_X = rfs.reaction_from_string('A_p+_X')
+    phosphorylation_reaction_X_at_resi = rfs.reaction_from_string('C_p+_X_[(r)]')
+    ubiquitination_reaction_X_at_resi = rfs.reaction_from_string('D_ub+_X_[(r)]')
+    dephosphorylation_reation_X = rfs.reaction_from_string('B_p-_X')
+    phosphortransfer_reaction_X = rfs.reaction_from_string('E_pt_X')
+
+    binding_reaction_A_X = rfs.reaction_from_string('A_ppi_X_[d]')
+    binding_state_A_X = rfs.state_from_string('A--X')
+
+    binding_reaction_Y_X = rfs.reaction_from_string('Y_ppi_X_[d]')
+    phosphorylated_state = rfs.state_from_string('X-{p}')
+
+    binding_contingency1 = con.Contingency(binding_reaction_Y_X,
+                                          con.ContingencyType.requirement,
+                                          eff.StateEffector(phosphorylated_state))
+
+    binding_contingency2 = con.Contingency(binding_reaction_Y_X,
+                                           con.ContingencyType.inhibition,
+                                           eff.StateEffector(binding_state_A_X))  # X_ppi_Y; x A--X
+
+    reactions = [phosphorylation_reaction_X, phosphorylation_reaction_X_at_resi, ubiquitination_reaction_X_at_resi,
+                 dephosphorylation_reation_X, phosphortransfer_reaction_X, binding_reaction_A_X, binding_reaction_Y_X]
+
+    contingencies = [binding_contingency1, binding_contingency2]
+
+    return rxs.RxnConSystem(reactions, contingencies)

@@ -63,7 +63,7 @@ class ModificationPropertyInstance(PropertyInstance):
         return str(self)
 
     def __str__(self) -> str:
-        return 'ModificationSpecification: Domain = {0}, Modifier = {1}'\
+        return 'ModificationPropertyInstance: Domain = {0}, Modifier = {1}'\
             .format(self.modification_def.spec, self.modifier)
 
     def _validate(self):
