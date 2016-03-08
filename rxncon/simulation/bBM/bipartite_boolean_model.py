@@ -23,6 +23,9 @@ class Target:
         self.name=name
         self._validate()
 
+    def __eq__(self, other):
+        return self.name==other.name
+
     def _validate(self):
         pass
 
@@ -30,8 +33,10 @@ class Factor:
     def __init__(self, factor: venn.Set ):
         # venn.set e.g.:Union(Intersection(A--B, A_{P}), Intersection(A--C, C-{P})) --> (A--B & A_{P}) |(A--C & C_{P})
         self.factor = factor
-        self.validate()
+        self._validate()
 
+    def __eq__(self, other):
+        return self.factor.is_equivalent_to(other.factor)
 
     def _validate(self):
         pass
