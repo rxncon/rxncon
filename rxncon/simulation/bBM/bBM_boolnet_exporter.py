@@ -48,3 +48,7 @@ class bBm_System:
             return "({0})".format(" & ".join(elements))
         else:
             raise NotImplementedError
+
+
+    def _generate_name(self):
+        self.name = blabla(self.value)
