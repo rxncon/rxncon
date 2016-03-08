@@ -2,7 +2,7 @@ from typing import List
 import rxncon.venntastic.sets as venn
 
 class Bipartite_Boolean_Model:
-    def __init__(self, rules: List[Rule]):
+    def __init__(self, rules: List["Rule"]):
         self.rules = rules
         self._validate()
 
@@ -10,7 +10,7 @@ class Bipartite_Boolean_Model:
         pass
 
 class Rule:
-    def __init__(self, target: Target, factor: Factor):
+    def __init__(self, target: "Target", factor: "Factor"):
         self.target = target
         self.factor = factor
         self._validate()
