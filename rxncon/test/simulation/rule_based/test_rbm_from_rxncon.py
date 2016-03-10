@@ -14,6 +14,8 @@ from rxncon.venntastic import sets as venn
 import rxncon.semantics.molecule_definition_from_rxncon as mdr
 import rxncon.semantics.molecule_instance as moi
 
+# MASTERTEST testing the lhs/rhs MoleculeInstances that appear.
+
 
 def test_set_of_states_from_single_state_effector(simple_system: rxs.RxnConSystem):
     cont1 = simple_system.contingencies[0]
@@ -336,11 +338,13 @@ def test_mol_property_pairs_from_mol_def_and_source_state_set(simple_system):
     mol_prop_pair_phosphortransfer_reaction_X = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
                                                                                                          rfr.source_state_set_from_reaction(phosphortransfer_reaction_X))
 
+    print(mol_prop_pair_phosphortransfer_reaction_X)
+
     assert len(mol_prop_pair_phosphortransfer_reaction_X) == 2
     assert len(mol_prop_pair_phosphortransfer_reaction_X[0]) == 2
     assert len(mol_prop_pair_phosphortransfer_reaction_X[1]) == 2
 
-
+    # !TEST mol_def_E!
 
 @pytest.fixture
 def simple_system():
