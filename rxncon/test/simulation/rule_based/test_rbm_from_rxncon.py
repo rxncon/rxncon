@@ -22,11 +22,11 @@ def test_set_of_states_from_single_state_effector(simple_system: rxs.RxnConSyste
     state_set_of_effector_cont1 = rfr.state_set_from_effector(cont1.effector)
     state_set_of_effector_cont2 = rfr.state_set_from_effector(cont2.effector)
 
-    assert cont1.target == rfs.reaction_from_string('X_ppi_Y')
+    assert cont1.target == rfs.reaction_from_string('Y_ppi_X_[d]')
     assert cont1.type == con.ContingencyType.requirement
     assert state_set_of_effector_cont1.is_equivalent_to(venn.PropertySet(rfs.state_from_string('X-{P}')))
 
-    assert cont2.target == rfs.reaction_from_string('X_ppi_Y')
+    assert cont2.target == rfs.reaction_from_string('Y_ppi_X_[d]')
     assert cont2.type == con.ContingencyType.inhibition
     assert state_set_of_effector_cont2.is_equivalent_to(venn.PropertySet(rfs.state_from_string('A--X')))
 
@@ -211,23 +211,23 @@ def test_source_state_set_from_reaction(simple_system: rxs.RxnConSystem):
     assert rfr.source_state_set_from_reaction(phosphorylation_reaction_X).is_equivalent_to(venn.Complement(
                                                                                                 venn.PropertySet(
                                                                                                     rfs.state_from_string(
-                                                                                                        'X_[(Asite)]-{P}'))))
+                                                                                                        'X-{P}'))))
     assert rfr.source_state_set_from_reaction(phosphorylation_reaction_X_at_resi).is_equivalent_to(venn.Complement(
                                                                                                         venn.PropertySet(
                                                                                                             rfs.state_from_string('X_(r)-{P}'))))
     assert rfr.source_state_set_from_reaction(ubiquitination_reaction_X_at_resi).is_equivalent_to(venn.Complement(
                                                                                                         venn.PropertySet(
                                                                                                             rfs.state_from_string('X_(r)-{Ub}'))))
-    assert rfr.source_state_set_from_reaction(dephosphorylation_reaction_X).is_equivalent_to(venn.PropertySet(rfs.state_from_string('X_[(Bsite)]-{P}')))
+    assert rfr.source_state_set_from_reaction(dephosphorylation_reaction_X).is_equivalent_to(venn.PropertySet(rfs.state_from_string('X-{P}')))
 
     # todo: B_pt_E are two reactions in one E_p+_X -> X_[Eside] and X_p-_E -> E_[Xside]
     # todo: B_[n]_apt_B_[m] auto phosphortransfer B is the same molecule B_[n]_p+_B_[m] -> B_[m] and B_[m]_p-_B_[n] -> B_B[n]
     # todo: B_apt_B auto phosphortransfer B is the same molecule B_p+_B -> B_[Bsite1] and B_p-_B -> B_B[Site2]
 
-    assert rfr.source_state_set_from_reaction(phosphortransfer_reaction_X).is_equivalent_to(venn.Intersection(venn.Complement(venn.PropertySet(rfs.state_from_string('X_[(Esite)]-{p}'))),
-                                                                                                              venn.PropertySet(rfs.state_from_string('E_[(Esite)]-{p}'))))
-    assert rfr.source_state_set_from_reaction(binding_reaction_A_X).is_equivalent_to(venn.Complement(venn.PropertySet(rfs.state_from_string('A_[Xassoc]--X_[d]'))))
-    assert rfr.source_state_set_from_reaction(binding_reaction_Y_X).is_equivalent_to(venn.Complement(venn.PropertySet(rfs.state_from_string('Y_[Xassoc]--X_[d]'))))
+    assert rfr.source_state_set_from_reaction(phosphortransfer_reaction_X).is_equivalent_to(venn.Intersection(venn.Complement(venn.PropertySet(rfs.state_from_string('X-{p}'))),
+                                                                                                              venn.PropertySet(rfs.state_from_string('E-{p}'))))
+    assert rfr.source_state_set_from_reaction(binding_reaction_A_X).is_equivalent_to(venn.Complement(venn.PropertySet(rfs.state_from_string('A--X_[d]'))))
+    assert rfr.source_state_set_from_reaction(binding_reaction_Y_X).is_equivalent_to(venn.Complement(venn.PropertySet(rfs.state_from_string('Y--X_[d]'))))
 
 
 def test_mol_property_pairs_from_mol_def_and_source_state_set(simple_system):
@@ -357,8 +357,8 @@ def simple_system():
     phosphorylated_state = rfs.state_from_string('X-{p}')
 
     binding_contingency1 = con.Contingency(binding_reaction_Y_X,
-                                          con.ContingencyType.requirement,
-                                          eff.StateEffector(phosphorylated_state))
+                                           con.ContingencyType.requirement,
+                                           eff.StateEffector(phosphorylated_state))
 
     binding_contingency2 = con.Contingency(binding_reaction_Y_X,
                                            con.ContingencyType.inhibition,
