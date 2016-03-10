@@ -16,6 +16,17 @@ import rxncon.semantics.molecule_instance as moi
 
 # MASTERTEST testing the lhs/rhs MoleculeInstances that appear.
 
+def test_mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(simple_system: rxs.RxnConSystem):
+
+    phosphorylation_reaction_X = simple_system.reactions[0]
+
+    mol_defs = mdr.MoleculeDefinitionSupervisor(simple_system).molecule_definitions
+    mol_def_X = mol_defs['X']
+
+    strict_conts = simple_system.strict_contingencies_for_reaction(phosphorylation_reaction_X)
+
+    rfr.mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(mol_def_X, phosphorylation_reaction_X, strict_conts)
+
 
 def test_set_of_states_from_single_state_effector(simple_system: rxs.RxnConSystem):
     cont1 = simple_system.contingencies[0]

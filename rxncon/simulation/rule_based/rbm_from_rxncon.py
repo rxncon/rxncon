@@ -130,7 +130,7 @@ def is_property_pair_valid_for_reaction(mol_def: mdf.MoleculeDefinition,
     assert isinstance(rhs, venn.PropertySet)
     rhs_prop = rhs.value
 
-    return mfr.mol_def_and_property_match_state(mol_def, lhs_prop, reaction.source, negate=False) and\
+    return mfr.mol_def_and_property_match_state(mol_def, lhs_prop, reaction.product, negate=True) and\
         mfr.mol_def_and_property_match_state(mol_def, rhs_prop, reaction.product, negate=False)
 
 

@@ -66,16 +66,16 @@ def mol_instance_from_mol_def_and_property_set(mol_def: mol.MoleculeDefinition, 
     loc = None
 
     for instance in instances:
-        if isinstance(instance, rxncon.semantics.molecule_instance.ModificationInstance):
+        if isinstance(instance, mins.ModificationPropertyInstance):
             mod_instances.add(instance)
-        elif isinstance(instance, rxncon.semantics.molecule_instance.AssociationInstance):
+        elif isinstance(instance, mins.AssociationPropertyInstance):
             assoc_instances.add(instance)
-        elif isinstance(instance, rxncon.semantics.molecule_instance.LocalizationInstance):
+        elif isinstance(instance, mins.LocalizationPropertyInstance):
             if loc:
                 raise AssertionError
             loc = instance
 
-    return rxncon.semantics.molecule_instance.MoleculeInstance(mol_def, mod_instances, assoc_instances, loc)
+    return mins.MoleculeInstance(mol_def, mod_instances, assoc_instances, loc)
 
 
 def mol_instance_matches_state(mol_inst: mins.MoleculeInstance, state: sta.State, negate: bool) -> bool:
