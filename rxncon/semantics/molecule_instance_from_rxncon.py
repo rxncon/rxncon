@@ -96,14 +96,23 @@ def mol_instance_matches_state(mol_inst: mins.MoleculeInstance, state: sta.State
     return any(x in matching_properties for x in molecule_properties)
 
 
-def mol_def_and_property_match_state(mol_def: mol.MoleculeDefinition, prop: mins.PropertyInstance, state: sta.State, negate: bool) -> bool:
-    matching_properties = _properties(mol_def, state, negate)
+def mol_def_and_property_match_state(mol_def: mol.MoleculeDefinition, prop: mins.PropertyInstance, state: tg.Optional[sta.State], negate: bool) -> bool:
 
+    if state is None:
+        if isinstance(prop, mins.ModificationPropertyInstance):
+            return prop.modifier == mins.Modifier.unmodified
+        elif isinstance(prop, mins.AssociationPropertyInstance):
+            return prop.occupation_status in [mins.OccupationStatus.not_occupied, mins.OccupationStatus.not_specified]
+        else:
+            raise NotImplementedError
+
+    matching_properties = _properties(mol_def, state, negate)
     return prop in matching_properties
 
 
 # PROTECTED HELPERS
-def _properties(mol_def: mol.MoleculeDefinition, state: sta.State, negate: bool) -> tg.List[mins.PropertyInstance]:
+def _properties(mol_def: mol.MoleculeDefinition, state: tg.Optional[sta.State], negate: bool) -> tg.List[mins.PropertyInstance]:
+
     if isinstance(state, sta.CovalentModificationState):
         matching_defs = [x for x in mol_def.modification_defs if x.spec.is_subspecification_of(state.substrate)]
         matching_instances = []

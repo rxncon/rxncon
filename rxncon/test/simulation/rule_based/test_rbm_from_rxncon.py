@@ -13,6 +13,7 @@ from rxncon.syntax import rxncon_from_string as rfs
 from rxncon.venntastic import sets as venn
 import rxncon.semantics.molecule_definition_from_rxncon as mdr
 import rxncon.semantics.molecule_instance as moi
+import rxncon.semantics.molecule_instance_from_rxncon as mfr
 
 # MASTERTEST testing the lhs/rhs MoleculeInstances that appear.
 
@@ -25,8 +26,26 @@ def test_mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(simple_s
 
     strict_conts = simple_system.strict_contingencies_for_reaction(phosphorylation_reaction_X)
 
-    rfr.mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(mol_def_X, phosphorylation_reaction_X, strict_conts)
+    phosphorylation_reaction_X_pairs = rfr.mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(mol_def_X, phosphorylation_reaction_X, strict_conts)
+    mod_defs = [x for x in mol_def_X.modification_defs if x.spec.residue == "Asite"]
 
+    expected_lhs = moi.MoleculeInstance(mol_def_X, {moi.ModificationPropertyInstance(mod_defs[0], moi.Modifier("u"))}, set(), None)
+    expected_rhs = moi.MoleculeInstance(mol_def_X, {moi.ModificationPropertyInstance(mod_defs[0], moi.Modifier("p"))}, set(), None)
+    assert phosphorylation_reaction_X_pairs == [(expected_lhs, expected_rhs)]
+
+    phosphorylation_reaction_X_at_resi = simple_system.reactions[1]
+    mol_defs = mdr.MoleculeDefinitionSupervisor(simple_system).molecule_definitions
+    mol_def_X = mol_defs['X']
+    strict_conts = simple_system.strict_contingencies_for_reaction(phosphorylation_reaction_X_at_resi)
+
+    phosphorylation_reaction_X_at_resi_pairs = rfr.mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(mol_def_X, phosphorylation_reaction_X_at_resi, strict_conts)
+
+    mod_defs = [x for x in mol_def_X.modification_defs if x.spec.residue == "r"]
+
+    expected_lhs_phosphorylation_reaction_X_at_resi = moi.MoleculeInstance(mol_def_X, {moi.ModificationPropertyInstance(mod_defs[0], moi.Modifier("u"))}, set(), None)
+    expected_rhs_phosphorylation_reaction_X_at_resi = moi.MoleculeInstance(mol_def_X, {moi.ModificationPropertyInstance(mod_defs[0], moi.Modifier("p"))}, set(), None)
+    assert phosphorylation_reaction_X_at_resi_pairs == [(expected_lhs_phosphorylation_reaction_X_at_resi,
+                                                         expected_rhs_phosphorylation_reaction_X_at_resi)]
 
 def test_set_of_states_from_single_state_effector(simple_system: rxs.RxnConSystem):
     cont1 = simple_system.contingencies[0]
