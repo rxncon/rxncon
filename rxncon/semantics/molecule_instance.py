@@ -1,11 +1,10 @@
-from typing import Set, Optional, Tuple
+from typing import Set, Optional
 
 import typecheck as tc
 
+import rxncon.core.specification as spe
 from rxncon.semantics.molecule_definition import MoleculeDefinition, ModificationPropertyDefinition, AssociationPropertyDefinition, \
     LocalizationPropertyDefinition, Modifier, OccupationStatus, Compartment
-
-import rxncon.core.specification as spe
 
 
 class MoleculeInstance:
@@ -203,28 +202,3 @@ class LocalizationPropertyInstance(PropertyInstance):
                 in self.localization_def.valid_compartments if compartment != self.compartment]
 
 
-class Binding:
-    @tc.typecheck
-    def __init__(self, left_partner: Tuple[int, AssociationPropertyInstance], right_partner: Tuple[int, AssociationPropertyInstance]):
-        self.left_partner = left_partner
-        self.right_partner = right_partner
-        self._validate()
-
-    @tc.typecheck
-    def __eq__(self, other: 'Binding'):
-        return self.left_partner == other.left_partner and self.right_partner == other.right_partner
-
-    def __repr__(self):
-        return str(self)
-
-    def __str__(self) -> str:
-        return 'Binding: L_molecule_index = {0}, L_domain = {1}, R_molecule_index = {2}, R_domain = {3}'\
-            .format(self.left_partner[0], self.left_partner[1].association_def.spec,
-                    self.right_partner[0], self.right_partner[1].association_def.spec)
-
-    def _validate(self):
-        if not self.left_partner[1].occupation_status or not self.right_partner[1].occupation_status:
-            raise ValueError('Binding requires both partners to have occupied association domains.')
-
-        if self.left_partner[0] == self.right_partner[0]:
-            raise ValueError('Binding-molecule-indices are required to be distinct for each binding.')

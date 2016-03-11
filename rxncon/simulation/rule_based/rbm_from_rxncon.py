@@ -19,6 +19,7 @@ class RuleBasedModelSupervisor:
         self.rxnconsys = rxnconsys
         self.mol_defs = mdr.MoleculeDefinitionSupervisor(self.rxnconsys).molecule_definitions
         self.rules = []  # type: tg.List[rbm.Rule]
+        self.parameters = []
         self.rule_based_model = None
         self._generate_rules(disjunctify)
         self._construct_rule_based_model()
@@ -26,8 +27,11 @@ class RuleBasedModelSupervisor:
         self._validate()
 
     def _generate_rules(self, disjunctify: bool):
+        # @todo fix quantitative contingencies. loop over all possible on/off combinations of quant conts.
         for reaction in self.rxnconsys.reactions:
             strict_conts = self.rxnconsys.strict_contingencies_for_reaction(reaction)
+            quant_conts = []
+
             involved_molecules = involved_molecule_specs_for_reaction_and_contingencies(reaction, strict_conts)
             mol_instance_pairs = []
 
@@ -39,16 +43,51 @@ class RuleBasedModelSupervisor:
             for rule_of_mol_instance in rules_of_mol_instances:
                 lhs_reactants = reactants_from_molecule_instances(rule_of_mol_instance[0])
                 rhs_reactants = reactants_from_molecule_instances(rule_of_mol_instance[1])
-                self.rules.append(rbm.Rule(lhs_reactants, rhs_reactants, arrow_from_reaction(reaction), None))
+                parameters = parameters_from_reaction_and_quant_conts(reaction, quant_conts)
+
+                self.rules.append(rbm.Rule(lhs_reactants,
+                                           rhs_reactants,
+                                           arrow_from_reaction(reaction),
+                                           parameters))
+
+                self.parameters += parameters
 
     def _construct_rule_based_model(self):
-        self.rule_based_model = rbm.RuleBasedModel(self.mol_defs, self.rules, None, None)
+        self.rule_based_model = rbm.RuleBasedModel(self.mol_defs, self.rules, self.parameters, [])
 
     def _validate(self):
         pass
 
 
 # PRIVATE METHODS
+def parameters_from_reaction_and_quant_conts(reaction: rxn.Reaction, quant_conts: tg.List[con.Contingency]) -> tg.List[rbm.Parameter]:
+    # @todo fix quantitative contingencies
+    if reaction.directionality == rxn.Directionality.reversible:
+        return [
+            rbm.Parameter('kf_{0}'.format(str(reaction))),
+            rbm.Parameter('kr_{0}'.format(str(reaction)))
+        ]
+
+    elif reaction.directionality == rxn.Directionality.irreversible:
+        return [
+            rbm.Parameter('k_{0}'.format(str(reaction)))
+        ]
+
+    else:
+        raise NotImplementedError
+
+
+def arrow_from_reaction(reaction: rxn.Reaction) -> rbm.Arrow:
+    if reaction.directionality == rxn.Directionality.reversible:
+        return rbm.Arrow.reversible
+
+    elif reaction.directionality == rxn.Directionality.irreversible:
+        return rbm.Arrow.irreversible
+
+    else:
+        raise NotImplementedError
+
+
 def involved_molecule_specs_for_reaction_and_contingencies(reaction: rxn.Reaction,
                                                            strict_cont: tg.List[con.Contingency]) -> tg.List[spe.Specification]:
     involved_molecules = []
@@ -116,9 +155,19 @@ def _connected(first_molecule: mins.MoleculeInstance, second_molecule: mins.Mole
 
 
 def _complex_reactant_from_molecule_instances(molecules: tg.List[mins.MoleculeInstance]) -> rbm.ComplexReactant:
+    molecules = sorted(molecules)
 
+    bindings = []
 
+    for i, first_molecule in molecules:
+        for first_assoc_prop in first_molecule.association_properties:
+            for j, second_molecule in molecules:
+                for second_assoc_prop in second_molecule.association_properties:
+                    if first_assoc_prop.partner == second_assoc_prop.assoc_def.spec:
+                        if rbm.Binding((j, second_assoc_prop), (i, first_assoc_prop)) not in bindings:
+                            bindings.append(rbm.Binding((i, first_assoc_prop), (j, second_assoc_prop)))
 
+    return rbm.ComplexReactant(molecules, bindings)
 
 
 def lhs_rhs_product(reaction_molecules: tg.List[tg.List[tg.Tuple[mins.MoleculeInstance, mins.MoleculeInstance]]])\
