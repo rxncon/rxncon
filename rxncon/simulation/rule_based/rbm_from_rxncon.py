@@ -48,13 +48,79 @@ class RuleBasedModelSupervisor:
         pass
 
 
+# PRIVATE METHODS
 def involved_molecule_specs_for_reaction_and_contingencies(reaction: rxn.Reaction,
                                                            strict_cont: tg.List[con.Contingency]) -> tg.List[spe.Specification]:
-    pass
+    involved_molecules = []
+    for component in reaction.components:
+        involved_molecules.append(spe.Specification(component.name, None, None, None))
+
+    for contingency in strict_cont:
+        for state in contingency.effector.states:
+            for component in state.components:
+                involved_molecules.append(spe.Specification(component.name, None, None, None))
+
+    return involved_molecules
 
 
 def reactants_from_molecule_instances(molecules: tg.List[mins.MoleculeInstance]) -> tg.List[rbm.Reactant]:
+    reactants = []
+
+    bound_molecules = []
+
+    while molecules:
+        molecule = molecules.pop()
+
+        if any(prop.occupation_status == mins.OccupationStatus.occupied_known_partner
+               for prop in molecule.association_properties):
+            bound_molecules.append(molecule)
+
+        else:
+            reactants.append(rbm.MoleculeReactant(molecule))
+
+    connected_components = _split_into_connected_components(bound_molecules)
+
+    for connected_component in connected_components:
+        reactants.append(_complex_reactant_from_molecule_instances(connected_component))
+
+    return reactants
+
+
+def _split_into_connected_components(molecules: tg.List[mins.MoleculeInstance]) -> tg.List[tg.List[mins.MoleculeInstance]]:
+    connected_components = []
+
+    while molecules:
+        connected_component_visited = []
+        connected_component_unvisited = [molecules.pop()]
+
+        while connected_component_unvisited:
+            current_molecule = connected_component_unvisited.pop()
+            for molecule in molecules:
+                if _connected(molecule, current_molecule):
+                    molecules.remove(molecule)
+                    connected_component_unvisited.append(molecule)
+
+            connected_component_visited.append(current_molecule)
+
+        connected_components.append(connected_component_visited)
+
+    return connected_components
+
+
+def _connected(first_molecule: mins.MoleculeInstance, second_molecule: mins.MoleculeInstance) -> bool:
+    first_assocs = [x for x in first_molecule.association_properties if x.occupation_status == mins.OccupationStatus.occupied_known_partner]
+    second_assocs = [x for x in second_molecule.association_properties if x.occupation_status == mins.OccupationStatus.occupied_known_partner]
+
+
+
+
+
+
+
+def _complex_reactant_from_molecule_instances():
     pass
+
+
 
 
 def lhs_rhs_product(reaction_molecules: tg.List[tg.List[tg.Tuple[mins.MoleculeInstance, mins.MoleculeInstance]]])\
