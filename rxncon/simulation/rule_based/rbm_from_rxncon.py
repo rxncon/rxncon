@@ -111,14 +111,12 @@ def _connected(first_molecule: mins.MoleculeInstance, second_molecule: mins.Mole
     first_assocs = [x for x in first_molecule.association_properties if x.occupation_status == mins.OccupationStatus.occupied_known_partner]
     second_assocs = [x for x in second_molecule.association_properties if x.occupation_status == mins.OccupationStatus.occupied_known_partner]
 
+    # @todo
+    return True
 
 
+def _complex_reactant_from_molecule_instances(molecules: tg.List[mins.MoleculeInstance]) -> rbm.ComplexReactant:
 
-
-
-
-def _complex_reactant_from_molecule_instances():
-    pass
 
 
 

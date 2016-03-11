@@ -28,6 +28,21 @@ class MoleculeInstance:
             self.modification_properties == other.modification_properties and \
             self.association_properties == other.association_properties
 
+    def __lt__(self, other: 'MoleculeInstance') -> bool:
+        if self.mol_def.spec.name < other.mol_def.spec.name:
+            return True
+
+        if self.modification_properties < other.modification_properties:
+            return True
+
+        if self.association_properties < other.association_properties:
+            return True
+
+        if self.localization_property < other.localization_property:
+            return True
+
+        return False
+
     def __hash__(self) -> int:
         return hash(str(self))
 
@@ -55,6 +70,18 @@ class ModificationPropertyInstance(PropertyInstance):
     def __eq__(self, other: PropertyInstance) -> bool:
         return isinstance(other, ModificationPropertyInstance) and self.modification_def == other.modification_def and \
             self.modifier == other.modifier
+
+    def __lt__(self, other: 'ModificationPropertyInstance'):
+        if self.modification_def.spec.domain < other.modification_def.spec.domain:
+            return True
+
+        if self.modification_def.spec.subdomain < other.modification_def.spec.subdomain:
+            return True
+
+        if self.modification_def.spec.residue < other.modification_def.spec.residue:
+            return True
+
+        return self.modifier < other.modifier
 
     def __hash__(self) -> bool:
         return hash(str(self))
@@ -97,6 +124,18 @@ class AssociationPropertyInstance(PropertyInstance):
             return self.association_def == other.association_def and self.occupation_status == other.occupation_status
         else:
             return False
+
+    def __lt__(self, other: 'AssociationPropertyInstance'):
+        if self.association_def.spec.domain < other.association_def.spec.domain:
+            return True
+
+        if self.association_def.spec.subdomain < other.association_def.spec.subdomain:
+            return True
+
+        if self.association_def.spec.residue < other.association_def.spec.residue:
+            return True
+
+        return self.occupation_status < other.occupation_status
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -141,6 +180,9 @@ class LocalizationPropertyInstance(PropertyInstance):
     def __eq__(self, other: PropertyInstance) -> bool:
         return isinstance(other, LocalizationPropertyInstance) and self.localization_def == other.localization_def and \
             self.compartment == other.compartment
+
+    def __lt__(self, other: 'LocalizationPropertyInstance') -> bool:
+        return self.compartment < other.compartment
 
     def __hash__(self) -> int:
         return hash(str(self))
