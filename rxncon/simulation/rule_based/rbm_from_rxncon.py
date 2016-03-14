@@ -244,9 +244,17 @@ def is_property_pair_valid_for_reaction(mol_def: mdf.MoleculeDefinition,
     assert isinstance(rhs, venn.PropertySet)
     rhs_prop = rhs.value
 
+    # if lhs and rhs are both universal sets the should match everything per definition
     if lhs.is_equivalent_to(venn.UniversalSet()) and rhs.is_equivalent_to(venn.UniversalSet()):
         return True
 
+    # the value of the UniversalSet is None this is not comparable with
+    if lhs.is_equivalent_to(venn.UniversalSet()) and reaction.source is not  None:
+        return False
+    elif rhs.is_equivalent_to(venn.UniversalSet()) and reaction.product is not None:
+        return False
+
+    #if not lhs.is_superset_of(reaction.source):
     return mfr.mol_def_and_property_match_state(mol_def, lhs_prop, reaction.source, negate=False) and\
         mfr.mol_def_and_property_match_state(mol_def, rhs_prop, reaction.product, negate=False)
 
