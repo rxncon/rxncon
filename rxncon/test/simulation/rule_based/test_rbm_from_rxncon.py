@@ -11,11 +11,149 @@ from rxncon.core import contingency as con, effector, effector, effector, effect
 from rxncon.input.quick import quick as qui
 from rxncon.syntax import rxncon_from_string as rfs
 from rxncon.venntastic import sets as venn
+import rxncon.semantics.molecule_definition as mold
 import rxncon.semantics.molecule_definition_from_rxncon as mdr
 import rxncon.semantics.molecule_instance as moi
 import rxncon.semantics.molecule_instance_from_rxncon as mfr
+import rxncon.simulation.rule_based.rule_based_model as rbm
+
+
+
+@pytest.fixture
+def A_pplus_X_reaction():
+    return rfs.reaction_from_string('A_p+_X')
+
+
+@pytest.fixture
+def C_pplus_X_residue_reaction():
+    return rfs.reaction_from_string('C_p+_X_[(r)]')
+
+
+@pytest.fixture
+def D_ubplus_X_residue_reaction():
+    return rfs.reaction_from_string('D_ub+_X_[(r)]')
+
+
+@pytest.fixture
+def B_pminus_X_reaction():
+    return rfs.reaction_from_string('B_p-_X')
+
+
+@pytest.fixture
+def E_pt_X_reaction():
+    return rfs.reaction_from_string('E_pt_X')
+
+
+@pytest.fixture
+def A_ppi_X_d_reaction():
+    return rfs.reaction_from_string('A_ppi_X_[d]')
+
+
+@pytest.fixture
+def Y_ppi_X_d_reaction():
+    return rfs.reaction_from_string('Y_ppi_X_[d]')
+
+
+@pytest.fixture
+def A_ppi_X_d_contingencies(A_ppi_X_d_reaction):
+    return [con.Contingency(A_ppi_X_d_reaction,
+                          con.ContingencyType.requirement,
+                          eff.StateEffector(rfs.state_from_string('X-{p}')))
+           ]
+
+
+@pytest.fixture
+def Y_ppi_X_d_contingencies(Y_ppi_X_d_reaction):
+    return  [con.Contingency(Y_ppi_X_d_reaction,
+                             con.ContingencyType.requirement,
+                             eff.StateEffector(rfs.state_from_string('X-{p}'))),
+             con.Contingency(Y_ppi_X_d_reaction,
+                             con.ContingencyType.inhibition,
+                             eff.StateEffector(rfs.state_from_string('A--X')))]
+
+
+@pytest.fixture
+def rxn_systems(A_pplus_X_reaction, C_pplus_X_residue_reaction, D_ubplus_X_residue_reaction, B_pminus_X_reaction,
+                E_pt_X_reaction, A_ppi_X_d_reaction, Y_ppi_X_d_reaction, A_ppi_X_d_contingencies, Y_ppi_X_d_contingencies):
+
+    return [rxs.RxnConSystem([A_pplus_X_reaction], []),
+            rxs.RxnConSystem([C_pplus_X_residue_reaction], [])
+            # rxs.RxnConSystem([D_ubplus_X_residue_reaction], []),
+            # rxs.RxnConSystem([B_pminus_X_reaction], []),
+            # rxs.RxnConSystem([E_pt_X_reaction], []),
+            # rxs.RxnConSystem([A_ppi_X_d_reaction, Y_ppi_X_d_reaction], []),
+            # rxs.RxnConSystem([A_ppi_X_d_reaction, A_pplus_X_reaction], A_ppi_X_d_contingencies),
+            # rxs.RxnConSystem([Y_ppi_X_d_reaction, A_ppi_X_d_reaction], Y_ppi_X_d_contingencies)
+            ]
+
+
+@pytest.fixture
+def molecule_def(A_pplus_X_reaction, C_pplus_X_residue_reaction, D_ubplus_X_residue_reaction, B_pminus_X_reaction,
+                E_pt_X_reaction, A_ppi_X_d_reaction, Y_ppi_X_d_reaction, A_ppi_X_d_contingencies, Y_ppi_X_d_contingencies):
+    contingencies = A_ppi_X_d_contingencies
+    contingencies.extend(Y_ppi_X_d_contingencies)
+    rxncon_system = rxs.RxnConSystem([A_pplus_X_reaction, C_pplus_X_residue_reaction, D_ubplus_X_residue_reaction, B_pminus_X_reaction,
+                E_pt_X_reaction, A_ppi_X_d_reaction, Y_ppi_X_d_reaction], contingencies)
+
+    return mdr.MoleculeDefinitionSupervisor(rxncon_system).molecule_definitions
+
+@pytest.fixture
+def A_pplus_X_expected_rule_system(A_pplus_X_reaction):
+
+    molecule_definition = mdr.MoleculeDefinitionSupervisor(rxs.RxnConSystem([A_pplus_X_reaction],[])).molecule_definitions
+    modification_def_X = list(list(molecule_definition['X'].modification_defs))[0]
+
+    return [rbm.Rule([rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['A'], set(), set(), None)),
+                      rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['X'],
+                                                                {moi.ModificationPropertyInstance(modification_def_X,moi.Modifier.unmodified)},
+                                                                set(), None))],  # left_reactant
+                      [rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['A'], set(), set(), None)),
+                       rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['X'],
+                                                                 {moi.ModificationPropertyInstance(modification_def_X, moi.Modifier.phosphorylated)},
+                                                                 set(), None))],  # right_reactant
+                      rbm.Arrow.reversible,  # arrow_type  #  should be reversible but is unidirectional hence ->
+                     rfr.parameters_from_reaction_and_quant_conts(A_pplus_X_reaction, [])
+                      )
+            ]
+
+@pytest.fixture
+def C_pplus_X_residue_rule_system(C_pplus_X_residue_reaction):
+
+    molecule_definition = mdr.MoleculeDefinitionSupervisor(rxs.RxnConSystem([C_pplus_X_residue_reaction],[])).molecule_definitions
+    modification_def_X = list(list(molecule_definition['X'].modification_defs))[0]
+
+    return [rbm.Rule([rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['C'], set(), set(), None)),
+                      rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['X'],
+                                                            {moi.ModificationPropertyInstance(modification_def_X, moi.Modifier.unmodified)},
+                                                            set(), None))],  # left_reactant
+                      [rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['C'], set(), set(), None)),
+                       rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['X'],
+                                                                 {moi.ModificationPropertyInstance(modification_def_X, moi.Modifier.phosphorylated)},
+                                                                 set(), None))],  # right_reactant
+                      rbm.Arrow.reversible,  # arrow_type  #  should be reversible but is unidirectional hence ->
+                      rfr.parameters_from_reaction_and_quant_conts(C_pplus_X_residue_reaction, [])
+                      )
+            ]
+
+@pytest.fixture
+def expected_rules(A_pplus_X_expected_rule_system, C_pplus_X_residue_rule_system):
+    return [A_pplus_X_expected_rule_system,
+            C_pplus_X_residue_rule_system
+            ]
 
 # MASTERTEST testing the lhs/rhs MoleculeInstances that appear.
+def test_generate_rules(rxn_systems, expected_rules):
+    for i, system in enumerate(rxn_systems):
+        actual_rules = rfr.RuleBasedModelSupervisor(system).rules
+        for rule in actual_rules:
+            assert rule in expected_rules[i]
+        for rule in expected_rules[i]:
+            assert rule in actual_rules
+
+# def test_generate_rules(simple_system):
+#     rxncon_system = simple_system
+#     rbms = rfr.RuleBasedModelSupervisor(rxncon_system)
+#     pass
 
 def test_mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(simple_system: rxs.RxnConSystem):
     phosphorylation_reaction_X = simple_system.reactions[0]

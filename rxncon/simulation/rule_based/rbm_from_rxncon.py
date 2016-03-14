@@ -35,16 +35,17 @@ class RuleBasedModelSupervisor:
             involved_molecules = involved_molecule_specs_for_reaction_and_contingencies(reaction, strict_conts)
             mol_instance_pairs = []
 
-            for mol_def in self.mol_defs:
-                if mol_def.spec in involved_molecules:
-                    mol_instance_pairs.append(mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(mol_def, reaction, strict_conts, disjunctify))
+            for mol_def_name in self.mol_defs:
+                if self.mol_defs[mol_def_name].spec in involved_molecules:
+                    mol_instance_pairs.append(mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(self.mol_defs[mol_def_name], reaction, strict_conts, disjunctify))
 
             rules_of_mol_instances = lhs_rhs_product(mol_instance_pairs)
             for rule_of_mol_instance in rules_of_mol_instances:
-                lhs_reactants = reactants_from_molecule_instances(rule_of_mol_instance[0])
-                rhs_reactants = reactants_from_molecule_instances(rule_of_mol_instance[1])
+                lhs_reactants = reactants_from_molecule_instances(list(rule_of_mol_instance[0]))
+                rhs_reactants = reactants_from_molecule_instances(list(rule_of_mol_instance[1]))
                 parameters = parameters_from_reaction_and_quant_conts(reaction, quant_conts)
-
+                lhs_reactants = sorted(lhs_reactants)
+                rhs_reactants = sorted(rhs_reactants)
                 self.rules.append(rbm.Rule(lhs_reactants,
                                            rhs_reactants,
                                            arrow_from_reaction(reaction),
@@ -53,7 +54,7 @@ class RuleBasedModelSupervisor:
                 self.parameters += parameters
 
     def _construct_rule_based_model(self):
-        self.rule_based_model = rbm.RuleBasedModel(self.mol_defs, self.rules, self.parameters, [])
+        self.rule_based_model = rbm.RuleBasedModel(list(self.mol_defs.values()), self.rules, self.parameters, [])
 
     def _validate(self):
         pass
@@ -64,13 +65,13 @@ def parameters_from_reaction_and_quant_conts(reaction: rxn.Reaction, quant_conts
     # @todo fix quantitative contingencies
     if reaction.directionality == rxn.Directionality.reversible:
         return [
-            rbm.Parameter('kf_{0}'.format(str(reaction))),
-            rbm.Parameter('kr_{0}'.format(str(reaction)))
+            rbm.Parameter('kf_{0}'.format(str(reaction)), None),
+            rbm.Parameter('kr_{0}'.format(str(reaction)), None)
         ]
 
     elif reaction.directionality == rxn.Directionality.irreversible:
         return [
-            rbm.Parameter('k_{0}'.format(str(reaction)))
+            rbm.Parameter('k_{0}'.format(str(reaction)), None)
         ]
 
     else:
@@ -172,7 +173,7 @@ def _complex_reactant_from_molecule_instances(molecules: tg.List[mins.MoleculeIn
 
 def lhs_rhs_product(reaction_molecules: tg.List[tg.List[tg.Tuple[mins.MoleculeInstance, mins.MoleculeInstance]]])\
         -> tg.List[tg.Tuple[tg.List[mins.MoleculeInstance], tg.List[mins.MoleculeInstance]]]:
-    mol_product = itt.product(reaction_molecules)
+    mol_product = itt.product(*reaction_molecules)
 
     lhs_rhs = []
 
@@ -243,12 +244,8 @@ def is_property_pair_valid_for_reaction(mol_def: mdf.MoleculeDefinition,
     assert isinstance(rhs, venn.PropertySet)
     rhs_prop = rhs.value
 
-    if reaction.source is None:
-        pass
-        #source_properties = mfr.mol_def_and_property_match_state(mol_def, lhs_prop, reaction.product, negate=True)
-        #[x for x in source_properties if x]
-    elif reaction.product is None:
-        pass
+    if lhs.is_equivalent_to(venn.UniversalSet()) and rhs.is_equivalent_to(venn.UniversalSet()):
+        return True
 
     return mfr.mol_def_and_property_match_state(mol_def, lhs_prop, reaction.source, negate=False) and\
         mfr.mol_def_and_property_match_state(mol_def, rhs_prop, reaction.product, negate=False)

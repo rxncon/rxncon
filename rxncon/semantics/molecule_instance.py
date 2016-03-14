@@ -37,7 +37,8 @@ class MoleculeInstance:
         if self.association_properties < other.association_properties:
             return True
 
-        if self.localization_property < other.localization_property:
+        if self.localization_property is not None and other.localization_property is not None \
+           and self.localization_property < other.localization_property:
             return True
 
         return False
