@@ -77,8 +77,8 @@ def rxn_systems(A_pplus_X_reaction, C_pplus_X_residue_reaction, D_ubplus_X_resid
                 E_pt_X_reaction, A_ppi_X_d_reaction, Y_ppi_X_d_reaction, A_ppi_X_d_contingencies, Y_ppi_X_d_contingencies):
 
     return [rxs.RxnConSystem([A_pplus_X_reaction], []),
-            rxs.RxnConSystem([C_pplus_X_residue_reaction], [])
-            # rxs.RxnConSystem([D_ubplus_X_residue_reaction], []),
+            rxs.RxnConSystem([C_pplus_X_residue_reaction], []),
+            rxs.RxnConSystem([D_ubplus_X_residue_reaction, C_pplus_X_residue_reaction], []),
             # rxs.RxnConSystem([B_pminus_X_reaction], []),
             # rxs.RxnConSystem([E_pt_X_reaction], []),
             # rxs.RxnConSystem([A_ppi_X_d_reaction, Y_ppi_X_d_reaction], []),
@@ -101,7 +101,7 @@ def molecule_def(A_pplus_X_reaction, C_pplus_X_residue_reaction, D_ubplus_X_resi
 def A_pplus_X_expected_rule_system(A_pplus_X_reaction):
 
     molecule_definition = mdr.MoleculeDefinitionSupervisor(rxs.RxnConSystem([A_pplus_X_reaction],[])).molecule_definitions
-    modification_def_X = list(list(molecule_definition['X'].modification_defs))[0]
+    modification_def_X = list(molecule_definition['X'].modification_defs)[0]
 
     return [rbm.Rule([rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['A'], set(), set(), None)),
                       rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['X'],
@@ -120,7 +120,7 @@ def A_pplus_X_expected_rule_system(A_pplus_X_reaction):
 def C_pplus_X_residue_rule_system(C_pplus_X_residue_reaction):
 
     molecule_definition = mdr.MoleculeDefinitionSupervisor(rxs.RxnConSystem([C_pplus_X_residue_reaction],[])).molecule_definitions
-    modification_def_X = list(list(molecule_definition['X'].modification_defs))[0]
+    modification_def_X = list(molecule_definition['X'].modification_defs)[0]
 
     return [rbm.Rule([rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['C'], set(), set(), None)),
                       rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['X'],
@@ -134,14 +134,47 @@ def C_pplus_X_residue_rule_system(C_pplus_X_residue_reaction):
                       rfr.parameters_from_reaction_and_quant_conts(C_pplus_X_residue_reaction, [])
                       )
             ]
-
 @pytest.fixture
-def expected_rules(A_pplus_X_expected_rule_system, C_pplus_X_residue_rule_system):
-    return [A_pplus_X_expected_rule_system,
-            C_pplus_X_residue_rule_system
+def D_ubplus_X_residue_C_pplus_X_residue_rule_system(D_ubplus_X_residue_reaction, C_pplus_X_residue_reaction):
+
+    molecule_definition = mdr.MoleculeDefinitionSupervisor(rxs.RxnConSystem([D_ubplus_X_residue_reaction, C_pplus_X_residue_reaction],[])).molecule_definitions
+    assert len(molecule_definition['X'].modification_defs) == 1  # there should be only one residue which is modified by two reactions
+    modification_def_X = list(molecule_definition['X'].modification_defs)[0]
+
+    return [rbm.Rule([rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['C'], set(), set(), None)),
+                      rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['X'],
+                                                            {moi.ModificationPropertyInstance(modification_def_X, moi.Modifier.unmodified)},
+                                                            set(), None))],  # left_reactant
+                      [rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['C'], set(), set(), None)),
+                       rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['X'],
+                                                                 {moi.ModificationPropertyInstance(modification_def_X, moi.Modifier.phosphorylated)},
+                                                                 set(), None))],  # right_reactant
+                      rbm.Arrow.reversible,  # arrow_type  #  should be reversible but is unidirectional hence ->
+                      rfr.parameters_from_reaction_and_quant_conts(C_pplus_X_residue_reaction, [])
+                      ),
+
+            rbm.Rule([rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['D'], set(), set(), None)),
+                      rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['X'],
+                                                            {moi.ModificationPropertyInstance(modification_def_X, moi.Modifier.unmodified)},
+                                                            set(), None))],  # left_reactant
+                      [rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['D'], set(), set(), None)),
+                       rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['X'],
+                                                                 {moi.ModificationPropertyInstance(modification_def_X, moi.Modifier.ubiquitinated)},
+                                                                 set(), None))],  # right_reactant
+                      rbm.Arrow.reversible,  # arrow_type  #  should be reversible but is unidirectional hence ->
+                      rfr.parameters_from_reaction_and_quant_conts(D_ubplus_X_residue_reaction, [])
+                      )
             ]
 
-# MASTERTEST testing the lhs/rhs MoleculeInstances that appear.
+
+@pytest.fixture
+def expected_rules(A_pplus_X_expected_rule_system, C_pplus_X_residue_rule_system, D_ubplus_X_residue_C_pplus_X_residue_rule_system):
+    return [A_pplus_X_expected_rule_system,
+            C_pplus_X_residue_rule_system,
+            D_ubplus_X_residue_C_pplus_X_residue_rule_system
+            ]
+
+
 def test_generate_rules(rxn_systems, expected_rules):
     for i, system in enumerate(rxn_systems):
         actual_rules = rfr.RuleBasedModelSupervisor(system).rules
@@ -150,11 +183,8 @@ def test_generate_rules(rxn_systems, expected_rules):
         for rule in expected_rules[i]:
             assert rule in actual_rules
 
-# def test_generate_rules(simple_system):
-#     rxncon_system = simple_system
-#     rbms = rfr.RuleBasedModelSupervisor(rxncon_system)
-#     pass
 
+# MASTERTEST testing the lhs/rhs MoleculeInstances that appear.
 def test_mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(simple_system: rxs.RxnConSystem):
     phosphorylation_reaction_X = simple_system.reactions[0]
 
