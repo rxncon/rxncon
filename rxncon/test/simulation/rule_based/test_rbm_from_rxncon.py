@@ -89,17 +89,65 @@ def rxn_systems(A_pplus_X_reaction, C_pplus_X_residue_reaction, D_ubplus_X_resid
 
 @pytest.fixture
 def expected_rules(A_pplus_X_expected_rule_system, C_pplus_X_residue_rule_system, D_ubplus_X_residue_C_pplus_X_residue_rule_system,
-                   B_pminus_X_expected_rule_system, E_pt_X_expected_rule_system, A_ppi_X_d_and_Y_ppi_X_d_expected_rule_system):
-    return [A_pplus_X_expected_rule_system,
-            C_pplus_X_residue_rule_system,
-            D_ubplus_X_residue_C_pplus_X_residue_rule_system,
-            B_pminus_X_expected_rule_system,
-            E_pt_X_expected_rule_system,
-            A_ppi_X_d_and_Y_ppi_X_d_expected_rule_system
+                   B_pminus_X_expected_rule_system, E_pt_X_expected_rule_system, A_ppi_X_d_and_Y_ppi_X_d_expected_rule_system,
+                   A_ppi_X_d_and_A_pplus_X_and_A_ppi_X_d_contingencies_X_pplus_expected_rule_system):
+    return [#A_pplus_X_expected_rule_system,
+            #C_pplus_X_residue_rule_system,
+            #D_ubplus_X_residue_C_pplus_X_residue_rule_system,
+            #B_pminus_X_expected_rule_system,
+            #E_pt_X_expected_rule_system,
+            #A_ppi_X_d_and_Y_ppi_X_d_expected_rule_system,
+            A_ppi_X_d_and_A_pplus_X_and_A_ppi_X_d_contingencies_X_pplus_expected_rule_system
             ]
 
+@pytest.fixture
 def A_ppi_X_d_and_A_pplus_X_and_A_ppi_X_d_contingencies_X_pplus_expected_rule_system(A_ppi_X_d_reaction, A_pplus_X_reaction, A_ppi_X_d_contingencies_X_pplus):
     molecule_definition = mdr.MoleculeDefinitionSupervisor(rxs.RxnConSystem([A_ppi_X_d_reaction, A_pplus_X_reaction], A_ppi_X_d_contingencies_X_pplus)).molecule_definitions
+    association_def_A = list(molecule_definition['A'].association_defs)[0]
+    association_def_X = list(molecule_definition['X'].association_defs)[0]
+    modification_def_X = list(molecule_definition['X'].modification_defs)[0]
+
+    association_property_instance_A_bound_X = moi.AssociationPropertyInstance(association_def_A, moi.OccupationStatus.occupied_known_partner, association_def_X.spec)
+    association_property_instance_X_bound_A = moi.AssociationPropertyInstance(association_def_X, moi.OccupationStatus.occupied_known_partner, association_def_A.spec)
+
+    return [rbm.Rule([rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['A'],
+                                                                set(), {moi.AssociationPropertyInstance(association_def_A, moi.OccupationStatus.not_occupied, None)},
+                                                                None)),
+                      rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['X'],
+                                                                {moi.ModificationPropertyInstance(modification_def_X,moi.Modifier.phosphorylated)},
+                                                                {moi.AssociationPropertyInstance(association_def_X, moi.OccupationStatus.not_occupied, None)},
+                                                                None))
+                      ],
+                     [rbm.ComplexReactant([moi.MoleculeInstance(molecule_definition['A'],
+                                                                set(), {association_property_instance_A_bound_X}, None),
+                                           moi.MoleculeInstance(molecule_definition['X'],
+                                                                {moi.ModificationPropertyInstance(modification_def_X,moi.Modifier.phosphorylated)},
+                                                                {association_property_instance_X_bound_A}, None)],
+                                          [rbm.Binding((0, association_property_instance_A_bound_X),
+                                                       (1, association_property_instance_X_bound_A))]
+                                          ),
+                      ],
+                     rbm.Arrow.reversible,
+                     [
+                        rbm.Parameter('kf_{0}'.format(str(A_ppi_X_d_reaction)), None),
+                        rbm.Parameter('kr_{0}'.format(str(A_ppi_X_d_reaction)), None)
+                     ]),
+
+            rbm.Rule([rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['A'], set(), set(), None)),
+                      rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['X'],
+                                                                {moi.ModificationPropertyInstance(modification_def_X,moi.Modifier.unmodified)},
+                                                                set(), None))],  # left_handside
+                     [rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['A'], set(), set(), None)),
+                      rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['X'],
+                                                                 {moi.ModificationPropertyInstance(modification_def_X, moi.Modifier.phosphorylated)},
+                                                                 set(), None))],  # right_handside
+                     rbm.Arrow.reversible,  # arrow_type  #  should be reversible but is unidirectional hence ->
+                     [
+                        rbm.Parameter('kf_{0}'.format(str(A_pplus_X_reaction)), None),
+                        rbm.Parameter('kr_{0}'.format(str(A_pplus_X_reaction)), None)
+                     ]
+                     )
+            ]
 
 
 @pytest.fixture
