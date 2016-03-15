@@ -160,11 +160,11 @@ def _complex_reactant_from_molecule_instances(molecules: tg.List[mins.MoleculeIn
 
     bindings = []
 
-    for i, first_molecule in molecules:
+    for i, first_molecule in enumerate(molecules):
         for first_assoc_prop in first_molecule.association_properties:
-            for j, second_molecule in molecules:
+            for j, second_molecule in enumerate(molecules):
                 for second_assoc_prop in second_molecule.association_properties:
-                    if first_assoc_prop.partner == second_assoc_prop.assoc_def.spec:
+                    if first_assoc_prop.partner == second_assoc_prop.association_def.spec:
                         if rbm.Binding((j, second_assoc_prop), (i, first_assoc_prop)) not in bindings:
                             bindings.append(rbm.Binding((i, first_assoc_prop), (j, second_assoc_prop)))
 

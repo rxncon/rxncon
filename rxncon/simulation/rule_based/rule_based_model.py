@@ -117,7 +117,7 @@ class ComplexReactant(Reactant):
         self._validate()
 
     @tc.typecheck
-    def __eq__(self, other: 'Reactant'):
+    def __eq__(self, other: Reactant):
         return isinstance(other, ComplexReactant) and self.molecules == other.molecules and self.bindings == other.bindings
 
     def __lt__(self, other):
