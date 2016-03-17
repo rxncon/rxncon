@@ -25,32 +25,20 @@ class bBm_System:
         return "\n".join(rules)
 
     def _rule_to_string(self, rule: bBm.Rule):
-        return "{0}, {1}".format(self._target_to_string(rule.target), self._factors_to_string(rule.factor))
+        return "{0}, {1}".format(self._target_to_string(rule.target), self._factor_to_string(rule.factor.simplified_form()))
 
     def _target_to_string(self, target: bBm.Node):
         return self._generate_name(target.value)
 
-    def _factors_to_string(self, factor: bBm.Factor):
-        nested_factor_list=factor.to_union_list_form()
-        return self._nested_factor_list_to_string(nested_factor_list)
-
-    def _nested_factor_list_to_string(self, nested_factor_list: List[List[venn.Set]]) -> str:
-        result=[]
-        for bool_and in nested_factor_list:
-            result += self._bool_and_to_string(bool_and)
-
-        return " | ".join(result)
-
-    def _bool_and_to_string(self, bool_and: List[venn.Set]):
-        elements=[self._generate_name(element) for element in bool_and]
-
-        if len(elements) == 1:
-            return elements[0]
-        elif len(elements) > 1:
-            return "({0})".format(" & ".join(elements))
+    def _factor_to_string(self, factor: bBm.Factor):
+        if isinstance(factor, venn.PropertySet):
+            return self._generate_name(factor)
+        elif isinstance(factor, venn.Intersection):
+            return '({0} & {1})'.format(self._factor_to_string(factor.left_expr), self._factor_to_string(factor.right_expr))
+        elif isinstance(factor, venn.Union):
+            return '({0} | {1})'.format(self._factor_to_string(factor.left_expr), self._factor_to_string(factor.right_expr))
         else:
             raise NotImplementedError
-
 
     def _generate_name(self, property_set: venn.PropertySet):
         if isinstance(property_set.value, rxn.Reaction):
