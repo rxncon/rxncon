@@ -217,7 +217,7 @@ def A_ppi_X_d_and_A_pplus_X_and_A_ppi_X_d_contingencies_X_pplus_expected_rule_sy
 
     association_property_instance_A_bound_X = moi.AssociationPropertyInstance(association_def_A, moi.OccupationStatus.occupied_known_partner, association_def_X.spec)
     association_property_instance_X_bound_A = moi.AssociationPropertyInstance(association_def_X, moi.OccupationStatus.occupied_known_partner, association_def_A.spec)
-
+            # RULE: A_PPI_X_d ! X-{P}
     return [rbm.Rule([rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['A'],
                                                                 set(), {moi.AssociationPropertyInstance(association_def_A, moi.OccupationStatus.not_occupied, None)},
                                                                 None)),
@@ -240,7 +240,7 @@ def A_ppi_X_d_and_A_pplus_X_and_A_ppi_X_d_contingencies_X_pplus_expected_rule_sy
                         rbm.Parameter('kf_{0}'.format(str(A_ppi_X_d_reaction)), None),
                         rbm.Parameter('kr_{0}'.format(str(A_ppi_X_d_reaction)), None)
                      ]),
-
+            #RULE: A_P+_X
             rbm.Rule([rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['A'], set(), set(), None)),
                       rbm.MoleculeReactant(moi.MoleculeInstance(molecule_definition['X'],
                                                                 {moi.ModificationPropertyInstance(modification_def_X,moi.Modifier.unmodified)},
