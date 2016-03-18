@@ -1,17 +1,19 @@
-import rxncon.simulation.bBM.bipartite_boolean_model as bBm
+import rxncon.simulation.bBM.bipartite_boolean_model as bbm
+import rxncon.simulation.bBM.bipartite_boolean_model as bbm
 from typing import List, Union
 import re
 import rxncon.venntastic.sets as venn
 import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
+import rxncon.core.specification as spec
 
 
-class bBm_System:
-    def __init__(self, bipartite_boolean_model: bBm.Bipartite_Boolean_Model):
+class BoolNet_System:
+    def __init__(self, bipartite_boolean_model: bbm.Bipartite_Boolean_Model):
         self.bipartite_boolean_model = bipartite_boolean_model
 
     def to_string(self) -> str:
-        bipartite_boolean_model_strings = [self._header_string(), self._build_rules()]
+        bipartite_boolean_model_strings = [self._header_string(), self._build_init_conditions(), self._build_rules()]
         return "\n".join(bipartite_boolean_model_strings)
 
     def to_file(self, path: str):
@@ -21,18 +23,28 @@ class bBm_System:
         return "target, factors"
 
     def _build_rules(self):
-        rules=[self._rule_to_string(rule) for rule in self.bipartite_boolean_model.rules]
+        rules=[self._string_from_rule(rule) for rule in self.bipartite_boolean_model.rules]
         return "\n".join(rules)
 
-    def _rule_to_string(self, rule: bBm.Rule):
-        return "{0}, {1}".format(self._target_to_string(rule.target), self._factor_to_string(rule.factor.simplified_form()))
+    def _build_init_conditions(self):
+        init_conditions = [self._string_from_init_cont(init_cont) for init_cont in self.bipartite_boolean_model.init_conditions]
+        return "\n".join(init_conditions)
 
-    def _target_to_string(self, target: bBm.Node):
-        return self._generate_name(target.value)
+    def _string_from_init_cont(self, init_cont: bbm.InitConditions):
+        if init_cont.value is None:
+            return "{0}, {0}".format(self._generate_name(init_cont.target))
+        else:
+            raise NotImplementedError
 
-    def _factor_to_string(self, factor: bBm.Factor):
+    def _string_from_rule(self, rule: bbm.Rule):
+        return "{0}, {1}".format(self._target_to_string(rule.target), self._factor_to_string(rule.factor.simplified_form().value))
+
+    def _target_to_string(self, target: bbm.Node):
+        return self._generate_name(target)
+
+    def _factor_to_string(self, factor: bbm.Factor):
         if isinstance(factor, venn.PropertySet):
-            return self._generate_name(factor)
+            return self._generate_name(factor.value)
         elif isinstance(factor, venn.Intersection):
             return '({0} & {1})'.format(self._factor_to_string(factor.left_expr), self._factor_to_string(factor.right_expr))
         elif isinstance(factor, venn.Union):
@@ -40,66 +52,75 @@ class bBm_System:
         else:
             raise NotImplementedError
 
-    def _generate_name(self, property_set: venn.PropertySet):
-        if isinstance(property_set.value, rxn.Reaction):
-            return string_from_reaction(property_set.value)
+    def _generate_name(self, node: bbm.Node):
+        if isinstance(node.value, rxn.Reaction):
+            return string_from_reaction(node.value)
 
-        elif isinstance(property_set.value, sta.InterProteinInteractionState):
-            return string_from_inter_protein_interaction_state(property_set.value)
+        elif isinstance(node.value, sta.InterProteinInteractionState):
+            return string_from_inter_protein_interaction_state(node.value)
 
-        elif isinstance(property_set.value, sta.IntraProteinInteractionState):
-            return string_from_intra_protein_interaction_state(property_set.value)
+        elif isinstance(node.value, sta.IntraProteinInteractionState):
+            return string_from_intra_protein_interaction_state(node.value)
 
-        elif isinstance(property_set.value, sta.CovalentModificationState):
-            return string_from_covalent_modification_state(property_set.value)
+        elif isinstance(node.value, sta.CovalentModificationState):
+            return string_from_covalent_modification_state(node.value)
 
-        elif isinstance(property_set.value, sta.TranslocationState):
-            return string_from_translocation_state(property_set.value)
+        elif isinstance(node.value, sta.TranslocationState):
+            return string_from_translocation_state(node.value)
 
-        elif isinstance(property_set.value, sta.SynthesisDegradationState):
-            return string_from_synthesis_degradation_state(property_set.value)
+        elif isinstance(node.value, sta.SynthesisDegradationState):
+            return string_from_synthesis_degradation_state(node.value)
+
+        elif isinstance(node.value, spec.Specification):
+            return node.value
 
 
+def string_from_specification(specification: spec.Specification):
+    spec_str = str(specification)
+    return replace_not_valid_signs(spec_str)
 
-        #re,sub("\W", "", self.name)  # replace everything not in [a-zA-Z0-9_] with nothing
 
-def string_from_reaction(reaction_node: bBm.Node) -> str:
+def string_from_reaction(reaction: rxn.Reaction) -> str:
     def generate_reaction_verb_name(verb: rxn.Verb):
         if re.search("-", verb.value):
             return re.sub("-", "minus", verb.value)
         elif re.search("\+", verb.value):
             return re.sub("\+", "plus", verb.value)
+        else:
+            return verb.value
+    reaction_str = "{0}_{1}_{2}".format(reaction.subject, generate_reaction_verb_name(reaction.verb), reaction.object)
+    return replace_not_valid_signs(reaction_str)
 
-    verb = generate_reaction_verb_name(reaction_node.value.verb)
-    return "{0}_{1}_{2}".format(reaction_node.value.subject, generate_reaction_verb_name(reaction_node.value.verb), reaction_node.value.object)
 
-def replace_breakets(value):
-    value = re.sub('[\[{(]',"OpenBracket_", value )
-    value = re.sub('[\]})]', "_CloseBracket", value )
+def replace_not_valid_signs(value):
+    value = re.sub('[\[{(]',"_", value )
+    value = re.sub('[\]})]', "_", value )
+    value = re.sub('\/', "_", value )
     return value
 
-def string_from_inter_protein_interaction_state(state) -> str:
-    result =  '{0}__{1}'.format(state.first_component, state.second_component)
-    return replace_breakets(result)
+
+def string_from_inter_protein_interaction_state(state: rxn.sta.InterProteinInteractionState) -> str:
+    result =  '{0}..{1}'.format(state.first_component, state.second_component)
+    return replace_not_valid_signs(result)
 
 
-def string_from_intra_protein_interaction_state(state) -> str:
+def string_from_intra_protein_interaction_state(state: rxn.sta.IntraProteinInteractionState) -> str:
     # A_[m]--[n]
-    result = '{0}__OpenBracket_{1}_CloseBracket'.format(state.first_component, state.second_component.domain)
-    return replace_breakets(result)
+    result = '{0}.._{1}_'.format(state.first_component, state.second_component.domain)
+    return replace_not_valid_signs(result)
 
-def string_from_covalent_modification_state(state) -> str:
+def string_from_covalent_modification_state(state: rxn.sta.CovalentModificationState) -> str:
     # A-{P}
-    result = '{0}_{1}'.format(state.substrate, state.modifier.value)
-    return replace_breakets(result)
+    result = '{0}.{1}'.format(state.substrate, state.modifier.value)
+    return replace_not_valid_signs(result)
 
 
 def string_from_translocation_state(state) -> str:
     # A-{cyto}
-    result = '{0}_{1}'.format(state.substrate, state.compartment.value)
-    return replace_breakets(result)
+    result = '{0}.{1}'.format(state.substrate, state.compartment.value)
+    return replace_not_valid_signs(result)
 
 
 def string_from_synthesis_degradation_state(state) -> str:
     result = '{}'.format(state.component)
-    return replace_breakets(result)
+    return replace_not_valid_signs(result)
