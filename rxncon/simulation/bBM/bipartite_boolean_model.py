@@ -1,20 +1,25 @@
-from typing import List, Union
+import typing as tg
 import rxncon.venntastic.sets as venn
 import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
 
 
 class Bipartite_Boolean_Model:
-    def __init__(self, rules: List["Rule"]):
+    def __init__(self, rules: tg.List["Rule"], init_conditions: tg.List['InitConditions']):
         self.rules = rules
+        self.init_conditions = init_conditions
         self._validate()
 
     def _validate(self):
         pass
 
+class InitConditions:
+    def __init__(self, target: 'Node', value: tg.Optional[tg.Union[bool, 'Node']]):
+        self.target = target
+        self.value = value
 
 class Node:
-    def __init__(self, value: Union[rxn.Reaction, sta.State]):
+    def __init__(self, value: tg.Union[rxn.Reaction, sta.State]):
         self.value = value
 
     def __eq__(self, other: 'Node'):
@@ -36,7 +41,7 @@ class Node:
 
 
 class Rule:
-    def __init__(self, target: Node, factor: "Factor"):
+    def __init__(self, target: Node, factor: 'Factor'):  # should factor expect class 'Factor' ?
         self.target = target
         self.factor = factor
         self._validate()
@@ -45,10 +50,10 @@ class Rule:
         pass
 
 
-class Factor:
-    def __init__(self, factor: venn.Set ):
+class Factor(venn.Set):
+    def __init__(self, factor: venn.Set):
         # venn.set e.g.:Union(Intersection(A--B, A_{P}), Intersection(A--C, C-{P})) --> (A--B & A_{P}) |(A--C & C_{P})
-        self.factor = factor
+        self.value = factor
         self._validate()
 
     def _validate(self):
