@@ -264,7 +264,6 @@ class Intersection(BinarySet):
     def __str__(self) -> str:
         return 'Intersection({0}, {1})'.format(self.left_expr, self.right_expr)
 
-
     def _unions_moved_to_left(self) -> Set:
         if isinstance(self.left_expr, Union):
             # Distributivity of intersection with respect to union
