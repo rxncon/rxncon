@@ -137,8 +137,7 @@ class AssociationPropertyInstance(PropertyInstance):
         if self.association_def.spec.residue is not None and other.association_def.spec.residue is not None \
                 and self.association_def.spec.residue < other.association_def.spec.residue:
             return True
-        # todo: occupation_status is not comparable
-        #return self.occupation_status < other.occupation_status
+
         return False
 
     def __hash__(self) -> int:

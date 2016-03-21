@@ -109,9 +109,16 @@ def _update_defs(defs: tg.Set[mol.PropertyDefinition], new_def: mol.PropertyDefi
 
 
 def _mod_spec_domain_from_state(state: sta.CovalentModificationState, reaction: rxn.Reaction):
-
     spec = state.substrate
-    if not spec.residue:
+
+    if not spec.residue and reaction.influence == rxn.Influence.transfer:
+        if spec == reaction.subject:
+            spec.residue = _kinase_residue_name(reaction.object)
+        elif spec == reaction.object:
+            spec.residue = _kinase_residue_name(reaction.subject)
+        else:
+            raise NotImplementedError
+    elif not spec.residue and reaction.influence in [rxn.Influence.positive, rxn.Influence.negative]:
         spec.residue = _kinase_residue_name(reaction.subject)
 
     return state

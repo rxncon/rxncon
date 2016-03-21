@@ -79,7 +79,8 @@ def Y_ppi_X_d_contingencies_X_pplus_and_Z_bound_X(Y_ppi_X_d_reaction):
 
 @pytest.fixture
 def rxn_systems(A_pplus_X_reaction, C_pplus_X_residue_reaction, D_ubplus_X_residue_reaction, B_pminus_X_reaction,
-                E_pt_X_reaction, Z_ppi_X_reaction, A_ppi_X_d_reaction, Y_ppi_X_d_reaction, A_ppi_X_d_contingencies_X_pplus, Y_ppi_X_d_contingencies_X_pplus_and_Z_bound_X):
+                E_pt_X_reaction, Z_ppi_X_reaction, A_ppi_X_d_reaction, Y_ppi_X_d_reaction, A_ppi_X_d_contingencies_X_pplus,
+                Y_ppi_X_d_contingencies_X_pplus_and_Z_bound_X):
 
     return [rxs.RxnConSystem([A_pplus_X_reaction], []),
             rxs.RxnConSystem([C_pplus_X_residue_reaction], []),
@@ -717,8 +718,8 @@ def test_mol_property_pairs_from_mol_def_and_source_state_set(simple_system):
     binding_reaction_Y_X = simple_system.reactions[6]
 
 
-    mol_prop_pair_phosphorylation_reaction_X = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
-                                                                                                        rfr.source_state_set_from_reaction(phosphorylation_reaction_X))
+    mol_prop_pair_phosphorylation_reaction_X = rfr.mol_property_pairs_from_mol_def_and_reaction(mol_def_X,
+                                                                                                rfr.source_state_set_from_reaction(phosphorylation_reaction_X))
     assert len(mol_prop_pair_phosphorylation_reaction_X) == 1
     assert len(mol_prop_pair_phosphorylation_reaction_X[0]) == 2
 
@@ -729,8 +730,8 @@ def test_mol_property_pairs_from_mol_def_and_source_state_set(simple_system):
     assert mol_prop_pair_phosphorylation_reaction_X[0][1] == venn.PropertySet(moi.ModificationPropertyInstance(mod_def_Asite, moi.Modifier.phosphorylated))
 
 
-    mol_prop_pair_phosphorylation_reaction_X_at_resi = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
-                                                                                                                rfr.source_state_set_from_reaction(phosphorylation_reaction_X_at_resi))
+    mol_prop_pair_phosphorylation_reaction_X_at_resi = rfr.mol_property_pairs_from_mol_def_and_reaction(mol_def_X,
+                                                                                                        rfr.source_state_set_from_reaction(phosphorylation_reaction_X_at_resi))
 
     assert len(mol_prop_pair_phosphorylation_reaction_X_at_resi) == 2
     assert len(mol_prop_pair_phosphorylation_reaction_X_at_resi[0]) == 2
@@ -745,8 +746,8 @@ def test_mol_property_pairs_from_mol_def_and_source_state_set(simple_system):
     assert mol_prop_pair_phosphorylation_reaction_X_at_resi[1][1] == venn.PropertySet(moi.ModificationPropertyInstance(mod_def_r, moi.Modifier.phosphorylated))
 
 
-    mol_prop_pair_ubiquitination_reaction_X_at_resi = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
-                                                                                                               rfr.source_state_set_from_reaction(ubiquitination_reaction_X_at_resi))
+    mol_prop_pair_ubiquitination_reaction_X_at_resi = rfr.mol_property_pairs_from_mol_def_and_reaction(mol_def_X,
+                                                                                                       rfr.source_state_set_from_reaction(ubiquitination_reaction_X_at_resi))
 
     assert len(mol_prop_pair_ubiquitination_reaction_X_at_resi) == 2
     assert len(mol_prop_pair_ubiquitination_reaction_X_at_resi[0]) == 2
@@ -758,8 +759,8 @@ def test_mol_property_pairs_from_mol_def_and_source_state_set(simple_system):
     assert mol_prop_pair_ubiquitination_reaction_X_at_resi[1][1] == venn.PropertySet(moi.ModificationPropertyInstance(mod_def_r, moi.Modifier.ubiquitinated))
 
 
-    mol_prop_pair_dephosphorylation_reaction_X = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
-                                                                                                          rfr.source_state_set_from_reaction(dephosphorylation_reaction_X))
+    mol_prop_pair_dephosphorylation_reaction_X = rfr.mol_property_pairs_from_mol_def_and_reaction(mol_def_X,
+                                                                                                  rfr.source_state_set_from_reaction(dephosphorylation_reaction_X))
 
 
     assert len(mol_prop_pair_dephosphorylation_reaction_X) == 1
@@ -773,8 +774,8 @@ def test_mol_property_pairs_from_mol_def_and_source_state_set(simple_system):
     assert mol_prop_pair_dephosphorylation_reaction_X[0][1] == venn.PropertySet(moi.ModificationPropertyInstance(mod_def_Bsite, moi.Modifier.unmodified))
 
 
-    mol_prop_pair_binding_reaction_A_X = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
-                                                                                                  rfr.source_state_set_from_reaction(binding_reaction_A_X))
+    mol_prop_pair_binding_reaction_A_X = rfr.mol_property_pairs_from_mol_def_and_reaction(mol_def_X,
+                                                                                          rfr.source_state_set_from_reaction(binding_reaction_A_X))
 
     assert len(mol_prop_pair_binding_reaction_A_X) == 2
     assert len(mol_prop_pair_binding_reaction_A_X[0]) == 2
@@ -791,8 +792,8 @@ def test_mol_property_pairs_from_mol_def_and_source_state_set(simple_system):
     assert mol_prop_pair_binding_reaction_A_X[1][1] == venn.PropertySet(moi.AssociationPropertyInstance(assoc_def_d,
                                                                                                         moi.OccupationStatus.occupied_known_partner,
                                                                                                         spec.Specification('A', 'Xassoc', None, None)))
-    mol_prop_pair_binding_reaction_Y_X = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
-                                                                                                  rfr.source_state_set_from_reaction(binding_reaction_Y_X))
+    mol_prop_pair_binding_reaction_Y_X = rfr.mol_property_pairs_from_mol_def_and_reaction(mol_def_X,
+                                                                                          rfr.source_state_set_from_reaction(binding_reaction_Y_X))
 
     assert len(mol_prop_pair_binding_reaction_Y_X) == 2
     assert len(mol_prop_pair_binding_reaction_Y_X[0]) == 2
@@ -807,8 +808,8 @@ def test_mol_property_pairs_from_mol_def_and_source_state_set(simple_system):
                                                                                                         spec.Specification('Y', 'Xassoc', None, None)))
     #is_property_pair_valid_for_reaction(mol_def, x, reaction)
 
-    mol_prop_pair_phosphortransfer_reaction_X = rfr.mol_property_pairs_from_mol_def_and_source_state_set(mol_def_X,
-                                                                                                         rfr.source_state_set_from_reaction(phosphortransfer_reaction_X))
+    mol_prop_pair_phosphortransfer_reaction_X = rfr.mol_property_pairs_from_mol_def_and_reaction(mol_def_X,
+                                                                                                 rfr.source_state_set_from_reaction(phosphortransfer_reaction_X))
 
     print(mol_prop_pair_phosphortransfer_reaction_X)
 

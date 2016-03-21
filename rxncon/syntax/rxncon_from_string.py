@@ -115,7 +115,6 @@ def _reaction_string_to_subject_verb_object_strings(reaction_string: str) -> Tup
     verb_string = reaction_string[verb_position:object_position-1]
     object_string = reaction_string[object_position:]
 
-
     return subject_string, verb_string, object_string
 
 

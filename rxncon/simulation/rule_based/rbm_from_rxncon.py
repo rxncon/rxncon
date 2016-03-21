@@ -193,7 +193,7 @@ def mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(mol_def: mdf.
     property_sets = mol_property_sets_from_mol_def_and_state_sets(mol_def, state_set_from_contingencies(contingencies), disjunctify)
 
     lhs_rhs_property_set_pairs = \
-        [x for x in mol_property_pairs_from_mol_def_and_source_state_set(mol_def, source_state_set_from_reaction(reaction))
+        [x for x in mol_property_pairs_from_mol_def_and_reaction(mol_def, reaction)
          if is_property_pair_valid_for_reaction(mol_def, x, reaction)]
 
     assert len(lhs_rhs_property_set_pairs) == 1
@@ -222,10 +222,9 @@ def mol_property_sets_from_mol_def_and_state_sets(mol_def: mdf.MoleculeDefinitio
         return prop_sets
 
 
-def mol_property_pairs_from_mol_def_and_source_state_set(mol_def: mdf.MoleculeDefinition, state_set: venn.Set) \
-        -> tg.Tuple[venn.PropertySet, venn.PropertySet]:
-    lhs_sets = mfr.property_set_from_mol_def_and_state_set(mol_def, state_set).to_union_list_form()
-    rhs_sets = mfr.property_set_from_mol_def_and_state_set(mol_def, venn.Complement(state_set)).to_union_list_form()
+def mol_property_pairs_from_mol_def_and_reaction(mol_def: mdf.MoleculeDefinition, reaction: rxn.Reaction) -> tg.Tuple[venn.PropertySet, venn.PropertySet]:
+    lhs_sets = mfr.property_set_from_mol_def_and_state_set(mol_def, source_state_set_from_reaction(reaction)).to_union_list_form()
+    rhs_sets = mfr.property_set_from_mol_def_and_state_set(mol_def, product_state_set_from_reaction(reaction)).to_union_list_form()
 
     tuples = []
     for lhs in lhs_sets:
@@ -249,12 +248,6 @@ def is_property_pair_valid_for_reaction(mol_def: mdf.MoleculeDefinition,
     # if lhs and rhs are both universal sets the should match everything per definition
     if lhs.is_equivalent_to(venn.UniversalSet()) and rhs.is_equivalent_to(venn.UniversalSet()):
         return True
-
-    # the value of the UniversalSet is None this is not comparable with
-    if lhs.is_equivalent_to(venn.UniversalSet()) and reaction.source is not  None:
-        return False
-    elif rhs.is_equivalent_to(venn.UniversalSet()) and reaction.product is not None:
-        return False
 
     #if not lhs.is_superset_of(reaction.source):
     return mfr.mol_def_and_property_match_state(mol_def, lhs_prop, reaction.source, negate=False) and\
@@ -308,6 +301,26 @@ def source_state_set_from_reaction(reaction: rxn.Reaction) -> venn.Set:
 
     else:
         raise AssertionError
+
+
+def product_state_set_from_reaction(reaction: rxn.Reaction) -> venn.Set:
+    source_state = reaction.source
+    product_state = reaction.product
+
+    if not source_state and product_state:
+        return venn.PropertySet(product_state)
+
+    elif source_state and not product_state:
+        return venn.Complement(venn.PropertySet(source_state))
+
+    elif source_state and product_state:
+        return venn.Intersection(venn.PropertySet(product_state),
+                                 venn.Complement(venn.PropertySet(source_state)))
+
+    else:
+        raise AssertionError
+
+
 
 
 def state_set_from_effector(effector: eff.Effector) -> venn.Set:
