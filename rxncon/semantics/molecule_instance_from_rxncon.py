@@ -106,7 +106,12 @@ def mol_def_and_property_match_state(mol_def: mol.MoleculeDefinition, prop: mins
         else:
             raise NotImplementedError
 
+    # if state is not empty and the lhs/rhs is not a part of it then it is an universal set
+    if isinstance(state, sta.CovalentModificationState) and prop is not None and not mol_def.spec.is_superspecification_of(state.substrate):
+        return True
+
     matching_properties = _properties(mol_def, state, negate)
+
     return prop in matching_properties
 
 
@@ -114,6 +119,7 @@ def mol_def_and_property_match_state(mol_def: mol.MoleculeDefinition, prop: mins
 def _properties(mol_def: mol.MoleculeDefinition, state: tg.Optional[sta.State], negate: bool) -> tg.List[mins.PropertyInstance]:
 
     if isinstance(state, sta.CovalentModificationState):
+
         matching_defs = [x for x in mol_def.modification_defs if x.spec.is_subspecification_of(state.substrate)]
         matching_instances = []
         for matching_def in matching_defs:
@@ -123,6 +129,7 @@ def _properties(mol_def: mol.MoleculeDefinition, state: tg.Optional[sta.State], 
             else:
                 matching_instances.extend(mins.ModificationPropertyInstance(matching_def,
                                                                             mol_modifier_from_state_modifier(state.modifier)).complementary_instances())
+        #mol_def.spec.is_subspecification_of(state.substrate):
 
         return matching_instances
 

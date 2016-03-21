@@ -1,15 +1,15 @@
 from enum import Enum
-from typing import List, Tuple, Optional
+import typing as tg
 
 import typecheck as tc
 
 from rxncon.semantics.molecule_instance import MoleculeInstance, AssociationPropertyInstance
-
+from rxncon.semantics.molecule_definition import MoleculeDefinition
 
 class RuleBasedModel:
     @tc.typecheck
-    def __init__(self, molecule_defs: List['MoleculeDefinition'], rules: List['Rule'],
-                 parameters: List['Parameter'], initial_conditions: List['InitialCondition']):
+    def __init__(self, molecule_defs: tg.List[MoleculeDefinition], rules: tg.List['Rule'],
+                 parameters: tg.List['Parameter'], initial_conditions: tg.List['InitialCondition']):
         self.molecule_defs = molecule_defs
         self.rules = rules
         self.parameters = parameters
@@ -36,7 +36,8 @@ class RuleBasedModel:
 
 class Rule:
     @tc.typecheck
-    def __init__(self, left_hand_side: List['Reactant'], right_hand_side: List['Reactant'], arrow_type: 'Arrow', rates: List['Parameter']):
+    def __init__(self, left_hand_side: tg.List['Reactant'], right_hand_side: tg.List['Reactant'], arrow_type: 'Arrow',
+                 rates: tg.List['Parameter']):
         self.left_hand_side = left_hand_side
         self.right_hand_side = right_hand_side
         self.arrow_type = arrow_type
@@ -93,6 +94,14 @@ class MoleculeReactant(Reactant):
     def __eq__(self, other: Reactant) -> bool:
         return isinstance(other, MoleculeReactant) and self.molecule_specification == other.molecule_specification
 
+    def __lt__(self, other):
+        if isinstance(other, MoleculeReactant) and self.molecule_specification < other.molecule_specification:
+            return True
+        elif isinstance(other, ComplexReactant):
+            all(self.molecule_specification < mol_spec for mol_spec in other.molecules)
+
+        return False
+
     def __repr__(self):
         return str(self)
 
@@ -102,14 +111,22 @@ class MoleculeReactant(Reactant):
 
 class ComplexReactant(Reactant):
     @tc.typecheck
-    def __init__(self, molecules: List[MoleculeInstance], bindings: List['Binding']):
+    def __init__(self, molecules: tg.List[MoleculeInstance], bindings: tg.List['Binding']):
         self.molecules = molecules
         self.bindings = bindings
         self._validate()
 
     @tc.typecheck
-    def __eq__(self, other: 'Reactant'):
+    def __eq__(self, other: Reactant):
         return isinstance(other, ComplexReactant) and self.molecules == other.molecules and self.bindings == other.bindings
+
+    def __lt__(self, other):
+        if isinstance(other, ComplexReactant) and self.molecules < other.molecules:
+            return True
+        elif isinstance(other, MoleculeReactant):
+            # todo: is this correct that only one molecule has to be smaller than the single molecule or should all be smaller??
+            any(mol_spec < other.molecule_specification for mol_spec in self.molecules)
+        return False
 
     def __repr__(self):
         return str(self)
@@ -132,7 +149,7 @@ class Arrow(Enum):
 
 class Parameter:
     @tc.typecheck
-    def __init__(self, name: str, value: Optional[str]):
+    def __init__(self, name: str, value: tg.Optional[str]):
         self.name = name
         self.value = value
 
@@ -166,7 +183,7 @@ class InitialCondition:
 
 class Binding:
     @tc.typecheck
-    def __init__(self, left_partner: Tuple[int, AssociationPropertyInstance], right_partner: Tuple[int, AssociationPropertyInstance]):
+    def __init__(self, left_partner: tg.Tuple[int, AssociationPropertyInstance], right_partner: tg.Tuple[int, AssociationPropertyInstance]):
         self.left_partner = left_partner
         self.right_partner = right_partner
         self._validate()
