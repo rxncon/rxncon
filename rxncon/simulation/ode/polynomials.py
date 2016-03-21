@@ -9,6 +9,7 @@ TRIVIAL_MUL_SYMBOL = '1'
 TRIVIAL_ADD_SYMBOL = '0'
 
 
+
 ### SYMBOLS, i.e. x, y, z ###
 class Symbol:
     @tc.typecheck
