@@ -133,6 +133,16 @@ class PropertySet(UnarySet):
         else:
             return 'UniversalSet'
 
+    def _complements_expanded(self):
+        # try:
+        #     return nested_expression_from_list_and_binary_op(
+        #         [PropertySet(x) for x in self.value.complementary_instances()],
+        #         Union
+        #     )
+        #
+        # except AttributeError:
+        #     return self
+        return self
 
 class EmptySet(UnarySet):
     def __eq__(self, other: Set) -> bool:

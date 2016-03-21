@@ -1,7 +1,8 @@
 from collections import defaultdict
 from enum import Enum
 
-import rxncon.semantics.molecule
+import rxncon.semantics.molecule_definition
+import rxncon.semantics.molecule_instance
 import rxncon.simulation.rule_based.rule_based_model as rbm
 
 
@@ -69,7 +70,7 @@ class BNGLSystem:
 
 
 # MOLECULE DEF / SPEC
-def string_from_molecule_definition(molecule_definition: rxncon.semantics.molecule.MoleculeDefinition) -> str:
+def string_from_molecule_definition(molecule_definition: rxncon.semantics.molecule_definition.MoleculeDefinition) -> str:
     if not molecule_definition.modification_defs and not molecule_definition.association_defs and not\
             molecule_definition.localization_def:
         return molecule_definition.spec
@@ -82,44 +83,44 @@ def string_from_molecule_definition(molecule_definition: rxncon.semantics.molecu
     return '{0}({1})'.format(molecule_definition.spec, ','.join(x for x in definition_strings if x))
 
 
-def string_from_molecule_specification(molecule_specification: rxncon.semantics.molecule.MoleculeInstance) -> str:
-    if not molecule_specification.modification_instances and not molecule_specification.association_instances and not\
-            molecule_specification.localization_instance:
-        return molecule_specification.molecule_def.name
+def string_from_molecule_specification(molecule_specification: rxncon.semantics.molecule_instance.MoleculeInstance) -> str:
+    if not molecule_specification.modification_properties and not molecule_specification.association_properties and not\
+            molecule_specification.localization_property:
+        return molecule_specification.mol_def.name
 
-    specification_strings = [string_from_localization_specification(molecule_specification.localization_instance)
-                             if molecule_specification.localization_instance else None,
-                             ','.join(string_from_modification_specification(x) for x in molecule_specification.modification_instances),
-                             ','.join(string_from_association_specification(x) for x in molecule_specification.association_instances)]
+    specification_strings = [string_from_localization_specification(molecule_specification.localization_property)
+                             if molecule_specification.localization_property else None,
+                             ','.join(string_from_modification_specification(x) for x in molecule_specification.modification_properties),
+                             ','.join(string_from_association_specification(x) for x in molecule_specification.association_properties)]
 
-    return '{0}({1})'.format(molecule_specification.molecule_def.name, ','.join(x for x in specification_strings if x))
+    return '{0}({1})'.format(molecule_specification.mol_def.name, ','.join(x for x in specification_strings if x))
 
 
 # MODIFICATION DEF / SPEC
-def string_from_modification_definition(modification_definition: rxncon.semantics.molecule.ModificationDefinition) -> str:
+def string_from_modification_definition(modification_definition: rxncon.semantics.molecule_definition.ModificationPropertyDefinition) -> str:
     return '{0}~{1}'.format(modification_definition.spec, '~'.join(modification_definition.valid_modifiers))
 
 
-def string_from_modification_specification(modification_specification: rxncon.semantics.molecule.ModificationInstance) -> str:
+def string_from_modification_specification(modification_specification: rxncon.semantics.molecule_instance.ModificationPropertyInstance) -> str:
     return '{0}~{1}'.format(modification_specification.modification_def.domain, modification_specification.modifier)
 
 
 # ASSOCIATION DEF / SPEC
-def string_from_association_definition(association_definition: rxncon.semantics.molecule.AssociationDefinition) -> str:
+def string_from_association_definition(association_definition: rxncon.semantics.molecule_definition.AssociationPropertyDefinition) -> str:
     return association_definition.spec
 
 
-def string_from_association_specification(association_specification: rxncon.semantics.molecule.AssociationInstance) -> str:
-    if association_specification.occupation_status == rxncon.semantics.molecule.OccupationStatus.not_specified:
+def string_from_association_specification(association_specification: rxncon.semantics.molecule_instance.AssociationPropertyInstance) -> str:
+    if association_specification.occupation_status == rxncon.semantics.molecule_definition.OccupationStatus.not_specified:
         return association_specification.association_def.domain + '!?'
 
-    elif association_specification.occupation_status == rxncon.semantics.molecule.OccupationStatus.occupied_unknown_partner:
+    elif association_specification.occupation_status == rxncon.semantics.molecule_definition.OccupationStatus.occupied_unknown_partner:
         return association_specification.association_def.domain + '!+'
 
-    elif association_specification.occupation_status == rxncon.semantics.molecule.OccupationStatus.not_occupied:
+    elif association_specification.occupation_status == rxncon.semantics.molecule_definition.OccupationStatus.not_occupied:
         return association_specification.association_def.domain
 
-    elif association_specification.occupation_status == rxncon.semantics.molecule.OccupationStatus.occupied_known_partner:
+    elif association_specification.occupation_status == rxncon.semantics.molecule_definition.OccupationStatus.occupied_known_partner:
         raise NotImplementedError('AssociationSpecification with domain occupied by known partner cannot be stringified outside complex.')
 
     else:
@@ -127,11 +128,11 @@ def string_from_association_specification(association_specification: rxncon.sema
 
 
 # LOCALIZATION DEF / SPEC
-def string_from_localization_definition(localization_definition: rxncon.semantics.molecule.LocalizationDefinition) -> str:
+def string_from_localization_definition(localization_definition: rxncon.semantics.molecule_definition.LocalizationPropertyDefinition) -> str:
     return 'loc~{0}'.format('~'.join(localization_definition.valid_compartments))
 
 
-def string_from_localization_specification(localization_specification: rxncon.semantics.molecule.LocalizationInstance) -> str:
+def string_from_localization_specification(localization_specification: rxncon.semantics.molecule_instance.LocalizationPropertyInstance) -> str:
     return 'loc~' + localization_specification.compartment
 
 

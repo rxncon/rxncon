@@ -1,150 +1,342 @@
-import itertools as itt
 import typing as tg
-from collections import defaultdict
+import itertools as itt
 
+import rxncon.core.contingency as con
+import rxncon.core.effector as eff
 import rxncon.core.reaction as rxn
 import rxncon.core.rxncon_system as rxs
-import rxncon.core.state as sta
-import rxncon.semantics.molecule
-import rxncon.simulation.rule_based.rule_based_model as rbm
+import rxncon.core.specification as spe
 import rxncon.venntastic.sets as venn
-from rxncon.semantics.molecule_from_rxncon import set_of_states_from_contingencies, \
-    contingency_configurations_from_quantitative_contingencies, source_set_of_states_from_reaction, \
-    molecule_defs_from_rxncon
+import rxncon.semantics.molecule_instance_from_rxncon as mfr
+import rxncon.semantics.molecule_definition_from_rxncon as mdr
+import rxncon.semantics.molecule_instance as mins
+import rxncon.semantics.molecule_definition as mdf
+import rxncon.simulation.rule_based.rule_based_model as rbm
 
 
-def rules_from_rxncon(rxconsys: rxs.RxnConSystem):
-    mol_defs = molecule_defs_from_rxncon(rxconsys)
+class RuleBasedModelSupervisor:
+    def __init__(self, rxnconsys: rxs.RxnConSystem, disjunctify: bool=True):
+        self.rxnconsys = rxnconsys
+        self.mol_defs = mdr.MoleculeDefinitionSupervisor(self.rxnconsys).molecule_definitions
+        self.rules = []  # type: tg.List[rbm.Rule]
+        self.parameters = []
+        self.rule_based_model = None
+        self._generate_rules(disjunctify)
+        self._construct_rule_based_model()
 
-    rules = []
-    for reaction in rxconsys.reactions:
-        rules += rules_from_reaction(rxconsys, mol_defs, reaction)
+        self._validate()
 
-    return rules
+    def _generate_rules(self, disjunctify: bool):
+        # @todo fix quantitative contingencies. loop over all possible on/off combinations of quant conts.
+        for reaction in self.rxnconsys.reactions:
+            strict_conts = self.rxnconsys.strict_contingencies_for_reaction(reaction)
+            quant_conts = []
 
+            involved_molecules = involved_molecule_specs_for_reaction_and_contingencies(reaction, strict_conts)
+            mol_instance_pairs = []
 
-def rules_from_reaction(rxnconsys: rxs.RxnConSystem, mol_defs: tg.Dict[str, rxncon.semantics.molecule.MoleculeDefinition],
-                        reaction: rxn.Reaction) -> tg.List[rbm.Rule]:
-    relevant_molecule_names = set(component.name for component in rxnconsys.components_for_reaction(reaction))
+            for mol_def_name in self.mol_defs:
+                if self.mol_defs[mol_def_name].spec in involved_molecules:
+                    mol_instance_pairs.append(mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(self.mol_defs[mol_def_name], reaction, strict_conts, disjunctify))
 
-    strict_contingency_state_set = set_of_states_from_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction))
-    source_state_set = source_set_of_states_from_reaction(reaction)
+            rules_of_mol_instances = lhs_rhs_product(mol_instance_pairs)
+            for rule_of_mol_instance in rules_of_mol_instances:
+                lhs_reactants = reactants_from_molecule_instances(list(rule_of_mol_instance[0]))
+                rhs_reactants = reactants_from_molecule_instances(list(rule_of_mol_instance[1]))
+                parameters = parameters_from_reaction_and_quant_conts(reaction, quant_conts)
+                lhs_reactants = sorted(lhs_reactants)
+                rhs_reactants = sorted(rhs_reactants)
+                self.rules.append(rbm.Rule(lhs_reactants,
+                                           rhs_reactants,
+                                           arrow_from_reaction(reaction),
+                                           parameters))
 
-    quant_contingency_configurations = \
-        contingency_configurations_from_quantitative_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))
+                self.parameters += parameters
 
-    mol_specs_lhs_to_rhs = defaultdict(list)
+    def _construct_rule_based_model(self):
+        self.rule_based_model = rbm.RuleBasedModel(list(self.mol_defs.values()), self.rules, self.parameters, [])
 
-    for molecule_name in relevant_molecule_names:
-        mol_def = mol_defs[molecule_name]
-
-        strict_spec_set = mol_def.specification_set_from_state_set(strict_contingency_state_set)
-        source_spec_set = mol_def.specification_set_from_state_set(source_state_set)
-
-        lhs_sets = []
-
-        for strict_term in strict_spec_set.to_union_list_form():
-            for contingency in quant_contingency_configurations:
-                quant_contingency_state_set = set_of_states_from_contingencies([contingency])
-                quant_term = mol_def.specification_set_from_state_set(quant_contingency_state_set)
-
-                lhs_sets.append(venn.Intersection(strict_term, quant_term))
-
-            else:
-                lhs_sets.append(strict_term)
-
-        lhs_sets_disjunct = venn.gram_schmidt_disjunctify(lhs_sets)
-
-        if lhs_sets_disjunct == [venn.EmptySet()]:
-            continue
-
-        for lhs in lhs_sets_disjunct:
-            if source_spec_set == venn.EmptySet():
-                left_mol_spec = mol_def.specification_from_specification_set(lhs)
-                right_mol_spec = left_mol_spec
-
-            else:
-                left_mol_spec = mol_def.specification_from_specification_set(venn.Intersection(lhs, source_spec_set))
-                right_mol_spec = mol_def.specification_from_specification_set(venn.Intersection(lhs, venn.Complement(source_spec_set)))
-
-            mol_specs_lhs_to_rhs[left_mol_spec.molecule_def.name].append((left_mol_spec, right_mol_spec))
-
-    rules = []
-
-    # @todo
-    arrow = rbm.Arrow.reversible
-    rates = [rbm.Parameter('k1', '1.0'), rbm.Parameter('k2', '1.0')]
-
-    for lhs_to_rhs_per_molecule in itt.product(*mol_specs_lhs_to_rhs.values()):
-        lhs_to_rhs = list(zip(*lhs_to_rhs_per_molecule))
-        lhs = reactants_from_specs(list(lhs_to_rhs[0]))
-        rhs = reactants_from_specs(list(lhs_to_rhs[1]))
-
-        rules.append(rbm.Rule(lhs, rhs, arrow, rates))
-
-    return rules
+    def _validate(self):
+        pass
 
 
-def reactants_from_specs(molecule_specifications: tg.List[rxncon.semantics.molecule.MoleculeInstance]) -> tg.List[rbm.Reactant]:
+# PRIVATE METHODS
+def parameters_from_reaction_and_quant_conts(reaction: rxn.Reaction, quant_conts: tg.List[con.Contingency]) -> tg.List[rbm.Parameter]:
+    # @todo fix quantitative contingencies
+    if reaction.directionality == rxn.Directionality.reversible:
+        return [
+            rbm.Parameter('kf_{0}'.format(str(reaction)), None),
+            rbm.Parameter('kr_{0}'.format(str(reaction)), None)
+        ]
 
+    elif reaction.directionality == rxn.Directionality.irreversible:
+        return [
+            rbm.Parameter('k_{0}'.format(str(reaction)), None)
+        ]
+
+    else:
+        raise NotImplementedError
+
+
+def arrow_from_reaction(reaction: rxn.Reaction) -> rbm.Arrow:
+    if reaction.directionality == rxn.Directionality.reversible:
+        return rbm.Arrow.reversible
+
+    elif reaction.directionality == rxn.Directionality.irreversible:
+        return rbm.Arrow.irreversible
+
+    else:
+        raise NotImplementedError
+
+
+def involved_molecule_specs_for_reaction_and_contingencies(reaction: rxn.Reaction,
+                                                           strict_cont: tg.List[con.Contingency]) -> tg.List[spe.Specification]:
+    involved_molecules = []
+    for component in reaction.components:
+        involved_molecules.append(spe.Specification(component.name, None, None, None))
+
+    for contingency in strict_cont:
+        for state in contingency.effector.states:
+            for component in state.components:
+                involved_molecules.append(spe.Specification(component.name, None, None, None))
+
+    return involved_molecules
+
+
+def reactants_from_molecule_instances(molecules: tg.List[mins.MoleculeInstance]) -> tg.List[rbm.Reactant]:
     reactants = []
 
-    specs_in_complexes = defaultdict(list)
+    bound_molecules = []
 
-    while molecule_specifications:
-        mol_spec = molecule_specifications.pop()
+    while molecules:
+        molecule = molecules.pop()
 
-        if not mol_spec.occupied_association_specs():
-            reactants.append(rbm.MoleculeReactant(mol_spec))
+        if any(prop.occupation_status == mins.OccupationStatus.occupied_known_partner
+               for prop in molecule.association_properties):
+            bound_molecules.append(molecule)
+
         else:
-            for mol_assoc_spec in mol_spec.occupied_association_specs():
-                specs_in_complexes[mol_assoc_spec.association_def.matching_state].append((mol_spec, mol_assoc_spec))
-    states = [state for state in specs_in_complexes.keys()]
+            reactants.append(rbm.MoleculeReactant(molecule))
 
-    states_in_complex = complexes_by_state_connection(states)
+    connected_components = _split_into_connected_components(bound_molecules)
 
+    for connected_component in connected_components:
+        reactants.append(_complex_reactant_from_molecule_instances(connected_component))
 
-    for states in states_in_complex:
-        molecule_specifications = []
-        bindings = []
-        for state in states:
-            if specs_in_complexes[state][0][0] not in molecule_specifications:
-                molecule_specifications.append(specs_in_complexes[state][0][0])
-            if specs_in_complexes[state][1][0] not in molecule_specifications:
-                molecule_specifications.append(specs_in_complexes[state][1][0])
-            binding = rxncon.semantics.molecule.Binding((molecule_specifications.index(specs_in_complexes[state][0][0]), specs_in_complexes[state][0][1]),
-                                                        (molecule_specifications.index(specs_in_complexes[state][1][0]), specs_in_complexes[state][1][1]))
-            bindings.append(binding)
-        reactants.append(rbm.ComplexReactant(molecule_specifications, bindings))
     return reactants
 
 
-def complexes_by_state_connection(states: tg.List[sta.State]):
-    states_in_complex = []
-    while states:
-        state = states.pop()
-        states, connected_states = _find_connectivity_of_state(state, states, connected_states)
-        states_in_complex.append(connected_states)
+def _split_into_connected_components(molecules: tg.List[mins.MoleculeInstance]) -> tg.List[tg.List[mins.MoleculeInstance]]:
+    connected_components = []
+
+    while molecules:
+        connected_component_visited = []
+        connected_component_unvisited = [molecules.pop()]
+
+        while connected_component_unvisited:
+            current_molecule = connected_component_unvisited.pop()
+            for molecule in molecules:
+                if _connected(molecule, current_molecule):
+                    molecules.remove(molecule)
+                    connected_component_unvisited.append(molecule)
+
+            connected_component_visited.append(current_molecule)
+
+        connected_components.append(connected_component_visited)
+
+    return connected_components
 
 
-    return states_in_complex
+def _connected(first_molecule: mins.MoleculeInstance, second_molecule: mins.MoleculeInstance) -> bool:
+    first_assocs = [x for x in first_molecule.association_properties if x.occupation_status == mins.OccupationStatus.occupied_known_partner]
+    second_assocs = [x for x in second_molecule.association_properties if x.occupation_status == mins.OccupationStatus.occupied_known_partner]
+
+    # @todo
+    return True
 
 
-def _find_connectivity_of_state(state: sta.State, states: tg.List[sta.State]):
-    connected_states = [state]
-    not_connected_states = []
-    new_states = []
-    for connected_state in states:
-        if {connected_state.first_component.name, connected_state.second_component.name} & \
-                {state.first_component.name, state.second_component.name}:
-            connected_states.append(connected_state)
-        else:
-            not_connected_states.append(connected_state)
+def _complex_reactant_from_molecule_instances(molecules: tg.List[mins.MoleculeInstance]) -> rbm.ComplexReactant:
+    molecules = sorted(molecules)
 
-    #for state in not_connected_states:
-    #    states, connected_states = complexes_by_state_connection(new_states)
-    return new_states, connected_states
+    bindings = []
+
+    for i, first_molecule in enumerate(molecules):
+        first_mol_assoc_props = sorted(first_molecule.association_properties)
+        for first_assoc_prop in first_mol_assoc_props:
+            for j, second_molecule in enumerate(molecules):
+                second_mol_assoc_props = sorted(second_molecule.association_properties)
+                for second_assoc_prop in second_mol_assoc_props:
+                    if first_assoc_prop.partner is not None and first_assoc_prop.partner == second_assoc_prop.association_def.spec:
+                        if rbm.Binding((j, second_assoc_prop), (i, first_assoc_prop)) not in bindings:
+                            bindings.append(rbm.Binding((i, first_assoc_prop), (j, second_assoc_prop)))
+
+    return rbm.ComplexReactant(molecules, bindings)
 
 
+def lhs_rhs_product(reaction_molecules: tg.List[tg.List[tg.Tuple[mins.MoleculeInstance, mins.MoleculeInstance]]])\
+        -> tg.List[tg.Tuple[tg.List[mins.MoleculeInstance], tg.List[mins.MoleculeInstance]]]:
+    mol_product = itt.product(*reaction_molecules)
+
+    lhs_rhs = []
+
+    for x in mol_product:
+        lhs_rhs.append(tuple(zip(*x)))
+
+    return lhs_rhs
+
+
+def mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(mol_def: mdf.MoleculeDefinition,
+                                                                   reaction: rxn.Reaction,
+                                                                   contingencies: tg.List[con.Contingency],
+                                                                   disjunctify: bool=True) \
+        -> tg.List[tg.Tuple[mins.MoleculeInstance, mins.MoleculeInstance]]:
+    property_sets = mol_property_sets_from_mol_def_and_state_sets(mol_def, state_set_from_contingencies(contingencies), disjunctify)
+
+    lhs_rhs_property_set_pairs = \
+        [x for x in mol_property_pairs_from_mol_def_and_reaction(mol_def, reaction)
+         if is_property_pair_valid_for_reaction(mol_def, x, reaction)]
+
+    assert len(lhs_rhs_property_set_pairs) == 1
+    lhs_source = lhs_rhs_property_set_pairs[0][0]
+    rhs_source = lhs_rhs_property_set_pairs[0][1]
+
+    pairs = []
+    for property_set in property_sets:
+        lhs_molecule = mfr.mol_instance_from_mol_def_and_property_set(mol_def, venn.Intersection(property_set, lhs_source))
+        rhs_molecule = mfr.mol_instance_from_mol_def_and_property_set(mol_def, venn.Intersection(property_set, rhs_source))
+
+        pairs.append((lhs_molecule, rhs_molecule))
+
+    return pairs
+
+
+def mol_property_sets_from_mol_def_and_state_sets(mol_def: mdf.MoleculeDefinition,
+                                                  state_set: venn.Set,
+                                                  disjunctify: bool=True) -> tg.List[venn.Set]:
+    prop_sets = mfr.property_set_from_mol_def_and_state_set(mol_def, state_set).to_union_list_form()
+
+    if disjunctify:
+        return venn.gram_schmidt_disjunctify(prop_sets)
+
+    else:
+        return prop_sets
+
+
+def mol_property_pairs_from_mol_def_and_reaction(mol_def: mdf.MoleculeDefinition, reaction: rxn.Reaction) -> tg.Tuple[venn.PropertySet, venn.PropertySet]:
+    lhs_sets = mfr.property_set_from_mol_def_and_state_set(mol_def, source_state_set_from_reaction(reaction)).to_union_list_form()
+    rhs_sets = mfr.property_set_from_mol_def_and_state_set(mol_def, product_state_set_from_reaction(reaction)).to_union_list_form()
+
+    tuples = []
+    for lhs in lhs_sets:
+        for rhs in rhs_sets:
+            tuples.append((lhs, rhs))
+
+    return tuples
+
+
+def is_property_pair_valid_for_reaction(mol_def: mdf.MoleculeDefinition,
+                                        prop_tuple: tg.Tuple[venn.Set, venn.Set],
+                                        reaction: rxn.Reaction) -> bool:
+    lhs = prop_tuple[0].simplified_form()
+    assert isinstance(lhs, venn.PropertySet)
+    lhs_prop = lhs.value
+
+    rhs = prop_tuple[1].simplified_form()
+    assert isinstance(rhs, venn.PropertySet)
+    rhs_prop = rhs.value
+
+    # if lhs and rhs are both universal sets the should match everything per definition
+    if lhs.is_equivalent_to(venn.UniversalSet()) and rhs.is_equivalent_to(venn.UniversalSet()):
+        return True
+
+    #if not lhs.is_superset_of(reaction.source):
+    return mfr.mol_def_and_property_match_state(mol_def, lhs_prop, reaction.source, negate=False) and\
+        mfr.mol_def_and_property_match_state(mol_def, rhs_prop, reaction.product, negate=False)
+
+
+def state_set_from_contingencies(contingencies: tg.List[con.Contingency]) -> venn.Set:
+    if not contingencies:
+        return venn.UniversalSet()
+
+    for contingency in contingencies:
+        assert contingency.target == contingencies[0].target
+        assert contingency.type in [con.ContingencyType.inhibition, con.ContingencyType.requirement]
+
+    requirements = []
+    inhibitions = []
+
+    for contingency in contingencies:
+        if contingency.type == con.ContingencyType.requirement:
+            requirements.append(state_set_from_effector(contingency.effector))
+
+        elif contingency.type == con.ContingencyType.inhibition:
+            inhibitions.append(state_set_from_effector(contingency.effector))
+
+    required_set = venn.nested_expression_from_list_and_binary_op(requirements, venn.Intersection)
+    inhibited_set = venn.Complement(venn.nested_expression_from_list_and_binary_op(inhibitions, venn.Union))
+
+    if requirements and inhibitions:
+        return venn.Intersection(required_set, inhibited_set)
+
+    elif inhibitions:
+        return inhibited_set
+
+    elif requirements:
+        return required_set
+
+
+def source_state_set_from_reaction(reaction: rxn.Reaction) -> venn.Set:
+    source_state = reaction.source
+    product_state = reaction.product
+
+    if not source_state and product_state:
+        return venn.Complement(venn.PropertySet(product_state))
+
+    elif source_state and not product_state:
+        return venn.PropertySet(source_state)
+
+    elif source_state and product_state:
+        return venn.Intersection(venn.Complement(venn.PropertySet(product_state)),
+                                 venn.PropertySet(source_state))
+
+    else:
+        raise AssertionError
+
+
+def product_state_set_from_reaction(reaction: rxn.Reaction) -> venn.Set:
+    source_state = reaction.source
+    product_state = reaction.product
+
+    if not source_state and product_state:
+        return venn.PropertySet(product_state)
+
+    elif source_state and not product_state:
+        return venn.Complement(venn.PropertySet(source_state))
+
+    elif source_state and product_state:
+        return venn.Intersection(venn.PropertySet(product_state),
+                                 venn.Complement(venn.PropertySet(source_state)))
+
+    else:
+        raise AssertionError
+
+
+
+
+def state_set_from_effector(effector: eff.Effector) -> venn.Set:
+    if isinstance(effector, eff.StateEffector):
+        return venn.PropertySet(effector.expr)
+
+    elif isinstance(effector, eff.NotEffector):
+        return venn.Complement(state_set_from_effector(effector.expr))
+
+    elif isinstance(effector, eff.AndEffector):
+        return venn.Intersection(state_set_from_effector(effector.left_expr), state_set_from_effector(effector.right_expr))
+
+    elif isinstance(effector, eff.OrEffector):
+        return venn.Union(state_set_from_effector(effector.left_expr), state_set_from_effector(effector.right_expr))
+
+    else:
+        raise AssertionError
 
 
