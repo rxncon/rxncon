@@ -13,7 +13,7 @@ def rules_from_rxncon(rxconsys: rxs.RxnConSystem):
 
     rules = []
     for reaction in rxconsys.reactions:
-        rules.append(rule_for_reaction_from_rxnconsys_and_reaction(rxconsys, reaction))
+        rules.append(rule_for_reaction_from_rxnconsys_and_reaction(rxconsys, reaction, rules))
 
         rules.append(rule_for_state_from_rxnconsys_and_reaction(rxconsys, reaction, rules))
     rules = [rule for rule in rules if rule]
@@ -30,8 +30,11 @@ def initial_states_from_rxncon(rxconsys: rxs.RxnConSystem):
     return initial_states
 
 
-def rule_for_reaction_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reaction: rxn.Reaction) -> bbm.Rule:
-
+def rule_for_reaction_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reaction: rxn.Reaction,
+                                                  system_rules: tg.List[bbm.Rule]) -> bbm.Rule:
+    all_visited_nodes = get_rule_targets(system_rules)
+    if bbm.Node(reaction) in all_visited_nodes:
+        return None
     strict_contingency_state_set = set_of_states_from_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction))
 
     if strict_contingency_state_set != venn.UniversalSet():
@@ -66,10 +69,10 @@ def get_rule_targets(rules: tg.List[bbm.Rule]):
 
 
 def rule_for_state_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reaction: rxn.Reaction, system_rules: tg.List[bbm.Rule]) -> bbm.Rule:
-    all_visited_states = get_rule_targets(system_rules)
-    rules = []
-    if reaction.product is None or bbm.Node(reaction.product) in all_visited_states:
-        return rules
+    all_visited_nodes = get_rule_targets(system_rules)
+
+    if reaction.product is None or bbm.Node(reaction.product) in all_visited_nodes:
+        return None
 
     pos_bool_def=[venn.PropertySet(bbm.Node(reaction.product)), venn.PropertySet(bbm.Node(reaction))]
     neg_bool_def=[]
