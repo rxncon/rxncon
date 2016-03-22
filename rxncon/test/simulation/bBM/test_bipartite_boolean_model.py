@@ -7,7 +7,7 @@ def test_Factor():
     factor= venn.Intersection(venn.PropertySet(bbm.Node(rfs.state_from_string("A--B"))),
                               venn.PropertySet(bbm.Node(rfs.state_from_string("A-{P}"))))
     bbm_factor= bbm.Factor(factor)
-    assert bbm_factor.factor.is_equivalent_to(factor)
+    assert bbm_factor.value.is_equivalent_to(factor)
 
 def test_target():
     # todo: single state A
@@ -20,5 +20,5 @@ def test_rule():
                                venn.PropertySet(bbm.Node(rfs.state_from_string("A-{P}"))))
     rule = bbm.Rule(bbm.Node(rfs.state_from_string("A--B")), bbm.Factor(factor))
     assert rule.target == bbm.Node(rfs.state_from_string("A--B"))
-    assert rule.factor.factor.is_equivalent_to(factor)
+    assert rule.factor.value.is_equivalent_to(factor)
 
