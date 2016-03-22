@@ -81,6 +81,7 @@ def string_from_specification(specification: spec.Specification):
 
 
 def string_from_reaction(reaction: rxn.Reaction) -> str:
+    # todo: hieraus und aus folgenden eine tabelle fuer marcus machen
     def generate_reaction_verb_name(verb: rxn.Verb):
         if re.search("-", verb.value):
             return re.sub("-", "minus", verb.value)
@@ -93,6 +94,7 @@ def string_from_reaction(reaction: rxn.Reaction) -> str:
 
 
 def replace_not_valid_signs(value):
+    value = re.sub("-", ".", value)
     value = re.sub('[\[{(]',"_", value )
     value = re.sub('[\]})]', "_", value )
     value = re.sub('\/', "_", value )
@@ -100,27 +102,26 @@ def replace_not_valid_signs(value):
 
 
 def string_from_inter_protein_interaction_state(state: rxn.sta.InterProteinInteractionState) -> str:
-    result =  '{0}..{1}'.format(state.first_component, state.second_component)
-    return replace_not_valid_signs(result)
+    return replace_not_valid_signs(str(state))
 
 
 def string_from_intra_protein_interaction_state(state: rxn.sta.IntraProteinInteractionState) -> str:
     # A_[m]--[n]
-    result = '{0}.._{1}_'.format(state.first_component, state.second_component.domain)
-    return replace_not_valid_signs(result)
+    return replace_not_valid_signs(str(state))
+
 
 def string_from_covalent_modification_state(state: rxn.sta.CovalentModificationState) -> str:
     # A-{P}
-    result = '{0}.{1}'.format(state.substrate, state.modifier.value)
-    return replace_not_valid_signs(result)
+    return replace_not_valid_signs(str(state))
+
 
 
 def string_from_translocation_state(state) -> str:
     # A-{cyto}
-    result = '{0}.{1}'.format(state.substrate, state.compartment.value)
-    return replace_not_valid_signs(result)
+    return replace_not_valid_signs(str(state))
+
 
 
 def string_from_synthesis_degradation_state(state) -> str:
-    result = '{}'.format(state.component)
-    return replace_not_valid_signs(result)
+    return replace_not_valid_signs(str(state))
+
