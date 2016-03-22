@@ -26,6 +26,28 @@ def mol_def_from_string(mol_def_string: str) -> MoleculeDefinition:
     return MoleculeDefinition(name_spec, mod_defs, ass_defs, loc_def)
 
 
+def mol_ins_from_string(mol_def, mol_ins_string: str) -> MoleculeInstance:
+    if isinstance(mol_def, str):
+        mol_def = mol_def_from_string(mol_def)
+
+    assert isinstance(mol_def, MoleculeDefinition)
+
+    property_instance_strings = mol_ins_string.split('#')[1].split(',')
+    property_instances = [_property_ins_from_string(mol_def, x) for x in property_instance_strings if x]
+
+    mod_props = {x for x in property_instances if isinstance(x, ModificationPropertyInstance)}
+    ass_props = {x for x in property_instances if isinstance(x, AssociationPropertyInstance)}
+    loc_props = {x for x in property_instances if isinstance(x, LocalizationPropertyInstance)}
+
+    assert len(loc_props) <= 1
+    if loc_props:
+        loc_prop = list(loc_props)[0]
+    else:
+        loc_prop = None
+
+    return MoleculeInstance(mol_def, mod_props, ass_props, loc_prop)
+
+
 def _property_def_from_string(def_string: str):
     identifier = def_string[0:3]
     if identifier == 'ass':
@@ -77,28 +99,6 @@ def _loc_property_def_from_string(def_string):
         compartments.add(Compartment(compartment_string))
 
     return LocalizationPropertyDefinition(compartments)
-
-
-def mol_ins_from_string(mol_def, mol_ins_string: str) -> MoleculeInstance:
-    if isinstance(mol_def, str):
-        mol_def = mol_def_from_string(mol_def)
-
-    assert isinstance(mol_def, MoleculeDefinition)
-
-    property_instance_strings = mol_ins_string.split('#')[1].split(',')
-    property_instances = [_property_ins_from_string(mol_def, x) for x in property_instance_strings if x]
-
-    mod_props = {x for x in property_instances if isinstance(x, ModificationPropertyInstance)}
-    ass_props = {x for x in property_instances if isinstance(x, AssociationPropertyInstance)}
-    loc_props = {x for x in property_instances if isinstance(x, LocalizationPropertyInstance)}
-
-    assert len(loc_props) <= 1
-    if loc_props:
-        loc_prop = list(loc_props)[0]
-    else:
-        loc_prop = None
-
-    return MoleculeInstance(mol_def, mod_props, ass_props, loc_prop)
 
 
 def _property_ins_from_string(mol_def, prop_string):
