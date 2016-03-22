@@ -9,7 +9,7 @@ import rxncon.core.specification as spec
 
 
 class BoolNet_System:
-    def __init__(self, bipartite_boolean_model: bbm.Bipartite_Boolean_Model):
+    def __init__(self, bipartite_boolean_model: bbm.Bipartite_Boolean_Model, ):
         self.bipartite_boolean_model = bipartite_boolean_model
 
     def to_string(self) -> str:
@@ -43,8 +43,13 @@ class BoolNet_System:
         return self._generate_name(target)
 
     def _factor_to_string(self, factor: bbm.Factor):
+        #if factor == venn.PropertySet(venn.EmptySet()) or \
+        #                factor == venn.PropertySet(venn.UniversalSet()):
+        #    return ''
         if isinstance(factor, venn.PropertySet):
             return self._generate_name(factor.value)
+        elif isinstance(factor, venn.Complement):
+            return "! {0}".format(self._factor_to_string(factor.expr))
         elif isinstance(factor, venn.Intersection):
             return '({0} & {1})'.format(self._factor_to_string(factor.left_expr), self._factor_to_string(factor.right_expr))
         elif isinstance(factor, venn.Union):

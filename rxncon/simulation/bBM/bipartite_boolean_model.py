@@ -2,7 +2,7 @@ import typing as tg
 import rxncon.venntastic.sets as venn
 import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
-
+import rxncon.core.specification as spec
 
 class Bipartite_Boolean_Model:
     def __init__(self, rules: tg.List["Rule"], init_conditions: tg.List['InitConditions']):
@@ -18,15 +18,20 @@ class InitConditions:
         self.target = target
         self.value = value
 
+    def __eq__(self, other: 'InitConditions'):
+        return self.target == other.target and self.value == self.value
+
 class Node:
     def __init__(self, value: tg.Union[rxn.Reaction, sta.State]):
         self.value = value
 
     def __eq__(self, other: 'Node'):
         if isinstance(self.value, rxn.Reaction) and isinstance(other.value, rxn.Reaction) and self.value == other.value:
-                return True
+            return True
         elif isinstance(self.value, sta.State) and isinstance(other.value, sta.State) and self.value == other.value:
-                return True
+            return True
+        elif isinstance(self.value, spec.Specification) and isinstance(other.value, spec.Specification) and self.value == other.value:
+            return True
         else:
             return False
 
