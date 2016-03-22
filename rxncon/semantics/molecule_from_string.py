@@ -117,7 +117,7 @@ def _ass_property_ins_from_string(mol_def, prop_string):
     assert prop_string[0:4] == 'ass/'
     prop_string = prop_string[4:]
 
-    assert len(prop_string.split(':')[0]) == 2
+    assert len(prop_string.split(':')) == 2
 
     ass_domain = component_from_string(prop_string.split(':')[0])
     ass_defs = [x for x in mol_def.association_defs if x.spec == ass_domain]
