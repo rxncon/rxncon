@@ -34,9 +34,9 @@ def test_test(rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A, initialConditio
 A, A
 B, B
 C, C
-A..B, ((A_ppi_B & A.p) | (A..B & A.p))
-A_ppi_B, ((A & B) & A.p)
-A.p, (C_pplus_A | A.p)
+A..B, ((A_ppi_B & A._p_) | (A..B & A._p_))
+A_ppi_B, ((A & B) & A._p_)
+A._p_, (C_pplus_A | A._p_)
 C_pplus_A, (C & A)"""
 
     assert bbe_str == expected_str
