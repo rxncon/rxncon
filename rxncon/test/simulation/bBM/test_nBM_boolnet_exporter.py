@@ -23,7 +23,7 @@ def test_generate_name():
     assert bbe.string_from_reaction(A_ppi_B.value) == "A__n__ppi_B_d_s_r__"
 
 
-def test_test(rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A, initialConditions):
+def test_boolnet_string(rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A, initialConditions):
     bbm_system = bbm.Bipartite_Boolean_Model([rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A],
                                              initialConditions)
 
