@@ -95,6 +95,9 @@ class MoleculeReactant(Reactant):
     def __eq__(self, other: Reactant) -> bool:
         return isinstance(other, MoleculeReactant) and self.molecule_specification == other.molecule_specification
 
+    def __hash__(self):
+        return hash(str(self))
+
     def __lt__(self, other):
         if isinstance(other, MoleculeReactant) and self.molecule_specification < other.molecule_specification:
             return True
@@ -120,6 +123,9 @@ class ComplexReactant(Reactant):
     @tc.typecheck
     def __eq__(self, other: Reactant):
         return isinstance(other, ComplexReactant) and self.molecules == other.molecules and self.bindings == other.bindings
+
+    def __hash__(self):
+        return hash(str(self))
 
     def __lt__(self, other):
         if isinstance(other, ComplexReactant) and self.molecules < other.molecules:

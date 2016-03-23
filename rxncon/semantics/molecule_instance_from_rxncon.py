@@ -53,7 +53,6 @@ def mol_instance_from_mol_def_and_property_set(mol_def: mol.MoleculeDefinition, 
 
     instances = []
     for instance_property_set in instance_property_sets:
-        print(instance_property_set)
         if isinstance(instance_property_set, venn.PropertySet):
             instances.append(instance_property_set.value)
         elif isinstance(instance_property_set, venn.EmptySet):
