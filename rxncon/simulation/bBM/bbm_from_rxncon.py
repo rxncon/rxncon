@@ -67,6 +67,8 @@ def vennset_to_bbm_factor_vennset(vennset: venn.Set):
     # want to rewrite venn.Set into bbm.Factor like venn.PropertySet(A--B) -> venn.PropertySet(bbm.Node(A--B))
     if isinstance(vennset, venn.PropertySet):
         return venn.PropertySet(bbm.Node(vennset.value))
+    if isinstance(vennset, venn.Complement):
+        return venn.Complement(vennset_to_bbm_factor_vennset(vennset.expr))
     elif isinstance(vennset, venn.Intersection):
         return venn.Intersection(vennset_to_bbm_factor_vennset(vennset.left_expr), vennset_to_bbm_factor_vennset(vennset.right_expr))
     elif isinstance(vennset, venn.Union):
