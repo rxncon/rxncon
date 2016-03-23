@@ -26,7 +26,7 @@ def mol_def_from_string(mol_def_string: str) -> MoleculeDefinition:
     return MoleculeDefinition(name_spec, mod_defs, ass_defs, loc_def)
 
 
-def mol_ins_from_string(mol_def, mol_ins_string: str) -> MoleculeInstance:
+def mol_instance_from_string(mol_def, mol_ins_string: str) -> MoleculeInstance:
     if isinstance(mol_def, str):
         mol_def = mol_def_from_string(mol_def)
 
@@ -46,6 +46,23 @@ def mol_ins_from_string(mol_def, mol_ins_string: str) -> MoleculeInstance:
         loc_prop = None
 
     return MoleculeInstance(mol_def, mod_props, ass_props, loc_prop)
+
+
+def mol_instances_and_bindings_from_string(mol_defs, mol_instances_string: str):
+    mol_instances = []
+    bindings = []
+
+    mol_def_dict = {}
+
+    for mol_def in mol_defs:
+        if isinstance(mol_def, str):
+            mol_def = mol_def_from_string(mol_def)
+
+        mol_def_dict[mol_def.spec] = mol_def
+
+    mol_ins_strings = mol_instances_string.split('.')
+    for mol_ins_string in mol_ins_strings:
+
 
 
 def _property_def_from_string(def_string: str):

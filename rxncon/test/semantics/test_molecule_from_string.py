@@ -1,6 +1,6 @@
 import pytest
 
-from rxncon.semantics.molecule_from_string import mol_def_from_string, mol_ins_from_string
+from rxncon.semantics.molecule_from_string import mol_def_from_string, mol_instance_from_string
 from rxncon.semantics.molecule_definition import MoleculeDefinition, ModificationPropertyDefinition, \
     AssociationPropertyDefinition, LocalizationPropertyDefinition, Compartment, Modifier, OccupationStatus
 from rxncon.semantics.molecule_instance import MoleculeInstance, AssociationPropertyInstance
@@ -17,7 +17,7 @@ def test_mol_ins_from_string(mol_instances):
         def_string = strings[0]
         ins_string = strings[1]
 
-        assert mol_ins_from_string(def_string, ins_string) == mol_ins
+        assert mol_instance_from_string(def_string, ins_string) == mol_ins
 
 
 @pytest.fixture
