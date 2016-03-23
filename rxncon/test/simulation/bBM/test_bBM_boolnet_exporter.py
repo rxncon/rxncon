@@ -9,8 +9,6 @@ import rxncon.syntax.rxncon_from_string as rfs
 import rxncon.venntastic.sets as venn
 
 
-
-
 def test_generate_name():
     a_pplus_b = bbm.Node(rfs.reaction_from_string("a_p+_b"))
     assert bbe.string_from_reaction(a_pplus_b.value) == "a_pplus_b"
@@ -45,6 +43,7 @@ C_pplus_A, (C & A)"""
 
     assert bbe_str == expected_str
 
+
 def test_boolnet_string_with_complement(rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, initialConditions):
     bbm_system = bbm.BipartiteBooleanModel([rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A],
                                            initialConditions)
@@ -62,6 +61,7 @@ C_pplus_A, (C & A)"""
 
     assert bbe_str == expected_str
 
+
 def test_to_file(rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, initialConditions):
     bbm_system = bbm.BipartiteBooleanModel([rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A],
                                            initialConditions)
@@ -72,6 +72,7 @@ def test_to_file(rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, initialC
     bbe_system.to_file(path)
     assert os.path.exists(path)
     os.remove(path)
+
 
 @pytest.fixture
 def rule_A__B():
