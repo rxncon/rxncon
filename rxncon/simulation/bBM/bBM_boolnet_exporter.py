@@ -1,6 +1,4 @@
 import rxncon.simulation.bBM.bipartite_boolean_model as bbm
-import rxncon.simulation.bBM.bipartite_boolean_model as bbm
-from typing import List, Union
 import re
 import rxncon.venntastic.sets as venn
 import rxncon.core.reaction as rxn
@@ -9,7 +7,7 @@ import rxncon.core.specification as spec
 
 
 class BoolNet_System:
-    def __init__(self, bipartite_boolean_model: bbm.Bipartite_Boolean_Model, ):
+    def __init__(self, bipartite_boolean_model: bbm.Bipartite_Boolean_Model):
         self.bipartite_boolean_model = bipartite_boolean_model
 
     def to_string(self) -> str:
