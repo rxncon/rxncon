@@ -11,7 +11,8 @@ def specifications_input():
             [spec.Specification("A", "dC", None, None), spec.Specification("A", None, None, None), spec.Specification("A", "dA", None, None)],
             [spec.Specification("A", "d", "sC", None), spec.Specification("A", None, None, None), spec.Specification("A", "d", "sA", None)],
             [spec.Specification("A", None, None, "rC"), spec.Specification("A", None, None, None), spec.Specification("A", None, None, "rA")],
-            [spec.Specification("C", "dC", "sC", "rC"), spec.Specification("B", "dB", "sB", "rB"), spec.Specification("A", "dA", "sA", "rA")]
+            [spec.Specification("C", "dC", "sC", "rC"), spec.Specification("B", "dB", "sB", "rB"), spec.Specification("A", "dA", "sA", "rA")],
+            [spec.Specification("A", None, None, "rC"), spec.Specification("A", None, None, None), spec.Specification("A", None, None, None)]
             ]
 
 
@@ -24,7 +25,8 @@ def expected_specification_ordering():
             [spec.Specification("A", None, None, None), spec.Specification("A", "dA", None, None), spec.Specification("A", "dC", None, None)],
             [spec.Specification("A", None, None, None), spec.Specification("A", "d", "sA", None), spec.Specification("A", "d", "sC", None)],
             [spec.Specification("A", None, None, None), spec.Specification("A", None, None, "rA"), spec.Specification("A", None, None, "rC")],
-            [spec.Specification("A", "dA", "sA", "rA"), spec.Specification("B", "dB", "sB", "rB"), spec.Specification("C", "dC", "sC", "rC")]
+            [spec.Specification("A", "dA", "sA", "rA"), spec.Specification("B", "dB", "sB", "rB"), spec.Specification("C", "dC", "sC", "rC")],
+            [spec.Specification("A", None, None, None), spec.Specification("A", None, None, None), spec.Specification("A", None, None, "rC")]
            ]
 
 
