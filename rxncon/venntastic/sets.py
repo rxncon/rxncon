@@ -4,6 +4,7 @@ import typing as tg
 
 METHOD_COMPLEMENTS_EXPANDED = '_complements_expanded'
 METHOD_UNIONS_MOVED_TO_LEFT = '_unions_moved_to_left'
+METHOD_SIMPLIFY_EMPTY_UNIVERSAL = '_simplify_empty_universal'
 
 
 # @todo Make typechecking work in this module. Problem is the co/contravariance of function arguments and return types.
@@ -11,7 +12,8 @@ class Set:
     def simplified_form(self) -> 'Set':
         simplification_methods = [
             METHOD_COMPLEMENTS_EXPANDED,
-            METHOD_UNIONS_MOVED_TO_LEFT
+            METHOD_UNIONS_MOVED_TO_LEFT,
+            METHOD_SIMPLIFY_EMPTY_UNIVERSAL
         ]
 
         return _call_method_list_until_stable(self, simplification_methods)
@@ -73,6 +75,9 @@ class Set:
         return self
 
     def _unions_moved_to_left(self) -> 'Set':
+        return self
+
+    def _simplify_empty_universal(self):
         return self
 
     def _to_nested_list(self) -> tg.List[tg.List['Set']]:
@@ -143,6 +148,7 @@ class PropertySet(UnarySet):
         # except AttributeError:
         #     return self
         return self
+
 
 class EmptySet(UnarySet):
     def __eq__(self, other: Set) -> bool:
@@ -278,6 +284,18 @@ class Intersection(BinarySet):
         else:
             return Intersection(self.left_expr._unions_moved_to_left(), self.right_expr._unions_moved_to_left())
 
+    def _simplify_empty_universal(self):
+        if self.left_expr == UniversalSet():
+            return self.right_expr
+        elif self.right_expr == UniversalSet():
+            return self.left_expr
+        elif self.left_expr == EmptySet():
+            return EmptySet()
+        elif self.right_expr == EmptySet():
+            return EmptySet()
+        else:
+            return self
+
     def _to_nested_list(self) -> tg.List[tg.List[Set]]:
         return [self.left_expr._to_nested_list()[0] + self.right_expr._to_nested_list()[0]]
 
@@ -321,6 +339,18 @@ class Union(BinarySet):
 
         else:
             return Union(self.left_expr._unions_moved_to_left(), self.right_expr._unions_moved_to_left())
+
+    def _simplify_empty_universal(self):
+        if self.left_expr == UniversalSet():
+            return UniversalSet()
+        elif self.right_expr == UniversalSet():
+            return UniversalSet()
+        elif self.left_expr == EmptySet():
+            return self.right_expr
+        elif self.right_expr == EmptySet():
+            return self.left_expr
+        else:
+            return self
 
     def _to_nested_list(self) -> tg.List[tg.List[Set]]:
         return self.left_expr._to_nested_list() + self.right_expr._to_nested_list()
