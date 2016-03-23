@@ -9,6 +9,8 @@ import rxncon.semantics.molecule_definition_from_rxncon as mdfr
 import rxncon.semantics.molecule_definition as mdf
 import rxncon.core.specification as spe
 
+from rxncon.semantics.molecule_from_string import mol_def_from_string, mol_ins_from_string
+
 
 def test_commutative_diagram_for_complement_operation(mol_def, state_sets):
     for state_set in state_sets:
@@ -126,7 +128,9 @@ def association_property_instances(spec_A_dB, spec_A_dC, spec_A_sB, spec_A_sC, s
             assoc_instance_A(spec_A_rC, spec_A_rB, specification_generic_domain_B),
             assoc_instance_A(spec_A_dB_sD, spec_A_dB_sC, specification_generic_domain_B),
             assoc_instance_A(spec_A_dB_rD, spec_A_dB_rC, specification_generic_domain_B),
-            assoc_instance_A(spec_A_sB_rD, spec_A_sB_rC, specification_generic_domain_B)]
+            assoc_instance_A(spec_A_sB_rD, spec_A_sB_rC, specification_generic_domain_B),
+            assoc_instance_A(spec_A_dB_rC, spec_A_dB_rD, specification_generic_domain_B),
+            assoc_instance_A(spec_A_sB_rC, spec_A_sB_rD, specification_generic_domain_B)]
 
 @pytest.fixture
 def expected_association_domain_ordering(spec_A_dB, spec_A_dC, spec_A_sB, spec_A_sC, spec_A_rB, spec_A_rC,
@@ -137,10 +141,17 @@ def expected_association_domain_ordering(spec_A_dB, spec_A_dC, spec_A_sB, spec_A
             expected_ordering_assoc_instance(spec_A_rB, spec_A_rC, specification_generic_domain_B),
             expected_ordering_assoc_instance(spec_A_dB_sC, spec_A_dB_sD, specification_generic_domain_B),
             expected_ordering_assoc_instance(spec_A_dB_rC, spec_A_dB_rD, specification_generic_domain_B),
+            expected_ordering_assoc_instance(spec_A_sB_rC, spec_A_sB_rD, specification_generic_domain_B),
+            expected_ordering_assoc_instance(spec_A_dB_rC, spec_A_dB_rD, specification_generic_domain_B),
             expected_ordering_assoc_instance(spec_A_sB_rC, spec_A_sB_rD, specification_generic_domain_B)]
 
 def test_association_property_instance_ordering(association_property_instances, expected_association_domain_ordering):
     assert all(sorted(instance) == expected_association_domain_ordering[i] for i, instance in enumerate(association_property_instances) )
+
+
+def test_modification_property_instance_ordering(modification_property_instance, expected_modification_domain_ordering):
+    pass
+
 
 
 # def molecule_definition_A():
