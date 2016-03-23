@@ -8,7 +8,7 @@ def test_rule():
                                <comp>; AND A--C
                                <comp>; AND A--D
                                <comp>; AND A-{p}
-                               A_ppi_C; k+ A-{p}
+                               A_ppi_C
                                A_ppi_D
                                C_p+_A
                                D_p-_A
@@ -35,7 +35,8 @@ E_pminus_A, (E & A)"""
     assert bbe_system.to_string() == expected_str
 
 
-def test_rule():
+def test_test():
     rxncon_sys= quick.Quick("""A_ppi_B""")
     bbm_sys = bfr.bipartite_boolean_model_from_rxncon(rxncon_sys.rxncon_system)
     bbe_system = bbe.BoolNet_System(bbm_sys)
+
