@@ -5,7 +5,7 @@ import rxncon.core.state as sta
 import rxncon.core.specification as spec
 
 
-class Bipartite_Boolean_Model:
+class BipartiteBooleanModel:
     def __init__(self, rules: tg.List["Rule"], init_conditions: tg.List['InitConditions']):
         self.rules = rules
         self.init_conditions = init_conditions

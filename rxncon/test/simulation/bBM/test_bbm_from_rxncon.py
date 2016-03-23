@@ -4,7 +4,7 @@ import rxncon.simulation.bBM.bBM_boolnet_exporter as bbe
 
 
 def test_rule():
-    rxncon_sys= quick.Quick("""A_ppi_B; ! <comp>
+    rxncon_sys = quick.Quick("""A_ppi_B; ! <comp>
                                <comp>; AND A--C
                                <comp>; AND A--D
                                <comp>; AND A-{p}
@@ -15,7 +15,7 @@ def test_rule():
                                E_p-_A
                             """)
     bbm_sys = bfr.bipartite_boolean_model_from_rxncon(rxncon_sys.rxncon_system)
-    bbe_system = bbe.BoolNet_System(bbm_sys)
+    bbe_system = bbe.BoolNetSystem(bbm_sys)
     expected_str = """target, factors
 A, A
 B, B
@@ -36,11 +36,11 @@ E_pminus_A, (E & A)"""
 
 
 def test_test():
-    rxncon_sys= quick.Quick("""A_ppi_B; k- A-{P}; k+ A--C
+    rxncon_sys = quick.Quick("""A_ppi_B; k- A-{P}; k+ A--C
                                A_ppi_C
                                D_p+_A""")
     bbm_sys = bfr.bipartite_boolean_model_from_rxncon(rxncon_sys.rxncon_system)
-    bbe_system = bbe.BoolNet_System(bbm_sys)
+    bbe_system = bbe.BoolNetSystem(bbm_sys)
     expected_expression = """target, factors
 A, A
 B, B
@@ -53,5 +53,3 @@ A..C, (A..C | A_ppi_C)
 D_pplus_A, (D & A)
 A._p_, (A._p_ | D_pplus_A)"""
     assert bbe_system.to_string() == expected_expression
-
-

@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 import rxncon.simulation.bBM.bBM_boolnet_exporter as bbe
@@ -5,6 +7,9 @@ import rxncon.simulation.bBM.bipartite_boolean_model as bbm
 
 import rxncon.syntax.rxncon_from_string as rfs
 import rxncon.venntastic.sets as venn
+import time
+import tempfile
+
 
 
 def test_generate_name():
@@ -24,10 +29,10 @@ def test_generate_name():
 
 
 def test_boolnet_string(rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A, initialConditions):
-    bbm_system = bbm.Bipartite_Boolean_Model([rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A],
-                                             initialConditions)
+    bbm_system = bbm.BipartiteBooleanModel([rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A],
+                                           initialConditions)
 
-    bbe_system = bbe.BoolNet_System(bbm_system)
+    bbe_system = bbe.BoolNetSystem(bbm_system)
     bbe_str = bbe_system.to_string()
 
     expected_str = """target, factors
@@ -42,10 +47,10 @@ C_pplus_A, (C & A)"""
     assert bbe_str == expected_str
 
 def test_boolnet_string_with_complement(rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, initialConditions):
-    bbm_system = bbm.Bipartite_Boolean_Model([rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A],
-                                             initialConditions)
+    bbm_system = bbm.BipartiteBooleanModel([rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A],
+                                           initialConditions)
 
-    bbe_system = bbe.BoolNet_System(bbm_system)
+    bbe_system = bbe.BoolNetSystem(bbm_system)
     bbe_str = bbe_system.to_string()
     expected_str = """target, factors
 A, A
@@ -57,6 +62,17 @@ A._p_, ((C_pplus_A | A._p_) & (! D_pminus_A & ! E_pminus_A))
 C_pplus_A, (C & A)"""
 
     assert bbe_str == expected_str
+
+def test_to_file(rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, initialConditions):
+    bbm_system = bbm.BipartiteBooleanModel([rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A],
+                                           initialConditions)
+
+    bbe_system = bbe.BoolNetSystem(bbm_system)
+    bbe_str = bbe_system.to_string()
+    path = "{0}/test{1}.bool".format(tempfile.gettempdir(), time.time())
+    bbe_system.to_file(path)
+    assert os.path.exists(path)
+    os.remove(path)
 
 @pytest.fixture
 def rule_A__B():
@@ -111,9 +127,9 @@ def rule_D_pminus_A():
 
 @pytest.fixture
 def initialConditions():
-    return [bbm.InitConditions(bbm.Node(rfs.reaction_from_string("A_ppi_B").components[0]), None),
-                      bbm.InitConditions(bbm.Node(rfs.reaction_from_string("A_ppi_B").components[1]), None),
-                      bbm.InitConditions(bbm.Node(rfs.reaction_from_string("C_p+_A").components[0]), None)
+    return [bbm.InitCondition(bbm.Node(rfs.reaction_from_string("A_ppi_B").components[0]), None),
+                      bbm.InitCondition(bbm.Node(rfs.reaction_from_string("A_ppi_B").components[1]), None),
+                      bbm.InitCondition(bbm.Node(rfs.reaction_from_string("C_p+_A").components[0]), None)
            ]
 
 
