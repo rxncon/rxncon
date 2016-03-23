@@ -227,8 +227,6 @@ def _mod_property_ins_from_string(mol_def, prop_string):
     assert prop_string[0:4] == 'mod/'
     prop_string = prop_string[4:]
 
-    assert len(prop_string.split(':')[0]) == 2
-
     mod_domain = component_from_string(prop_string.split(':')[0])
     mod_defs = [x for x in mol_def.modification_defs if x.spec == mod_domain]
     assert len(mod_defs) == 1

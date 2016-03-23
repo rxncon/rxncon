@@ -39,8 +39,8 @@ def test_mol_instances_and_binding():
 
 
 def test_rule():
-    mol_defs = ['A#ass/A_[x]:B_[y]~C_[z],mod/A_[(r)]~u~p', 'B#ass/B_[y]:A_[x]']
-    rule_string = 'A#ass/A_[x]: + B#ass/B_[y]: <-> A#ass/A_[x]:B_[y]~0.B#ass/B_[y]:A_[x]~0'
+    mol_defs = ['A#ass/A_[x]:B_[y]~C_[z],mod/A_[(r)]:u~p', 'B#ass/B_[y]:A_[x]']
+    rule_string = 'A#ass/A_[x]:,mod/A_[(r)]:p + B#ass/B_[y]: <-> A#ass/A_[x]:B_[y]~0,mod/A_[(r)]:p.B#ass/B_[y]:A_[x]~0'
 
     rule = rule_from_string(mol_defs, rule_string)
     print(rule)
