@@ -4,6 +4,7 @@ import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
 import rxncon.core.specification as spec
 
+
 class Bipartite_Boolean_Model:
     def __init__(self, rules: tg.List["Rule"], init_conditions: tg.List['InitConditions']):
         self.rules = rules
@@ -13,6 +14,7 @@ class Bipartite_Boolean_Model:
     def _validate(self):
         pass
 
+
 class InitConditions:
     def __init__(self, target: 'Node', value: tg.Optional[tg.Union[bool, 'Node']]):
         self.target = target
@@ -20,6 +22,7 @@ class InitConditions:
 
     def __eq__(self, other: 'InitConditions'):
         return self.target == other.target and self.value == self.value
+
 
 class Node:
     def __init__(self, value: tg.Union[rxn.Reaction, sta.State]):

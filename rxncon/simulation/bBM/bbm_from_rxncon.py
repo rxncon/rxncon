@@ -7,8 +7,10 @@ import rxncon.venntastic.sets as venn
 
 from rxncon.simulation.rule_based.rbm_from_rxncon import state_set_from_contingencies
 
+
 def bipartite_boolean_model_from_rxncon(rxconsys: rxs.RxnConSystem):
     return bbm.Bipartite_Boolean_Model(rules_from_rxncon(rxconsys), initial_states_from_rxncon(rxconsys))
+
 
 def rules_from_rxncon(rxconsys: rxs.RxnConSystem):
 
