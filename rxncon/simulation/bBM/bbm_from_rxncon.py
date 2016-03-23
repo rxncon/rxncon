@@ -4,7 +4,7 @@ import rxncon.core.reaction as rxn
 import rxncon.simulation.bBM.bipartite_boolean_model as bbm
 import rxncon.venntastic.sets as venn
 
-from rxncon.semantics.molecule_from_rxncon import set_of_states_from_contingencies
+from rxncon.simulation.rule_based.rbm_from_rxncon import state_set_from_contingencies
 
 def bipartite_boolean_model_from_rxncon(rxconsys: rxs.RxnConSystem):
     return bbm.Bipartite_Boolean_Model(rules_from_rxncon(rxconsys), initial_states_from_rxncon(rxconsys))
@@ -35,16 +35,12 @@ def rule_for_reaction_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, r
     all_visited_nodes = get_rule_targets(system_rules)
     if bbm.Node(reaction) in all_visited_nodes:
         return None
-    strict_contingency_state_set = set_of_states_from_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction))
+    strict_contingency_state_set = state_set_from_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction))
 
-    if strict_contingency_state_set != venn.UniversalSet():
-        vennset = venn.Intersection(strict_contingency_state_set,
+    vennset = venn.Intersection(strict_contingency_state_set,
                                    venn.Intersection(venn.PropertySet(reaction.subject),
                                                      venn.PropertySet(reaction.object)))
-    else:
-        vennset = venn.Intersection(venn.PropertySet(reaction.subject),
-                                    venn.PropertySet(reaction.object))
-    quantitative_contingency_state_set= set_of_states_from_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction)) # todo: ersetze k+ durch ! und k- durch x. in venntastic: ! ^= PropertySet(), x ^= Complement(PropertySet())
+    quantitative_contingency_state_set= state_set_from_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction)) # todo: ersetze k+ durch ! und k- durch x. in venntastic: ! ^= PropertySet(), x ^= Complement(PropertySet())
     return bbm.Rule(bbm.Node(reaction), bbm.Factor(vennset_to_bbm_factor_vennset(vennset.simplified_form())))
 
 
@@ -83,22 +79,8 @@ def rule_for_state_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reac
         if rxn.source is not None and rxn != reaction and reaction.product in [rxn.source]:
             neg_bool_def.append(venn.PropertySet(bbm.Node(rxn)))
 
-
     pos_rules= venn.nested_expression_from_list_and_binary_op(pos_bool_def, venn.Union)
     neg_rules = venn.nested_expression_from_list_and_binary_op(neg_bool_def, venn.Union)
 
-    if not pos_rules.is_equivalent_to(venn.EmptySet()) and not neg_rules.is_equivalent_to(venn.EmptySet()):
-        return bbm.Rule(bbm.Node(reaction.product),
-                        bbm.Factor(venn.Intersection(pos_rules, venn.Complement(neg_rules))))
-    elif not pos_rules.is_equivalent_to(venn.EmptySet()):
-        return bbm.Rule(bbm.Node(reaction.product),
-                        bbm.Factor(pos_rules))
-    elif not neg_rules.is_equivalent_to(venn.EmptySet()):
-        return bbm.Rule(bbm.Node(reaction.product),
-                        bbm.Factor(venn.Complement(neg_rules)))
-
-
-    # bool_rules.simplified_form() InterProteinInteraction has no _complement_expanded
-
-
-
+    return bbm.Rule(bbm.Node(reaction.product),
+                    bbm.Factor(venn.Intersection(pos_rules, venn.Complement(neg_rules)).simplified_form()))

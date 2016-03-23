@@ -43,9 +43,6 @@ class BoolNet_System:
         return self._generate_name(target)
 
     def _factor_to_string(self, factor: bbm.Factor):
-        #if factor == venn.PropertySet(venn.EmptySet()) or \
-        #                factor == venn.PropertySet(venn.UniversalSet()):
-        #    return ''
         if isinstance(factor, venn.PropertySet):
             return self._generate_name(factor.value)
         elif isinstance(factor, venn.Complement):
