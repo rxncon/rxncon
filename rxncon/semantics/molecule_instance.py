@@ -44,13 +44,13 @@ class MoleculeInstance:
         return False
 
     def __hash__(self) -> int:
-        return hash(str(self))
+        return hash(str(self.mol_def.spec))
 
     def __repr__(self):
         return str(self)
 
     def __str__(self) -> str:
-        return 'MoleculeSpecification: {0}, mod_instances = {1}. assoc_instances = {2}. loc_instances = {3}'\
+        return 'MoleculeInstance: {0}, mod_instances = {1}. assoc_instances = {2}. loc_instances = {3}'\
             .format(self.mol_def.spec, ', '.join([str(x) for x in self.modification_properties]),
                     ', '.join(str(x) for x in self.association_properties), str(self.localization_property))
 
@@ -84,7 +84,7 @@ class ModificationPropertyInstance(PropertyInstance):
         return self.modifier < other.modifier
 
     def __hash__(self) -> bool:
-        return hash(str(self))
+        return hash(str(self.modification_def.spec))
 
     def __repr__(self):
         return str(self)
@@ -141,13 +141,13 @@ class AssociationPropertyInstance(PropertyInstance):
         return False
 
     def __hash__(self) -> int:
-        return hash(str(self))
+        return hash(str(self.association_def.spec))
 
     def __repr__(self):
         return str(self)
 
     def __str__(self) -> str:
-        return 'AssociationInstance: Domain = {0}, occupation_status = {1}, partner = {2}'\
+        return 'AssociationPropertyInstance: Domain = {0}, occupation_status = {1}, partner = {2}'\
             .format(self.association_def.spec, self.occupation_status, self.partner)
 
     def complementary_instances(self):
@@ -194,7 +194,7 @@ class LocalizationPropertyInstance(PropertyInstance):
         return str(self)
 
     def __str__(self) -> str:
-        return 'LocalizationSpecification: {0}'.format(self.compartment)
+        return 'LocalizationPropertyInstance: {0}'.format(self.compartment)
 
     def _validate(self):
         if self.compartment not in self.localization_def.valid_compartments:

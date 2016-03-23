@@ -47,13 +47,17 @@ class MoleculeDefinition:
             other.modification_defs == self.modification_defs and other.association_defs == self.association_defs
 
     def __hash__(self) -> int:
-        return hash(str(self))
+        return hash(str(self.spec))
 
     def __repr__(self):
         return str(self)
 
     def __str__(self) -> str:
-        return 'MoleculeDefinition: {0}'.format(self.spec)
+        return 'MoleculeDefinition: {0} [Mod: {1}, Ass: {2}, Loc: {3}]'\
+            .format(self.spec,
+                    ''.join(str(x) for x in self.modification_defs),
+                    ''.join(str(x) for x in self.association_defs),
+                    str(self.localization_def))
 
 
 class PropertyDefinition:
