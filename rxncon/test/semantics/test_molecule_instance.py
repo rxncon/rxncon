@@ -63,17 +63,17 @@ def molecule_instances():
 
 @pytest.fixture
 def expected_molecule_instances_ordering():
-    return [[mol_instance_from_string('A#ass/A_[dB]:B_[dA]', 'A#ass/A_[dB]:'),
+     return [[mol_instance_from_string('A#ass/A_[dB]:B_[dA]', 'A#ass/A_[dB]:'),
              mol_instance_from_string('B#ass/B_[dA]:A_[dB]', 'B#ass/B_[dA]:'),
              mol_instance_from_string('C#ass/C_[dA]:A_[dC]', 'C#ass/C_[dA]:')],
 
-            [mol_instance_from_string('A#ass/A_[dB]:B_[dA]', 'A#ass/A_[dB]:'),
-             mol_instance_from_string('B#ass/B_[dA]:A_[dB]', 'B#ass/B_[dA]:'),
-             mol_instance_from_string('C#ass/C_[dA]:A_[dC]', 'C#ass/C_[dA]:')],
+             [mol_instance_from_string('A#ass/A_[dB]:B_[dA]', 'A#ass/A_[dB]:'),
+              mol_instance_from_string('B#ass/B_[dA]:A_[dB]', 'B#ass/B_[dA]:'),
+              mol_instance_from_string('C#ass/C_[dA]:A_[dC]', 'C#ass/C_[dA]:')],
 
-            [mol_instance_from_string('A#ass/A_[dC]:C_[dA]', 'A#ass/A_[dC]:'),
-             mol_instance_from_string('A#ass/A_[dD]:D_[dA]', 'A#ass/A_[dD]:'),
-             mol_instance_from_string('A#ass/A_[dE]:E_[dA]', 'A#ass/A_[dE]:')]
+             [mol_instance_from_string('A#ass/A_[dC]:C_[dA]', 'A#ass/A_[dC]:'),
+              mol_instance_from_string('A#ass/A_[dD]:D_[dA]', 'A#ass/A_[dD]:'),
+              mol_instance_from_string('A#ass/A_[dE]:E_[dA]', 'A#ass/A_[dE]:')]
             ]
 
 def test_molecule_instance_sorting(molecule_instances, expected_molecule_instances_ordering):
