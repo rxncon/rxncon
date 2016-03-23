@@ -6,6 +6,7 @@ import typecheck as tc
 from rxncon.semantics.molecule_instance import MoleculeInstance, AssociationPropertyInstance
 from rxncon.semantics.molecule_definition import MoleculeDefinition
 
+
 class RuleBasedModel:
     @tc.typecheck
     def __init__(self, molecule_defs: tg.List[MoleculeDefinition], rules: tg.List['Rule'],

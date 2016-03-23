@@ -5,6 +5,7 @@ from rxncon.semantics.molecule_instance import MoleculeInstance, \
     AssociationPropertyInstance, LocalizationPropertyInstance, ModificationPropertyInstance
 
 from rxncon.syntax.rxncon_from_string import component_from_string
+from rxncon.simulation.rule_based.rule_based_model import Binding, Rule, MoleculeReactant, ComplexReactant, Arrow, Parameter
 
 
 def mol_def_from_string(mol_def_string: str) -> MoleculeDefinition:
@@ -57,12 +58,78 @@ def mol_instances_and_bindings_from_string(mol_defs, mol_instances_string: str):
     for mol_def in mol_defs:
         if isinstance(mol_def, str):
             mol_def = mol_def_from_string(mol_def)
-
         mol_def_dict[mol_def.spec] = mol_def
 
     mol_ins_strings = mol_instances_string.split('.')
-    for mol_ins_string in mol_ins_strings:
 
+    for mol_ins_string in mol_ins_strings:
+        mol_def = mol_def_dict[component_from_string(mol_ins_string.split('#')[0])]
+        mol_ins = mol_instance_from_string(mol_def, mol_ins_string)
+        mol_instances.append(mol_ins)
+
+    finished_bindings_nums = []
+
+    for i, left_mol_ins in enumerate(mol_instances):
+        for left_ass_property in left_mol_ins.association_properties:
+            if hasattr(left_ass_property, 'binding_num') and left_ass_property.binding_num not in finished_bindings_nums:
+                left_partner = (i, left_ass_property)
+
+                for j, right_mol_ins in enumerate(mol_instances):
+                    for right_ass_property in right_mol_ins.association_properties:
+                        if hasattr(right_ass_property, 'binding_num') and left_ass_property.binding_num == right_ass_property.binding_num:
+                            right_partner = (j, right_ass_property)
+
+                assert right_partner
+                bindings.append(Binding(left_partner, right_partner))
+
+                finished_bindings_nums.append(left_ass_property.binding_num)
+
+    return mol_instances, bindings
+
+
+def rule_from_string(mol_defs, rule_string):
+    mol_def_dict = {}
+
+    for mol_def in mol_defs:
+        if isinstance(mol_def, str):
+            mol_def = mol_def_from_string(mol_def)
+        mol_def_dict[mol_def.spec] = mol_def
+
+    if '<->' in rule_string:
+        split = rule_string.split('<->')
+        arrow = Arrow('<->')
+        parameters = [Parameter('k_f', None), Parameter('k_r', None)]
+    elif '->' in rule_string:
+        split = rule_string.split('->')
+        arrow = Arrow('->')
+        parameters = [Parameter('k', None)]
+    else:
+        raise AssertionError
+
+    lhs_string, rhs_string = split[0].strip(), split[1].strip()
+
+    lhs_terms = [x.strip() for x in lhs_string.split('+')]
+    rhs_terms = [x.strip() for x in rhs_string.split('+')]
+
+    lhs_reactants = []
+    for term in lhs_terms:
+        if '.' in term:
+            instances, bindings = mol_instances_and_bindings_from_string(mol_defs, term)
+            lhs_reactants.append(ComplexReactant(instances, bindings))
+        else:
+            instance = mol_instance_from_string(mol_def_dict[component_from_string(term.split('#')[0])], term)
+            lhs_reactants.append(MoleculeReactant(instance))
+
+    rhs_reactants = []
+    for term in rhs_terms:
+        if '.' in term:
+            instances, bindings = mol_instances_and_bindings_from_string(mol_defs, term)
+            rhs_reactants.append(ComplexReactant(instances, bindings))
+        else:
+            instance = mol_instance_from_string(mol_def_dict[component_from_string(term.split('#')[0])], term)
+            rhs_reactants.append(MoleculeReactant(instance))
+
+    return Rule(lhs_reactants, rhs_reactants, arrow, parameters)
 
 
 def _property_def_from_string(def_string: str):
@@ -121,7 +188,15 @@ def _loc_property_def_from_string(def_string):
 def _property_ins_from_string(mol_def, prop_string):
     identifier = prop_string[0:3]
     if identifier == 'ass':
-        return _ass_property_ins_from_string(mol_def, prop_string)
+        if len(prop_string.split('~')) == 2:
+            binding_num = prop_string.split('~')[1]
+            prop_string = prop_string.split('~')[0]
+            ass_prop_instance = _ass_property_ins_from_string(mol_def, prop_string)
+            ass_prop_instance.binding_num = binding_num
+            return ass_prop_instance
+        else:
+            return _ass_property_ins_from_string(mol_def, prop_string)
+
     elif identifier == 'mod':
         return _mod_property_ins_from_string(mol_def, prop_string)
     elif identifier == 'loc':

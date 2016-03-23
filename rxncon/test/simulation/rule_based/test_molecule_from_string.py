@@ -1,6 +1,7 @@
 import pytest
 
-from rxncon.semantics.molecule_from_string import mol_def_from_string, mol_instance_from_string
+from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_string, mol_instance_from_string, \
+    mol_instances_and_bindings_from_string, rule_from_string
 from rxncon.semantics.molecule_definition import MoleculeDefinition, ModificationPropertyDefinition, \
     AssociationPropertyDefinition, LocalizationPropertyDefinition, Compartment, Modifier, OccupationStatus
 from rxncon.semantics.molecule_instance import MoleculeInstance, AssociationPropertyInstance
@@ -18,6 +19,31 @@ def test_mol_ins_from_string(mol_instances):
         ins_string = strings[1]
 
         assert mol_instance_from_string(def_string, ins_string) == mol_ins
+
+
+def test_mol_instances_and_binding():
+    mol_defs = ['A#ass/A_[x]:B_[y]', 'B#ass/B_[y]:A_[x]']
+    complex_string = 'A#ass/A_[x]:B_[y]~1.B#ass/B_[y]:A_[x]~1'
+
+    instances, bindings = mol_instances_and_bindings_from_string(mol_defs, complex_string)
+
+    assert mol_instance_from_string(mol_defs[0], 'A#ass/A_[x]:B_[y]') in instances
+    assert mol_instance_from_string(mol_defs[1], 'B#ass/B_[y]:A_[x]') in instances
+
+    assert len(bindings) == 1
+    binding = bindings[0]
+    assert binding.left_partner[0] == 0
+    assert binding.right_partner[0] == 1
+    assert binding.left_partner[1].association_def.spec == component_from_string('A_[x]')
+    assert binding.right_partner[1].association_def.spec == component_from_string('B_[y]')
+
+
+def test_rule():
+    mol_defs = ['A#ass/A_[x]:B_[y]~C_[z],mod/A_[(r)]~u~p', 'B#ass/B_[y]:A_[x]']
+    rule_string = 'A#ass/A_[x]: + B#ass/B_[y]: <-> A#ass/A_[x]:B_[y]~0.B#ass/B_[y]:A_[x]~0'
+
+    rule = rule_from_string(mol_defs, rule_string)
+    print(rule)
 
 
 @pytest.fixture
@@ -79,3 +105,5 @@ def mol_instances():
     )
 
     return mol_instances
+
+
