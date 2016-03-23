@@ -286,15 +286,15 @@ class Intersection(BinarySet):
 
     def _simplify_empty_universal(self):
         if self.left_expr == UniversalSet():
-            return self.right_expr
+            return self.right_expr._simplify_empty_universal()
         elif self.right_expr == UniversalSet():
-            return self.left_expr
+            return self.left_expr._simplify_empty_universal()
         elif self.left_expr == EmptySet():
             return EmptySet()
         elif self.right_expr == EmptySet():
             return EmptySet()
         else:
-            return self
+            return Intersection(self.left_expr._simplify_empty_universal(), self.right_expr._simplify_empty_universal())
 
     def _to_nested_list(self) -> tg.List[tg.List[Set]]:
         return [self.left_expr._to_nested_list()[0] + self.right_expr._to_nested_list()[0]]
@@ -346,11 +346,11 @@ class Union(BinarySet):
         elif self.right_expr == UniversalSet():
             return UniversalSet()
         elif self.left_expr == EmptySet():
-            return self.right_expr
+            return self.right_expr._simplify_empty_universal()
         elif self.right_expr == EmptySet():
-            return self.left_expr
+            return self.left_expr._simplify_empty_universal()
         else:
-            return self
+            return Union(self.left_expr._simplify_empty_universal(), self.right_expr._simplify_empty_universal())
 
     def _to_nested_list(self) -> tg.List[tg.List[Set]]:
         return self.left_expr._to_nested_list() + self.right_expr._to_nested_list()
