@@ -1,6 +1,5 @@
 import rxncon.simulation.bBM.bbm_from_rxncon as bfr
 import rxncon.input.quick.quick as quick
-import rxncon.venntastic.sets as venn
 import rxncon.simulation.bBM.bBM_boolnet_exporter as bbe
 
 
