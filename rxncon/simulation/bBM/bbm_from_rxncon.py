@@ -44,7 +44,6 @@ def rule_for_reaction_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, r
     return bbm.Rule(bbm.Node(reaction), bbm.Factor(vennset_to_bbm_factor_vennset(vennset.simplified_form())))
 
 
-
 def vennset_to_bbm_factor_vennset(vennset: venn.Set):
     # creates new vennset with states contained by Node objects, for compareability
     # want to rewrite venn.Set into bbm.Factor like venn.PropertySet(A--B) -> venn.PropertySet(bbm.Node(A--B))
