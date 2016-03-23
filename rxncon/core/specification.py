@@ -11,6 +11,11 @@ class Specification:
         self.domain = domain
         self.subdomain = subdomain
         self.residue = residue
+        self._validate()
+
+    def _validate(self):
+        if self.subdomain:
+            assert self.domain is not None
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -24,6 +29,30 @@ class Specification:
     @tc.typecheck
     def __eq__(self, other: 'Specification') -> bool:
         return self.name == other.name and self.domain == other.domain and self.subdomain == other.subdomain and self.residue == other.residue
+
+    @tc.typecheck
+    def __lt__(self, other: 'Specification'):
+        # None is smaller than something
+        if self.name < other.name:
+            return True
+        elif self.name == other.name:
+            if self.domain is None and other.domain is not None:
+                return True
+            if other.domain is not None and other.domain is not None \
+                    and self.domain < other.domain:
+                return True
+            if self.subdomain is None and other.subdomain is not None:
+                return True
+            if self.subdomain is not None and other.subdomain is not None \
+                    and self.subdomain < other.subdomain:
+                return True
+            if self.residue is None and other.residue is not None:
+                return True
+            if self.residue is not None and other.residue is not None \
+                    and self.residue < other.residue:
+                return True
+
+        return False
 
     @tc.typecheck
     def is_equivalent_to(self, other: 'Specification') -> bool:
