@@ -1,6 +1,7 @@
 import typing as tg
 import rxncon.core.rxncon_system as rxs
 import rxncon.core.reaction as rxn
+import rxncon.core.contingency as con
 import rxncon.simulation.bBM.bipartite_boolean_model as bbm
 import rxncon.venntastic.sets as venn
 
@@ -40,8 +41,23 @@ def rule_for_reaction_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, r
     vennset = venn.Intersection(strict_contingency_state_set,
                                    venn.Intersection(venn.PropertySet(reaction.subject),
                                                      venn.PropertySet(reaction.object)))
-    quantitative_contingency_state_set= state_set_from_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction)) # todo: ersetze k+ durch ! und k- durch x. in venntastic: ! ^= PropertySet(), x ^= Complement(PropertySet())
+    additional_strict_cont = convert_quantitative_contingencies_into_strict_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))
+    additional_contingency_state_set= state_set_from_contingencies(additional_strict_cont) # todo: ersetze k+ durch ! und k- durch x. in venntastic: ! ^= PropertySet(), x ^= Complement(PropertySet())
+    vennset = venn.Intersection(vennset, additional_contingency_state_set)
     return bbm.Rule(bbm.Node(reaction), bbm.Factor(vennset_to_bbm_factor_vennset(vennset.simplified_form())))
+
+
+def convert_quantitative_contingencies_into_strict_contingencies(contingencies: tg.List[con.Contingency]):
+    converted_contingencies = []
+    for contingency in contingencies:
+        if contingency.type == con.ContingencyType.positive:
+            converted_contingencies.append(con.Contingency(contingency.target, con.ContingencyType.requirement, contingency.effector))
+        elif contingency.type == con.ContingencyType.negative:
+            converted_contingencies.append(con.Contingency(contingency.target, con.ContingencyType.inhibition, contingency.effector))
+        else:
+            raise NotImplementedError
+
+    return converted_contingencies
 
 
 def vennset_to_bbm_factor_vennset(vennset: venn.Set):
@@ -80,6 +96,6 @@ def rule_for_state_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reac
 
     pos_rules= venn.nested_expression_from_list_and_binary_op(pos_bool_def, venn.Union)
     neg_rules = venn.nested_expression_from_list_and_binary_op(neg_bool_def, venn.Union)
-
+    vennset = venn.Intersection(pos_rules, venn.Complement(neg_rules))
     return bbm.Rule(bbm.Node(reaction.product),
-                    bbm.Factor(venn.Intersection(pos_rules, venn.Complement(neg_rules)).simplified_form()))
+                    bbm.Factor(vennset.simplified_form()))
