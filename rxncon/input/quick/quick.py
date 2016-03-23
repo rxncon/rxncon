@@ -36,7 +36,8 @@ class Quick(inp.RxnConInput):
     @tc.typecheck
     def _add_reaction_from_string(self, full_reaction_str: str):
         reaction = fst.reaction_from_string(full_reaction_str)
-        self._reactions.append(reaction)
+        if reaction not in self._reactions:
+            self._reactions.append(reaction)
 
     @tc.typecheck
     def _add_contingency_list_entries(self, contingency_strings: List[str], reaction_string: str):
