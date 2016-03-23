@@ -9,7 +9,7 @@ from rxncon.simulation.rule_based.rbm_from_rxncon import state_set_from_continge
 
 
 def bipartite_boolean_model_from_rxncon(rxconsys: rxs.RxnConSystem):
-    return bbm.Bipartite_Boolean_Model(rules_from_rxncon(rxconsys), initial_states_from_rxncon(rxconsys))
+    return bbm.BipartiteBooleanModel(rules_from_rxncon(rxconsys), initial_states_from_rxncon(rxconsys))
 
 
 def rules_from_rxncon(rxconsys: rxs.RxnConSystem):
@@ -26,10 +26,10 @@ def rules_from_rxncon(rxconsys: rxs.RxnConSystem):
 def initial_states_from_rxncon(rxconsys: rxs.RxnConSystem):
     initial_states = []
     for reaction in rxconsys.reactions:
-        if bbm.InitConditions(bbm.Node(reaction.subject), None) not in initial_states:
-            initial_states.append(bbm.InitConditions(bbm.Node(reaction.subject), None))
-        if bbm.InitConditions(bbm.Node(reaction.object), None) not in initial_states:
-            initial_states.append(bbm.InitConditions(bbm.Node(reaction.object), None))
+        if bbm.InitCondition(bbm.Node(reaction.subject), None) not in initial_states:
+            initial_states.append(bbm.InitCondition(bbm.Node(reaction.subject), None))
+        if bbm.InitCondition(bbm.Node(reaction.object), None) not in initial_states:
+            initial_states.append(bbm.InitCondition(bbm.Node(reaction.object), None))
     return initial_states
 
 

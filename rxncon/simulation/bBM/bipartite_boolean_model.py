@@ -6,7 +6,7 @@ import rxncon.core.specification as spec
 
 
 class BipartiteBooleanModel:
-    def __init__(self, rules: tg.List["Rule"], init_conditions: tg.List['InitConditions']):
+    def __init__(self, rules: tg.List["Rule"], init_conditions: tg.List['InitCondition']):
         self.rules = rules
         self.init_conditions = init_conditions
         self._validate()
@@ -15,12 +15,12 @@ class BipartiteBooleanModel:
         pass
 
 
-class InitConditions:
+class InitCondition:
     def __init__(self, target: 'Node', value: tg.Optional[tg.Union[bool, 'Node']]):
         self.target = target
         self.value = value
 
-    def __eq__(self, other: 'InitConditions'):
+    def __eq__(self, other: 'InitCondition'):
         return self.target == other.target and self.value == self.value
 
 
