@@ -7,8 +7,6 @@ import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
 import rxncon.core.specification as spec
 
-import inspect
-
 
 class BoolNetSystem:
     def __init__(self, bipartite_boolean_model: bbm.BipartiteBooleanModel):

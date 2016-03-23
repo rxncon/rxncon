@@ -1,14 +1,13 @@
 import os
-
+import time
+import tempfile
 import pytest
 
 import rxncon.simulation.bBM.bBM_boolnet_exporter as bbe
 import rxncon.simulation.bBM.bipartite_boolean_model as bbm
-
 import rxncon.syntax.rxncon_from_string as rfs
 import rxncon.venntastic.sets as venn
-import time
-import tempfile
+
 
 
 

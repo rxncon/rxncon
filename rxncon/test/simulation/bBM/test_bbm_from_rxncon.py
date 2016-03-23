@@ -35,7 +35,7 @@ E_pminus_A, (E & A)"""
     assert bbe_system.to_string() == expected_str
 
 
-def test_test():
+def test_convert_quantitative_contingencies_into_strict_contingencies():
     rxncon_sys = quick.Quick("""A_ppi_B; k- A-{P}; k+ A--C
                                A_ppi_C
                                D_p+_A""")

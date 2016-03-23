@@ -44,7 +44,7 @@ def rule_for_reaction_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, r
                                    venn.Intersection(venn.PropertySet(reaction.subject),
                                                      venn.PropertySet(reaction.object)))
     additional_strict_cont = convert_quantitative_contingencies_into_strict_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))
-    additional_contingency_state_set= state_set_from_contingencies(additional_strict_cont) # todo: ersetze k+ durch ! und k- durch x. in venntastic: ! ^= PropertySet(), x ^= Complement(PropertySet())
+    additional_contingency_state_set= state_set_from_contingencies(additional_strict_cont)
     vennset = venn.Intersection(vennset, additional_contingency_state_set)
     return bbm.Rule(bbm.Node(reaction), bbm.Factor(vennset_to_bbm_factor_vennset(vennset.simplified_form())))
 
