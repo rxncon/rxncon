@@ -54,3 +54,4 @@ D_pplus_A, (D & A)
 A._p_, (A._p_ | D_pplus_A)"""
     assert bbe_system.to_string() == expected_expression
 
+
