@@ -28,13 +28,13 @@ class MoleculeInstance:
             self.association_properties == other.association_properties
 
     def __lt__(self, other: 'MoleculeInstance') -> bool:
-        if self.mol_def.spec.name < other.mol_def.spec.name:
+        if self.mol_def.spec < other.mol_def.spec:
             return True
-        elif self.mol_def.spec.name == other.mol_def.spec.name:
-            if self.modification_properties < other.modification_properties:
+        elif self.mol_def.spec == other.mol_def.spec:
+            if sorted(self.modification_properties) < sorted(other.modification_properties):
                 return True
 
-            if self.association_properties < other.association_properties:
+            if sorted(self.association_properties) < sorted(other.association_properties):
                 return True
 
             if self.localization_property is not None and other.localization_property is not None \
@@ -72,16 +72,10 @@ class ModificationPropertyInstance(PropertyInstance):
             self.modifier == other.modifier
 
     def __lt__(self, other: 'ModificationPropertyInstance'):
-        if self.modification_def.spec.domain < other.modification_def.spec.domain:
+        if self.modification_def.spec < other.modification_def.spec:
             return True
 
-        if self.modification_def.spec.subdomain < other.modification_def.spec.subdomain:
-            return True
-
-        if self.modification_def.spec.residue < other.modification_def.spec.residue:
-            return True
-
-        return self.modifier < other.modifier
+        return self.modifier.value < other.modifier.value
 
     def __hash__(self) -> bool:
         return hash(str(self.modification_def.spec))
@@ -126,18 +120,8 @@ class AssociationPropertyInstance(PropertyInstance):
             return False
 
     def __lt__(self, other: 'AssociationPropertyInstance'):
-        if self.association_def.spec.domain is not None and other.association_def.spec.domain is not None \
-                and self.association_def.spec.domain < other.association_def.spec.domain:
+        if self.association_def.spec < other.association_def.spec:
             return True
-
-        if self.association_def.spec.subdomain is not None and other.association_def.spec.subdomain is not None \
-                and self.association_def.spec.subdomain < other.association_def.spec.subdomain:
-            return True
-
-        if self.association_def.spec.residue is not None and other.association_def.spec.residue is not None \
-                and self.association_def.spec.residue < other.association_def.spec.residue:
-            return True
-
         return False
 
     def __hash__(self) -> int:
