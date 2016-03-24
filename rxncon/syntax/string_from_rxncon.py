@@ -12,14 +12,8 @@ def string_from_component(component) -> str:
     elif component.domain and component.subdomain and not component.residue:
         return '{0}_[{1}/{2}]'.format(component.name, component.domain, component.subdomain)
 
-    elif not component.domain and component.subdomain and component.residue:
-        return '{0}_[/{1}({2})]'.format(component.name, component.subdomain, component.residue)
-
     elif not component.domain and not component.subdomain and component.residue:
         return '{0}_[({1})]'.format(component.name, component.residue)
-
-    elif not component.domain and component.subdomain and not component.residue:
-        return '{0}_[/{1}]'.format(component.name, component.subdomain)
 
     elif component.domain and not component.subdomain and not component.residue:
         return '{0}_[{1}]'.format(component.name, component.domain)
