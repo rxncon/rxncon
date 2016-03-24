@@ -10,14 +10,6 @@ from rxncon.simulation.rule_based.rule_based_model import Rule
 RuleTestCase = namedtuple('RuleTestCase', ['quick_string', 'mol_def_strings', 'rule_strings'])
 
 
-def test_quick():
-    x = Quick('''
-            A_ppi_B; ! A-{p}
-            C_p+_A''').rxncon_system
-
-    print(x)
-
-
 def test_rule_generation(test_cases):
     for test_case in test_cases:
         assert is_rule_test_case_correct(test_case)
@@ -49,7 +41,6 @@ def is_rule_test_case_correct(test_case) -> bool:
 
     expected_mol_defs = {mol_def_from_string(x) for x in test_case.mol_def_strings}
     expected_rules    = [rule_from_string(expected_mol_defs, x) for x in test_case.rule_strings]
-
 
     return actual_mol_defs == expected_mol_defs and are_rule_lists_equivalent(actual_rules, expected_rules)
 
