@@ -58,7 +58,28 @@ def molecule_instances():
 
             [mol_instance_from_string('A#ass/A_[dE]:E_[dA]', 'A#ass/A_[dE]:'),
              mol_instance_from_string('A#ass/A_[dD]:D_[dA]', 'A#ass/A_[dD]:'),
-             mol_instance_from_string('A#ass/A_[dC]:C_[dA]', 'A#ass/A_[dC]:')]
+             mol_instance_from_string('A#ass/A_[dC]:C_[dA]', 'A#ass/A_[dC]:')],
+
+            [mol_instance_from_string('A#ass/A_[dE/sE]:E_[dA]', 'A#ass/A_[dE/sE]:'),
+             mol_instance_from_string('A#ass/A_[dD/sD]:D_[dA]', 'A#ass/A_[dD/sD]:'),
+             mol_instance_from_string('A#ass/A_[dC/sC]:C_[dA]', 'A#ass/A_[dC/sC]:')],
+
+            [mol_instance_from_string('A#ass/A_[rE]:E_[dA]', 'A#ass/A_[rE]:'),
+             mol_instance_from_string('A#ass/A_[rD]:D_[dA]', 'A#ass/A_[rD]:'),
+             mol_instance_from_string('A#ass/A_[rC]:C_[dA]', 'A#ass/A_[rC]:')],
+
+            [mol_instance_from_string('A#ass/A_[rE]:E_[dA]', 'A#ass/A_[rE]:'),
+             mol_instance_from_string('A#', 'A#'),
+             mol_instance_from_string('A#ass/A_[rC]:C_[dA]', 'A#ass/A_[rC]:')],
+
+            [mol_instance_from_string('A#ass/A_[rE]:E_[dA],mod/A_[(r)]:u~p', 'A#ass/A_[rE]:,mod/A_[(r)]:u'),
+             mol_instance_from_string('A#', 'A#'),
+             mol_instance_from_string('A#ass/A_[rC]:C_[dA]', 'A#ass/A_[rC]:')],
+
+            [mol_instance_from_string('A#mod/A_[(r)]:u~p', 'A#mod/A_[(r)]:p'),
+             mol_instance_from_string('A#mod/A_[(r)]:u~ub', 'A#mod/A_[(r)]:ub'),
+             mol_instance_from_string('A#mod/A_[(r)]:u~ub~p', 'A#mod/A_[(r)]:u')]
+
             ]
 
 @pytest.fixture
@@ -73,40 +94,30 @@ def expected_molecule_instances_ordering():
 
              [mol_instance_from_string('A#ass/A_[dC]:C_[dA]', 'A#ass/A_[dC]:'),
               mol_instance_from_string('A#ass/A_[dD]:D_[dA]', 'A#ass/A_[dD]:'),
-              mol_instance_from_string('A#ass/A_[dE]:E_[dA]', 'A#ass/A_[dE]:')]
+              mol_instance_from_string('A#ass/A_[dE]:E_[dA]', 'A#ass/A_[dE]:')],
+
+             [mol_instance_from_string('A#ass/A_[dC/sC]:C_[dA]', 'A#ass/A_[dC/sC]:'),
+              mol_instance_from_string('A#ass/A_[dD/sD]:D_[dA]', 'A#ass/A_[dD/sD]:'),
+              mol_instance_from_string('A#ass/A_[dE/sE]:E_[dA]', 'A#ass/A_[dE/sE]:')],
+
+             [mol_instance_from_string('A#ass/A_[rC]:C_[dA]', 'A#ass/A_[rC]:'),
+              mol_instance_from_string('A#ass/A_[rD]:D_[dA]', 'A#ass/A_[rD]:'),
+              mol_instance_from_string('A#ass/A_[rE]:E_[dA]', 'A#ass/A_[rE]:')],
+
+             [mol_instance_from_string('A#', 'A#'),
+              mol_instance_from_string('A#ass/A_[rC]:C_[dA]', 'A#ass/A_[rC]:'),
+              mol_instance_from_string('A#ass/A_[rE]:E_[dA]', 'A#ass/A_[rE]:')],
+
+             [mol_instance_from_string('A#', 'A#'),
+              mol_instance_from_string('A#ass/A_[rC]:C_[dA]', 'A#ass/A_[rC]:'),
+              mol_instance_from_string('A#ass/A_[rE]:E_[dA],mod/A_[(r)]:u~p', 'A#ass/A_[rE]:,mod/A_[(r)]:u')],
+
+             [mol_instance_from_string('A#mod/A_[(r)]:u~p', 'A#mod/A_[(r)]:p'),
+              mol_instance_from_string('A#mod/A_[(r)]:u~ub~p', 'A#mod/A_[(r)]:u'),
+              mol_instance_from_string('A#mod/A_[(r)]:u~ub', 'A#mod/A_[(r)]:ub'),
+             ]
             ]
 
 def test_molecule_instance_sorting(molecule_instances, expected_molecule_instances_ordering):
     for i, instances in enumerate(molecule_instances):
         assert sorted(instances) == expected_molecule_instances_ordering[i]
-
-# def molecule_definition_A():
-#     spec_A = spe.Specification("A", None, None, None)
-#     mol_def_A = mdf.MoleculeDefinition(
-#         spec_A,
-#         {mdf.ModificationPropertyDefinition(spec_A_psite, {mdf.Modifier.unmodified, mdf.Modifier.phosphorylated})},
-#         {mdf.AssociationPropertyDefinition(spec_A_Bassoc, {spec_B_Aassoc})},
-#         None
-#     )
-def modification_definition_A():
-    spec_A_psite = spe.Specification('A', None, None, 'psite')
-
-    spec_B_Aassoc = spe.Specification("B", 'Aassoc', None, None)
-
-    spec_A_psite = spe.Specification('A', None, None, 'psite')
-
-
-
-    assoc_inst_A_bound = mins.AssociationPropertyInstance(mdf.AssociationPropertyDefinition(spec_A_Bassoc, {spec_B_Aassoc}),
-                                                          mdf.OccupationStatus.occupied_known_partner,
-                                                          spec_B_Aassoc)
-
-    assoc_inst_A_free = mins.AssociationPropertyInstance(mdf.AssociationPropertyDefinition(spec_A_Bassoc, {spec_B_Aassoc}),
-                                                         mdf.OccupationStatus.not_occupied,
-                                                         None)
-
-    mod_inst_A_phos = mins.ModificationPropertyInstance(mdf.ModificationPropertyDefinition(spec_A_psite, {mdf.Modifier.unmodified, mdf.Modifier.phosphorylated}),
-                                                        mdf.Modifier.phosphorylated)
-
-    mod_inst_A_unphos = mins.ModificationPropertyInstance(mdf.ModificationPropertyDefinition(spec_A_psite, {mdf.Modifier.unmodified, mdf.Modifier.phosphorylated}),
-                                                          mdf.Modifier.unmodified)
