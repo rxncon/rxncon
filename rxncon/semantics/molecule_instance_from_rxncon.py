@@ -128,7 +128,6 @@ def _properties(mol_def: mol.MoleculeDefinition, state: tg.Optional[sta.State], 
             else:
                 matching_instances.extend(mins.ModificationPropertyInstance(matching_def,
                                                                             mol_modifier_from_state_modifier(state.modifier)).complementary_instances())
-        #mol_def.spec.is_subspecification_of(state.substrate):
 
         return matching_instances
 

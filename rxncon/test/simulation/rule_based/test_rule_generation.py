@@ -294,7 +294,6 @@ def case_interaction_with_contingencies():
              'D#ass/D_[Bassoc]: + B#ass/B_[d/s]: <-> B#ass/B_[d/s]:D_[Bassoc]~0.D#ass/D_[Bassoc]:B_[d/s]~0',
              'C# + A#mod/A_[(Csite)]:u -> C# + A#mod/A_[(Csite)]:p']
         ),
-
         RuleTestCase(
             '''
             D_p+_A
