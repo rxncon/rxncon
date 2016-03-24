@@ -75,7 +75,7 @@ class ModificationPropertyInstance(PropertyInstance):
         if self.modification_def.spec < other.modification_def.spec:
             return True
 
-        return self.modifier < other.modifier
+        return self.modifier.value < other.modifier.value
 
     def __hash__(self) -> bool:
         return hash(str(self))
