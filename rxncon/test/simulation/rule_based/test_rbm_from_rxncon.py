@@ -25,6 +25,18 @@ def test_generate_rules(rxn_systems, expected_rules):
             assert rule in actual_rules
 
 
+def test_test():
+    quick = qui.Quick("""A_ppi_B; ! <comp>
+                         <comp>; OR A-{P}
+                         <comp>; OR A--C
+                         D_p+_A
+                         A_ppi_C""")
+
+    actual_rules = rfr.RuleBasedModelSupervisor(quick.rxncon_system).rules
+    pass
+
+
+
 # # MASTERTEST testing the lhs/rhs MoleculeInstances that appear.
 # def test_mol_instance_pairs_from_mol_def_and_reaction_and_contingencies(simple_system: RxnConSystem):
 #     phosphorylation_reaction_X = simple_system.reactions[0]
