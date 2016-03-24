@@ -12,12 +12,12 @@ def test_component_without_name_raises():
 
 ### SPECIFICATION, SUBSPECIFICATION TESTS ###
 # All of these components describe the same protein at different specification resolutions.
-no_domain = cfs.component_from_string('A')
-domain = cfs.component_from_string('A_[b]')
-domain_subdomain = cfs.component_from_string('A_[b/c]')
-domain_residue = cfs.component_from_string('A_[b(d)]')
-domain_subdomain_residue = cfs.component_from_string('A_[b/c(d)]')
-residue = cfs.component_from_string('A_[(d)]')
+no_domain = cfs.specification_from_string('A')
+domain = cfs.specification_from_string('A_[b]')
+domain_subdomain = cfs.specification_from_string('A_[b/c]')
+domain_residue = cfs.specification_from_string('A_[b(d)]')
+domain_subdomain_residue = cfs.specification_from_string('A_[b/c(d)]')
+residue = cfs.specification_from_string('A_[(d)]')
 
 
 def test_component_initialization():
@@ -164,8 +164,8 @@ def test_superspecification_residue():
 
 # Tests for different proteins with identical domains etc.
 def test_different_proteins():
-    first_component = cfs.component_from_string('A_[b/d]')
-    second_component = cfs.component_from_string('B_[b]')
+    first_component = cfs.specification_from_string('A_[b/d]')
+    second_component = cfs.specification_from_string('B_[b]')
 
     assert not first_component.is_equivalent_to(second_component)
     assert not first_component.is_subspecification_of(second_component)

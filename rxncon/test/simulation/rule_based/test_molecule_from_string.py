@@ -5,7 +5,7 @@ from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_strin
 from rxncon.semantics.molecule_definition import MoleculeDefinition, ModificationPropertyDefinition, \
     AssociationPropertyDefinition, LocalizationPropertyDefinition, Compartment, Modifier, OccupationStatus
 from rxncon.semantics.molecule_instance import MoleculeInstance, AssociationPropertyInstance
-from rxncon.syntax.rxncon_from_string import component_from_string
+from rxncon.syntax.rxncon_from_string import specification_from_string
 
 
 def test_mol_def_from_string(mol_defs):
@@ -34,8 +34,8 @@ def test_mol_instances_and_binding():
     binding = bindings[0]
     assert binding.left_partner[0] == 0
     assert binding.right_partner[0] == 1
-    assert binding.left_partner[1].association_def.spec == component_from_string('A_[x]')
-    assert binding.right_partner[1].association_def.spec == component_from_string('B_[y]')
+    assert binding.left_partner[1].association_def.spec == specification_from_string('A_[x]')
+    assert binding.right_partner[1].association_def.spec == specification_from_string('B_[y]')
 
 
 def test_rule():
@@ -49,34 +49,34 @@ def test_rule():
 @pytest.fixture
 def mol_defs():
     return {
-        'X#': MoleculeDefinition(component_from_string('X'), set(), set(), None),
+        'X#': MoleculeDefinition(specification_from_string('X'), set(), set(), None),
         'A#ass/A_[x]:B_[y]~C_[z]': MoleculeDefinition(
-            component_from_string('A'),
+            specification_from_string('A'),
             set(),
-            {AssociationPropertyDefinition(component_from_string('A_[x]'),
-                                           {component_from_string('B_[y]'),
-                                            component_from_string('C_[z]')})},
+            {AssociationPropertyDefinition(specification_from_string('A_[x]'),
+                                           {specification_from_string('B_[y]'),
+                                            specification_from_string('C_[z]')})},
             None
         ),
         'A#loc/cell~nucleus': MoleculeDefinition(
-            component_from_string('A'),
+            specification_from_string('A'),
             set(),
             set(),
             LocalizationPropertyDefinition({Compartment('nucleus'), Compartment('cell')})
         ),
         'A#mod/A_[d(r)]:u~ub~p': MoleculeDefinition(
-            component_from_string('A'),
-            {ModificationPropertyDefinition(component_from_string('A_[d(r)]'),
+            specification_from_string('A'),
+            {ModificationPropertyDefinition(specification_from_string('A_[d(r)]'),
                                             {Modifier('ub'), Modifier('p'), Modifier('u')})},
             set(),
             None
         ),
         'B#mod/B_[dd(r1)]:u~p,ass/B_[z]:A_[x]': MoleculeDefinition(
-            component_from_string('B'),
-            {ModificationPropertyDefinition(component_from_string('B_[dd(r1)]'),
+            specification_from_string('B'),
+            {ModificationPropertyDefinition(specification_from_string('B_[dd(r1)]'),
                                             {Modifier('p'), Modifier('u')})},
-            {AssociationPropertyDefinition(component_from_string('B_[z]'),
-                                           {component_from_string('A_[x]')})},
+            {AssociationPropertyDefinition(specification_from_string('B_[z]'),
+                                           {specification_from_string('A_[x]')})},
             None
         )
     }
@@ -100,7 +100,7 @@ def mol_instances():
     mol_instances[('A#ass/A_[x]:B_[y]~C_[z]', 'A#ass/A_[x]:C_[z]')] = MoleculeInstance(
         mol_def_from_string('A#ass/A_[x]:B_[y]~C_[z]'),
         set(),
-        {AssociationPropertyInstance(ass_def, OccupationStatus.occupied_known_partner, component_from_string('C_[z]'))},
+        {AssociationPropertyInstance(ass_def, OccupationStatus.occupied_known_partner, specification_from_string('C_[z]'))},
         None
     )
 

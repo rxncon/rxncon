@@ -4,7 +4,7 @@ import rxncon.syntax.rxncon_from_string as fst
 
 # Component from string #
 def test_rxncon_from_string_component_without_domain():
-    component = fst.component_from_string('Sln1')
+    component = fst.specification_from_string('Sln1')
 
     assert str(component) == 'Sln1'
     assert component.name == 'Sln1'
@@ -14,7 +14,7 @@ def test_rxncon_from_string_component_without_domain():
 
 
 def test_rxncon_from_string_component_with_domain():
-    component = fst.component_from_string('Pkc1_[HR1]')
+    component = fst.specification_from_string('Pkc1_[HR1]')
 
     assert str(component) == 'Pkc1_[HR1]'
     assert component.name == 'Pkc1'
@@ -24,7 +24,7 @@ def test_rxncon_from_string_component_with_domain():
 
 
 def test_rxncon_from_string_component_with_domain_and_subdomain():
-    component = fst.component_from_string('Pbs2_[RSD2/PR]')
+    component = fst.specification_from_string('Pbs2_[RSD2/PR]')
 
     assert str(component) == 'Pbs2_[RSD2/PR]'
     assert component.name == 'Pbs2'
@@ -34,7 +34,7 @@ def test_rxncon_from_string_component_with_domain_and_subdomain():
 
 
 def test_rxncon_from_string_component_with_domain_and_residue():
-    component = fst.component_from_string('Sln1_[HK(H576)]')
+    component = fst.specification_from_string('Sln1_[HK(H576)]')
 
     assert str(component) == 'Sln1_[HK(H576)]'
     assert component.name == 'Sln1'
@@ -44,7 +44,7 @@ def test_rxncon_from_string_component_with_domain_and_residue():
 
 
 def test_rxncon_from_string_component_with_domain_and_subdomain_and_residue():
-    component = fst.component_from_string('A_[B/C(D)]')
+    component = fst.specification_from_string('A_[B/C(D)]')
 
     assert str(component) == 'A_[B/C(D)]'
     assert component.name == 'A'
@@ -54,7 +54,7 @@ def test_rxncon_from_string_component_with_domain_and_subdomain_and_residue():
 
 
 def test_rxncon_from_string_component_with_residue():
-    component = fst.component_from_string('A_[(b)]')
+    component = fst.specification_from_string('A_[(b)]')
 
     assert component.name == 'A'
     assert not component.domain
