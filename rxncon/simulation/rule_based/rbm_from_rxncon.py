@@ -70,7 +70,7 @@ def _mol_instance_pairs(mol_def: mdf.MoleculeDefinition,
         _background_mol_property_sets_solving_contingencies(mol_def, _state_set_from_contingencies(contingencies), disjunctify)
 
     lhs_rhs_property_set_pairs = \
-        [x for x in _reacting_mol_property_set_pairs(mol_def, reaction) if _is_property_pair_valid_for_reaction(mol_def, x, reaction)]
+        [x for x in _reacting_mol_property_set_pairs(mol_def, reaction) if _is_property_set_pair_valid_for_reaction(mol_def, x, reaction)]
 
     assert len(lhs_rhs_property_set_pairs) == 1
     lhs_source = lhs_rhs_property_set_pairs[0][0]
@@ -137,9 +137,9 @@ def _lhs_rhs_product(reaction_molecules: tg.List[tg.List[tg.Tuple[mins.MoleculeI
     return lhs_rhs
 
 
-def _is_property_pair_valid_for_reaction(mol_def: mdf.MoleculeDefinition,
-                                         prop_tuple: tg.Tuple[venn.Set, venn.Set],
-                                         reaction: rxn.Reaction) -> bool:
+def _is_property_set_pair_valid_for_reaction(mol_def: mdf.MoleculeDefinition,
+                                             prop_tuple: tg.Tuple[venn.Set, venn.Set],
+                                             reaction: rxn.Reaction) -> bool:
     lhs = prop_tuple[0].simplified_form()
     assert isinstance(lhs, venn.PropertySet)
     lhs_prop = lhs.value
