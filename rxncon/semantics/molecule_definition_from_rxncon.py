@@ -32,14 +32,14 @@ class MoleculeDefinitionSupervisor:
                     names.add(state.substrate.name)
                     names.add(reaction.subject.name)
 
-                    mod_def = _mod_def_from_state_and_reaction(state, reaction)
+                    mod_def = mod_def_from_state_and_reaction(state, reaction)
                     _update_defs(name_to_mod_defs[state.substrate.name], mod_def)
 
                 elif isinstance(state, sta.InterProteinInteractionState) or isinstance(state, sta.IntraProteinInteractionState):
                     names.add(state.first_component.name)
                     names.add(state.second_component.name)
 
-                    assoc_defs = _assoc_defs_from_state(state)
+                    assoc_defs = assoc_defs_from_state(state)
                     _update_defs(name_to_assoc_defs[state.first_component.name], assoc_defs[0])
                     _update_defs(name_to_assoc_defs[state.second_component.name], assoc_defs[1])
 
@@ -76,7 +76,7 @@ def mol_modifier_from_state_modifier(state_mod: sta.StateModifier) -> mol.Modifi
         raise NotImplementedError
 
 
-def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, reaction: rxn.Reaction):
+def mod_def_from_state_and_reaction(state: sta.CovalentModificationState, reaction: rxn.Reaction):
 
     spec = _mod_spec_domain_from_state(state, reaction)
     mod_def = mol.ModificationPropertyDefinition(spec,
@@ -85,7 +85,7 @@ def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, react
     return mod_def
 
 
-def _assoc_defs_from_state(state: tg.Union[sta.InterProteinInteractionState, sta.IntraProteinInteractionState]):
+def assoc_defs_from_state(state: tg.Union[sta.InterProteinInteractionState, sta.IntraProteinInteractionState]):
     first_spec, second_spec = _assoc_spec_domain_from_state(state)
 
     first_def = mol.AssociationPropertyDefinition(first_spec, {second_spec})
