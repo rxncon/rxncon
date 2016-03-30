@@ -34,6 +34,7 @@ def test_quick_single_reaction_simple_contingency():
             eff.StateEffector(rfs.state_from_string('A--C'))
     )
 
+
 def test_quick_single_reaction_two_contingencies():
     quick = qui.Quick("""
                         C_p+_A
@@ -55,6 +56,7 @@ def test_quick_single_reaction_two_contingencies():
     assert quick.rxncon_system.contingencies[0] != quick.rxncon_system.contingencies[1]
     assert quick.rxncon_system.contingencies[0] in expected_contingencies
     assert quick.rxncon_system.contingencies[1] in expected_contingencies
+
 
 def test_quick_single_reaction_simple_boolean_contingency():
     quick = qui.Quick("""A_ppi_B; ! <bool>
