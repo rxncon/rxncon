@@ -20,8 +20,8 @@ def test_rule_generation(test_cases):
     for test_case in test_cases:
         assert is_rule_test_case_correct(test_case)
 
-
-def test_basic_covalent_mod_cases():
+@pytest.fixture
+def case_basic_covalent_modification():
     return [
         RuleTestCase(
             'A_p+_B',
@@ -78,7 +78,9 @@ def test_basic_covalent_mod_cases():
         ),
     ]
 
-def test_covalent_modifications_contingencies():
+
+@pytest.fixture
+def case_covalent_modifications_strikt_contingencies():
     return [
         RuleTestCase(
             '''
@@ -111,6 +113,7 @@ def test_covalent_modifications_contingencies():
              '''A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:u
              -> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:p''']
         ),
+
         RuleTestCase(
             '''
             Ste5_[MEKK]_ppi_Ste11
@@ -134,9 +137,40 @@ def test_covalent_modifications_contingencies():
 
     ]
 
-def test_basic_interaction_cases():
-       return [
-               RuleTestCase(
+
+@pytest.fixture
+def case_covalent_modifications_quant_contingencies():
+    return [
+        RuleTestCase(
+            '''
+            D_p+_C
+            C_p+_B_[(r)]; k+ C-{p}''',
+            ['B#mod/B_[(r)]:u~p', 'C#mod/C_[(Dsite)]:u~p', 'D#'],
+            ['D# + C#mod/C_[(Dsite)]:u -> D# + C#mod/C_[(Dsite)]:p',
+             'C#mod/C_[(Dsite)]:p + B#mod/B_[(r)]:u -> C#mod/C_[(Dsite)]:p + B#mod/B_[(r)]:p',
+             'C#mod/C_[(Dsite)]:u + B#mod/B_[(r)]:u -> C#mod/C_[(Dsite)]:u + B#mod/B_[(r)]:p',]
+        ),
+
+        RuleTestCase(
+            '''
+            D_p+_C
+            A_ppi_C
+            C_ub+_B_[(r)]; k+ A--C; ! C-{P}''',
+            ['A#ass/A_[Cassoc]:C_[Aassoc]', 'B#mod/B_[(r)]:u~ub', 'C#ass/C_[Aassoc]:A_[Cassoc],mod/C_[(Dsite)]:u~p', 'D#'],
+            ['D# + C#mod/C_[(Dsite)]:u -> D# + C#mod/C_[(Dsite)]:p',
+             'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0',
+             '''A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:u
+             -> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:p''',
+             'C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]: + B#mod/B_[(r)]:u -> C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]: + B#mod/B_[(r)]:p'
+             ]
+        )
+    ]
+
+
+@pytest.fixture
+def case_basic_interaction():
+    return [
+            RuleTestCase(
                 'A_ppi_B',
                 ['A#ass/A_[Bassoc]:B_[Aassoc]', 'B#ass/B_[Aassoc]:A_[Bassoc]'],
                 ['A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0']
@@ -159,11 +193,11 @@ def test_basic_interaction_cases():
                 ['A#ass/A_[a]:A_[b], ass/A_[b]:A_[a]'],
                 ['A#ass/A_[a]:, ass/A_[c]: <-> A#ass/A_[a]:A_[c]~0, ass/A_[c]:A_[a]~0']
                 )
+    ]
 
 
-            ]
-
-def test_basic_synthesis_degradation_cases():
+@pytest.fixture
+def case_basic_synthesis_degradation():
     return [
         RuleTestCase(
                 'A_deg_B',
@@ -180,22 +214,33 @@ def test_basic_synthesis_degradation_cases():
                 # or should we set
                 # ['0 + A# -> A# + B#']
                 ),
-        # todo: trsc, trsl
-        # RuleTestCase(
-        #     '''A_ppi_B
-        #        C_p+_B
-        #        D_ub+_B_[x]
-        #        Y_trsl_B''',
-        #     ['A#ass/A_[Bassoc]:B_[Aassoc]', 'B#mod/B_[Csite]:u~p, mod/B_[x]:u~ub, ass/B_[Assoc]:A_[Bassoc]', 'C#', 'D#', 'Y#'],
-        #     ['A#ass/A_[Bassoc]: + B#ass/B_[Assoc]: <-> A#ass/A_[Bassoc]:B_[Assoc]~0 + B#ass/B_[Assoc]:A_[Bassoc]~0',
-        #      'C# + B#mod/B_[Csite]:u -> C# + B#mod/B_[Csite]:p',
-        #      'D# + B#mod/B_[x]:u -> D# + B#mod/B_[x]:ub',
-        #      'Y# + BmRNA# -> Y# + BmRNA# + B#mod/B_[Csite]:u, mod/B_[x]:u, ass/B_[Assoc]:']
-        # )
 
+        # todo: trsc, trsl
+        RuleTestCase(
+            '''A_ppi_B
+               C_p+_B
+               D_ub+_B_[x]
+               Y_trsl_B''',
+            ['A#ass/A_[Bassoc]:B_[Aassoc]', 'B#mod/B_[Csite]:u~p, mod/B_[x]:u~ub, ass/B_[Assoc]:A_[Bassoc]', 'C#', 'D#', 'Y#'],
+            ['A#ass/A_[Bassoc]: + B#ass/B_[Assoc]: <-> A#ass/A_[Bassoc]:B_[Assoc]~0 + B#ass/B_[Assoc]:A_[Bassoc]~0',
+             'C# + B#mod/B_[Csite]:u -> C# + B#mod/B_[Csite]:p',
+             'D# + B#mod/B_[x]:u -> D# + B#mod/B_[x]:ub',
+             'Y# + BmRNA# -> Y# + BmRNA# + B#mod/B_[Csite]:u, mod/B_[x]:u, ass/B_[Assoc]:']
+        ),
+
+        # todo: discuss
+        RuleTestCase(
+            '''
+            Y_trsc_B
+            ''',
+            ['B#', 'Y#', 'BmRNA#'],
+            ['Y# -> Y# + BmRNA#']
+        )
     ]
 
-def test_synthesis_degredation_contingencies():
+
+@pytest.fixture
+def case_synthesis_degredation_contingencies():
     RuleTestCase(
                 '''
                 A_ppi_C
@@ -208,8 +253,10 @@ def test_synthesis_degredation_contingencies():
                  '''A#ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(Csite)]:ub
                  -> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0''']
                 )
-#@pytest.fixture
-def test_interaction_with_contingencies():
+
+
+@pytest.fixture
+def case_interaction_with_contingencies():
     return [
         RuleTestCase(
             '''
@@ -266,18 +313,45 @@ def test_interaction_with_contingencies():
 
         RuleTestCase(
             '''
+            C_p+_A[Gnp]
+            A_ppi_B; ! A_[Gnp]-{P}; ! B_[a]--[b]
+            ''',
+            ['A#ass/A_[Bassoc]:B_[Aassoc], mod/A_[Gnp/(Csite)]:u~p',
+             'B#ass/B_[Aassoc]:A_[Bassoc], ass/B_[a]:B_[b], ass/B_[b]:B_[a]'],
+            ['''A#ass/A_[Bassoc]:, mod/A_[Gnp/(Csite)]:p + B#ass/B_[Aassoc]:, ass/B_[a]:B_[b]~0, ass/B_[b]:B_[a]~0
+            <-> A#ass/A_[Bassoc]:B_[Aassoc]~0, mod/A_[Gnp/(Csite)]:p.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[a]:B_[b]~1, ass/B_[b]:B_[a]~1'''
+             ]
+        ),
+
+        RuleTestCase(
+            '''
+            A_ppi_B; ! A_[Gnp]-{P}; x B_[a]--[b]
+            ''',
+            ['A#ass/A_[Bassoc]:B_[Aassoc], mod/A_[Gnp/(Csite)]:u~p',
+             'B#ass/B_[Aassoc]:A_[Bassoc], ass/B_[a]:B_[b], ass/B_[b]:B_[a]'],
+            ['''A#ass/A_[Bassoc]:, mod/A_[Gnp/(Csite)]:p + B#ass/B_[Aassoc]:, ass/B_[a]:, ass/B_[b]:
+            <-> A#ass/A_[Bassoc]:B_[Aassoc]~0, mod/A_[Gnp/(Csite)]:p.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[a]:, ass/B_[b]:'''
+             ]
+        )
+                ]
+
+
+def case_disjunction():
+    return [
+        RuleTestCase(
+            '''
             A_ppi_C
             B_ppi_D
             A_ppi_B; ! <AorC>
             <AorC>; OR A--C; OR B--D''',
             ['A#ass/A_[Cassoc]:C_[Aassoc], ass/A_[Bassoc]:B_[Aassoc]', 'B#ass/B_[Dassoc]:D_[Bassoc], ass/B_[Assoc]:A_[Bassoc]',
-             'C#ass/C_[Aassoc]:A_[Cassoc]', 'D#/ass/D_[Bassoc]:B_[Dassoc]'],
+             'C#ass/C_[Aassoc]:A_[Cassoc]', 'D#/ass/D_[Bassoc]:B_[Dassoc]'
+             ],
             ['''A#ass/A_[Bassoc]:, ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0 + B#ass/B_[Assoc]:
-            <-> A#ass/A_[Bassoc]:B_[Aassoc]~0, ass/A_[Cassoc]:C_[Aassoc]~1.B#ass/B_[Assoc]:A_[Bassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~1''']
-
-        #'A(AssocB,AssocC!1).C(AssocA!1) + B(AssocA) <-> A(AssocB!2,AssocC!1).B(AssocA!2).C(AssocA!1)',
-        #'A(AssocB,AssocC) + B(AssocA,AssocD!1).D(AssocB!1) <-> A(AssocB!2,AssocC).B(AssocA!2,AssocD!1).D(AssocB!1)'],
-
+            <-> A#ass/A_[Bassoc]:B_[Aassoc]~0, ass/A_[Cassoc]:C_[Aassoc]~1.B#ass/B_[Assoc]:A_[Bassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~1''',
+             '''A#ass/A_[Bassoc]:, ass/A_[Cassoc]: + B#ass/B_[Assoc]:
+            <-> A#ass/A_[Bassoc]:B_[Aassoc]~0, ass/A_[Cassoc]:B#ass/B_[Assoc]:A_[Bassoc]~0'''
+             ]
         ),
 
         RuleTestCase(
@@ -308,6 +382,7 @@ def test_interaction_with_contingencies():
               '''A#mod/A_[(x)]:u, ass/A_[Bassoc]:, ass/A_[Cassoc]: + B#mod/B_[(y)]:u, mod/B_[(z)]:p, ass/B_[Aassoc]:, ass/B_[Dassoc]:
               <-> A#mod/A_[(x)]:u, ass/A_[Bassoc]:B_[Aassoc]~0, ass/A_[Cassoc]:.B#mod/B_[(y)]:u, mod/B_[(z)]:p, ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Dassoc]:''']
         ),
+
         RuleTestCase(
           '''
             A_ppi_C
@@ -326,15 +401,129 @@ def test_interaction_with_contingencies():
              'C#ass/C_[Dassoc]: + D#ass/D_[Cassoc]: <-> C#ass/C_[Dassoc]:D_[Cassoc]~0.D#ass/D_[Cassoc]:C_[Dassoc]~0',
              'B#ass/B_[Eassoc]: + E#ass/E_[Bassoc]: <-> B#ass/B_[Eassoc]:E_[Bassoc]~0.E#ass/E_[Bassoc]:B_[Eassoc]~0',
              # bound numbering might differ according to implementation
+             #              A--C    C--D    B--E
+             # [A--C, B--E]  T               T
+             # [A--C, C--D]  T       T       F
+             #
              '''Aass/A_[Bassoc]:, #ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0 + B#ass/B_[Aassoc]:, ass/B_[Eassoc]:E_[Bassoc]~0.E#ass/E_[Bassoc]:B_[Eassoc]~0
               <-> Aass/A_[Bassoc]:B_[Aassoc]~0, #ass/A_[Cassoc]:C_[Aassoc]~1.C#ass/C_[Aassoc]:A_[Cassoc]~1.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Eassoc]:E_[Bassoc]~2.E#ass/E_[Bassoc]:B_[Eassoc]~2''',
              '''Aass/A_[Bassoc]:, #ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0, ass/C_[Dassoc]:D_[Cassoc]~1.D#ass/D_[Cassoc]:C_[Dassoc]~1 + B#ass/B_[Aassoc]:, ass/B_[Eassoc]:
               <-> Aass/A_[Bassoc]:B_[Aassoc]~0, #ass/A_[Cassoc]:C_[Aassoc]~1.C#ass/C_[Aassoc]:A_[Cassoc]~1, ass/C_[Dassoc]:D_[Cassoc]~2.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Eassoc]:.D#ass/D_[Cassoc]:C_[Dassoc]~2'''
              ]
 
+        ),
+    ]
+
+
+def case_indirect_depenendcies():
+    return [
+        # todo: we should think about handling ppis as two reactions instead of one lumped
+        RuleTestCase(
+            '''
+            A_ppi_B
+            B_ppi_C; ! A--B
+            ''',
+            ['A#ass/A_[Bassoc]:B_[Aassoc]', 'B#ass/B_[Aassoc]:A_[Bassoc], ass/B_[Cassoc]:C_[Bassoc]',
+             'C#ass/C_[Bassoc]:B_[Cassoc]'],
+            [
+             # indirect dependency
+             # forward direction
+             'A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]: -> A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0',
+             # reverse direction
+             # 'A(AssocB!2).B(AssocA!2,AssocC!1).C(AssocB!1) -> A(AssocB) + B(AssocA,AssocC) + C(AssocB)'
+             '''A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Cassoc]:C_[Bassoc]~1.C#ass/C_[Bassoc]:B_[Cassoc]~1
+              -> A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]:, ass/B_[Cassoc]: + C#ass/C_[Bassoc]:''',
+             # 'A(AssocB!1).B(AssocA!1,AssocC) -> A(AssocB) + B(AssocA,AssocC)'
+             '''A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Cassoc]:
+             -> A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]:, ass/B_[Cassoc]:''',
+            '''A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Cassoc]: + C#ass/C_[Bassoc]:
+             <-> A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Cassoc]:C_[Bassoc]~1.C#ass/C_[Bassoc]:B_[Cassoc]~1
+             ''']
+        ),
+
+        RuleTestCase(
+            '''
+            Z_p+_A
+            A_ppi_B; ! A-{P}
+            X_p-_A''',
+            ['A#ass/A_[Bassoc]:B_[Aassoc], mod/A_[(Zsite)]:u~p', 'B#ass/B_[Aassoc]:A_[Bassoc]', 'X#', 'Z#'],
+            ['Z# + A#mod/A_[(Zsite)]:u -> Z# + A#mod/A_[(Zsite)]:p',
+             'A#mod/A_[(Zsite)]:p, ass/A_[Bassoc]: + B#ass/B_[Aassoc]: <-> A#mod/A_[(Zsite)]:p, ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0',
+             # indirect dependency
+             'X# + A#mod/A_[(Zsite)]:p, ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0 -> X# + A#mod/A_[(Zsite)]:u, ass/A_[Bassoc]: + B#ass/B_[Aassoc]:',
+             'X# + A#mod/A_[(Zsite)]:p, ass/A_[Bassoc]: -> X# + A#mod/A_[(Zsite)]:u, ass/A_[Bassoc]:'
+            ]
+
+        ),
+
+        # todo: discuss
+        RuleTestCase(
+            '''
+            A_ppi_B
+            B_ppi_C; x A--B
+            ''',
+            ['A#ass/A_[Bassoc]:B_[Aassoc]', 'B#ass/B_[Aassoc]:A_[Bassoc], ass/B_[Cassoc]:C_[Bassoc]',
+             'C#ass/C_[Bassoc]:B_[Cassoc]'],
+            ['A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]:, ass/B_[Cassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Cassoc]:',
+             '''A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]:, ass/B_[Cassoc]:C_[Bassoc]~0.C#ass/C_[Bassoc]:B_[Cassoc]~0
+             -> A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Cassoc]: + C#ass/C_[Bassoc]:''',
+             'B#ass/B_[Aassoc]:, ass/B_[Cassoc]: + C#ass/C_[Bassoc]: <-> B#ass/B_[Aassoc]:, ass/B_[Cassoc]:C_[Bassoc]~0.C#ass/C_[Bassoc]:B_[Cassoc]~0'
+             ]
+        ),
+
+        RuleTestCase(
+            '''
+            Swi4_[n]_ppi_Swi4_[m]
+            Swi4_BIND_SCBG1; x Swi4_[n]--Swi4_[m]
+            ''',
+            ['Swi4#ass/Swi4_[n]:Swi4_[m], ass/Swi4_[m]:Swi4_[n], ass/Swi4_[SCBG1assoc]:SCBG1assoc_[Swi4assoc]'
+             'SCBG1#ass/SCBG1_[Swi4assoc]:Swi4_[SCBG1assoc]'],
+            ['''Swi4#ass/Swi4_[n]: + Swi4#ass/Swi4_[m]: <-> Swi4#ass/Swi4_[n]:Swi4_[m]~0.Swi4#assSwi4_[m]:Swi4_[n]~0''',
+             '''SCBG1#ass/SCBG1_[Swi4assoc]:Swi4_[SCBG1assoc]~0.Swi4#ass/Swi4_[SCBG1assoc]:SCBG1assoc_[Swi4assoc]~0
+            + SCBG1#ass/SCBG1_[Swi4assoc]:Swi4_[SCBG1assoc]~0.Swi4#ass/Swi4_[SCBG1assoc]:SCBG1assoc_[Swi4assoc]~0
+            -> Swi4#ass/Swi4_[n]:Swi4_[m]~0.Swi4#ass/Swi4_[m]:Swi4_[n]~0 + SCBG1#ass/SCBG1_[Swi4assoc]: + SCBG1#ass/SCBG1_[Swi4assoc]:''',
+             '''SCBG1#ass/SCBG1_[Swi4assoc]: + Swi4#ass/Swi4_[SCBG1assoc]:, ass/Swi4_[n]:, ass/Swi4_[m]:
+             <-> SCBG1#ass/SCBG1_[Swi4assoc]:Swi4_[SCBG1assoc]~0.Swi4#ass/Swi4_[SCBG1assoc]:SCBG1_[Swi4assoc]~0, ass/Swi4_[n]:, ass/Swi4_[m]:''']
+
+        ),
+
+        RuleTestCase(
+            """
+            Swi6_[c]_ppi_Swi4_[c]
+            Swi4_[n]_ipi_Swi4_[c]; x Swi6_[c]--Swi4_[c]
+            """,
+            ['Swi4#ass/Swi4_[n]:Swi4_[c], ass/Swi4_[c]:Swi4_[n]~Swi6_[c]',
+             'Swi6#ass/Swi6_[c]:Swi4_[c]'],
+            ['''Swi6#ass/Swi6_[c]: + Swi4#ass/Swi4_[c]:, ass/Swi4_[n]: <-> Swi4#ass/Swi4_[c]:Swi6_[c]~0, ass/Swi4_[n]:.Swi6#ass/Swi6_[c]:Swi4_[c]~0''',
+             '''Swi6#ass/Swi6_[c]: + Swi4#ass/Swi4_[c]:Swi4_[n]~0, ass/Swi4_[n]:Swi4_[c]~0
+            <-> Swi4#ass/Swi4_[c]:Swi6_[c]~0, ass/Swi4_[n]:.Swi6#ass/Swi6_[c]:Swi4_[c]~0''',
+             'Swi4#ass/Swi4_[c]:, ass/Swi4_[n]: <-> Swi4#ass/Swi4_[c]:Swi4_[n]~0, ass/Swi4_[n]:Swi4_[c]~0']
         )
 
+# ### simple conflict chain
+#                 '''X_p-_A
+#                 A_ppi_B; ! A_[X]-{P}
+#                 B_ppi_C; ! A--B
+#                 C_ppi_D; ! B--C'''
+#     'X + A(X~P,AssocB!3).B(AssocA!3,AssocC!2).C(AssocB!2,AssocD!1).D(AssocC!1) -> X + A(X~U,AssocB) + B(AssocA,AssocC) + C(AssocB,AssocD) + D(AssocC)',
+#     'X + A(X~P,AssocB) -> X + A(X~U,AssocB)',
+#     'X + A(X~P,AssocB!1).B(AssocA!1,AssocC) -> X + A(X~U,AssocB) + B(AssocA,AssocC)',
+#     'X + A(X~P,AssocB!2).B(AssocA!2,AssocC!1).C(AssocB!1,AssocD) -> X + A(X~U,AssocB) + B(AssocA,AssocC) + C(AssocB,AssocD)'],
 
+# ### conflict chain with two alternative paths
+#             '''X_p-_A
+#                A_ppi_B; ! A_[X]-{P}
+#                A_ppi_F; ! A--B
+#                B_ppi_C; ! A--B
+#                C_ppi_D; ! B--C'''
+#     'X + A(X~P,AssocB,AssocF) -> X + A(X~U,AssocB,AssocF)',
+#     'X + A(X~P,AssocB!1,AssocF).B(AssocA!1,AssocC) -> X + A(X~U,AssocB,AssocF) + B(AssocA,AssocC)',
+#     'X + A(X~P,AssocB!2,AssocF!1).B(AssocA!2,AssocC).F(AssocA!1) -> X + A(X~U,AssocB,AssocF) + F(AssocA) + B(AssocA,AssocC)',
+#     'X + A(X~P,AssocB!2,AssocF).B(AssocA!2,AssocC!1).C(AssocB!1,AssocD) -> X + A(X~U,AssocB,AssocF) + B(AssocA,AssocC) + C(AssocB,AssocD)',
+#     'X + A(X~P,AssocB!3,AssocF).B(AssocA!3,AssocC!2).C(AssocB!2,AssocD!1).D(AssocC!1) -> X + A(X~U,AssocB,AssocF) + B(AssocA,AssocC) + C(AssocB,AssocD) + D(AssocC)',
+#     'X + A(X~P,AssocB!3,AssocF!1).B(AssocA!3,AssocC!2).C(AssocB!2,AssocD).F(AssocA!1) -> X + A(X~U,AssocB,AssocF) + F(AssocA) + B(AssocA,AssocC) + C(AssocB,AssocD)',
+#     'X + A(X~P,AssocB!4,AssocF!1).B(AssocA!4,AssocC!3).C(AssocB!3,AssocD!2).D(AssocC!2).F(AssocA!1) -> X + A(X~U,AssocB,AssocF) + F(AssocA) + B(AssocA,AssocC) + C(AssocB,AssocD) + D(AssocC)'],
+#
     ]
 
 
