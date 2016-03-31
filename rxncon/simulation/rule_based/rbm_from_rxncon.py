@@ -2,6 +2,8 @@ from typing import Dict, List, Tuple
 from itertools import product
 from collections import defaultdict
 from copy import copy
+from functools import reduce
+
 
 from rxncon.venntastic.sets import Set, Complement, Union, Intersection, PropertySet, nested_expression_from_list_and_binary_op
 from rxncon.core.specification import Specification
@@ -12,6 +14,10 @@ from rxncon.semantics.molecule_definition import MoleculeDefinition, Modifier
 from rxncon.semantics.molecule_definition_from_rxncon import mod_def_from_state_and_reaction, assoc_defs_from_state
 from rxncon.semantics.molecule_instance import MoleculeInstance, ModificationPropertyInstance, AssociationPropertyInstance, \
     OccupationStatus
+
+
+def compose(*functions):
+    return reduce(lambda f, g: lambda x: f(g(x)), functions, lambda x: x)
 
 
 def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefinition], state_set: Set) -> Set:
@@ -125,10 +131,15 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
         else:
             raise NotImplemented
 
-    state_set = state_set.simplified_form()
-    return _implode_mol_instance_set(
-        _expanded_complements(
-            _mol_instance_set_with_complements_from_state_set(mol_defs, state_set))).simplified_form()
+    mols_from_states = lambda x: _mol_instance_set_with_complements_from_state_set(mol_defs, x)
+
+    full_mapping = compose(
+        _implode_mol_instance_set,
+        _expanded_complements,
+        mols_from_states
+    )
+
+    return full_mapping(state_set).simplified_form()
 
 
 def _mol_instance_set_from_single_state(mol_defs: Dict[Specification, MoleculeDefinition], state: State) -> Set:
