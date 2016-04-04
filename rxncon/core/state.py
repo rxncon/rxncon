@@ -19,7 +19,10 @@ class State:
     __metaclass__ = ABCMeta
 
     def __repr__(self) -> str:
-        return str(self)
+        if hasattr(self, "__str__"):
+            return str(self)
+        else:
+            raise NotImplementedError("State required definition of __str__ method")
 
     @abstractmethod
     def is_superspecification_of(self, other) -> bool:
@@ -202,6 +205,9 @@ class InputState(State):
 
     def __hash__(self) -> int:
         return hash('*input-state-{}*'.format(self.name))
+
+    def __str__(self) -> str:
+        return sfr.string_from_input_state(self)
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:

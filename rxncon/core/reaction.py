@@ -25,6 +25,8 @@ class Verb(Enum):
     binding_to_dna              = 'bind'
     degradation                 = 'deg'
     synthesis                   = 'syn'
+    translation                 = 'trsl'
+    transcription               = 'trsc'
 
 
 @unique
@@ -133,6 +135,16 @@ VERB_REACTION_TABLE = {
     Verb.degradation:                  [ReactionClass.synthesis_degradation,
                                         Directionality.irreversible,
                                         Influence.negative,
+                                        Isomerism.undefined,
+                                        CovalentReactionModifier.undefined],
+    Verb.translation:                  [ReactionClass.synthesis_degradation,
+                                        Directionality.irreversible,
+                                        Influence.positive,
+                                        Isomerism.undefined,
+                                        CovalentReactionModifier.undefined],
+    Verb.transcription:                [ReactionClass.synthesis_degradation,
+                                        Directionality.irreversible,
+                                        Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.undefined]
 }

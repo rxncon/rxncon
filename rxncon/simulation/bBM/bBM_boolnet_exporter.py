@@ -94,8 +94,11 @@ class BoolNetSystem:
         elif isinstance(node.value, sta.SynthesisDegradationState):
             return string_from_synthesis_degradation_state(node.value)
 
+        elif isinstance(node.value, sta.InputState):
+            return string_from_input_state(node.value)
+
         elif isinstance(node.value, spec.Specification):
-            return node.value
+            return string_from_speficfication(node.value)
 
         else:
             raise NotImplementedError
@@ -147,4 +150,11 @@ def string_from_translocation_state(state) -> str:
 
 
 def string_from_synthesis_degradation_state(state) -> str:
+    return replace_invalid_chars(str(state))
+
+
+def string_from_input_state(state) -> str:
+    return replace_invalid_chars(str(state))
+
+def string_from_speficfication(state) -> str:
     return replace_invalid_chars(str(state))
