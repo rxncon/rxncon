@@ -106,12 +106,14 @@ def case_covalent_modifications_strikt_contingencies():
             C_p+_B_[(r)]; ! C-{p}
             C_ub+_B_[(r)]; ! A--C; ! C-{P}
             ''',
-            ['A#ass/A_[Cassoc]:C_[Aassoc]', 'B#mod/B_[(r)]:u~p~ub', 'C#ass/C_[Aassoc]:A_[Cassoc],mod/C_[(Dsite)]:u~p', 'D#'],
+            ['A#ass/A_[Cassoc]:C_[Aassoc]', 'B#mod/B_[(r)]:u~p~ub', 'C#ass/C_[Aassoc]:A_[Cassoc],mod/C_[(Dsite)]:u~p',
+             'D#'],
             ['D# + C#mod/C_[(Dsite)]:u -> D# + C#mod/C_[(Dsite)]:p',
              'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0',
              'C#mod/C_[(Dsite)]:p + B#mod/B_[(r)]:u -> C#mod/C_[(Dsite)]:p + B#mod/B_[(r)]:p',
              '''A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:u
-             -> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:p''']
+             -> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:ub'''
+             ]
         ),
 
         RuleTestCase(
@@ -121,20 +123,20 @@ def case_covalent_modifications_strikt_contingencies():
             Ste5_[BDSte5]_ppi_Ste5_[BDSte5]
             Ste11_[KD]_P+_Ste7_[(ALS359)]; ! <Ste7-5-5-11>
             <Ste7-5-5-11>; AND Ste5_[MEKK]--Ste11; AND Ste5_[MEK]--Ste7; AND Ste5_[BDSte5]--Ste5_[BDSte5]''',
-            ['Ste5#ass/Ste5_[MEK]:Ste7_[Ste5assoc], ass/Ste5_[MEK]ass/Ste5_[MEKK]:Ste11_[Ste5assoc], ass/Ste5_[BDSte5]:Ste5_[BDSte5]',
-             'Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEKK]','Ste7#mod/Ste7_[(ALS359)]:u~p, ass/Ste7_[Ste5assoc]:Ste5_[MEK]'],
+            ['Ste5#ass/Ste5_[MEK]:Ste7_[Ste5assoc], ass/Ste5_[MEKK]:Ste11_[Ste5assoc], ass/Ste5_[BDSte5]:Ste5_[BDSte5]',
+             'Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEKK]','Ste7#mod/Ste7_[(ALS359)]:u~p, ass/Ste7_[Ste5assoc]:Ste5_[MEK]'
+             ],
             # Ste11#ass/Ste11_Ste5assoc]:Ste5_[MEKK], Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]
             #                                              ass/Ste5_[MEKK]:Ste11_[Ste5assoc]
             # Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5], ass/Ste5_[MEK]:Ste7_[Ste5assoc]
             # the first rule is new and conciders that we should have the pattern Ste5(BDSte5, MEKK).Ste5(BDSte5, MEK) and Ste5(BDSte5, MEKK, MEK).Ste5(BDSte5) to
             # reach the entire state space
-            ['''Ste11#ass/Ste11_Ste5assoc]:Ste5_[MEKK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2.Ste7#mod/Ste7_[(ALS359)]:u, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2
-             -> Ste11#ass/Ste11_Ste5assoc]:Ste5_[MEKK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2.Ste7#mod/Ste7_[(ALS359)]:p, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2''',
+            ['''Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEKK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2.Ste7#mod/Ste7_[(ALS359)]:u, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2
+             -> Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEKK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2.Ste7#mod/Ste7_[(ALS359)]:p, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2''',
              '''Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1.Ste7#mod/Ste7_[(ALS359)]:u, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2
-             -> Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1.Ste7#mod/Ste7_[(ALS359)]:p, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2''']
+             -> Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1.Ste7#mod/Ste7_[(ALS359)]:p, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2'''
+             ]
         )
-
-
     ]
 
 
@@ -156,12 +158,13 @@ def case_covalent_modifications_quant_contingencies():
             D_p+_C
             A_ppi_C
             C_ub+_B_[(r)]; k+ A--C; ! C-{P}''',
-            ['A#ass/A_[Cassoc]:C_[Aassoc]', 'B#mod/B_[(r)]:u~ub', 'C#ass/C_[Aassoc]:A_[Cassoc],mod/C_[(Dsite)]:u~p', 'D#'],
+            ['A#ass/A_[Cassoc]:C_[Aassoc]', 'B#mod/B_[(r)]:u~ub', 'C#ass/C_[Aassoc]:A_[Cassoc],mod/C_[(Dsite)]:u~p',
+             'D#'],
             ['D# + C#mod/C_[(Dsite)]:u -> D# + C#mod/C_[(Dsite)]:p',
              'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0',
              '''A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:u
-             -> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:p''',
-             'C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]: + B#mod/B_[(r)]:u -> C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]: + B#mod/B_[(r)]:p'
+             -> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:ub''',
+             'C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]: + B#mod/B_[(r)]:u -> C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]: + B#mod/B_[(r)]:ub'
              ]
         )
     ]
@@ -174,6 +177,10 @@ def case_basic_interaction():
                 'A_ppi_B',
                 ['A#ass/A_[Bassoc]:B_[Aassoc]', 'B#ass/B_[Aassoc]:A_[Bassoc]'],
                 ['A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0']
+                # we could change this to
+                # A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]: -> A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0
+                # A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0 -> A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]:
+                # this would make the application of indirect contingencies a bit easier (guess) todo: discussion
                 ),
 
            RuleTestCase(
@@ -221,11 +228,15 @@ def case_basic_synthesis_degradation():
                C_p+_B
                D_ub+_B_[x]
                Y_trsl_B''',
-            ['A#ass/A_[Bassoc]:B_[Aassoc]', 'B#mod/B_[Csite]:u~p, mod/B_[x]:u~ub, ass/B_[Assoc]:A_[Bassoc]', 'C#', 'D#', 'Y#'],
+            ['A#ass/A_[Bassoc]:B_[Aassoc]', 'B#mod/B_[(Csite)]:u~p, mod/B_[x/(Dsite)]:u~ub, ass/B_[Assoc]:A_[Bassoc]',
+             'C#', 'D#', 'Y#'],
             ['A#ass/A_[Bassoc]: + B#ass/B_[Assoc]: <-> A#ass/A_[Bassoc]:B_[Assoc]~0 + B#ass/B_[Assoc]:A_[Bassoc]~0',
-             'C# + B#mod/B_[Csite]:u -> C# + B#mod/B_[Csite]:p',
-             'D# + B#mod/B_[x]:u -> D# + B#mod/B_[x]:ub',
-             'Y# + BmRNA# -> Y# + BmRNA# + B#mod/B_[Csite]:u, mod/B_[x]:u, ass/B_[Assoc]:']
+             'C# + B#mod/B_[(Csite)]:u -> C# + B#mod/B_[(Csite)]:p',
+             'D# + B#mod/B_[x/(Dsite)]:u -> D# + B#mod/B_[x/(Dsite)]:ub',
+             # to label it internally wiht mRNA is probably not a good idea because in a simulation this will acumulate
+             # and the user has to include an additional equation to get rid of a molecule type we introduced.
+             # TODO: discussion
+             'Y# + BmRNA# -> Y# + BmRNA# + B#mod/B_[(Csite)]:u, mod/B_[x/(Dsite)]:u, ass/B_[Assoc]:']
         ),
 
         # todo: discuss
@@ -233,6 +244,12 @@ def case_basic_synthesis_degradation():
             '''
             Y_trsc_B
             ''',
+            # todo: here the issue starts we transcribe B but the gene B not the protein which are two different sets.
+            # The protein B can be p+ and trunc and interact, but the gene B is static (in principle).
+            # What we are saying here is that we transcribe a Protein or we say later with A_p+_B that we
+            # phosphorilate a gene. We have to distinguish both the protein and the gene in a better way otherwise we
+            # get ambiguous
+
             ['B#', 'Y#', 'BmRNA#'],
             ['Y# -> Y# + BmRNA#']
         )
@@ -263,7 +280,7 @@ def case_interaction_with_contingencies():
             A_ppi_B; ! A-{p}
             C_p+_A''',
             ['A#ass/A_[Bassoc]:B_[Aassoc],mod/A_[(Csite)]:u~p', 'B#ass/B_[Aassoc]:A_[Bassoc]', 'C#'],
-            ['A#ass/A_[Bassoc]:,mod/A_[(Csite)]:p + B#ass/B_[Aassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc]~0,mod/A_[(Csite)]:p.B#ass/B_[Aassoc]:A_[Bassoc]~0',
+            ['A#ass/A_[Bassoc]:, mod/A_[(Csite)]:p + B#ass/B_[Aassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc]~0,mod/A_[(Csite)]:p.B#ass/B_[Aassoc]:A_[Bassoc]~0',
              'C# + A#mod/A_[(Csite)]:u -> C# + A#mod/A_[(Csite)]:p']
         ),
 
@@ -273,7 +290,7 @@ def case_interaction_with_contingencies():
             D_ppi_B_[d/s]
             C_p+_A''',
             ['A#ass/A_[Bassoc]:B_[d/s],mod/A_[(Csite)]:u~p', 'B#ass/B_[d/s]:A_[Bassoc]~D_[Bassoc]', 'D#ass/D_[Bassoc]:B_[d/s]', 'C#'],
-            ['A#ass/A_[Bassoc]:,mod/A_[(Csite)]:p + B#ass/B_[d/s]: <-> A#ass/A_[Bassoc]:B_[d/s]~0,mod/A_[(Csite)]:p.B#ass/B_[d/s]:A_[Bassoc]~0',
+            ['A#ass/A_[Bassoc]:, mod/A_[(Csite)]:p + B#ass/B_[d/s]: <-> A#ass/A_[Bassoc]:B_[d/s]~0, mod/A_[(Csite)]:p.B#ass/B_[d/s]:A_[Bassoc]~0',
              'D#ass/D_[Bassoc]: + B#ass/B_[d/s]: <-> B#ass/B_[d/s]:D_[Bassoc]~0.D#ass/D_[Bassoc]:B_[d/s]~0',
              'C# + A#mod/A_[(Csite)]:u -> C# + A#mod/A_[(Csite)]:p']
         ),
@@ -286,13 +303,13 @@ def case_interaction_with_contingencies():
             <comp>; AND A-{P}
             <comp>; AND B_[a]--[b]
             ''',
-            ['A#ass/A_[Bassoc]:B_[Aassoc],mod/A_[(Dsite)]:u~p',
-             'B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[a]:B_[b],ass/B_[b]:B_[a]', 'D#'],
+            ['A#ass/A_[Bassoc]:B_[Aassoc], mod/A_[(Dsite)]:u~p',
+             'B#ass/B_[Aassoc]:A_[Bassoc], ass/B_[a]:B_[b], ass/B_[b]:B_[a]', 'D#'],
             # bound numbering has to be checked according the implementation
             ['D# + A#mod/A_[(Dsite)]:u -> D# + A#mod/A_[(Dsite)]:p',
-             'B#ass/B_[a]:,ass/B_[b]: <-> B#ass/B_[a]:B_[b]~0,ass/B_[b]:B_[a]~0',
-             '''A#mod/A_[(Dsite)]:p,ass/A_[Bassoc]: + B#ass/B_[Aassoc]:,ass/B_[a]:B_[b]~0,ass/B_[b]:B_[a]~0
-             <-> A#mod/A_[(Dsite)]:p,ass/A_[Bassoc]:B_[Aassoc]~1.B#ass/B_[Aassoc]:A_[Bassoc]~1,ass/B_[a]:B_[b]~0,ass/B_[b]:B_[a]~0'''
+             'B#ass/B_[a]:, ass/B_[b]: <-> B#ass/B_[a]:B_[b]~0, ass/B_[b]:B_[a]~0',
+             '''A#mod/A_[(Dsite)]:p, ass/A_[Bassoc]: + B#ass/B_[Aassoc]:, ass/B_[a]:B_[b]~0, ass/B_[b]:B_[a]~0
+             <-> A#mod/A_[(Dsite)]:p, ass/A_[Bassoc]:B_[Aassoc]~1.B#ass/B_[Aassoc]:A_[Bassoc]~1, ass/B_[a]:B_[b]~0, ass/B_[b]:B_[a]~0'''
              ]
         ),
 
@@ -302,12 +319,12 @@ def case_interaction_with_contingencies():
             B_[a]_ipi_B_[b]
             A_ppi_B; ! A-{P}; x B_[a]--[b]
             ''',
-            ['A#ass/A_[Bassoc]:B_[Aassoc],mod/A_[(Dsite)]:u~p',
-             'B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[a]:B_[b],ass/B_[b]:B_[a]', 'D#'],
+            ['A#ass/A_[Bassoc]:B_[Aassoc], mod/A_[(Dsite)]:u~p',
+             'B#ass/B_[Aassoc]:A_[Bassoc], ass/B_[a]:B_[b], ass/B_[b]:B_[a]', 'D#'],
             ['D# + A#mod/A_[(Dsite)]:u -> D# + A#mod/A_[(Dsite)]:p',
-             'B#ass/B_[a]:,ass/B_[b]: <-> B#ass/B_[a]:B_[b]~0,ass/B_[b]:B_[a]~0',
-             '''A#mod/A_[(Dsite)]:p,ass/A_[Bassoc]: + B#ass/B_[Aassoc]:,ass/B_[a]:,ass/B_[b]:
-             <-> A#mod/A_[(Dsite)]:p,ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0,ass/B_[a]:,ass/B_[b]:'''
+             'B#ass/B_[a]:, ass/B_[b]: <-> B#ass/B_[a]:B_[b]~0, ass/B_[b]:B_[a]~0',
+             '''A#mod/A_[(Dsite)]:p, ass/A_[Bassoc]: + B#ass/B_[Aassoc]:, ass/B_[a]:,ass/B_[b]:
+             <-> A#mod/A_[(Dsite)]:p,ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[a]:,ass/B_[b]:'''
              ]
         ),
 
@@ -333,7 +350,7 @@ def case_interaction_with_contingencies():
             <-> A#ass/A_[Bassoc]:B_[Aassoc]~0, mod/A_[Gnp/(Csite)]:p.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[a]:, ass/B_[b]:'''
              ]
         )
-                ]
+    ]
 
 
 def case_disjunction():
@@ -426,18 +443,17 @@ def case_indirect_depenendcies():
             ['A#ass/A_[Bassoc]:B_[Aassoc]', 'B#ass/B_[Aassoc]:A_[Bassoc], ass/B_[Cassoc]:C_[Bassoc]',
              'C#ass/C_[Bassoc]:B_[Cassoc]'],
             [
-             # indirect dependency
+             # indirect dependency A_ppi_B
              # forward direction
              'A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]: -> A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0',
-             # reverse direction
-             # 'A(AssocB!2).B(AssocA!2,AssocC!1).C(AssocB!1) -> A(AssocB) + B(AssocA,AssocC) + C(AssocB)'
+             # reverse direction k+ of B--C
              '''A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Cassoc]:C_[Bassoc]~1.C#ass/C_[Bassoc]:B_[Cassoc]~1
               -> A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]:, ass/B_[Cassoc]: + C#ass/C_[Bassoc]:''',
-             # 'A(AssocB!1).B(AssocA!1,AssocC) -> A(AssocB) + B(AssocA,AssocC)'
              '''A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Cassoc]:
-             -> A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]:, ass/B_[Cassoc]:''',
-            '''A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Cassoc]: + C#ass/C_[Bassoc]:
-             <-> A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Cassoc]:C_[Bassoc]~1.C#ass/C_[Bassoc]:B_[Cassoc]~1
+              -> A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]:, ass/B_[Cassoc]:''',
+             # B_ppi_C; ! A--B
+             '''A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Cassoc]: + C#ass/C_[Bassoc]:
+              <-> A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Cassoc]:C_[Bassoc]~1.C#ass/C_[Bassoc]:B_[Cassoc]~1
              ''']
         ),
 
@@ -449,7 +465,7 @@ def case_indirect_depenendcies():
             ['A#ass/A_[Bassoc]:B_[Aassoc], mod/A_[(Zsite)]:u~p', 'B#ass/B_[Aassoc]:A_[Bassoc]', 'X#', 'Z#'],
             ['Z# + A#mod/A_[(Zsite)]:u -> Z# + A#mod/A_[(Zsite)]:p',
              'A#mod/A_[(Zsite)]:p, ass/A_[Bassoc]: + B#ass/B_[Aassoc]: <-> A#mod/A_[(Zsite)]:p, ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0',
-             # indirect dependency
+             # indirect dependency A-{P} -> k+ A--B
              'X# + A#mod/A_[(Zsite)]:p, ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0 -> X# + A#mod/A_[(Zsite)]:u, ass/A_[Bassoc]: + B#ass/B_[Aassoc]:',
              'X# + A#mod/A_[(Zsite)]:p, ass/A_[Bassoc]: -> X# + A#mod/A_[(Zsite)]:u, ass/A_[Bassoc]:'
             ]
@@ -464,9 +480,11 @@ def case_indirect_depenendcies():
             ''',
             ['A#ass/A_[Bassoc]:B_[Aassoc]', 'B#ass/B_[Aassoc]:A_[Bassoc], ass/B_[Cassoc]:C_[Bassoc]',
              'C#ass/C_[Bassoc]:B_[Cassoc]'],
+            # A_ppi_B; k+ B--C
             ['A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]:, ass/B_[Cassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Cassoc]:',
              '''A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]:, ass/B_[Cassoc]:C_[Bassoc]~0.C#ass/C_[Bassoc]:B_[Cassoc]~0
              -> A#ass/A_[Bassoc]:B_[Aassoc]~0.B#ass/B_[Aassoc]:A_[Bassoc]~0, ass/B_[Cassoc]: + C#ass/C_[Bassoc]:''',
+             # B_ppi_C; x A--B
              'B#ass/B_[Aassoc]:, ass/B_[Cassoc]: + C#ass/C_[Bassoc]: <-> B#ass/B_[Aassoc]:, ass/B_[Cassoc]:C_[Bassoc]~0.C#ass/C_[Bassoc]:B_[Cassoc]~0'
              ]
         ),
@@ -478,10 +496,12 @@ def case_indirect_depenendcies():
             ''',
             ['Swi4#ass/Swi4_[n]:Swi4_[m], ass/Swi4_[m]:Swi4_[n], ass/Swi4_[SCBG1assoc]:SCBG1assoc_[Swi4assoc]'
              'SCBG1#ass/SCBG1_[Swi4assoc]:Swi4_[SCBG1assoc]'],
+            # Swi4_[n]_ppi_Swi4_[m]
             ['''Swi4#ass/Swi4_[n]: + Swi4#ass/Swi4_[m]: <-> Swi4#ass/Swi4_[n]:Swi4_[m]~0.Swi4#assSwi4_[m]:Swi4_[n]~0''',
              '''SCBG1#ass/SCBG1_[Swi4assoc]:Swi4_[SCBG1assoc]~0.Swi4#ass/Swi4_[SCBG1assoc]:SCBG1assoc_[Swi4assoc]~0
             + SCBG1#ass/SCBG1_[Swi4assoc]:Swi4_[SCBG1assoc]~0.Swi4#ass/Swi4_[SCBG1assoc]:SCBG1assoc_[Swi4assoc]~0
             -> Swi4#ass/Swi4_[n]:Swi4_[m]~0.Swi4#ass/Swi4_[m]:Swi4_[n]~0 + SCBG1#ass/SCBG1_[Swi4assoc]: + SCBG1#ass/SCBG1_[Swi4assoc]:''',
+             # Swi4_BIND_SCBG1; x Swi4_[n]--Swi4_[m]
              '''SCBG1#ass/SCBG1_[Swi4assoc]: + Swi4#ass/Swi4_[SCBG1assoc]:, ass/Swi4_[n]:, ass/Swi4_[m]:
              <-> SCBG1#ass/SCBG1_[Swi4assoc]:Swi4_[SCBG1assoc]~0.Swi4#ass/Swi4_[SCBG1assoc]:SCBG1_[Swi4assoc]~0, ass/Swi4_[n]:, ass/Swi4_[m]:''']
 
@@ -494,9 +514,11 @@ def case_indirect_depenendcies():
             """,
             ['Swi4#ass/Swi4_[n]:Swi4_[c], ass/Swi4_[c]:Swi4_[n]~Swi6_[c]',
              'Swi6#ass/Swi6_[c]:Swi4_[c]'],
+            # Swi6_[c]_ppi_Swi4_[c]
             ['''Swi6#ass/Swi6_[c]: + Swi4#ass/Swi4_[c]:, ass/Swi4_[n]: <-> Swi4#ass/Swi4_[c]:Swi6_[c]~0, ass/Swi4_[n]:.Swi6#ass/Swi6_[c]:Swi4_[c]~0''',
              '''Swi6#ass/Swi6_[c]: + Swi4#ass/Swi4_[c]:Swi4_[n]~0, ass/Swi4_[n]:Swi4_[c]~0
             <-> Swi4#ass/Swi4_[c]:Swi6_[c]~0, ass/Swi4_[n]:.Swi6#ass/Swi6_[c]:Swi4_[c]~0''',
+             # Swi4_[n]_ipi_Swi4_[c]; x Swi6_[c]--Swi4_[c]
              'Swi4#ass/Swi4_[c]:, ass/Swi4_[n]: <-> Swi4#ass/Swi4_[c]:Swi4_[n]~0, ass/Swi4_[n]:Swi4_[c]~0']
         )
 
