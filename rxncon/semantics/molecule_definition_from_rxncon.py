@@ -32,14 +32,14 @@ class MoleculeDefinitionSupervisor:
                     names.add(state.substrate.name)
                     names.add(reaction.subject.name)
 
-                    mod_def = mod_def_from_state_and_reaction(state, reaction)
+                    mod_def = _mod_def_from_state_and_reaction(state, reaction)
                     _update_defs(name_to_mod_defs[state.substrate.name], mod_def)
 
                 elif isinstance(state, sta.InterProteinInteractionState) or isinstance(state, sta.IntraProteinInteractionState):
                     names.add(state.first_component.name)
                     names.add(state.second_component.name)
 
-                    assoc_defs = assoc_defs_from_state(state)
+                    assoc_defs = _assoc_defs_from_state(state)
                     _update_defs(name_to_assoc_defs[state.first_component.name], assoc_defs[0])
                     _update_defs(name_to_assoc_defs[state.second_component.name], assoc_defs[1])
 
