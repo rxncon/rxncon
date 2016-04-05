@@ -3,7 +3,7 @@ from typing import List
 import pytest
 from rxncon.input.quick.quick import Quick
 from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_string, rule_from_string
-from rxncon.simulation.rule_based.rbm_from_rxncon import RuleBasedModelSupervisor
+from rxncon.simulation.rule_based.molecule_from_rxncon import RuleBasedModelSupervisor
 from rxncon.simulation.rule_based.rule_based_model import Rule
 
 

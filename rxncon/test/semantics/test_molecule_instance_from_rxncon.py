@@ -9,7 +9,7 @@ import rxncon.semantics.molecule_definition_from_rxncon as mdr
 import rxncon.semantics.molecule_instance_from_rxncon as mir
 import rxncon.semantics.molecule_definition as mdf
 import rxncon.semantics.molecule_instance as mins
-import rxncon.simulation.rule_based.rbm_from_rxncon as rfr
+import rxncon.simulation.rule_based.molecule_from_rxncon as rfr
 
 
 def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_no_contingency():

@@ -1,9 +1,7 @@
 from typing import Dict, List, Tuple
 from itertools import product
 from collections import defaultdict
-from copy import copy
-from functools import reduce
-
+from rxncon.util.utils import compose
 
 from rxncon.venntastic.sets import Set, Complement, Union, Intersection, PropertySet, nested_expression_from_list_and_binary_op
 from rxncon.core.specification import Specification
@@ -16,15 +14,26 @@ from rxncon.semantics.molecule_instance import MoleculeInstance, ModificationPro
     OccupationStatus
 
 
-def compose(*functions):
-    return reduce(lambda f, g: lambda x: f(g(x)), functions, lambda x: x)
+STATE_TO_MOLECULE_INSTANCE_FUNCTIONS = {
+    CovalentModificationState:    '_molecule_instance_set_from_mod_state',
+    InterProteinInteractionState: '_molecule_instance_set_from_ppi_state',
+    IntraProteinInteractionState: '_molecule_instance_set_from_ipi_state',
+    TranslocationState:           '_molecule_instance_set_from_loc_state',
+    InputState:                   '_molecule_instance_set_from_inp_state'
+}
+
+
+REACTION_TO_MOLECULE_INSTANCE_PAIRS_FUNCTIONS = {
+    Verb.phosphorylation:             '_molecule_instance_set_pair_from_pplus_reaction',
+    Verb.protein_protein_interaction: '_molecule_instance_set_pair_from_ppi_reaction'
+}
 
 
 def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefinition], state_set: Set) -> Set:
     def _mol_instance_set_with_complements_from_state_set(mol_defs: Dict[Specification, MoleculeDefinition], state_set: Set) -> Set:
         if isinstance(state_set, PropertySet):
             assert isinstance(state_set.value, State)
-            return _mol_instance_set_from_single_state(mol_defs, state_set.value)
+            return globals()[STATE_TO_MOLECULE_INSTANCE_FUNCTIONS[type(state_set.value)]](mol_defs, state_set.value)
         elif isinstance(state_set, Complement):
             return Complement(_mol_instance_set_with_complements_from_state_set(mol_defs, state_set.expr))
         elif isinstance(state_set, Intersection):
@@ -142,58 +151,15 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
     return full_mapping(state_set).simplified_form()
 
 
-def _mol_instance_set_from_single_state(mol_defs: Dict[Specification, MoleculeDefinition], state: State) -> Set:
-    def _molecule_instance_set_from_mod_state(mol_defs: Dict[Specification, MoleculeDefinition],
-                                              state: CovalentModificationState) -> Set:
-        mol_def = mol_defs[Specification(state.substrate.name, None, None, None)]
+def mol_instance_set_pair_from_reaction(mol_defs: Dict[Specification, MoleculeDefinition], reaction: Reaction) -> Tuple[Set, Set]:
+    subject_mol_def = mol_defs[Specification(reaction.subject.name, None, None, None)]
+    object_mol_def = mol_defs[Specification(reaction.object.name, None, None, None)]
 
-        mod_defs = [mod_def for mod_def in mol_def.modification_defs if
-                    mod_def.spec.is_subspecification_of(state.substrate)]
-        modifier = _mol_modifier_from_state_modifier(state.modifier)
-        mol_instances = [
-            PropertySet(MoleculeInstance(mol_def, {ModificationPropertyInstance(x, modifier)}, set(), None))
-            for x in mod_defs]
+    return globals()[REACTION_TO_MOLECULE_INSTANCE_PAIRS_FUNCTIONS[reaction.verb]](reaction, subject_mol_def, object_mol_def)
 
-        return nested_expression_from_list_and_binary_op(mol_instances, Union)
 
-    def _molecule_instance_set_from_ppi_state(mol_defs: Dict[Specification, MoleculeDefinition],
-                                              state: InterProteinInteractionState) -> Set:
-        first_mol_def = mol_defs[Specification(state.first_component.name, None, None, None)]
-        second_mol_def = mol_defs[Specification(state.second_component.name, None, None, None)]
-
-        first_ass_defs = [ass_def for ass_def in first_mol_def.association_defs
-                          if any(state.second_component.is_superspecification_of(x) for x in ass_def.valid_partners)]
-
-        second_ass_defs = [ass_def for ass_def in second_mol_def.association_defs
-                           if any(state.first_component.is_superspecification_of(x) for x in ass_def.valid_partners)]
-
-        first_ass_instances = [AssociationPropertyInstance(ass_def, OccupationStatus.occupied_known_partner, partner)
-                               for ass_def in first_ass_defs for partner in ass_def.valid_partners
-                               if state.second_component.is_superspecification_of(partner)]
-
-        second_ass_instances = [AssociationPropertyInstance(ass_def, OccupationStatus.occupied_known_partner, partner)
-                                for ass_def in second_ass_defs for partner in ass_def.valid_partners
-                                if state.first_component.is_superspecification_of(partner)]
-
-        sets = [Intersection(PropertySet(MoleculeInstance(first_mol_def, set(), {pair[0]}, None)),
-                             PropertySet(MoleculeInstance(second_mol_def, set(), {pair[1]}, None))) for pair in
-                product(first_ass_instances, second_ass_instances)
-                if pair[0].association_def.spec == pair[1].partner and pair[0].partner == pair[1].association_def.spec]
-
-        return nested_expression_from_list_and_binary_op(sets, Union)
-
-    def _molecule_instance_set_from_ipi_state(mol_defs: Dict[Specification, MoleculeDefinition],
-                                              state: IntraProteinInteractionState) -> Set:
-        pass
-
-    def _molecule_instance_set_from_loc_state(mol_defs: Dict[Specification, MoleculeDefinition],
-                                              state: TranslocationState) -> Set:
-        pass
-
-    def _molecule_instance_set_from_inp_state(mol_defs: Dict[Specification, MoleculeDefinition],
-                                              state: InputState) -> Set:
-        pass
-
+### MAPPING STATES TO MOLECULE INSTANCES ###
+def _molecule_instance_set_from_mod_state(mol_defs: Dict[Specification, MoleculeDefinition], state: CovalentModificationState) -> Set:
     def _mol_modifier_from_state_modifier(state_modifier: StateModifier) -> Modifier:
         if state_modifier == StateModifier.unmodified:
             return Modifier.unmodified
@@ -206,73 +172,74 @@ def _mol_instance_set_from_single_state(mol_defs: Dict[Specification, MoleculeDe
         else:
             raise NotImplemented
 
-    if isinstance(state, CovalentModificationState):
-        return _molecule_instance_set_from_mod_state(mol_defs, state)
-    elif isinstance(state, InterProteinInteractionState):
-        return _molecule_instance_set_from_ppi_state(mol_defs, state)
-    elif isinstance(state, IntraProteinInteractionState):
-        return _molecule_instance_set_from_ipi_state(mol_defs, state)
-    elif isinstance(state, TranslocationState):
-        return _molecule_instance_set_from_loc_state(mol_defs, state)
-    elif isinstance(state, InputState):
-        return _molecule_instance_set_from_inp_state(mol_defs, state)
-    else:
-        raise NotImplemented
 
+    mol_def = mol_defs[Specification(state.substrate.name, None, None, None)]
 
-def reacting_mol_instance_lhs_rhs_sets_from_reaction(mol_defs: Dict[Specification, MoleculeDefinition], reaction: Reaction) -> Tuple[Set, Set]:
-    subject_mol_def = mol_defs[Specification(reaction.subject.name, None, None, None)]
-    object_mol_def = mol_defs[Specification(reaction.object.name, None, None, None)]
+    mod_defs = [mod_def for mod_def in mol_def.modification_defs if
+                mod_def.spec.is_subspecification_of(state.substrate)]
+    modifier = _mol_modifier_from_state_modifier(state.modifier)
+    mol_instances = [
+        PropertySet(MoleculeInstance(mol_def, {ModificationPropertyInstance(x, modifier)}, set(), None))
+        for x in mod_defs]
 
-    def _pplus(reaction: Reaction) -> Tuple[Set, Set]:
-        mod_def = mod_def_from_state_and_reaction(reaction.product, reaction)
+    return nested_expression_from_list_and_binary_op(mol_instances, Union)
 
-        unmodified = ModificationPropertyInstance(mod_def, Modifier.unmodified)
-        phosphorylated = ModificationPropertyInstance(mod_def, Modifier.phosphorylated)
+def _molecule_instance_set_from_ppi_state(mol_defs: Dict[Specification, MoleculeDefinition], state: InterProteinInteractionState) -> Set:
+    first_mol_def = mol_defs[Specification(state.first_component.name, None, None, None)]
+    second_mol_def = mol_defs[Specification(state.second_component.name, None, None, None)]
 
-        return (Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), set(), None)),
-                             PropertySet(MoleculeInstance(object_mol_def, {unmodified}, set(), None))),
-                Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), set(), None)),
-                             PropertySet(MoleculeInstance(object_mol_def, {phosphorylated}, set(), None))))
+    first_ass_defs = [ass_def for ass_def in first_mol_def.association_defs
+                      if any(state.second_component.is_superspecification_of(x) for x in ass_def.valid_partners)]
 
-    def _ppi(reaction: Reaction) -> Tuple[Set, Set]:
-        first_ass_def, second_ass_def = assoc_defs_from_state(reaction.product)
-        first_free = AssociationPropertyInstance(first_ass_def, OccupationStatus.not_occupied, None)
-        first_bound = AssociationPropertyInstance(first_ass_def, OccupationStatus.occupied_known_partner, second_ass_def.spec)
+    second_ass_defs = [ass_def for ass_def in second_mol_def.association_defs
+                       if any(state.first_component.is_superspecification_of(x) for x in ass_def.valid_partners)]
 
-        second_free = AssociationPropertyInstance(second_ass_def, OccupationStatus.not_occupied, None)
-        second_bound = AssociationPropertyInstance(second_ass_def, OccupationStatus.occupied_known_partner, first_ass_def.spec)
+    first_ass_instances = [AssociationPropertyInstance(ass_def, OccupationStatus.occupied_known_partner, partner)
+                           for ass_def in first_ass_defs for partner in ass_def.valid_partners
+                           if state.second_component.is_superspecification_of(partner)]
 
-        return (Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), {first_free}, None)),
-                             PropertySet(MoleculeInstance(object_mol_def, set(), {second_free}, None))),
-                Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), {first_bound}, None)),
-                             PropertySet(MoleculeInstance(object_mol_def, set(), {second_bound}, None))))
+    second_ass_instances = [AssociationPropertyInstance(ass_def, OccupationStatus.occupied_known_partner, partner)
+                            for ass_def in second_ass_defs for partner in ass_def.valid_partners
+                            if state.first_component.is_superspecification_of(partner)]
 
-    if reaction.verb == Verb.phosphorylation:
-        return _pplus(reaction)
-    elif reaction.verb == Verb.protein_protein_interaction:
-        return _ppi(reaction)
-    elif reaction.verb == Verb.intra_protein_interaction:
-        return _ipi(reaction)
-    elif reaction.verb == Verb.autophosphorylation:
-        return _ap(reaction)
-    else:
-        raise NotImplementedError('Unknown verb {}'.format(reaction.verb))
+    sets = [Intersection(PropertySet(MoleculeInstance(first_mol_def, set(), {pair[0]}, None)),
+                         PropertySet(MoleculeInstance(second_mol_def, set(), {pair[1]}, None))) for pair in
+            product(first_ass_instances, second_ass_instances)
+            if pair[0].association_def.spec == pair[1].partner and pair[0].partner == pair[1].association_def.spec]
 
+    return nested_expression_from_list_and_binary_op(sets, Union)
 
-def _residue_specs_from_cov_mod_reaction(reaction: Reaction) -> Tuple[Specification, Specification]:
-    assert reaction.verb in [Verb.autophosphorylation, Verb.phosphorylation, Verb.dephosphorylation,
-                             Verb.ubiquination]
+def _molecule_instance_set_from_ipi_state(mol_defs: Dict[Specification, MoleculeDefinition], state: IntraProteinInteractionState) -> Set:
+    pass
 
-    rhs = copy(reaction.object)
-    if not rhs.residue:
-        rhs.residue = '{}site'.format(reaction.subject.name)
+def _molecule_instance_set_from_loc_state(mol_defs: Dict[Specification, MoleculeDefinition], state: TranslocationState) -> Set:
+    pass
 
-    if reaction.verb == Verb.phosphotransfer:
-        lhs = copy(reaction.subject)
-        if not lhs.residue:
-            lhs.residue = '{}site'.format(reaction.object.name)
-    else:
-        lhs = None
+def _molecule_instance_set_from_inp_state(mol_defs: Dict[Specification, MoleculeDefinition], state: InputState) -> Set:
+    pass
 
-    return lhs, rhs
+### MAPPING REACTIONS TO MOLECULE INSTANCE PAIRS ###
+def _molecule_instance_set_pair_from_pplus_reaction(reaction: Reaction, subject_mol_def: MoleculeDefinition, object_mol_def: MoleculeDefinition) -> Tuple[Set, Set]:
+    mod_def = mod_def_from_state_and_reaction(reaction.product, reaction)
+
+    unmodified = ModificationPropertyInstance(mod_def, Modifier.unmodified)
+    phosphorylated = ModificationPropertyInstance(mod_def, Modifier.phosphorylated)
+
+    return (Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), set(), None)),
+                         PropertySet(MoleculeInstance(object_mol_def, {unmodified}, set(), None))),
+            Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), set(), None)),
+                         PropertySet(MoleculeInstance(object_mol_def, {phosphorylated}, set(), None))))
+
+def _molecule_instance_set_pair_from_ppi_reaction(reaction: Reaction, subject_mol_def: MoleculeDefinition, object_mol_def: MoleculeDefinition) -> Tuple[Set, Set]:
+    first_ass_def, second_ass_def = assoc_defs_from_state(reaction.product)
+    first_free = AssociationPropertyInstance(first_ass_def, OccupationStatus.not_occupied, None)
+    first_bound = AssociationPropertyInstance(first_ass_def, OccupationStatus.occupied_known_partner, second_ass_def.spec)
+
+    second_free = AssociationPropertyInstance(second_ass_def, OccupationStatus.not_occupied, None)
+    second_bound = AssociationPropertyInstance(second_ass_def, OccupationStatus.occupied_known_partner, first_ass_def.spec)
+
+    return (Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), {first_free}, None)),
+                         PropertySet(MoleculeInstance(object_mol_def, set(), {second_free}, None))),
+            Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), {first_bound}, None)),
+                         PropertySet(MoleculeInstance(object_mol_def, set(), {second_bound}, None))))
+

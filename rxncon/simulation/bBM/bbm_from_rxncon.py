@@ -5,7 +5,7 @@ import rxncon.core.contingency as con
 import rxncon.simulation.bBM.bipartite_boolean_model as bbm
 import rxncon.venntastic.sets as venn
 
-from rxncon.simulation.rule_based.rbm_from_rxncon import _state_set_from_contingencies
+from rxncon.simulation.rule_based.molecule_from_rxncon import _state_set_from_contingencies
 
 
 def bipartite_boolean_model_from_rxncon(rxconsys: rxs.RxnConSystem):
