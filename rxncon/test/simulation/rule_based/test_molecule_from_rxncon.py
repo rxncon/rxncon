@@ -76,7 +76,6 @@ def reaction_test_cases(molecule_definitions):
         )
     ]
 
-
 def is_state_set_test_case_correct(test_case: MoleculeInstancesFromStateSetTestCase) -> bool:
     actual_wrapped_mol_instance_lists = mol_instance_set_from_state_set(test_case.mol_defs, test_case.state_set).to_nested_list_form()
     actual_mol_instance_lists = []

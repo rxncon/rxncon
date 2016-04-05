@@ -1,15 +1,16 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 from itertools import product
 from collections import defaultdict
 from rxncon.util.utils import compose
 
-from rxncon.venntastic.sets import Set, Complement, Union, Intersection, PropertySet, nested_expression_from_list_and_binary_op
+from rxncon.venntastic.sets import Set, Complement, Union, Intersection, PropertySet, nested_expression_from_list_and_binary_op, \
+    gram_schmidt_disjunctify
 from rxncon.core.specification import Specification
 from rxncon.core.reaction import Reaction, ReactionClass, Verb
 from rxncon.core.state import State, CovalentModificationState, InterProteinInteractionState, IntraProteinInteractionState, \
     TranslocationState, InputState, SynthesisDegradationState, StateModifier
 from rxncon.semantics.molecule_definition import MoleculeDefinition, Modifier
-from rxncon.semantics.molecule_definition_from_rxncon import mod_def_from_state_and_reaction, assoc_defs_from_state
+from rxncon.semantics.molecule_definition_from_rxncon import mod_domain_spec_from_state_and_reaction, ass_domain_specs_from_state
 from rxncon.semantics.molecule_instance import MoleculeInstance, ModificationPropertyInstance, AssociationPropertyInstance, \
     OccupationStatus
 
@@ -46,23 +47,32 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
             raise NotImplemented
 
     def _implode_mol_instance_set(mol_instance_set: Set) -> Set:
-        def _imploded_mol_instances(mol_instances: List[MoleculeInstance]) -> MoleculeInstance:
+        def _imploded_mol_instances(mol_instances: List[MoleculeInstance]) -> Optional[MoleculeInstance]:
+            # Returns None if the List of MoleculeInstance contains internal inconsistencies, e.g.
+            # if there are multiple localization properties, or if a single residue is both phosphorylated and
+            # unmodified.
             mol_def = mol_instances[0].mol_def
             assert all(x.mol_def == mol_def for x in mol_instances)
-            ass = set()
-            mod = set()
+            asss = set()
+            mods = set()
             loc = None
 
             for mol_instance in mol_instances:
-                [ass.add(x) for x in mol_instance.association_properties]
-                [mod.add(x) for x in mol_instance.modification_properties]
+                [asss.add(x) for x in mol_instance.association_properties]
+                [mods.add(x) for x in mol_instance.modification_properties]
                 if mol_instance.localization_property:
                     if loc is None:
                         loc = mol_instance.localization_property
                     else:
-                        raise AssertionError
+                        return None
 
-            return MoleculeInstance(mol_def, mod, ass, loc)
+            if len([ass.association_def for ass in asss]) != len(set([ass.association_def for ass in asss])):
+                return None
+
+            if len([mod.modification_def for mod in mods]) != len(set([mod.modification_def for mod in mods])):
+                return None
+
+            return MoleculeInstance(mol_def, mods, asss, loc)
 
         nested_form = mol_instance_set.to_nested_list_form()
         cleaned_terms = []
@@ -74,9 +84,8 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
                 assert isinstance(mol.value, MoleculeInstance)
                 instances[mol.value.mol_def] += [mol.value]
 
-            imploded_mols = [_imploded_mol_instances(v) for k, v in instances.items()]
-            cleaned_terms.append(
-                nested_expression_from_list_and_binary_op([PropertySet(x) for x in imploded_mols], Intersection))
+            imploded_mols = [_imploded_mol_instances(v) for k, v in instances.items() if _imploded_mol_instances(v)]
+            cleaned_terms.append(nested_expression_from_list_and_binary_op([PropertySet(x) for x in imploded_mols], Intersection))
 
         return nested_expression_from_list_and_binary_op(cleaned_terms, Union)
 
@@ -140,10 +149,15 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
         else:
             raise NotImplemented
 
+    def _disjunctified(mol_instance_set: Set) -> Set:
+        return nested_expression_from_list_and_binary_op(gram_schmidt_disjunctify(mol_instance_set.to_union_list_form()), Union)
+
     mols_from_states = lambda x: _mol_instance_set_with_complements_from_state_set(mol_defs, x)
 
     full_mapping = compose(
         _implode_mol_instance_set,
+        _expanded_complements,
+        _disjunctified,
         _expanded_complements,
         mols_from_states
     )
@@ -220,7 +234,10 @@ def _molecule_instance_set_from_inp_state(mol_defs: Dict[Specification, Molecule
 
 ### MAPPING REACTIONS TO MOLECULE INSTANCE PAIRS ###
 def _molecule_instance_set_pair_from_pplus_reaction(reaction: Reaction, subject_mol_def: MoleculeDefinition, object_mol_def: MoleculeDefinition) -> Tuple[Set, Set]:
-    mod_def = mod_def_from_state_and_reaction(reaction.product, reaction)
+    mod_defs = [x for x in object_mol_def.modification_defs
+                if x.spec == mod_domain_spec_from_state_and_reaction(reaction.product, reaction)]
+    assert len(mod_defs) == 1
+    mod_def = mod_defs[0]
 
     unmodified = ModificationPropertyInstance(mod_def, Modifier.unmodified)
     phosphorylated = ModificationPropertyInstance(mod_def, Modifier.phosphorylated)
@@ -231,7 +248,14 @@ def _molecule_instance_set_pair_from_pplus_reaction(reaction: Reaction, subject_
                          PropertySet(MoleculeInstance(object_mol_def, {phosphorylated}, set(), None))))
 
 def _molecule_instance_set_pair_from_ppi_reaction(reaction: Reaction, subject_mol_def: MoleculeDefinition, object_mol_def: MoleculeDefinition) -> Tuple[Set, Set]:
-    first_ass_def, second_ass_def = assoc_defs_from_state(reaction.product)
+    first_ass_spec, second_ass_spec = ass_domain_specs_from_state(reaction.product)
+
+    first_ass_defs  = [x for x in subject_mol_def.association_defs if x.spec == first_ass_spec and second_ass_spec in x.valid_partners]
+    second_ass_defs = [x for x in object_mol_def.association_defs if x.spec == second_ass_spec and first_ass_spec in x.valid_partners]
+    assert len(first_ass_defs) == 1
+    assert len(second_ass_defs) == 1
+
+    first_ass_def, second_ass_def = first_ass_defs[0], second_ass_defs[0]
     first_free = AssociationPropertyInstance(first_ass_def, OccupationStatus.not_occupied, None)
     first_bound = AssociationPropertyInstance(first_ass_def, OccupationStatus.occupied_known_partner, second_ass_def.spec)
 
