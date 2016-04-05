@@ -3,7 +3,8 @@ from itertools import product
 from collections import defaultdict
 from rxncon.util.utils import compose
 
-from rxncon.venntastic.sets import Set, Complement, Union, Intersection, PropertySet, nested_expression_from_list_and_binary_op
+from rxncon.venntastic.sets import Set, Complement, Union, Intersection, PropertySet, nested_expression_from_list_and_binary_op, \
+    gram_schmidt_disjunctify
 from rxncon.core.specification import Specification
 from rxncon.core.reaction import Reaction, ReactionClass, Verb
 from rxncon.core.state import State, CovalentModificationState, InterProteinInteractionState, IntraProteinInteractionState, \
@@ -148,10 +149,15 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
         else:
             raise NotImplemented
 
+    def _disjunctified(mol_instance_set: Set) -> Set:
+        return nested_expression_from_list_and_binary_op(gram_schmidt_disjunctify(mol_instance_set.to_union_list_form()), Union)
+
     mols_from_states = lambda x: _mol_instance_set_with_complements_from_state_set(mol_defs, x)
 
     full_mapping = compose(
         _implode_mol_instance_set,
+        _expanded_complements,
+        _disjunctified,
         _expanded_complements,
         mols_from_states
     )
