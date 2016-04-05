@@ -19,6 +19,8 @@ class MoleculeInstance:
         self.association_properties = association_properties
         self.localization_property = localization_property
 
+        self._validate()
+
     @tc.typecheck
     def __eq__(self, other: 'MoleculeInstance'):
         return isinstance(other, MoleculeInstance) and \
@@ -55,6 +57,14 @@ class MoleculeInstance:
                     ', '.join(str(x) for x in sorted(self.modification_properties)),
                     ', '.join(str(x) for x in sorted(self.association_properties)),
                     str(self.localization_property))
+
+    def _validate(self):
+        # Assert each modification domain and each association domain is only present once.
+        assert len([mod_prop.modification_def for mod_prop in self.modification_properties]) == \
+            len(set([mod_prop.modification_def for mod_prop in self.modification_properties]))
+
+        assert len([ass_prop.association_def for ass_prop in self.association_properties]) == \
+            len(set([ass_prop.association_def for ass_prop in self.association_properties]))
 
 
 class PropertyInstance:
