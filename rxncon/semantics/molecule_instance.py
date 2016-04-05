@@ -51,8 +51,10 @@ class MoleculeInstance:
 
     def __str__(self) -> str:
         return 'MoleculeInstance: {0}, mod_instances = {1}. assoc_instances = {2}. loc_instances = {3}'\
-            .format(self.mol_def.spec, ', '.join([str(x) for x in self.modification_properties]),
-                    ', '.join(str(x) for x in self.association_properties), str(self.localization_property))
+            .format(self.mol_def.spec,
+                    ', '.join(str(x) for x in sorted(self.modification_properties)),
+                    ', '.join(str(x) for x in sorted(self.association_properties)),
+                    str(self.localization_property))
 
 
 class PropertyInstance:

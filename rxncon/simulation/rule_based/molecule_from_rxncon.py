@@ -9,7 +9,7 @@ from rxncon.core.reaction import Reaction, ReactionClass, Verb
 from rxncon.core.state import State, CovalentModificationState, InterProteinInteractionState, IntraProteinInteractionState, \
     TranslocationState, InputState, SynthesisDegradationState, StateModifier
 from rxncon.semantics.molecule_definition import MoleculeDefinition, Modifier
-from rxncon.semantics.molecule_definition_from_rxncon import mod_def_from_state_and_reaction, assoc_defs_from_state
+from rxncon.semantics.molecule_definition_from_rxncon import mod_domain_spec_from_state_and_reaction, ass_domain_specs_from_state
 from rxncon.semantics.molecule_instance import MoleculeInstance, ModificationPropertyInstance, AssociationPropertyInstance, \
     OccupationStatus
 
@@ -220,7 +220,10 @@ def _molecule_instance_set_from_inp_state(mol_defs: Dict[Specification, Molecule
 
 ### MAPPING REACTIONS TO MOLECULE INSTANCE PAIRS ###
 def _molecule_instance_set_pair_from_pplus_reaction(reaction: Reaction, subject_mol_def: MoleculeDefinition, object_mol_def: MoleculeDefinition) -> Tuple[Set, Set]:
-    mod_def = mod_def_from_state_and_reaction(reaction.product, reaction)
+    mod_defs = [x for x in object_mol_def.modification_defs
+                if x.spec == mod_domain_spec_from_state_and_reaction(reaction.product, reaction)]
+    assert len(mod_defs) == 1
+    mod_def = mod_defs[0]
 
     unmodified = ModificationPropertyInstance(mod_def, Modifier.unmodified)
     phosphorylated = ModificationPropertyInstance(mod_def, Modifier.phosphorylated)
@@ -231,7 +234,14 @@ def _molecule_instance_set_pair_from_pplus_reaction(reaction: Reaction, subject_
                          PropertySet(MoleculeInstance(object_mol_def, {phosphorylated}, set(), None))))
 
 def _molecule_instance_set_pair_from_ppi_reaction(reaction: Reaction, subject_mol_def: MoleculeDefinition, object_mol_def: MoleculeDefinition) -> Tuple[Set, Set]:
-    first_ass_def, second_ass_def = assoc_defs_from_state(reaction.product)
+    first_ass_spec, second_ass_spec = ass_domain_specs_from_state(reaction.product)
+
+    first_ass_defs  = [x for x in subject_mol_def.association_defs if x.spec == first_ass_spec and second_ass_spec in x.valid_partners]
+    second_ass_defs = [x for x in object_mol_def.association_defs if x.spec == second_ass_spec and first_ass_spec in x.valid_partners]
+    assert len(first_ass_defs) == 1
+    assert len(second_ass_defs) == 1
+
+    first_ass_def, second_ass_def = first_ass_defs[0], second_ass_defs[0]
     first_free = AssociationPropertyInstance(first_ass_def, OccupationStatus.not_occupied, None)
     first_bound = AssociationPropertyInstance(first_ass_def, OccupationStatus.occupied_known_partner, second_ass_def.spec)
 
