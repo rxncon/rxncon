@@ -53,13 +53,21 @@ def state_set_test_cases(molecule_definitions):
                 {'A': 'A#mod/A_[(r)]:ub'}
             ]
         ),
-        # MoleculeInstancesFromStateSetTestCase(
-        #     molecule_definitions,
-        #     PropertySet(state_from_string('C-{p}')),
-        #     [
-        #         {'C': 'C#'}
-        #     ]
-        # )
+        MoleculeInstancesFromStateSetTestCase(
+            molecule_definitions,
+            PropertySet(state_from_string('C-{p}')),
+            [
+                {'C': 'C#mod/C_[(r1)]:p'},
+                {'C': 'C#mod/C_[(r2)]:p,mod/C_[(r1)]:u'}
+            ]
+        ),
+        MoleculeInstancesFromStateSetTestCase(
+            molecule_definitions,
+            Complement(PropertySet(state_from_string('C-{p}'))),
+            [
+                {'C': 'C#mod/C_[(r1)]:u,mod/C_[(r2)]:u'}
+            ]
+        )
     ]
 
 
@@ -127,5 +135,3 @@ def is_reaction_test_case_correct(test_case: MoleculeInstancesPairFromReactionTe
 def are_mol_instance_lists_equivalent(first_list: List[MoleculeInstance], second_list: List[MoleculeInstance]) -> bool:
     return all(x in second_list for x in first_list) and all(x in first_list for x in second_list) and \
         len(first_list) == len(second_list)
-
-
