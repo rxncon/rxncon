@@ -79,5 +79,5 @@ class ExcelBook(inp.RxnConInput):
         self._contingencies = cli.contingencies_from_contingency_list_entries(self._contingency_list_entries)
 
     def _construct_rxncon_system(self):
-        self._rxncon_system = rxs.RxnConSystem(self._contingencies)
+        self._rxncon_system = rxs.RxnConSystem(self._reactions, self._contingencies)
 

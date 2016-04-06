@@ -93,9 +93,9 @@ def rule_for_state_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reac
     neg_bool_def=[]
 
     for rxn in rxnconsys.reactions:
-        if rxn.product is not None and rxn != reaction and reaction.product in [rxn.product]:
+        if rxn.product is not None and rxn != reaction and reaction.product == rxn.product:
             pos_bool_def.append(venn.PropertySet(bbm.Node(rxn)))
-        if rxn.source is not None and rxn != reaction and reaction.product in [rxn.source]:
+        if rxn.source is not None and rxn != reaction and reaction.product == rxn.source:
             neg_bool_def.append(venn.PropertySet(bbm.Node(rxn)))
 
     pos_rules= venn.nested_expression_from_list_and_binary_op(pos_bool_def, venn.Union)

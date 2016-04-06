@@ -15,11 +15,14 @@ class StateModifier(Enum):
     truncated  = 'truncated'
 
 
-class State:
-    __metaclass__ = ABCMeta
+class State(metaclass=ABCMeta):
 
     def __repr__(self) -> str:
         return str(self)
+
+    @abstractmethod
+    def __str__(self):
+        pass
 
     @abstractmethod
     def is_superspecification_of(self, other) -> bool:
@@ -202,6 +205,9 @@ class InputState(State):
 
     def __hash__(self) -> int:
         return hash('*input-state-{}*'.format(self.name))
+
+    def __str__(self) -> str:
+        return sfr.string_from_input_state(self)
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:

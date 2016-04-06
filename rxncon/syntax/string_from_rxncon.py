@@ -47,3 +47,6 @@ def string_from_translocation_state(state) -> str:
 
 def string_from_synthesis_degradation_state(state) -> str:
     return '{}'.format(state.component)
+
+def string_from_input_state(state) -> str:
+    return '{}'.format(state.name)
