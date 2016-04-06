@@ -22,14 +22,14 @@ B, B
 C, C
 D, D
 E, E
-A_ppi_B, (((A..C & A..D) & A._p_) & (A & B))
-A..B, (A..B | A_ppi_B)
+A_ppi_B, (((A__C & A__D) & A_.p.) & (A & B))
+A__B, (A__B | A_ppi_B)
 A_ppi_C, (A & C)
-A..C, (A..C | A_ppi_C)
+A__C, (A__C | A_ppi_C)
 A_ppi_D, (A & D)
-A..D, (A..D | A_ppi_D)
+A__D, (A__D | A_ppi_D)
 C_pplus_A, (C & A)
-A._p_, ((A._p_ & (! D_pminus_A & ! E_pminus_A)) | (C_pplus_A & (! D_pminus_A & ! E_pminus_A)))
+A_.p., ((A_.p. & (! D_pminus_A & ! E_pminus_A)) | (C_pplus_A & (! D_pminus_A & ! E_pminus_A)))
 D_pminus_A, (D & A)
 E_pminus_A, (E & A)"""
     assert bbe_system.to_string() == expected_str
@@ -46,10 +46,10 @@ A, A
 B, B
 C, C
 D, D
-A_ppi_B, ((A & B) & (A..C & ! A._p_))
-A..B, (A..B | A_ppi_B)
+A_ppi_B, ((A & B) & (A__C & ! A_.p.))
+A__B, (A__B | A_ppi_B)
 A_ppi_C, (A & C)
-A..C, (A..C | A_ppi_C)
+A__C, (A__C | A_ppi_C)
 D_pplus_A, (D & A)
-A._p_, (A._p_ | D_pplus_A)"""
+A_.p., (A_.p. | D_pplus_A)"""
     assert bbe_system.to_string() == expected_expression
