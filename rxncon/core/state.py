@@ -36,6 +36,43 @@ class State(metaclass=ABCMeta):
     def components(self) -> List[com.Specification]:
         pass
 
+class ComponentState(State):
+
+    @tc.typecheck
+    def __init__(self, component: com.Specification):
+        self.component = component
+        self._validation()
+
+    def _validation(self):
+        assert self.component.name is not None
+        assert self.component.domain is None
+        assert self.component.subdomain is None
+        assert self.component.residue is None
+
+    @tc.typecheck
+    def __eq__(self, other):
+        return isinstance(other, ComponentState) and self.component == other.component
+
+    def __hash__(self) -> int:
+        return hash("*comp-state-{}".format(self.component))
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return sfr.string_from_component_state(self)
+
+    @tc.typecheck
+    def is_superspecification_of(self, other: State) -> bool:
+        return isinstance(other, ComponentState) and self.component.is_superspecification_of(other.component)
+
+    def is_subspecification_of(self, other: State) -> bool:
+        return isinstance(other, ComponentState) and self.component.is_subspecification_of(other.component)
+
+    @property
+    @tc.typecheck
+    def components(self) -> List[com.Specification]:
+        return [self.component]
 
 class CovalentModificationState(State):
     @tc.typecheck
