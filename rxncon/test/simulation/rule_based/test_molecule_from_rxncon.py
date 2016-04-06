@@ -38,28 +38,28 @@ def molecule_definitions():
 @pytest.fixture
 def state_set_test_cases(molecule_definitions):
     return [
-        # MoleculeInstancesFromStateSetTestCase(
-        #     molecule_definitions,
-        #     PropertySet(state_from_string('A--B')),
-        #     [
-        #         {'A': 'A#ass/A_[Bassoc]:B_[Aassoc]', 'B': 'B#ass/B_[Aassoc]:A_[Bassoc]'}
-        #     ]
-        # ),
-        # MoleculeInstancesFromStateSetTestCase(
-        #     molecule_definitions,
-        #     Complement(PropertySet(state_from_string('A-{p}'))),
-        #     [
-        #         {'A': 'A#mod/A_[(r)]:u'},
-        #         {'A': 'A#mod/A_[(r)]:ub'}
-        #     ]
-        # ),
         MoleculeInstancesFromStateSetTestCase(
             molecule_definitions,
-            PropertySet(state_from_string('C-{p}')),
+            PropertySet(state_from_string('A--B')),
             [
-                {'C': 'C#'}
+                {'A': 'A#ass/A_[Bassoc]:B_[Aassoc]', 'B': 'B#ass/B_[Aassoc]:A_[Bassoc]'}
             ]
-        )
+        ),
+        MoleculeInstancesFromStateSetTestCase(
+            molecule_definitions,
+            Complement(PropertySet(state_from_string('A-{p}'))),
+            [
+                {'A': 'A#mod/A_[(r)]:u'},
+                {'A': 'A#mod/A_[(r)]:ub'}
+            ]
+        ),
+        # MoleculeInstancesFromStateSetTestCase(
+        #     molecule_definitions,
+        #     PropertySet(state_from_string('C-{p}')),
+        #     [
+        #         {'C': 'C#'}
+        #     ]
+        # )
     ]
 
 
