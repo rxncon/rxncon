@@ -93,8 +93,7 @@ def get_rule_targets(rules: tg.List[bbm.Rule]):
 
 
 def rule_for_state_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reaction: rxn.Reaction, system_rules: tg.List[bbm.Rule]) -> bbm.Rule:
-    def is_expression_valid(vennset: tg.List[venn.Set]):
-        pass
+
     all_visited_nodes = get_rule_targets(system_rules)
 
     if reaction.product is None or bbm.Node(reaction.product) in all_visited_nodes:

@@ -56,7 +56,7 @@ A_.p., (A_.p. | D_pplus_A)"""
     assert bbe_system.to_string() == expected_expression
 
 
-def test_contradictory_multiple_boolean_expression():
+def test_complex_multiple_boolean_expression():
     quick_sys = quick.Quick("""
     A_trsc_B; ! <comp1>; x <comp2>; x <comp3>; x <comp4>
     <comp1>; AND C--D; AND C--E
