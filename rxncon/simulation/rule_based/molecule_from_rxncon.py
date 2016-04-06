@@ -152,12 +152,27 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
     def _disjunctified(mol_instance_set: Set) -> Set:
         return nested_expression_from_list_and_binary_op(gram_schmidt_disjunctify(mol_instance_set.to_union_list_form()), Union)
 
+    def _sorted(mol_instance_set: Set) -> Set:
+        sorted_nested_list = []
+        for sublist in mol_instance_set.to_nested_list_form():
+            sorted_nested_list.append(sorted(sublist))
+
+        sorted_nested_list.sort()
+
+        sorted_sets = []
+        for sublist in sorted_nested_list:
+            sorted_sets.append(nested_expression_from_list_and_binary_op(sublist, Intersection))
+
+        return nested_expression_from_list_and_binary_op(sorted_sets, Union)
+
     mols_from_states = lambda x: _mol_instance_set_with_complements_from_state_set(mol_defs, x)
 
     full_mapping = compose(
+        _sorted,
         _implode_mol_instance_set,
         _expanded_complements,
         _disjunctified,
+        _sorted,
         _expanded_complements,
         mols_from_states
     )
