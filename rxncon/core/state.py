@@ -15,14 +15,14 @@ class StateModifier(Enum):
     truncated  = 'truncated'
 
 
-class State:
-    __metaclass__ = ABCMeta
+class State(metaclass=ABCMeta):
 
     def __repr__(self) -> str:
-        if hasattr(self, "__str__"):
-            return str(self)
-        else:
-            raise NotImplementedError("State required definition of __str__ method")
+        return str(self)
+
+    @abstractmethod
+    def __str__(self):
+        pass
 
     @abstractmethod
     def is_superspecification_of(self, other) -> bool:
@@ -50,8 +50,8 @@ class CovalentModificationState(State):
     def __hash__(self) -> int:
         return hash('*cov-mod-state-{}-{}*'.format(self.substrate, self.modifier))
 
-    def __str__(self) -> str:
-        return sfr.string_from_covalent_modification_state(self)
+    #def __str__(self) -> str:
+    #    return sfr.string_from_covalent_modification_state(self)
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:
