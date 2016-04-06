@@ -14,15 +14,15 @@ def test_generate_name():
     assert bbe.string_from_reaction(a_pplus_b.value) == "a_pplus_b"
 
     a_dash_dash_b = bbm.Node(rfs.state_from_string("A--B"))
-    assert bbe.string_from_inter_protein_interaction_state(a_dash_dash_b.value) == "A..B"
+    assert bbe.string_from_inter_protein_interaction_state(a_dash_dash_b.value) == "A__B"
 
     b_intra = bbm.Node(rfs.state_from_string("b_[n]--[m]"))
 
-    assert bbe.string_from_intra_protein_interaction_state(b_intra.value) == "b__n_.._m_"
+    assert bbe.string_from_intra_protein_interaction_state(b_intra.value) == "b_.n.__.m."
 
-    A_ppi_B = bbm.Node(rfs.reaction_from_string("A_[n]_ppi_B[d/s(r)]"))
+    A_ppi_B = bbm.Node(rfs.reaction_from_string("A_[n]_ppi_B_[d/s(r)]"))
 
-    assert bbe.string_from_reaction(A_ppi_B.value) == "A__n__ppi_B_d_s_r__"
+    assert bbe.string_from_reaction(A_ppi_B.value) == "A_.n._ppi_B_.d.s.r.."
 
 
 def test_boolnet_string(rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A, initialConditions):
@@ -36,9 +36,9 @@ def test_boolnet_string(rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A, initi
 A, A
 B, B
 C, C
-A..B, (A_ppi_B | A..B)
-A_ppi_B, ((A & B) & A._p_)
-A._p_, (C_pplus_A | A._p_)
+A__B, (A_ppi_B | A__B)
+A_ppi_B, ((A & B) & A_.p.)
+A_.p., (C_pplus_A | A_.p.)
 C_pplus_A, (C & A)"""
 
     assert bbe_str == expected_str
@@ -54,9 +54,9 @@ def test_boolnet_string_with_complement(rule_A__B, rule_A_ppi_B, rule_A_p_deg, r
 A, A
 B, B
 C, C
-A..B, (A_ppi_B | A..B)
-A_ppi_B, ((A & B) & A._p_)
-A._p_, ((C_pplus_A | A._p_) & (! D_pminus_A & ! E_pminus_A))
+A__B, (A_ppi_B | A__B)
+A_ppi_B, ((A & B) & A_.p.)
+A_.p., ((C_pplus_A | A_.p.) & (! D_pminus_A & ! E_pminus_A))
 C_pplus_A, (C & A)"""
 
     assert bbe_str == expected_str
