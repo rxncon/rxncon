@@ -31,6 +31,9 @@ class Set:
 
         return union_terms
 
+    def to_full_simplified_form(self) -> 'Set':
+        return nested_expression_from_list_and_binary_op(self.to_union_list_form(), Union)
+
     @property
     def cardinality(self):
         list_of_intersections = self.to_nested_list_form()
