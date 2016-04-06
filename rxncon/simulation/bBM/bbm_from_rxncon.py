@@ -4,8 +4,7 @@ import rxncon.core.reaction as rxn
 import rxncon.core.contingency as con
 import rxncon.simulation.bBM.bipartite_boolean_model as bbm
 import rxncon.venntastic.sets as venn
-
-from rxncon.simulation.rule_based.molecule_from_rxncon import _state_set_from_contingencies
+import rxncon.core.effector as eff
 
 
 def bipartite_boolean_model_from_rxncon(rxconsys: rxs.RxnConSystem):
@@ -26,6 +25,7 @@ def rules_from_rxncon(rxconsys: rxs.RxnConSystem):
 def initial_states_from_rxncon(rxconsys: rxs.RxnConSystem):
     initial_states = []
     for reaction in rxconsys.reactions:
+        # todo: change this later to a specific state
         if bbm.InitCondition(bbm.Node(reaction.subject), None) not in initial_states:
             initial_states.append(bbm.InitCondition(bbm.Node(reaction.subject), None))
         if bbm.InitCondition(bbm.Node(reaction.object), None) not in initial_states:
@@ -39,12 +39,18 @@ def rule_for_reaction_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, r
     if bbm.Node(reaction) in all_visited_nodes:
         return None
     strict_contingency_state_set = _state_set_from_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction))
-
-    vennset = venn.Intersection(strict_contingency_state_set,
+    if isinstance(strict_contingency_state_set.to_full_simplified_form(), venn.EmptySet):
+        raise AssertionError("There is no way to fulfill the contingencies: {}".format(strict_contingency_state_set))
+    vennset = venn.Intersection(strict_contingency_state_set.to_full_simplified_form(),
+                                # todo: change this later to a specific state
                                    venn.Intersection(venn.PropertySet(reaction.subject),
                                                      venn.PropertySet(reaction.object)))
     additional_strict_cont = convert_quantitative_contingencies_into_strict_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))
-    additional_contingency_state_set= _state_set_from_contingencies(additional_strict_cont)
+    additional_contingency_state_set = _state_set_from_contingencies(additional_strict_cont)
+
+    if isinstance(additional_contingency_state_set.to_full_simplified_form(), venn.EmptySet):
+        raise AssertionError("There is no way to fulfill the contingencies: {}".format(additional_contingency_state_set))
+
     vennset = venn.Intersection(vennset, additional_contingency_state_set)
     return bbm.Rule(bbm.Node(reaction), bbm.Factor(vennset_to_bbm_factor_vennset(vennset.simplified_form())))
 
@@ -65,6 +71,9 @@ def convert_quantitative_contingencies_into_strict_contingencies(contingencies: 
 def vennset_to_bbm_factor_vennset(vennset: venn.Set):
     # creates new vennset with states contained by Node objects, for compareability
     # want to rewrite venn.Set into bbm.Factor like venn.PropertySet(A--B) -> venn.PropertySet(bbm.Node(A--B))
+    if isinstance(vennset, venn.EmptySet):
+        raise AssertionError
+
     if isinstance(vennset, venn.PropertySet):
         return venn.PropertySet(bbm.Node(vennset.value))
     if isinstance(vennset, venn.Complement):
@@ -84,6 +93,7 @@ def get_rule_targets(rules: tg.List[bbm.Rule]):
 
 
 def rule_for_state_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reaction: rxn.Reaction, system_rules: tg.List[bbm.Rule]) -> bbm.Rule:
+
     all_visited_nodes = get_rule_targets(system_rules)
 
     if reaction.product is None or bbm.Node(reaction.product) in all_visited_nodes:
@@ -101,5 +111,57 @@ def rule_for_state_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reac
     pos_rules= venn.nested_expression_from_list_and_binary_op(pos_bool_def, venn.Union)
     neg_rules = venn.nested_expression_from_list_and_binary_op(neg_bool_def, venn.Union)
     vennset = venn.Intersection(pos_rules, venn.Complement(neg_rules))
+
+    if isinstance(vennset.to_full_simplified_form(), venn.EmptySet):
+        raise AssertionError("There is no way to fulfill this rule: {}".format(vennset))
+
     return bbm.Rule(bbm.Node(reaction.product),
-                    bbm.Factor(vennset.simplified_form()))
+                    bbm.Factor(vennset.to_full_simplified_form()))
+
+
+def _state_set_from_contingencies(contingencies: tg.List[con.Contingency]) -> venn.Set:
+    if not contingencies:
+        return venn.UniversalSet()
+
+    for contingency in contingencies:
+        assert contingency.target == contingencies[0].target
+        assert contingency.type in [con.ContingencyType.inhibition, con.ContingencyType.requirement]
+
+    requirements = []
+    inhibitions = []
+
+    for contingency in contingencies:
+        if contingency.type == con.ContingencyType.requirement:
+            requirements.append(_state_set_from_effector(contingency.effector))
+
+        elif contingency.type == con.ContingencyType.inhibition:
+            inhibitions.append(_state_set_from_effector(contingency.effector))
+
+    required_set = venn.nested_expression_from_list_and_binary_op(requirements, venn.Intersection)
+    inhibited_set = venn.Complement(venn.nested_expression_from_list_and_binary_op(inhibitions, venn.Union))
+
+    if requirements and inhibitions:
+        return venn.Intersection(required_set, inhibited_set)
+
+    elif inhibitions:
+        return inhibited_set
+
+    elif requirements:
+        return required_set
+
+
+def _state_set_from_effector(effector: eff.Effector) -> venn.Set:
+    if isinstance(effector, eff.StateEffector):
+        return venn.PropertySet(effector.expr)
+
+    elif isinstance(effector, eff.NotEffector):
+        return venn.Complement(_state_set_from_effector(effector.expr))
+
+    elif isinstance(effector, eff.AndEffector):
+        return venn.Intersection(_state_set_from_effector(effector.left_expr), _state_set_from_effector(effector.right_expr))
+
+    elif isinstance(effector, eff.OrEffector):
+        return venn.Union(_state_set_from_effector(effector.left_expr), _state_set_from_effector(effector.right_expr))
+
+    else:
+        raise AssertionError
