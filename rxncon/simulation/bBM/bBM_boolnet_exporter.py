@@ -123,10 +123,10 @@ def string_from_reaction(reaction: rxn.Reaction) -> str:
 
 
 def replace_invalid_chars(value):
-    value = re.sub("-", ".", value)
-    value = re.sub('[\[{(]', "_", value)
-    value = re.sub('[\]})]', "_", value)
-    value = re.sub('/', "_", value)
+    value = re.sub("-", "_", value)
+    value = re.sub('[\[{(]', ".", value)
+    value = re.sub('[\]})]', ".", value)
+    value = re.sub('/', ".", value)
     return value
 
 
