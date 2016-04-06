@@ -127,7 +127,7 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
                     assert not instance.association_properties
                     expanded_instances += [MoleculeInstance(mol_def, set(), set(), instance.localization_property)]
                 else:
-                    raise AssertionError
+                    raise AssertionError('The exploded MoleculeInstance should have one and exactly one PropertyInstance')
 
             return nested_expression_from_list_and_binary_op([PropertySet(x) for x in expanded_instances], Union)
 
@@ -224,12 +224,15 @@ def _molecule_instance_set_from_ppi_state(mol_defs: Dict[Specification, Molecule
     return nested_expression_from_list_and_binary_op(sets, Union)
 
 def _molecule_instance_set_from_ipi_state(mol_defs: Dict[Specification, MoleculeDefinition], state: IntraProteinInteractionState) -> Set:
+    # @todo
     pass
 
 def _molecule_instance_set_from_loc_state(mol_defs: Dict[Specification, MoleculeDefinition], state: TranslocationState) -> Set:
+    # @todo
     pass
 
 def _molecule_instance_set_from_inp_state(mol_defs: Dict[Specification, MoleculeDefinition], state: InputState) -> Set:
+    # @todo
     pass
 
 ### MAPPING REACTIONS TO MOLECULE INSTANCE PAIRS ###
