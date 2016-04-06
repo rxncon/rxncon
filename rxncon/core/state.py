@@ -50,8 +50,8 @@ class CovalentModificationState(State):
     def __hash__(self) -> int:
         return hash('*cov-mod-state-{}-{}*'.format(self.substrate, self.modifier))
 
-    #def __str__(self) -> str:
-    #    return sfr.string_from_covalent_modification_state(self)
+    def __str__(self) -> str:
+        return sfr.string_from_covalent_modification_state(self)
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:
