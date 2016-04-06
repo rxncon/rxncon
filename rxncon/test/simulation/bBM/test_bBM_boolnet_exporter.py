@@ -3,10 +3,12 @@ import time
 import tempfile
 import pytest
 
-import rxncon.simulation.bBM.bBM_boolnet_exporter as bbe
 import rxncon.simulation.bBM.bipartite_boolean_model as bbm
+import rxncon.simulation.bBM.bbm_from_rxncon as bfr
+import rxncon.simulation.bBM.bBM_boolnet_exporter as bbe
 import rxncon.syntax.rxncon_from_string as rfs
 import rxncon.venntastic.sets as venn
+import rxncon.input.quick.quick as qui
 
 
 def test_generate_name():
@@ -60,6 +62,22 @@ A_.p., ((C_pplus_A | A_.p.) & (! D_pminus_A & ! E_pminus_A))
 C_pplus_A, (C & A)"""
 
     assert bbe_str == expected_str
+
+
+def test_strange_thing():
+    quick_sys = qui.Quick("""
+    A_trsc_B; ! <comp1>; x <comp2>; x <comp3>; x <comp4>
+    <comp1>; AND C--D; AND C--E
+    <comp2>; AND G--F; AND <comp4>
+    <comp3>;AND H--F; AND <comp4>
+    <comp4>; AND F--E; AND <comp1>""")
+
+    bbm_sys = bfr.bipartite_boolean_model_from_rxncon(quick_sys.rxncon_system)
+    bbe_system = bbe.BoolNetSystem(bbm_sys)
+    print(bbe_system.to_string())
+
+
+
 
 
 def test_to_file(rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, initialConditions):
