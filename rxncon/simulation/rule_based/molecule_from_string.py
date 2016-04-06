@@ -5,7 +5,8 @@ from rxncon.semantics.molecule_instance import MoleculeInstance, \
     AssociationPropertyInstance, LocalizationPropertyInstance, ModificationPropertyInstance
 
 from rxncon.syntax.rxncon_from_string import specification_from_string
-from rxncon.simulation.rule_based.rule_based_model import Binding, Rule, MoleculeReactant, ComplexReactant, Arrow, Parameter
+from rxncon.simulation.rule_based.rule_based_model import Binding, Rule, MoleculeReactant, ComplexReactant, Arrow, \
+    Parameter
 
 
 def mol_def_from_string(mol_def_string: str) -> MoleculeDefinition:

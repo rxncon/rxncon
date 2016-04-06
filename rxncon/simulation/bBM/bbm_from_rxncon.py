@@ -5,7 +5,7 @@ import rxncon.core.contingency as con
 import rxncon.simulation.bBM.bipartite_boolean_model as bbm
 import rxncon.venntastic.sets as venn
 
-from rxncon.simulation.rule_based.rbm_from_rxncon import state_set_from_contingencies
+from rxncon.simulation.rule_based.molecule_from_rxncon import _state_set_from_contingencies
 
 
 def bipartite_boolean_model_from_rxncon(rxconsys: rxs.RxnConSystem):
@@ -38,13 +38,13 @@ def rule_for_reaction_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, r
     all_visited_nodes = get_rule_targets(system_rules)
     if bbm.Node(reaction) in all_visited_nodes:
         return None
-    strict_contingency_state_set = state_set_from_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction))
+    strict_contingency_state_set = _state_set_from_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction))
 
     vennset = venn.Intersection(strict_contingency_state_set,
                                    venn.Intersection(venn.PropertySet(reaction.subject),
                                                      venn.PropertySet(reaction.object)))
     additional_strict_cont = convert_quantitative_contingencies_into_strict_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))
-    additional_contingency_state_set= state_set_from_contingencies(additional_strict_cont)
+    additional_contingency_state_set= _state_set_from_contingencies(additional_strict_cont)
     vennset = venn.Intersection(vennset, additional_contingency_state_set)
     return bbm.Rule(bbm.Node(reaction), bbm.Factor(vennset_to_bbm_factor_vennset(vennset.simplified_form())))
 

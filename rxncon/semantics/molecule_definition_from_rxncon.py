@@ -76,9 +76,39 @@ def mol_modifier_from_state_modifier(state_mod: sta.StateModifier) -> mol.Modifi
         raise NotImplementedError
 
 
-def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, reaction: rxn.Reaction):
+def mod_domain_spec_from_state_and_reaction(state: sta.CovalentModificationState, reaction: rxn.Reaction):
+    # Need to copy, since otherwise we will mutate the specs appearing in the original state/reaction.
+    spec = copy.copy(state.substrate)
 
-    spec = _mod_spec_domain_from_state(state, reaction)
+    if not spec.residue and reaction.influence == rxn.Influence.transfer:
+        if spec == reaction.subject:
+            spec.residue = _kinase_residue_name(reaction.object)
+        elif spec == reaction.object:
+            spec.residue = _kinase_residue_name(reaction.subject)
+        else:
+            raise NotImplementedError
+    elif not spec.residue and reaction.influence in [rxn.Influence.positive, rxn.Influence.negative]:
+        spec.residue = _kinase_residue_name(reaction.subject)
+
+    return spec
+
+
+def ass_domain_specs_from_state(state: tg.Union[sta.InterProteinInteractionState, sta.IntraProteinInteractionState]):
+    # Need to copy, since otherwise we will mutate the specs appearing in the original state/reaction.
+    first_spec = copy.copy(state.first_component)
+    second_spec = copy.copy(state.second_component)
+
+    if not first_spec.domain:
+        first_spec.domain = _assoc_domain_from_partner_spec(state.second_component)
+
+    if not second_spec.domain:
+        second_spec.domain = _assoc_domain_from_partner_spec(state.first_component)
+
+    return first_spec, second_spec
+
+
+def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, reaction: rxn.Reaction):
+    spec = mod_domain_spec_from_state_and_reaction(state, reaction)
     mod_def = mol.ModificationPropertyDefinition(spec,
                                                  {mol.Modifier.unmodified, mol_modifier_from_state_modifier(state.modifier)})
 
@@ -86,7 +116,7 @@ def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, react
 
 
 def _assoc_defs_from_state(state: tg.Union[sta.InterProteinInteractionState, sta.IntraProteinInteractionState]):
-    first_spec, second_spec = _assoc_spec_domain_from_state(state)
+    first_spec, second_spec = ass_domain_specs_from_state(state)
 
     first_def = mol.AssociationPropertyDefinition(first_spec, {second_spec})
     second_def = mol.AssociationPropertyDefinition(second_spec, {first_spec})
@@ -107,37 +137,6 @@ def _update_defs(defs: tg.Set[mol.PropertyDefinition], new_def: mol.PropertyDefi
 
     if not found_updatable_def:
         defs.add(new_def)
-
-
-def _mod_spec_domain_from_state(state: sta.CovalentModificationState, reaction: rxn.Reaction):
-    # Need to copy, since otherwise we will mutate the specs appearing in the original state/reaction.
-    spec = copy.copy(state.substrate)
-
-    if not spec.residue and reaction.influence == rxn.Influence.transfer:
-        if spec == reaction.subject:
-            spec.residue = _kinase_residue_name(reaction.object)
-        elif spec == reaction.object:
-            spec.residue = _kinase_residue_name(reaction.subject)
-        else:
-            raise NotImplementedError
-    elif not spec.residue and reaction.influence in [rxn.Influence.positive, rxn.Influence.negative]:
-        spec.residue = _kinase_residue_name(reaction.subject)
-
-    return spec
-
-
-def _assoc_spec_domain_from_state(state: tg.Union[sta.InterProteinInteractionState, sta.IntraProteinInteractionState]):
-    # Need to copy, since otherwise we will mutate the specs appearing in the original state/reaction.
-    first_spec = copy.copy(state.first_component)
-    second_spec = copy.copy(state.second_component)
-
-    if not first_spec.domain:
-        first_spec.domain = _assoc_domain_from_partner_spec(state.second_component)
-
-    if not second_spec.domain:
-        second_spec.domain = _assoc_domain_from_partner_spec(state.first_component)
-
-    return first_spec, second_spec
 
 
 def _kinase_residue_name(spec: spe.Specification) -> str:

@@ -151,6 +151,7 @@ def simple_molecule_spec():
 
     return molecule_specification
 
+
 @pytest.fixture
 def simple_rule_based_model():
     assoc_def_a = rxncon.semantics.molecule_definition.AssociationPropertyDefinition('b')

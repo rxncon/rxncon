@@ -3,7 +3,7 @@ from typing import List
 import pytest
 from rxncon.input.quick.quick import Quick
 from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_string, rule_from_string
-from rxncon.simulation.rule_based.rbm_from_rxncon import RuleBasedModelSupervisor
+from rxncon.simulation.rule_based.molecule_from_rxncon import RuleBasedModelSupervisor
 from rxncon.simulation.rule_based.rule_based_model import Rule
 
 
@@ -294,7 +294,6 @@ def case_interaction_with_contingencies():
              'D#ass/D_[Bassoc]: + B#ass/B_[d/s]: <-> B#ass/B_[d/s]:D_[Bassoc]~0.D#ass/D_[Bassoc]:B_[d/s]~0',
              'C# + A#mod/A_[(Csite)]:u -> C# + A#mod/A_[(Csite)]:p']
         ),
-
         RuleTestCase(
             '''
             D_p+_A

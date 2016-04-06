@@ -55,8 +55,8 @@ class MoleculeDefinition:
     def __str__(self) -> str:
         return 'MoleculeDefinition: {0} [Mod: {1}, Ass: {2}, Loc: {3}]'\
             .format(self.spec,
-                    ''.join(str(x) for x in self.modification_defs),
-                    ''.join(str(x) for x in self.association_defs),
+                    '/'.join(str(x) for x in sorted(self.modification_defs)),
+                    '/'.join(str(x) for x in sorted(self.association_defs)),
                     str(self.localization_def))
 
 
@@ -83,7 +83,7 @@ class ModificationPropertyDefinition(PropertyDefinition):
 
     def __str__(self) -> str:
         return 'ModificationDefinition: Domain = {0}, Modifiers = {1}'\
-            .format(self.spec, ', '.join(mod.value for mod in self.valid_modifiers))
+            .format(self.spec, ', '.join(mod.value for mod in sorted(self.valid_modifiers, key=str)))
 
 
 class AssociationPropertyDefinition(PropertyDefinition):
@@ -105,7 +105,7 @@ class AssociationPropertyDefinition(PropertyDefinition):
 
     def __str__(self) -> str:
         return 'AssociationDefinition: Domain = {0}, valid_partners = {1}'\
-            .format(self.spec, ', '.join(str(x) for x in self.valid_partners))
+            .format(self.spec, ', '.join(str(x) for x in sorted(self.valid_partners)))
 
 
 class LocalizationPropertyDefinition(PropertyDefinition):
@@ -121,4 +121,4 @@ class LocalizationPropertyDefinition(PropertyDefinition):
         return hash('*loc-def* with num of compartments {}'.format(len(self.valid_compartments)))
 
     def __str__(self) -> str:
-        return 'LocalizationDefinition: {0}'.format(', '.join(str(x) for x in self.valid_compartments))
+        return 'LocalizationDefinition: {0}'.format(', '.join(str(x) for x in sorted(self.valid_compartments)))

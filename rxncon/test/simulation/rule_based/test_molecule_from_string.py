@@ -4,7 +4,7 @@ from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_strin
     mol_instances_and_bindings_from_string, rule_from_string
 from rxncon.semantics.molecule_definition import MoleculeDefinition, ModificationPropertyDefinition, \
     AssociationPropertyDefinition, LocalizationPropertyDefinition, Compartment, Modifier, OccupationStatus
-from rxncon.semantics.molecule_instance import MoleculeInstance, AssociationPropertyInstance
+from rxncon.semantics.molecule_instance import MoleculeInstance, AssociationPropertyInstance, ModificationPropertyInstance
 from rxncon.syntax.rxncon_from_string import specification_from_string
 
 
@@ -101,6 +101,15 @@ def mol_instances():
         mol_def_from_string('A#ass/A_[x]:B_[y]~C_[z]'),
         set(),
         {AssociationPropertyInstance(ass_def, OccupationStatus.occupied_known_partner, specification_from_string('C_[z]'))},
+        None
+    )
+
+    mod_def = list(mol_def_from_string('A#mod/A_[(r)]:u~p~ub').modification_defs)[0]
+
+    mol_instances[('A#mod/A_[(r)]:u~p~ub', 'A#mod/A_[(r)]:p')] = MoleculeInstance(
+        mol_def_from_string('A#mod/A_[(r)]:u~p~ub'),
+        {ModificationPropertyInstance(mod_def, Modifier.phosphorylated)},
+        set(),
         None
     )
 
