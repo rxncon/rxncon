@@ -10,7 +10,14 @@ import rxncon.core.specification as spec
 
 
 def bipartite_boolean_model_from_rxncon(rxconsys: rxs.RxnConSystem):
-    return bbm.BipartiteBooleanModel(rules_from_rxncon(rxconsys), initial_states_from_rxncon(rxconsys))
+    rules = rules_from_rxncon(rxconsys)
+    init_states = initial_states_from_rxncon(rxconsys)
+
+    for rule in rules:
+        if bbm.InitCondition(rule.target, None) in init_states:
+            init_states.remove(bbm.InitCondition(rule.target, None))
+
+    return bbm.BipartiteBooleanModel(rules_from_rxncon(rxconsys), init_states)
 
 
 def rules_from_rxncon(rxconsys: rxs.RxnConSystem):
@@ -27,13 +34,10 @@ def rules_from_rxncon(rxconsys: rxs.RxnConSystem):
 def initial_states_from_rxncon(rxconsys: rxs.RxnConSystem):
     initial_states = []
     for reaction in rxconsys.reactions:
-        # todo: change this later to a specific state
-        if bbm.InitCondition(bbm.Node(sta.ComponentState(spec.Specification(reaction.subject.name,
-                                                                            None, None, None))), None) not in initial_states:
-            initial_states.append(bbm.InitCondition(bbm.Node(sta.ComponentState(spec.Specification(reaction.subject.name,
-                                                                                                   None, None, None))), None))
-        if bbm.InitCondition(bbm.Node(sta.ComponentState(spec.Specification(reaction.object.name,
-                                                                            None, None, None))), None) not in initial_states:
+        if bbm.InitCondition(bbm.Node(sta.ComponentState(reaction.subject.to_component_specification())), None) not in initial_states:
+            initial_states.append(bbm.InitCondition(bbm.Node(sta.ComponentState(reaction.subject.to_component_specification())),
+                                                                                None))
+        if bbm.InitCondition(bbm.Node(sta.ComponentState(reaction.object.to_component_specification())), None) not in initial_states:
             initial_states.append(bbm.InitCondition(bbm.Node(sta.ComponentState(spec.Specification(reaction.object.name,
                                                                                                    None, None, None))), None))
     return initial_states
@@ -48,11 +52,8 @@ def rule_for_reaction_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, r
     if isinstance(strict_contingency_state_set.to_full_simplified_form(), venn.EmptySet):
         raise AssertionError("There is no way to fulfill the contingencies: {}".format(strict_contingency_state_set))
     vennset = venn.Intersection(strict_contingency_state_set.to_full_simplified_form(),
-                                # todo: change this later to a specific state
-                                   venn.Intersection(venn.PropertySet(sta.ComponentState(spec.Specification(reaction.subject.name,
-                                                                                                            None, None, None))),
-                                                     venn.PropertySet(sta.ComponentState(spec.Specification(reaction.object.name,
-                                                                                                            None, None, None)))))
+                                   venn.Intersection(venn.PropertySet(sta.ComponentState(reaction.subject.to_component_specification())),
+                                                     venn.PropertySet(sta.ComponentState(reaction.object.to_component_specification()))))
     additional_strict_cont = convert_quantitative_contingencies_into_strict_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))
     additional_contingency_state_set = _state_set_from_contingencies(additional_strict_cont)
 

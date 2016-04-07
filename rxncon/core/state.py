@@ -72,8 +72,6 @@ class ComponentState(State):
             return self.component.is_superspecification_of(other.substrate)
         elif isinstance(other, TranslocationState):
             return self.component.is_superspecification_of(other.substrate)
-        elif isinstance(other, SynthesisDegradationState):
-            return self.component.is_superspecification_of(other.component)
         else:
             raise NotImplementedError
 
@@ -182,35 +180,6 @@ class IntraProteinInteractionState(State):
     @tc.typecheck
     def components(self) -> List[com.Specification]:
         return [self.first_component, self.second_component]
-
-
-class SynthesisDegradationState(State):
-    @tc.typecheck
-    def __init__(self, component: com.Specification):
-        self.component = component
-
-    @tc.typecheck
-    def __eq__(self, other: State) -> bool:
-        return isinstance(other, SynthesisDegradationState) and self.component == other.component
-
-    def __hash__(self) -> int:
-        return hash('*synth-deg-state-{}*'.format(self.component))
-
-    def __str__(self) -> str:
-        return sfr.string_from_synthesis_degradation_state(self)
-
-    @tc.typecheck
-    def is_superspecification_of(self, other: State) -> bool:
-        return isinstance(other, SynthesisDegradationState) and self.component.is_superspecification_of(other.component)
-
-    @tc.typecheck
-    def is_subspecification_of(self, other: State) -> bool:
-        return isinstance(other, SynthesisDegradationState) and self.component.is_subspecification_of(other.component)
-
-    @property
-    @tc.typecheck
-    def components(self) -> List[com.Specification]:
-        return [self.component]
 
 
 class TranslocationState(State):

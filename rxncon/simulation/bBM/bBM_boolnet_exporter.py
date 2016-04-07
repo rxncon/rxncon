@@ -91,9 +91,6 @@ class BoolNetSystem:
         elif isinstance(node.value, sta.TranslocationState):
             return string_from_translocation_state(node.value)
 
-        elif isinstance(node.value, sta.SynthesisDegradationState):
-            return string_from_synthesis_degradation_state(node.value)
-
         elif isinstance(node.value, sta.InputState):
             return string_from_input_state(node.value)
 
@@ -141,10 +138,6 @@ def string_from_covalent_modification_state(state: rxn.sta.CovalentModificationS
 
 def string_from_translocation_state(state) -> str:
     # A-{cyto}
-    return replace_invalid_chars(str(state))
-
-
-def string_from_synthesis_degradation_state(state) -> str:
     return replace_invalid_chars(str(state))
 
 

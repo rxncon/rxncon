@@ -8,7 +8,7 @@ from rxncon.venntastic.sets import Set, Complement, Union, Intersection, Propert
 from rxncon.core.specification import Specification
 from rxncon.core.reaction import Reaction, ReactionClass, Verb
 from rxncon.core.state import State, CovalentModificationState, InterProteinInteractionState, IntraProteinInteractionState, \
-    TranslocationState, InputState, SynthesisDegradationState, StateModifier
+    TranslocationState, InputState, ComponentState, StateModifier
 from rxncon.semantics.molecule_definition import MoleculeDefinition, Modifier
 from rxncon.semantics.molecule_definition_from_rxncon import mod_domain_spec_from_state_and_reaction, ass_domain_specs_from_state
 from rxncon.semantics.molecule_instance import MoleculeInstance, ModificationPropertyInstance, AssociationPropertyInstance, \

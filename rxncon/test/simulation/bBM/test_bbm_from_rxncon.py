@@ -67,7 +67,6 @@ def test_complex_multiple_boolean_expression():
 
     expected_str = """target, factors
 A, A
-B, B
 A_trsc_B, (((C__D & C__E) & ! F__E) & (A & B))
 B, (B | A_trsc_B)"""
 
