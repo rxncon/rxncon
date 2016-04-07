@@ -79,34 +79,11 @@ class BoolNetSystem:
         if isinstance(node.value, rxn.Reaction):
             return string_from_reaction(node.value)
 
-        elif isinstance(node.value, sta.InterProteinInteractionState):
-            return string_from_inter_protein_interaction_state(node.value)
-
-        elif isinstance(node.value, sta.IntraProteinInteractionState):
-            return string_from_intra_protein_interaction_state(node.value)
-
-        elif isinstance(node.value, sta.CovalentModificationState):
-            return string_from_covalent_modification_state(node.value)
-
-        elif isinstance(node.value, sta.TranslocationState):
-            return string_from_translocation_state(node.value)
-
-        elif isinstance(node.value, sta.SynthesisDegradationState):
-            return string_from_synthesis_degradation_state(node.value)
-
-        elif isinstance(node.value, sta.InputState):
-            return string_from_input_state(node.value)
-
-        elif isinstance(node.value, spec.Specification):
-            return string_from_specification(node.value)
+        elif isinstance(node.value, sta.State):
+            return replace_invalid_chars(str(node.value))
 
         else:
             raise NotImplementedError
-
-
-def string_from_specification(specification: spec.Specification):
-    spec_str = str(specification)
-    return replace_invalid_chars(spec_str)
 
 
 def string_from_reaction(reaction: rxn.Reaction) -> str:
@@ -128,33 +105,3 @@ def replace_invalid_chars(value):
     value = re.sub('[\]})]', ".", value)
     value = re.sub('/', ".", value)
     return value
-
-
-def string_from_inter_protein_interaction_state(state: rxn.sta.InterProteinInteractionState) -> str:
-    return replace_invalid_chars(str(state))
-
-
-def string_from_intra_protein_interaction_state(state: rxn.sta.IntraProteinInteractionState) -> str:
-    # A_[m]--[n]
-    return replace_invalid_chars(str(state))
-
-
-def string_from_covalent_modification_state(state: rxn.sta.CovalentModificationState) -> str:
-    # A-{P}
-    return replace_invalid_chars(str(state))
-
-
-def string_from_translocation_state(state) -> str:
-    # A-{cyto}
-    return replace_invalid_chars(str(state))
-
-
-def string_from_synthesis_degradation_state(state) -> str:
-    return replace_invalid_chars(str(state))
-
-
-def string_from_input_state(state) -> str:
-    return replace_invalid_chars(str(state))
-
-def string_from_specification(state) -> str:
-    return replace_invalid_chars(str(state))

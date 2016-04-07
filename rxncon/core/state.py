@@ -36,6 +36,53 @@ class State(metaclass=ABCMeta):
     def components(self) -> List[com.Specification]:
         pass
 
+class ComponentState(State):
+
+    @tc.typecheck
+    def __init__(self, component: com.Specification):
+        self.component = component
+        self._validate()
+
+    def _validate(self):
+        assert self.component.name is not None
+        assert self.component.domain is None
+        assert self.component.subdomain is None
+        assert self.component.residue is None
+
+    @tc.typecheck
+    def __eq__(self, other: State):
+        return isinstance(other, ComponentState) and self.component == other.component
+
+    def __hash__(self) -> int:
+        return hash("*comp-state-{}".format(self.component))
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return sfr.string_from_component_state(self)
+
+    @tc.typecheck
+    def is_superspecification_of(self, other: State) -> bool:
+        if isinstance(other, ComponentState) and self.component == other.component:
+            return True
+        elif isinstance(other, InterProteinInteractionState) or isinstance(other, IntraProteinInteractionState):
+            return self.component.is_superspecification_of(other.first_component) or self.component.is_superspecification_of(other.second_component)
+        elif isinstance(other, CovalentModificationState):
+            return self.component.is_superspecification_of(other.substrate)
+        elif isinstance(other, TranslocationState):
+            return self.component.is_superspecification_of(other.substrate)
+        else:
+            raise NotImplementedError
+
+    @tc.typecheck
+    def is_subspecification_of(self, other: State) -> bool:
+        return isinstance(other, ComponentState) and self.component == other.component
+
+    @property
+    @tc.typecheck
+    def components(self) -> List[com.Specification]:
+        return [self.component]
 
 class CovalentModificationState(State):
     @tc.typecheck
@@ -134,35 +181,6 @@ class IntraProteinInteractionState(State):
     @tc.typecheck
     def components(self) -> List[com.Specification]:
         return [self.first_component, self.second_component]
-
-
-class SynthesisDegradationState(State):
-    @tc.typecheck
-    def __init__(self, component: com.Specification):
-        self.component = component
-
-    @tc.typecheck
-    def __eq__(self, other: State) -> bool:
-        return isinstance(other, SynthesisDegradationState) and self.component == other.component
-
-    def __hash__(self) -> int:
-        return hash('*synth-deg-state-{}*'.format(self.component))
-
-    def __str__(self) -> str:
-        return sfr.string_from_synthesis_degradation_state(self)
-
-    @tc.typecheck
-    def is_superspecification_of(self, other: State) -> bool:
-        return isinstance(other, SynthesisDegradationState) and self.component.is_superspecification_of(other.component)
-
-    @tc.typecheck
-    def is_subspecification_of(self, other: State) -> bool:
-        return isinstance(other, SynthesisDegradationState) and self.component.is_subspecification_of(other.component)
-
-    @property
-    @tc.typecheck
-    def components(self) -> List[com.Specification]:
-        return [self.component]
 
 
 class TranslocationState(State):

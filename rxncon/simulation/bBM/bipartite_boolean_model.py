@@ -23,6 +23,10 @@ class InitCondition:
     def __eq__(self, other: 'InitCondition'):
         return self.target == other.target and self.value == self.value
 
+    def __repr__(self):
+        return str(self)
+    def __str__(self):
+        return "target: {0}, value: {1}".format(self.target, self.value)
 
 class Node:
     def __init__(self, value: tg.Union[rxn.Reaction, sta.State]):
@@ -56,6 +60,9 @@ class Rule:
 
     def _validate(self):
         pass
+
+    def __str__(self):
+        return "target: {0}, factors: {1}".format(self.target, self.factor)
 
 
 class Factor(venn.Set):

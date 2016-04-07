@@ -229,7 +229,7 @@ def states_from_reaction(reaction: Reaction) -> SourceStateProductState:
         return _intra_protein_interaction_states_from_reaction(reaction)
 
     elif reaction.reaction_class == ReactionClass.synthesis_degradation:
-        return _synthesis_degradation_states_from_reaction(reaction)
+        return _component_states_from_reaction(reaction)
 
     elif reaction.reaction_class == ReactionClass.translocation:
         return _translocation_states_from_reaction(reaction)
@@ -283,14 +283,14 @@ def _intra_protein_interaction_states_from_reaction(reaction: Reaction) -> Sourc
     return SourceStateProductState(source, product)
 
 
-def _synthesis_degradation_states_from_reaction(reaction: Reaction) -> SourceStateProductState:
+def _component_states_from_reaction(reaction: Reaction) -> SourceStateProductState:
     source = product = None
 
     if reaction.influence == Influence.positive:
-        product = sta.SynthesisDegradationState(reaction.object)
+        product = sta.ComponentState(reaction.object.to_component_specification())
 
     elif reaction.influence == Influence.negative:
-        source = sta.SynthesisDegradationState(reaction.object)
+        source = sta.ComponentState(reaction.object.to_component_specification())
 
     else:
         raise err.RxnConLogicError('Could not determine syn/deg state for reaction {}'.format(reaction))
