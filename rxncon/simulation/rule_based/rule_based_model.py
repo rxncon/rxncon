@@ -9,8 +9,8 @@ from rxncon.semantics.molecule_definition import MoleculeDefinition
 
 class RuleBasedModel:
     @tc.typecheck
-    def __init__(self, molecule_defs: tg.List[MoleculeDefinition], rules: tg.List['Rule'],
-                 parameters: tg.List['Parameter'], initial_conditions: tg.List['InitialCondition']):
+    def __init__(self, molecule_defs: tg.Set[MoleculeDefinition], rules: tg.Set['Rule'],
+                 parameters: tg.Set['Parameter'], initial_conditions: tg.Set['InitialCondition']):
         self.molecule_defs = molecule_defs
         self.rules = rules
         self.parameters = parameters
