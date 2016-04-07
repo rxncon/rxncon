@@ -9,54 +9,8 @@ import rxncon.core.reaction as rxn
 import rxncon.core.specification as spe
 
 
-class MoleculeDefinitionSupervisor:
-    def __init__(self, rxnconsys: rxs.RxnConSystem):
-        self.rxnconsys = rxnconsys
-        self.molecule_definitions = {}
-        self._generate_molecule_definitions()
-        self.molecules = self.molecule_definitions.keys()
-
-    def mol_def_for_name(self, name: str) -> mol.MoleculeDefinition:
-        return self.molecule_definitions[name]
-
-    def _generate_molecule_definitions(self):
-        names = set()
-
-        name_to_assoc_defs = defaultdict(set)
-        name_to_mod_defs = defaultdict(set)
-        name_to_locs = defaultdict(set)
-
-        for reaction in self.rxnconsys.reactions:
-            for state in [x for x in [reaction.source, reaction.product] if x]:
-                if isinstance(state, sta.CovalentModificationState):
-                    names.add(state.substrate.name)
-                    names.add(reaction.subject.name)
-
-                    mod_def = _mod_def_from_state_and_reaction(state, reaction)
-                    _update_defs(name_to_mod_defs[state.substrate.name], mod_def)
-
-                elif isinstance(state, sta.InterProteinInteractionState) or isinstance(state, sta.IntraProteinInteractionState):
-                    names.add(state.first_component.name)
-                    names.add(state.second_component.name)
-
-                    assoc_defs = _assoc_defs_from_state(state)
-                    _update_defs(name_to_assoc_defs[state.first_component.name], assoc_defs[0])
-                    _update_defs(name_to_assoc_defs[state.second_component.name], assoc_defs[1])
-
-                elif isinstance(state, sta.TranslocationState):
-                    names.add(state.substrate.name)
-                    names.add(reaction.subject.name)
-                    name_to_locs[state.substrate.name].add(state.compartment)
-
-                else:
-                    raise NotImplementedError
-
-        for name in names:
-            universal_specification = spe.Specification(name, None, None, None)
-            self.molecule_definitions[name] = mol.MoleculeDefinition(universal_specification,
-                                                                     name_to_mod_defs[name],
-                                                                     name_to_assoc_defs[name],
-                                                                     mol.LocalizationPropertyDefinition(name_to_locs[name]))
+def mol_defs_from_rxncon_sys(rxnconsys: rxs.RxnConSystem) -> tg.Dict[spe.Specification, mol.MoleculeDefinition]:
+    return _MoleculeDefinitionSupervisor(rxnconsys).molecule_definitions
 
 
 def mol_modifier_from_state_modifier(state_mod: sta.StateModifier) -> mol.Modifier:
@@ -105,6 +59,51 @@ def ass_domain_specs_from_state(state: tg.Union[sta.InterProteinInteractionState
         second_spec.domain = _assoc_domain_from_partner_spec(state.first_component)
 
     return first_spec, second_spec
+
+
+class _MoleculeDefinitionSupervisor:
+    def __init__(self, rxnconsys: rxs.RxnConSystem):
+        self.rxnconsys = rxnconsys
+        self.molecule_definitions = {}
+        self._generate_molecule_definitions()
+
+    def mol_def_for_name(self, name: str) -> mol.MoleculeDefinition:
+        return self.molecule_definitions[name]
+
+    def _generate_molecule_definitions(self):
+        specs = set()
+
+        spec_to_assoc_defs = defaultdict(set)
+        spec_to_mod_defs = defaultdict(set)
+        spec_to_locs = defaultdict(set)
+
+        for reaction in self.rxnconsys.reactions:
+            for state in [x for x in [reaction.source, reaction.product] if x]:
+                if isinstance(state, sta.CovalentModificationState):
+                    specs.add(state.substrate.to_component_specification())
+                    specs.add(reaction.subject.to_component_specification())
+
+                    mod_def = _mod_def_from_state_and_reaction(state, reaction)
+                    _update_defs(spec_to_mod_defs[state.substrate.to_component_specification()], mod_def)
+                elif isinstance(state, sta.InterProteinInteractionState) or isinstance(state, sta.IntraProteinInteractionState):
+                    specs.add(state.first_component.to_component_specification())
+                    specs.add(state.second_component.to_component_specification())
+
+                    assoc_defs = _assoc_defs_from_state(state)
+                    _update_defs(spec_to_assoc_defs[state.first_component.to_component_specification()], assoc_defs[0])
+                    _update_defs(spec_to_assoc_defs[state.second_component.to_component_specification()], assoc_defs[1])
+                elif isinstance(state, sta.TranslocationState):
+                    specs.add(state.substrate.to_component_specification())
+                    specs.add(reaction.subject.to_component_specification())
+                    spec_to_locs[state.substrate.to_component_specification()].add(state.compartment)
+                else:
+                    raise NotImplementedError
+
+        for spec in specs:
+            self.molecule_definitions[spec] = mol.MoleculeDefinition(spec,
+                                                                     spec_to_mod_defs[spec],
+                                                                     spec_to_assoc_defs[spec],
+                                                                     mol.LocalizationPropertyDefinition(spec_to_locs[spec]))
 
 
 def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, reaction: rxn.Reaction):

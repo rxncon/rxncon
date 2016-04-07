@@ -2,15 +2,10 @@ import pytest
 import rxncon.venntastic.sets as venn
 import rxncon.core.rxncon_system as rxs
 import rxncon.syntax.rxncon_from_string as rfs
-import rxncon.semantics.molecule_instance as mins
 import rxncon.semantics.molecule_definition as mdef
-import rxncon.semantics.molecule_instance_from_rxncon as mifr
-import rxncon.semantics.molecule_definition_from_rxncon as mdfr
-import rxncon.semantics.molecule_definition as mdf
-import rxncon.core.specification as spe
 
 from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_string, mol_instance_from_string
-
+from rxncon.semantics.molecule_definition_from_rxncon import mol_defs_from_rxncon_sys
 
 def test_commutative_diagram_for_complement_operation(mol_def, state_sets):
     for state_set in state_sets:
@@ -27,15 +22,8 @@ def test_commutative_diagram_for_complement_operation(mol_def, state_sets):
 
 @pytest.fixture
 def mol_def() -> mdef.MoleculeDefinition:
-    reactions = [
-        rfs.reaction_from_string('B_ppi_A_[x]'),
-        rfs.reaction_from_string('C_ppi_A_[x]')
-    ]
-
-    rxnsys = rxs.RxnConSystem(reactions, [])
-    mol_def_supervisor = mdfr.MoleculeDefinitionSupervisor(rxnsys)
-
-    return mol_def_supervisor.mol_def_for_name('A')
+    rxnsys = rxs.RxnConSystem([rfs.reaction_from_string('B_ppi_A_[x]'), rfs.reaction_from_string('C_ppi_A_[x]')], [])
+    return mol_defs_from_rxncon_sys(rxnsys)[rfs.specification_from_string('A')]
 
 
 @pytest.fixture
@@ -43,7 +31,6 @@ def state_sets():
     return [
         venn.PropertySet(rfs.state_from_string('A--B'))
     ]
-
 
 
 @pytest.fixture
