@@ -54,4 +54,4 @@ def string_from_input_state(state) -> str:
 
 
 def string_from_component_state(state) -> str:
-    return '{}'.format(state.name)
+    return '{}'.format(state.component)

@@ -124,6 +124,7 @@ def state_from_string(state_string: str) -> sta.State:
     INTERACTION_REGEX = '^.+?--.+?$'
     MODIFIER_REGEX = '.+?-{.+?}'
     MODIFIER_VALUE_REGEX = '{.+?}'
+    COMPONENT_REGEX = '\w'
 
     assert isinstance(state_string, str)
 
@@ -143,7 +144,8 @@ def state_from_string(state_string: str) -> sta.State:
 
     elif re.match(OUTPUT_REGEX, state_string):
         return sta.InputState(state_string)
-
+    elif re.match(COMPONENT_REGEX, state_string):
+        return _component_state_from_string(state_string)
     else:
         raise err.RxnConParseError('Could not parse state string {} into State'.format(state_string))
 
@@ -173,6 +175,9 @@ def _covalent_modification_state_from_string(state_string: str, modifier: sta.St
 
     return sta.CovalentModificationState(substrate, modifier)
 
+
+def _component_state_from_string(state_string: str):
+    return sta.ComponentState(specification_from_string(state_string))
 
 @tc.typecheck
 def _translocation_state_from_string(state_string) -> sta.TranslocationState:
