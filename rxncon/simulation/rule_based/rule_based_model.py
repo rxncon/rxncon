@@ -22,6 +22,10 @@ class RuleBasedModel:
         # @todo
         pass
 
+    def set_initial_condition(self, molecule_instance, value):
+        # @todo
+        pass
+
     def _validate(self):
         for initial_condition in self.initial_conditions:
             if initial_condition.molecule_specification.mol_def not in self.molecule_defs:
