@@ -7,6 +7,7 @@ import rxncon.simulation.bBM.bipartite_boolean_model as bbm
 import rxncon.simulation.bBM.bBM_boolnet_exporter as bbe
 import rxncon.syntax.rxncon_from_string as rfs
 import rxncon.venntastic.sets as venn
+import rxncon.core.state as sta
 
 
 
@@ -87,8 +88,8 @@ def rule_A__B():
 
 @pytest.fixture
 def rule_A_ppi_B():
-    value_A_ppi_B = venn.Intersection(venn.Intersection(venn.PropertySet(bbm.Node(rfs.reaction_from_string("A_ppi_B").components[0])),
-                                                            venn.PropertySet(bbm.Node(rfs.reaction_from_string("A_ppi_B").components[1]))),
+    value_A_ppi_B = venn.Intersection(venn.Intersection(venn.PropertySet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[0].to_component_specification()))),
+                                                            venn.PropertySet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[1].to_component_specification())))),
                                           venn.PropertySet(bbm.Node(rfs.state_from_string("A-{P}"))))
     return bbm.Rule(bbm.Node(rfs.reaction_from_string("A_ppi_B")), bbm.Factor(value_A_ppi_B))
 
@@ -114,23 +115,23 @@ def rule_A_p_deg():
 
 @pytest.fixture
 def rule_C_pplus_A():
-    value_C_pplus_A = venn.Intersection(venn.PropertySet(bbm.Node(rfs.reaction_from_string("C_p+_A").components[0])),
-                                        venn.PropertySet(bbm.Node(rfs.reaction_from_string("C_p+_A").components[1])))
+    value_C_pplus_A = venn.Intersection(venn.PropertySet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components[0].to_component_specification()))),
+                                        venn.PropertySet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components[1].to_component_specification()))))
     return bbm.Rule(bbm.Node(rfs.reaction_from_string("C_p+_A")), bbm.Factor(value_C_pplus_A))
 
 
 @pytest.fixture
 def rule_D_pminus_A():
-    value_D_pminus_A = venn.Intersection(venn.PropertySet(bbm.Node(rfs.reaction_from_string("D_p-_A").components[0])),
-                                        venn.PropertySet(bbm.Node(rfs.reaction_from_string("D_p-_A").components[1])))
+    value_D_pminus_A = venn.Intersection(venn.PropertySet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("D_p-_A").components[0].to_component_specification()))),
+                                        venn.PropertySet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("D_p-_A").components[1].to_component_specification()))))
     return bbm.Rule(bbm.Node(rfs.reaction_from_string("D_p-_A")), bbm.Factor(value_D_pminus_A))
 
 
 @pytest.fixture
 def initialConditions():
-    return [bbm.InitCondition(bbm.Node(rfs.reaction_from_string("A_ppi_B").components[0]), None),
-                      bbm.InitCondition(bbm.Node(rfs.reaction_from_string("A_ppi_B").components[1]), None),
-                      bbm.InitCondition(bbm.Node(rfs.reaction_from_string("C_p+_A").components[0]), None)
+    return [bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[0].to_component_specification())), None),
+                      bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[1].to_component_specification())), None),
+                      bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components[0].to_component_specification())), None)
            ]
 
 
