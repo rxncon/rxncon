@@ -33,7 +33,7 @@ def mol_def() -> mdef.MoleculeDefinition:
     ]
 
     rxnsys = rxs.RxnConSystem(reactions, [])
-    mol_def_supervisor = mdfr.MoleculeDefinitionSupervisor(rxnsys)
+    mol_def_supervisor = mdfr._MoleculeDefinitionSupervisor(rxnsys)
 
     return mol_def_supervisor.mol_def_for_name('A')
 

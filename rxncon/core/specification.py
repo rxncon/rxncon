@@ -84,3 +84,6 @@ class Specification:
             return True
 
         return other.is_subspecification_of(self)
+
+    def to_component_specification(self) -> 'Specification':
+        return Specification(self.name, None, None, None)

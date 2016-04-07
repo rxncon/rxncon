@@ -15,7 +15,7 @@ import rxncon.simulation.rule_based.molecule_from_rxncon as rfr
 def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_no_contingency():
     a_ppi_b = rfs.reaction_from_string('A_ppi_B')
     rxncon = rxs.RxnConSystem([a_ppi_b], [])
-    mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon)
+    mol_defs = mdr._MoleculeDefinitionSupervisor(rxncon)
 
     strict_cont_state_set = rfr._state_set_from_contingencies(rxncon.strict_contingencies_for_reaction(a_ppi_b))
     assert strict_cont_state_set.is_equivalent_to(venn.UniversalSet())
@@ -42,7 +42,7 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_and_requir
 
     cont = con.Contingency(a_ppi_b, con.ContingencyType.requirement, eff.StateEffector(a_dash_c))
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c], [cont])
-    mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon)
+    mol_defs = mdr._MoleculeDefinitionSupervisor(rxncon)
 
     mol_def_A = mol_defs.mol_def_for_name('A')
 
@@ -70,7 +70,7 @@ def test_set_of_instances_from_molecule_def_and_set_of_states_for_ppi_and_inhibi
 
     cont = con.Contingency(a_ppi_b, con.ContingencyType.inhibition, eff.StateEffector(a_dash_c))
     rxncon = rxs.RxnConSystem([a_ppi_b, a_ppi_c], [cont])
-    mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon)
+    mol_defs = mdr._MoleculeDefinitionSupervisor(rxncon)
 
     mol_def_A = mol_defs.mol_def_for_name('A')
 
@@ -102,7 +102,7 @@ def test_set_of_instances_from_complex_system():
     cont_e_pplus = con.Contingency(b_ppi_e, con.ContingencyType.requirement, eff.StateEffector(e_pplus))  # B_ppi_E; ! E-{P}
 
     rxncon = rxs.RxnConSystem([b_ppi_e, a_ppi_b, b_pplus_e], [cont_e_pplus, cont_b_dash_e])
-    mol_defs = mdr.MoleculeDefinitionSupervisor(rxncon)
+    mol_defs = mdr._MoleculeDefinitionSupervisor(rxncon)
 
     # TEST MOLECULE A
     actual_A_set_of_instances = mir.property_set_from_mol_def_and_state_set(
