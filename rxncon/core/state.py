@@ -41,16 +41,16 @@ class ComponentState(State):
     @tc.typecheck
     def __init__(self, component: com.Specification):
         self.component = component
-        self._validation()
+        self._validate()
 
-    def _validation(self):
+    def _validate(self):
         assert self.component.name is not None
         assert self.component.domain is None
         assert self.component.subdomain is None
         assert self.component.residue is None
 
     @tc.typecheck
-    def __eq__(self, other):
+    def __eq__(self, other: State):
         return isinstance(other, ComponentState) and self.component == other.component
 
     def __hash__(self) -> int:
@@ -64,7 +64,7 @@ class ComponentState(State):
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:
-        if isinstance(other, ComponentState) and self.component.is_superspecification_of(other.component):
+        if isinstance(other, ComponentState) and self.component == other.component:
             return True
         elif isinstance(other, InterProteinInteractionState) or isinstance(other, IntraProteinInteractionState):
             return self.component.is_superspecification_of(other.first_component) or self.component.is_superspecification_of(other.second_component)
@@ -75,8 +75,9 @@ class ComponentState(State):
         else:
             raise NotImplementedError
 
+    @tc.typecheck
     def is_subspecification_of(self, other: State) -> bool:
-        return isinstance(other, ComponentState) and self.component.is_subspecification_of(other.component)
+        return isinstance(other, ComponentState) and self.component == other.component
 
     @property
     @tc.typecheck

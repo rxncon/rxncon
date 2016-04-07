@@ -16,11 +16,11 @@ def test_generate_name():
     assert bbe.string_from_reaction(a_pplus_b.value) == "a_pplus_b"
 
     a_dash_dash_b = bbm.Node(rfs.state_from_string("A--B"))
-    assert bbe.string_from_inter_protein_interaction_state(a_dash_dash_b.value) == "A__B"
+    assert bbe.replace_invalid_chars(str(a_dash_dash_b.value)) == "A__B"
 
     b_intra = bbm.Node(rfs.state_from_string("b_[n]--[m]"))
 
-    assert bbe.string_from_intra_protein_interaction_state(b_intra.value) == "b_.n.__.m."
+    assert bbe.replace_invalid_chars(str(b_intra.value)) == "b_.n.__.m."
 
     A_ppi_B = bbm.Node(rfs.reaction_from_string("A_[n]_ppi_B_[d/s(r)]"))
 
