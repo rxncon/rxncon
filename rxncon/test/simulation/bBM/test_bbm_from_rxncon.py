@@ -30,9 +30,10 @@ A__C, (A__C | A_ppi_C)
 A_ppi_D, (A & D)
 A__D, (A__D | A_ppi_D)
 C_pplus_A, (C & A)
-A_.p., ((A_.p. & (! D_pminus_A & ! E_pminus_A)) | (C_pplus_A & (! D_pminus_A & ! E_pminus_A)))
+A_.p., (((A_.p. & ! D_pminus_A) & ! E_pminus_A) | ((C_pplus_A & ! D_pminus_A) & ! E_pminus_A))
 D_pminus_A, (D & A)
 E_pminus_A, (E & A)"""
+
     assert bbe_system.to_string() == expected_str
 
 
@@ -68,8 +69,8 @@ def test_complex_multiple_boolean_expression():
 A, A
 B, B
 A_trsc_B, (((C__D & C__E) & ! F__E) & (A & B))
-B, (B | A_trsc_B
-    """
+B, (B | A_trsc_B)"""
+
     bbm_sys = bfr.bipartite_boolean_model_from_rxncon(quick_sys.rxncon_system)
     bbe_system = bbe.BoolNetSystem(bbm_sys)
     assert bbe_system.to_string() == expected_str

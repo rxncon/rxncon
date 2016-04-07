@@ -5,6 +5,8 @@ import rxncon.core.contingency as con
 import rxncon.simulation.bBM.bipartite_boolean_model as bbm
 import rxncon.venntastic.sets as venn
 import rxncon.core.effector as eff
+import rxncon.core.state as sta
+import rxncon.core.specification as spec
 
 
 def bipartite_boolean_model_from_rxncon(rxconsys: rxs.RxnConSystem):
@@ -26,10 +28,14 @@ def initial_states_from_rxncon(rxconsys: rxs.RxnConSystem):
     initial_states = []
     for reaction in rxconsys.reactions:
         # todo: change this later to a specific state
-        if bbm.InitCondition(bbm.Node(reaction.subject), None) not in initial_states:
-            initial_states.append(bbm.InitCondition(bbm.Node(reaction.subject), None))
-        if bbm.InitCondition(bbm.Node(reaction.object), None) not in initial_states:
-            initial_states.append(bbm.InitCondition(bbm.Node(reaction.object), None))
+        if bbm.InitCondition(bbm.Node(sta.ComponentState(spec.Specification(reaction.subject.name,
+                                                                            None, None, None))), None) not in initial_states:
+            initial_states.append(bbm.InitCondition(bbm.Node(sta.ComponentState(spec.Specification(reaction.subject.name,
+                                                                                                   None, None, None))), None))
+        if bbm.InitCondition(bbm.Node(sta.ComponentState(spec.Specification(reaction.object.name,
+                                                                            None, None, None))), None) not in initial_states:
+            initial_states.append(bbm.InitCondition(bbm.Node(sta.ComponentState(spec.Specification(reaction.object.name,
+                                                                                                   None, None, None))), None))
     return initial_states
 
 
@@ -43,8 +49,10 @@ def rule_for_reaction_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, r
         raise AssertionError("There is no way to fulfill the contingencies: {}".format(strict_contingency_state_set))
     vennset = venn.Intersection(strict_contingency_state_set.to_full_simplified_form(),
                                 # todo: change this later to a specific state
-                                   venn.Intersection(venn.PropertySet(reaction.subject),
-                                                     venn.PropertySet(reaction.object)))
+                                   venn.Intersection(venn.PropertySet(sta.ComponentState(spec.Specification(reaction.subject.name,
+                                                                                                            None, None, None))),
+                                                     venn.PropertySet(sta.ComponentState(spec.Specification(reaction.object.name,
+                                                                                                            None, None, None)))))
     additional_strict_cont = convert_quantitative_contingencies_into_strict_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))
     additional_contingency_state_set = _state_set_from_contingencies(additional_strict_cont)
 

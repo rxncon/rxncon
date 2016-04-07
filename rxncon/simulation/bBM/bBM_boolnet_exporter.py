@@ -97,16 +97,11 @@ class BoolNetSystem:
         elif isinstance(node.value, sta.InputState):
             return string_from_input_state(node.value)
 
-        elif isinstance(node.value, spec.Specification):
-            return string_from_specification(node.value)
+        elif isinstance(node.value, sta.ComponentState):
+            return string_from_component_state(node.value)
 
         else:
             raise NotImplementedError
-
-
-def string_from_specification(specification: spec.Specification):
-    spec_str = str(specification)
-    return replace_invalid_chars(spec_str)
 
 
 def string_from_reaction(reaction: rxn.Reaction) -> str:
@@ -156,5 +151,5 @@ def string_from_synthesis_degradation_state(state) -> str:
 def string_from_input_state(state) -> str:
     return replace_invalid_chars(str(state))
 
-def string_from_specification(state) -> str:
+def string_from_component_state(state) -> str:
     return replace_invalid_chars(str(state))
