@@ -1,30 +1,25 @@
 import typecheck as tc
+
+from abc import ABCMeta, abstractmethod, abstractproperty
 from typing import Optional
 
 import rxncon.syntax.string_from_rxncon as sfr
 
 
-class Specification:
-    @tc.typecheck
-    def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
-        self.name = name
-        self.domain = domain
-        self.subdomain = subdomain
-        self.residue = residue
-        self._validate()
+class Specification(metaclass=ABCMeta):
 
-    def _validate(self):
-        if self.subdomain:
-            assert self.domain is not None
+    def __init__(self):
+        raise AssertionError
 
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
+    @abstractmethod
     def __str__(self) -> str:
-        return sfr.string_from_component(self)
+        pass
 
     @tc.typecheck
     def __eq__(self, other: 'Specification') -> bool:
@@ -85,5 +80,78 @@ class Specification:
 
         return other.is_subspecification_of(self)
 
-    def to_component_specification(self) -> 'Specification':
-        return Specification(self.name, None, None, None)
+    @abstractmethod
+    def to_component_specification(self):
+        pass
+
+
+class ProteinSpecification(Specification):
+    @tc.typecheck
+    def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
+
+        self.name = name
+        self.domain = domain
+        self.subdomain = subdomain
+        self.residue = residue
+        self._validate()
+
+    def _validate(self):
+        if self.subdomain:
+            assert self.domain is not None
+
+    def __str__(self) -> str:
+        return sfr.string_from_component(self)
+
+    @tc.typecheck
+    def __eq__(self, other: Specification) -> bool:
+        return isinstance(other, 'ProteinSpecification') and self.name == other.name \
+               and self.domain == other.domain and self.subdomain == other.subdomain \
+               and self.residue == other.residue
+
+    @tc.typecheck
+    def __lt__(self, other: Specification):
+        if isinstance(other, 'ProteinSpecification'):
+            super().__lt__(other)
+        else:
+            raise NotImplementedError
+
+    def to_component_specification(self) -> 'ProteinSpecification':
+        return ProteinSpecification(self.name, None, None, None)
+
+
+
+class MrnaSpecification(Specification):
+    prefix = "mRNA"
+    @tc.typecheck
+    def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
+        self.name = name
+        self.domain = domain
+        self.subdomain = subdomain
+        self.residue = residue
+        self._validate()
+
+    def _validate(self):
+        if self.subdomain:
+            assert self.domain is not None
+
+    def __str__(self) -> str:
+        component_str = sfr.string_from_component(self)
+        if len(component_str) > 3 and component_str[-4:] == self.prefix:
+            return component_str
+        else:
+            return "{0}{1}".format(component_str, self.prefix)
+
+    @tc.typecheck
+    def __eq__(self, other: Specification) -> bool:
+        return isinstance(other, 'MrnaSpecification') and self.name == other.name \
+               and self.domain == other.domain and self.subdomain == other.subdomain \
+               and self.residue == other.residue
+
+    def __lt__(self, other: Specification):
+        if isinstance(other, 'MrnaSpecification'):
+            super().__lt__(other)
+        else:
+            raise NotImplementedError
+
+    def to_component_specification(self) -> 'MrnaSpecification':
+        return MrnaSpecification(self.name, None, None, None)

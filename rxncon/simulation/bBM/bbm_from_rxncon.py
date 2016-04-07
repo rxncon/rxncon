@@ -6,7 +6,6 @@ import rxncon.simulation.bBM.bipartite_boolean_model as bbm
 import rxncon.venntastic.sets as venn
 import rxncon.core.effector as eff
 import rxncon.core.state as sta
-import rxncon.core.specification as spec
 
 
 def bipartite_boolean_model_from_rxncon(rxconsys: rxs.RxnConSystem):
@@ -38,8 +37,7 @@ def initial_states_from_rxncon(rxconsys: rxs.RxnConSystem):
             initial_states.append(bbm.InitCondition(bbm.Node(sta.ComponentState(reaction.subject.to_component_specification())),
                                                                                 None))
         if bbm.InitCondition(bbm.Node(sta.ComponentState(reaction.object.to_component_specification())), None) not in initial_states:
-            initial_states.append(bbm.InitCondition(bbm.Node(sta.ComponentState(spec.Specification(reaction.object.name,
-                                                                                                   None, None, None))), None))
+            initial_states.append(bbm.InitCondition(bbm.Node(sta.ComponentState(reaction.object.to_component_specification())), None))
     return initial_states
 
 

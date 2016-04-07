@@ -7,6 +7,12 @@ import rxncon.core.error as err
 import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
 
+def specification_decision(name, domain, subdomain, residue):
+    if len(name) > 3 and  name[-4:] == com.MrnaSpecification.prefix:
+        return com.MrnaSpecification(name, domain, subdomain, residue)
+    else:
+        return com.ProteinSpecification(name, domain, subdomain, residue)
+
 
 @tc.typecheck
 def specification_from_string(specification_string: str) -> com.Specification:
@@ -21,7 +27,7 @@ def specification_from_string(specification_string: str) -> com.Specification:
     items = specification_string.split(DOMAIN_DELIMITER, maxsplit=1)
 
     if len(items) == 1:
-        return com.Specification(items[0], None, None, None)
+        return specification_decision(items[0], None, None, None)
 
     elif len(items) == 2:
         name = items[0]
@@ -55,7 +61,7 @@ def specification_from_string(specification_string: str) -> com.Specification:
         else:
             raise AssertionError
 
-        return com.Specification(name, domain, subdomain, residue)
+        return specification_decision(name, domain, subdomain, residue)
 
     else:
         raise err.RxnConParseError('Could not parse component string '.format(specification_string))
@@ -157,7 +163,13 @@ def _interaction_state_from_string(state_string: str) -> Union[sta.InterProteinI
 
     if component_strings[1].startswith('['):
         first_component = specification_from_string(component_strings[0])
-        second_component = com.Specification(first_component.name, component_strings[1].strip('[]'), None, None)
+
+        if isinstance(first_component, com.ProteinSpecification):
+            second_component = com.ProteinSpecification(first_component.name, component_strings[1].strip('[]'), None, None)
+        elif isinstance(first_component, com.MrnaSpecification):
+            second_component = com.MrnaSpecification(first_component.name, component_strings[1].strip('[]'), None, None)
+        else:
+            raise NotImplementedError
 
         return sta.IntraProteinInteractionState(first_component, second_component)
 
