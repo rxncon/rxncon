@@ -6,9 +6,16 @@ import rxncon.core.specification as com
 import rxncon.core.error as err
 import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
+from enum import Enum, unique
+
+
+@unique
+class name_prefix(Enum):
+    mrna = "mRNA"
+
 
 def specification_decision(name, domain, subdomain, residue):
-    if len(name) > 3 and  name[-4:] == com.RnaSpecification.prefix:
+    if len(name) > 3 and  name[-4:] == name_prefix.mrna.value:
         return com.RnaSpecification(name, domain, subdomain, residue)
     else:
         return com.ProteinSpecification(name, domain, subdomain, residue)

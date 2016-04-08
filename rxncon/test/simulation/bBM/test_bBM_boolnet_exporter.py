@@ -12,7 +12,7 @@ import rxncon.core.state as sta
 
 
 def test_generate_name():
-    a_pplus_b = bbm.Node(rfs.reaction_from_string("amRNA_p+_b"))
+    a_pplus_b = bbm.Node(rfs.reaction_from_string("a_p+_b"))
     assert bbe.string_from_reaction(a_pplus_b.value) == "a_pplus_b"
 
     a_dash_dash_b = bbm.Node(rfs.state_from_string("A--B"))

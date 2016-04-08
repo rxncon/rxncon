@@ -7,7 +7,10 @@ import rxncon.syntax.rxncon_from_string as cfs
 
 def test_component_without_name_raises():
     with pytest.raises(tc.InputParameterError):
-        component = com.Specification(None, None, None, None)
+        component = com.ProteinSpecification(None, None, None, None)
+
+    with pytest.raises(tc.InputParameterError):
+        component = com.RnaSpecification(None, None, None, None)
 
 
 ### SPECIFICATION, SUBSPECIFICATION TESTS ###

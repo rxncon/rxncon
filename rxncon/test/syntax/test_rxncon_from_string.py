@@ -273,6 +273,7 @@ def test_rxncon_from_string_reaction_pt():
 
 
 def test_rxncon_from_string_reaction_deg():
+    #todo: does this makes sense??
     reaction = fst.reaction_from_string('Bar1_[PepD]_DEG_MFalpha_[(L6-K7)]')
 
     assert reaction.classification_code == '3.2.2'
@@ -287,7 +288,9 @@ def test_rxncon_from_string_reaction_deg():
     assert reaction.object.subdomain is None
     assert reaction.object.residue == 'L6-K7'
 
-    assert str(reaction.source) == 'MFalpha_[(L6-K7)]'
+    #todo: SynthesisDegedationStates are ComponentenStates
+    #assert str(reaction.source) == 'MFalpha_[(L6-K7)]'
+    assert str(reaction.source) == 'MFalpha'
     assert reaction.product is None
 
 

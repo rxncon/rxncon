@@ -11,8 +11,9 @@ class Specification(metaclass=ABCMeta):
     def __init__(self):
         raise AssertionError
 
+    @abstractmethod
     def __hash__(self) -> int:
-        return hash(str(self))
+        pass
 
     def __repr__(self) -> str:
         return str(self)
@@ -49,14 +50,10 @@ class Specification(metaclass=ABCMeta):
 
         return False
 
-    @tc.typecheck
+    @abstractmethod
     def is_equivalent_to(self, other: 'Specification') -> bool:
-        if (self.name == other.name) and self.residue and (self.residue == other.residue):
-            return True
-        else:
-            return self == other
+        pass
 
-    @tc.typecheck
     def is_subspecification_of(self, other: 'Specification') -> bool:
         if self.is_equivalent_to(other):
             return True
@@ -73,7 +70,6 @@ class Specification(metaclass=ABCMeta):
 
         return True
 
-    @tc.typecheck
     def is_superspecification_of(self, other: 'Specification') -> bool:
         if self.is_equivalent_to(other):
             return True
@@ -99,6 +95,9 @@ class ProteinSpecification(Specification):
         if self.subdomain:
             assert self.domain is not None
 
+    def __hash__(self):
+        return hash(str(self))
+
     def __str__(self) -> str:
         return sfr.string_from_protein_specification(self)
 
@@ -116,6 +115,14 @@ class ProteinSpecification(Specification):
             return False
         else:
             raise NotImplementedError
+
+    @tc.typecheck
+    def is_equivalent_to(self, other: Specification):
+        if isinstance(other, ProteinSpecification) and (self.name == other.name) \
+                and self.residue and (self.residue == other.residue):
+            return True
+        else:
+            return self == other
 
     def to_component_specification(self) -> 'ProteinSpecification':
         return ProteinSpecification(self.name, None, None, None)
@@ -135,6 +142,9 @@ class RnaSpecification(Specification):
         if self.subdomain:
             assert self.domain is not None
 
+    def __hash__(self):
+        return hash(str(self))
+
     def __str__(self) -> str:
         return sfr.string_from_rna_specification(self)
 
@@ -144,6 +154,7 @@ class RnaSpecification(Specification):
                and self.domain == other.domain and self.subdomain == other.subdomain \
                and self.residue == other.residue
 
+    @tc.typecheck
     def __lt__(self, other: Specification):
         if isinstance(other, RnaSpecification):
             return super().__lt__(other)
@@ -152,6 +163,14 @@ class RnaSpecification(Specification):
 
         else:
             raise NotImplementedError
+
+    @tc.typecheck
+    def is_equivalent_to(self, other: Specification):
+        if isinstance(other, RnaSpecification) and (self.name == other.name) \
+                and self.residue and (self.residue == other.residue):
+            return True
+        else:
+            return self == other
 
     def to_component_specification(self) -> 'RnaSpecification':
         return RnaSpecification(self.name, None, None, None)
