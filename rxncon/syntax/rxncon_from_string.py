@@ -16,6 +16,7 @@ class SpecificationSuffix(Enum):
     mrna = "mRNA"
     protein = ""
 
+
 mapping_suffix_to_specification = OrderedDict([(SpecificationSuffix.mrna, com.RnaSpecification),
                                                (SpecificationSuffix.protein, com.ProteinSpecification)])
 
@@ -24,6 +25,7 @@ def create_specification_from_name_suffix(name, domain, subdomain, residue):
     for suffix in mapping_suffix_to_specification:
         if name.endswith(suffix.value):
             return mapping_suffix_to_specification[suffix](name, domain, subdomain, residue)
+
 
 @tc.typecheck
 def specification_from_string(specification_string: str) -> com.Specification:
