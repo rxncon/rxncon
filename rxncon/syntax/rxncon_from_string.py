@@ -1,5 +1,6 @@
 import re
 from typing import Tuple, Union
+from collections import OrderedDict
 import typecheck as tc
 
 import rxncon.core.specification as com
@@ -9,18 +10,20 @@ import rxncon.core.state as sta
 from enum import Enum, unique
 
 
+
 @unique
 class SpecificationSuffix(Enum):
     mrna = "mRNA"
     protein = ""
 
+mapping_suffix_to_specification = OrderedDict([(SpecificationSuffix.mrna, com.RnaSpecification),
+                                               (SpecificationSuffix.protein, com.ProteinSpecification)])
+
 
 def create_specification_from_name_suffix(name, domain, subdomain, residue):
-    if name.endswith(SpecificationSuffix.mrna.value):
-        return com.RnaSpecification(name, domain, subdomain, residue)
-    else:
-        return com.ProteinSpecification(name, domain, subdomain, residue)
-
+    for suffix in mapping_suffix_to_specification:
+        if name.endswith(suffix.value):
+            return mapping_suffix_to_specification[suffix](name, domain, subdomain, residue)
 
 @tc.typecheck
 def specification_from_string(specification_string: str) -> com.Specification:
