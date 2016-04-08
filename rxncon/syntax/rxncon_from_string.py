@@ -1,12 +1,29 @@
 import re
 from typing import Tuple, Union
+from collections import OrderedDict
 import typecheck as tc
 
 import rxncon.core.specification as com
 import rxncon.core.error as err
 import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
+from enum import Enum, unique
 
+
+
+@unique
+class SpecificationSuffix(Enum):
+    mrna = "mRNA"
+    protein = ""
+
+mapping_suffix_to_specification = OrderedDict([(SpecificationSuffix.mrna, com.RnaSpecification),
+                                               (SpecificationSuffix.protein, com.ProteinSpecification)])
+
+
+def create_specification_from_name_suffix(name, domain, subdomain, residue):
+    for suffix in mapping_suffix_to_specification:
+        if name.endswith(suffix.value):
+            return mapping_suffix_to_specification[suffix](name, domain, subdomain, residue)
 
 @tc.typecheck
 def specification_from_string(specification_string: str) -> com.Specification:
@@ -21,7 +38,7 @@ def specification_from_string(specification_string: str) -> com.Specification:
     items = specification_string.split(DOMAIN_DELIMITER, maxsplit=1)
 
     if len(items) == 1:
-        return com.Specification(items[0], None, None, None)
+        return create_specification_from_name_suffix(items[0], None, None, None)
 
     elif len(items) == 2:
         name = items[0]
@@ -55,7 +72,7 @@ def specification_from_string(specification_string: str) -> com.Specification:
         else:
             raise AssertionError
 
-        return com.Specification(name, domain, subdomain, residue)
+        return create_specification_from_name_suffix(name, domain, subdomain, residue)
 
     else:
         raise err.RxnConParseError('Could not parse component string '.format(specification_string))
@@ -157,7 +174,7 @@ def _interaction_state_from_string(state_string: str) -> Union[sta.InterProteinI
 
     if component_strings[1].startswith('['):
         first_component = specification_from_string(component_strings[0])
-        second_component = com.Specification(first_component.name, component_strings[1].strip('[]'), None, None)
+        second_component = specification_from_string("{0}_{1}".format(first_component.name, component_strings[1]))
 
         return sta.IntraProteinInteractionState(first_component, second_component)
 

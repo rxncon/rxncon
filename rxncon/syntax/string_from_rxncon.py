@@ -1,28 +1,50 @@
+from enum import Enum, unique
+import typing as tp
+import typecheck as tc
+
 # Note: Here be no type annotations, because this would require importing the state, component and reaction modules,
 # which would induce a circular dependency.
 
+@unique
+class SpecificationSuffix(Enum):
+    mrna = "mRNA"
+    protein = ""
 
-def string_from_component(component) -> str:
-    if component.domain and component.subdomain and component.residue:
-        return '{0}_[{1}/{2}({3})]'.format(component.name, component.domain, component.subdomain, component.residue)
+@tc.typecheck
+def string_from_specification(specification, prefix: Enum) -> str:
+    if specification.domain and specification.subdomain and specification.residue:
+        return '{0}_[{1}/{2}({3})]'.format(create_name(specification, prefix), specification.domain, specification.subdomain, specification.residue)
 
-    elif component.domain and not component.subdomain and component.residue:
-        return '{0}_[{1}({2})]'.format(component.name, component.domain, component.residue)
+    elif specification.domain and not specification.subdomain and specification.residue:
+        return '{0}_[{1}({2})]'.format(create_name(specification, prefix), specification.domain, specification.residue)
 
-    elif component.domain and component.subdomain and not component.residue:
-        return '{0}_[{1}/{2}]'.format(component.name, component.domain, component.subdomain)
+    elif specification.domain and specification.subdomain and not specification.residue:
+        return '{0}_[{1}/{2}]'.format(create_name(specification, prefix), specification.domain, specification.subdomain)
 
-    elif not component.domain and not component.subdomain and component.residue:
-        return '{0}_[({1})]'.format(component.name, component.residue)
+    elif not specification.domain and not specification.subdomain and specification.residue:
+        return '{0}_[({1})]'.format(create_name(specification, prefix), specification.residue)
 
-    elif component.domain and not component.subdomain and not component.residue:
-        return '{0}_[{1}]'.format(component.name, component.domain)
+    elif specification.domain and not specification.subdomain and not specification.residue:
+        return '{0}_[{1}]'.format(create_name(specification, prefix), specification.domain)
 
-    elif not component.domain and not component.subdomain and not component.residue:
-        return '{0}'.format(component.name)
+    elif not specification.domain and not specification.subdomain and not specification.residue:
+        return '{0}'.format(create_name(specification, prefix))
 
     else:
         raise AssertionError
+
+def string_from_rna_specification(specification):
+    return string_from_specification(specification, SpecificationSuffix.mrna)
+
+def string_from_protein_specification(specification):
+    return string_from_specification(specification, SpecificationSuffix.protein)
+
+@tc.typecheck
+def create_name(specification, prefix: tp.Optional[Enum]):
+    if prefix == SpecificationSuffix.mrna:
+        return "{0}{1}".format(specification.name, SpecificationSuffix.mrna.value)
+    else:
+        return specification.name
 
 
 def string_from_reaction(reaction) -> str:

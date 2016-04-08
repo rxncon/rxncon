@@ -7,18 +7,6 @@ import rxncon.semantics.molecule_definition as mdef
 from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_string, mol_instance_from_string
 from rxncon.semantics.molecule_definition_from_rxncon import mol_defs_from_rxncon_sys
 
-def test_commutative_diagram_for_complement_operation(mol_def, state_sets):
-    for state_set in state_sets:
-        mol_props_then_complement = venn.Complement(mifr.property_set_from_mol_def_and_state_set(mol_def, state_set))
-        complement_then_mol_props = mifr.property_set_from_mol_def_and_state_set(mol_def, venn.Complement(state_set))
-
-        print()
-        print(mol_props_then_complement.simplified_form())
-        print()
-        print(complement_then_mol_props.simplified_form())
-
-        #assert mol_props_then_complement.is_equivalent_to(complement_then_mol_props)
-
 
 @pytest.fixture
 def mol_def() -> mdef.MoleculeDefinition:

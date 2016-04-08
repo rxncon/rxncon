@@ -181,8 +181,8 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
 
 
 def mol_instance_set_pair_from_reaction(mol_defs: Dict[Specification, MoleculeDefinition], reaction: Reaction) -> Tuple[Set, Set]:
-    subject_mol_def = mol_defs[Specification(reaction.subject.name, None, None, None)]
-    object_mol_def = mol_defs[Specification(reaction.object.name, None, None, None)]
+    subject_mol_def = mol_defs[reaction.subject.to_component_specification()]
+    object_mol_def = mol_defs[reaction.object.to_component_specification()]
 
     return globals()[REACTION_TO_MOLECULE_INSTANCE_PAIRS_FUNCTIONS[reaction.verb]](reaction, subject_mol_def, object_mol_def)
 
@@ -202,7 +202,7 @@ def _molecule_instance_set_from_mod_state(mol_defs: Dict[Specification, Molecule
             raise NotImplemented
 
 
-    mol_def = mol_defs[Specification(state.substrate.name, None, None, None)]
+    mol_def = mol_defs[state.substrate.to_component_specification()]
 
     mod_defs = [mod_def for mod_def in mol_def.modification_defs if
                 mod_def.spec.is_subspecification_of(state.substrate)]
@@ -214,8 +214,8 @@ def _molecule_instance_set_from_mod_state(mol_defs: Dict[Specification, Molecule
     return nested_expression_from_list_and_binary_op(mol_instances, Union)
 
 def _molecule_instance_set_from_ppi_state(mol_defs: Dict[Specification, MoleculeDefinition], state: InterProteinInteractionState) -> Set:
-    first_mol_def = mol_defs[Specification(state.first_component.name, None, None, None)]
-    second_mol_def = mol_defs[Specification(state.second_component.name, None, None, None)]
+    first_mol_def = mol_defs[state.first_component.to_component_specification()]
+    second_mol_def = mol_defs[state.second_component.to_component_specification()]
 
     first_ass_defs = [ass_def for ass_def in first_mol_def.association_defs
                       if any(state.second_component.is_superspecification_of(x) for x in ass_def.valid_partners)]
