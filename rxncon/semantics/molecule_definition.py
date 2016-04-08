@@ -1,5 +1,5 @@
 from enum import unique, Enum
-from typing import Optional, Set
+import typing as tp
 
 import typecheck as tc
 import rxncon.core.specification as spe
@@ -29,9 +29,9 @@ class Compartment(Enum):
 class MoleculeDefinition:
     @tc.typecheck
     def __init__(self, spec: spe.Specification,
-                 modification_defs: Set['ModificationPropertyDefinition'],
-                 association_defs: Set['AssociationPropertyDefinition'],
-                 localization_def: Optional['LocalizationPropertyDefinition']):
+                 modification_defs: tp.Set['ModificationPropertyDefinition'],
+                 association_defs: tp.Set['AssociationPropertyDefinition'],
+                 localization_def: tp.Optional['LocalizationPropertyDefinition']):
         self.spec = spec
         self.modification_defs = modification_defs
         self.association_defs = association_defs
@@ -44,12 +44,16 @@ class MoleculeDefinition:
         self._validate()
 
     def _validate(self):
-        definitions = list(self.modification_defs | self.association_defs)
-        while definitions:
-            ref_definition = definitions.pop()
-            for definition in definitions:
-                if ref_definition == definition:
-                    raise AssertionError
+
+        def definitions_validation(definitions: tp.Union[tp.Set[ModificationPropertyDefinition],
+                                                       tp.Set[AssociationPropertyDefinition]]):
+            while definitions:
+                ref_definition = definitions.pop()
+                for definition in definitions:
+                    if ref_definition.spec == definition.spec:
+                        raise AssertionError('Same specification in different context: {0} and {1}'.format(ref_definition, definition))
+        definitions_validation(self.association_defs)
+        definitions_validation(self.modification_defs)
 
     def __hash__(self) -> int:
         return hash(str(self.spec))
@@ -79,7 +83,7 @@ class PropertyDefinition:
 
 class ModificationPropertyDefinition(PropertyDefinition):
     @tc.typecheck
-    def __init__(self, spec: spe.Specification, valid_modifiers: Set['Modifier']):
+    def __init__(self, spec: spe.Specification, valid_modifiers: tp.Set['Modifier']):
         self.spec = spec
         self.valid_modifiers = valid_modifiers
 
@@ -104,7 +108,7 @@ class ModificationPropertyDefinition(PropertyDefinition):
 
 class AssociationPropertyDefinition(PropertyDefinition):
     @tc.typecheck
-    def __init__(self, spec: spe.Specification, valid_partners: Set[spe.Specification]):
+    def __init__(self, spec: spe.Specification, valid_partners: tp.Set[spe.Specification]):
         self.spec = spec
         self.valid_partners = valid_partners
 
@@ -129,7 +133,7 @@ class AssociationPropertyDefinition(PropertyDefinition):
 
 class LocalizationPropertyDefinition(PropertyDefinition):
     @tc.typecheck
-    def __init__(self, valid_compartments: Set[Compartment]):
+    def __init__(self, valid_compartments: tp.Set[Compartment]):
         self.valid_compartments = valid_compartments
 
     def __hash__(self) -> int:
