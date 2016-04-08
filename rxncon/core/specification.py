@@ -21,11 +21,11 @@ class Specification(metaclass=ABCMeta):
     def __str__(self) -> str:
         pass
 
-    @tc.typecheck
+    @abstractmethod
     def __eq__(self, other: 'Specification') -> bool:
-        return self.name == other.name and self.domain == other.domain and self.subdomain == other.subdomain and self.residue == other.residue
+        pass
 
-    @tc.typecheck
+    #@tc.typecheck
     def __lt__(self, other: 'Specification'):
         # None is smaller than something
         if self.name < other.name:
@@ -104,14 +104,16 @@ class ProteinSpecification(Specification):
 
     @tc.typecheck
     def __eq__(self, other: Specification) -> bool:
-        return isinstance(other, 'ProteinSpecification') and self.name == other.name \
+        return isinstance(other, ProteinSpecification) and self.name == other.name \
                and self.domain == other.domain and self.subdomain == other.subdomain \
                and self.residue == other.residue
 
     @tc.typecheck
     def __lt__(self, other: Specification):
-        if isinstance(other, 'ProteinSpecification'):
-            super().__lt__(other)
+        if isinstance(other, ProteinSpecification):
+            return super().__lt__(other)
+        elif isinstance(other, RnaSpecification):
+            return False
         else:
             raise NotImplementedError
 
@@ -120,7 +122,7 @@ class ProteinSpecification(Specification):
 
 
 
-class MrnaSpecification(Specification):
+class RnaSpecification(Specification):
     prefix = "mRNA"
     @tc.typecheck
     def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
@@ -143,15 +145,18 @@ class MrnaSpecification(Specification):
 
     @tc.typecheck
     def __eq__(self, other: Specification) -> bool:
-        return isinstance(other, 'MrnaSpecification') and self.name == other.name \
+        return isinstance(other, RnaSpecification) and self.name == other.name \
                and self.domain == other.domain and self.subdomain == other.subdomain \
                and self.residue == other.residue
 
     def __lt__(self, other: Specification):
-        if isinstance(other, 'MrnaSpecification'):
-            super().__lt__(other)
+        if isinstance(other, RnaSpecification):
+            return super().__lt__(other)
+        elif isinstance(other, ProteinSpecification):
+            return True
+
         else:
             raise NotImplementedError
 
-    def to_component_specification(self) -> 'MrnaSpecification':
-        return MrnaSpecification(self.name, None, None, None)
+    def to_component_specification(self) -> 'RnaSpecification':
+        return RnaSpecification(self.name, None, None, None)

@@ -8,8 +8,8 @@ import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
 
 def specification_decision(name, domain, subdomain, residue):
-    if len(name) > 3 and  name[-4:] == com.MrnaSpecification.prefix:
-        return com.MrnaSpecification(name, domain, subdomain, residue)
+    if len(name) > 3 and  name[-4:] == com.RnaSpecification.prefix:
+        return com.RnaSpecification(name, domain, subdomain, residue)
     else:
         return com.ProteinSpecification(name, domain, subdomain, residue)
 
@@ -166,8 +166,8 @@ def _interaction_state_from_string(state_string: str) -> Union[sta.InterProteinI
 
         if isinstance(first_component, com.ProteinSpecification):
             second_component = com.ProteinSpecification(first_component.name, component_strings[1].strip('[]'), None, None)
-        elif isinstance(first_component, com.MrnaSpecification):
-            second_component = com.MrnaSpecification(first_component.name, component_strings[1].strip('[]'), None, None)
+        elif isinstance(first_component, com.RnaSpecification):
+            second_component = com.RnaSpecification(first_component.name, component_strings[1].strip('[]'), None, None)
         else:
             raise NotImplementedError
 
