@@ -100,7 +100,7 @@ class ProteinSpecification(Specification):
             assert self.domain is not None
 
     def __str__(self) -> str:
-        return sfr.string_from_component(self)
+        return sfr.string_from_protein_specification(self)
 
     @tc.typecheck
     def __eq__(self, other: Specification) -> bool:
@@ -123,7 +123,6 @@ class ProteinSpecification(Specification):
 
 
 class RnaSpecification(Specification):
-    prefix = "mRNA"
     @tc.typecheck
     def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
         self.name = name
@@ -137,11 +136,7 @@ class RnaSpecification(Specification):
             assert self.domain is not None
 
     def __str__(self) -> str:
-        component_str = sfr.string_from_component(self)
-        if len(component_str) > 3 and component_str[-4:] == self.prefix:
-            return component_str
-        else:
-            return "{0}{1}".format(component_str, self.prefix)
+        return sfr.string_from_rna_specification(self)
 
     @tc.typecheck
     def __eq__(self, other: Specification) -> bool:

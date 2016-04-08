@@ -59,7 +59,8 @@ def specification_classes():
             [spec.ProteinSpecification("A", None, None, None), spec.RnaSpecification("A", "d", "sA", None)],
             [spec.ProteinSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, "rA")],
             [spec.ProteinSpecification("A", "dA", "sA", "rA"), spec.RnaSpecification("B", "dB", "sB", "rB")],
-            [spec.RnaSpecification("B", None, None, None), spec.ProteinSpecification("B", None, None, None)]
+            [spec.RnaSpecification("B", None, None, None), spec.ProteinSpecification("B", None, None, None)],
+            [spec.ProteinSpecification("A", "dA", "sA", "rA"), spec.RnaSpecification("B", "dB", "sB", "rB"), spec.RnaSpecification("A", "dB", "sB", None)]
             ]
 
 
@@ -73,7 +74,8 @@ def expected_specification_class_sorting():
             [spec.RnaSpecification("A", "d", "sA", None), spec.ProteinSpecification("A", None, None, None)],
             [spec.RnaSpecification("A", None, None, "rA"), spec.ProteinSpecification("A", None, None, None)],
             [spec.RnaSpecification("B", "dB", "sB", "rB"), spec.ProteinSpecification("A", "dA", "sA", "rA")],
-            [spec.RnaSpecification("B", None, None, None), spec.ProteinSpecification("B", None, None, None)]
+            [spec.RnaSpecification("B", None, None, None), spec.ProteinSpecification("B", None, None, None)],
+            [spec.RnaSpecification("A", "dB", "sB", None), spec.RnaSpecification("B", "dB", "sB", "rB"), spec.ProteinSpecification("A", "dA", "sA", "rA")]
             ]
 
 
