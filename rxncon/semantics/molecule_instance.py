@@ -58,6 +58,13 @@ class MoleculeInstance:
                     ', '.join(str(x) for x in sorted(self.association_properties)),
                     str(self.localization_property))
 
+    @property
+    def is_member_of_complex(self) -> bool:
+        return any(ass_prop.occupation_status == OccupationStatus.occupied_known_partner for ass_prop in self.association_properties)
+
+    def
+
+
     def _validate(self):
         # Assert each modification domain and each association domain is only present once.
         assert len([mod_prop.modification_def for mod_prop in self.modification_properties]) == \

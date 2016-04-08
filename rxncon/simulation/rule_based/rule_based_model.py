@@ -92,8 +92,8 @@ class Reactant:
 
 class MoleculeReactant(Reactant):
     @tc.typecheck
-    def __init__(self, molecule_specification: MoleculeInstance):
-        self.molecule_specification = molecule_specification
+    def __init__(self, molecule_instance: MoleculeInstance):
+        self.molecule_specification = molecule_instance
 
     @tc.typecheck
     def __eq__(self, other: Reactant) -> bool:

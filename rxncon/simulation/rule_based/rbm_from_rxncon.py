@@ -86,12 +86,20 @@ def _reactants_from_molecule_sets(reacting_molecule_set: VennSet, background_mol
         background_molecules = [molecule for molecule in molecules if molecule not in reacting_molecules]
         return reacting_molecules, background_molecules
 
-
     reacting, background = get_molecules()
 
+    reactants = set()
 
     while background:
         mol = background.pop()
+
+        if not mol.is_member_of_complex:
+            reactants.add(MoleculeReactant(mol))
+
+
+
+
+
 
 
 class _ComplexInFormation:
@@ -99,13 +107,16 @@ class _ComplexInFormation:
         self.molecules = []
         self.bindings = []
 
-    def add_bound_pair(self, first_molecule: MoleculeInstance, second_molecule: MoleculeInstance,
-                       first_dom_spec: Specification, second_dom_spec: Specification):
-        self.molecules.append(molecule)
+
+    def can_accept_molecule(self, molecule: MoleculeInstance) -> bool:
+        if not self.molecules:
+            return True
 
 
-    def potential_partner_specs(self) -> Set[Specification]:
 
+
+
+    def add_molecule(self, molecule: MoleculeInstance):
 
 
 
