@@ -1,5 +1,6 @@
 from typing import Dict, List, Set, Iterable, Tuple
 import itertools as itt
+from collections import defaultdict
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.specification import Specification
@@ -8,9 +9,12 @@ from rxncon.core.state import State
 from rxncon.core.contingency import ContingencyType
 from rxncon.core.effector import Effector, AndEffector, NotEffector, OrEffector, StateEffector
 from rxncon.semantics.molecule_definition import MoleculeDefinition
-from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel, Rule, Arrow, Parameter
+from rxncon.semantics.molecule_instance import MoleculeInstance
+from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel, Rule, Arrow, Parameter, Reactant, \
+    ComplexReactant, MoleculeReactant, Binding
 from rxncon.semantics.molecule_definition_from_rxncon import mol_defs_from_rxncon_sys
-from rxncon.simulation.rule_based.molecule_from_rxncon import mol_instance_set_from_state_set, mol_instance_set_pair_from_reaction
+from rxncon.simulation.rule_based.molecule_from_rxncon import mol_instance_set_from_state_set, mol_instance_set_pair_from_reaction, \
+    imploded_mol_instance_set
 from rxncon.venntastic.sets import Set as VennSet, PropertySet, Complement, Union, Intersection, nested_expression_from_list_and_binary_op
 
 
@@ -66,6 +70,43 @@ def _rules_from_reaction(rxconsys: RxnConSystem, reaction: Reaction) -> Set[Rule
             rules.add(Rule(lhs_reactants, rhs_reactants, get_arrow(), get_rates(qcc)))
 
     return rules
+
+
+def _reactants_from_molecule_sets(reacting_molecule_set: VennSet, background_molecule_set: VennSet) -> Set[Reactant]:
+    def get_molecules():
+        molecules = imploded_mol_instance_set(
+            Intersection(reacting_molecule_set, background_molecule_set)).to_nested_list_form()
+        assert len(molecules) == 1
+        assert all(isinstance(x, PropertySet) for x in molecules[0])
+        molecules = [x.value for x in molecules[0]]
+
+        reacting_molecules = [molecule for molecule in molecules if molecule.mol_def in
+                              (x.value.mol_def for x in reacting_molecule_set.to_nested_list_form()[0])]
+
+        background_molecules = [molecule for molecule in molecules if molecule not in reacting_molecules]
+        return reacting_molecules, background_molecules
+
+
+    reacting, background = get_molecules()
+
+
+    while background:
+        mol = background.pop()
+
+
+class _ComplexInFormation:
+    def __init__(self):
+        self.molecules = []
+        self.bindings = []
+
+    def add_bound_pair(self, first_molecule: MoleculeInstance, second_molecule: MoleculeInstance,
+                       first_dom_spec: Specification, second_dom_spec: Specification):
+        self.molecules.append(molecule)
+
+
+    def potential_partner_specs(self) -> Set[Specification]:
+
+
 
 
 def _strict_contingency_state_set_from_reaction(rxnconsys: RxnConSystem, reaction: Reaction) -> VennSet:
