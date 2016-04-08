@@ -44,7 +44,6 @@ class MoleculeDefinition:
         self._validate()
 
     def _validate(self):
-
         def definitions_validation(definitions: tp.Union[tp.Set[ModificationPropertyDefinition],
                                                        tp.Set[AssociationPropertyDefinition]]):
             while definitions:
@@ -54,6 +53,7 @@ class MoleculeDefinition:
                         raise AssertionError('Same specification in different context: {0} and {1}'.format(ref_definition, definition))
         definitions_validation(self.association_defs)
         definitions_validation(self.modification_defs)
+
 
     def __hash__(self) -> int:
         return hash(str(self.spec))
