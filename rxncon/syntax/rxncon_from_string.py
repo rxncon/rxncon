@@ -10,12 +10,13 @@ from enum import Enum, unique
 
 
 @unique
-class name_prefix(Enum):
+class SpecificationSuffix(Enum):
     mrna = "mRNA"
+    protein = ""
 
 
-def specification_decision(name, domain, subdomain, residue):
-    if len(name) > 3 and  name[-4:] == name_prefix.mrna.value:
+def create_specification_from_name_suffix(name, domain, subdomain, residue):
+    if name.endswith(SpecificationSuffix.mrna.value):
         return com.RnaSpecification(name, domain, subdomain, residue)
     else:
         return com.ProteinSpecification(name, domain, subdomain, residue)
@@ -34,7 +35,7 @@ def specification_from_string(specification_string: str) -> com.Specification:
     items = specification_string.split(DOMAIN_DELIMITER, maxsplit=1)
 
     if len(items) == 1:
-        return specification_decision(items[0], None, None, None)
+        return create_specification_from_name_suffix(items[0], None, None, None)
 
     elif len(items) == 2:
         name = items[0]
@@ -68,7 +69,7 @@ def specification_from_string(specification_string: str) -> com.Specification:
         else:
             raise AssertionError
 
-        return specification_decision(name, domain, subdomain, residue)
+        return create_specification_from_name_suffix(name, domain, subdomain, residue)
 
     else:
         raise err.RxnConParseError('Could not parse component string '.format(specification_string))
@@ -170,13 +171,7 @@ def _interaction_state_from_string(state_string: str) -> Union[sta.InterProteinI
 
     if component_strings[1].startswith('['):
         first_component = specification_from_string(component_strings[0])
-
-        if isinstance(first_component, com.ProteinSpecification):
-            second_component = com.ProteinSpecification(first_component.name, component_strings[1].strip('[]'), None, None)
-        elif isinstance(first_component, com.RnaSpecification):
-            second_component = com.RnaSpecification(first_component.name, component_strings[1].strip('[]'), None, None)
-        else:
-            raise NotImplementedError
+        second_component = specification_from_string("{0}_{1}".format(first_component.name, component_strings[1]))
 
         return sta.IntraProteinInteractionState(first_component, second_component)
 

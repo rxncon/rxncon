@@ -26,7 +26,6 @@ class Specification(metaclass=ABCMeta):
     def __eq__(self, other: 'Specification') -> bool:
         pass
 
-    #@tc.typecheck
     def __lt__(self, other: 'Specification'):
         # None is smaller than something
         if self.name < other.name:
@@ -126,7 +125,6 @@ class ProteinSpecification(Specification):
 
     def to_component_specification(self) -> 'ProteinSpecification':
         return ProteinSpecification(self.name, None, None, None)
-
 
 
 class RnaSpecification(Specification):
