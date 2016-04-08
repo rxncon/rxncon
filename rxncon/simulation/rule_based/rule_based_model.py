@@ -5,7 +5,7 @@ import typecheck as tc
 
 from rxncon.semantics.molecule_instance import MoleculeInstance, AssociationPropertyInstance
 from rxncon.semantics.molecule_definition import MoleculeDefinition
-
+from rxncon.core.specification import Specification
 
 class RuleBasedModel:
     @tc.typecheck
@@ -210,6 +210,10 @@ class Binding:
         return 'Binding: L_molecule_index = {0}, L_domain = {1}, R_molecule_index = {2}, R_domain = {3}'\
             .format(self.left_partner[0], self.left_partner[1].association_def.spec,
                     self.right_partner[0], self.right_partner[1].association_def.spec)
+
+    @property
+    def domain_specs(self) -> tg.Tuple[Specification, Specification]:
+        return self.left_partner[1].association_def.spec, self.right_partner[1].association_def.spec
 
     def _validate(self):
         if not self.left_partner[1].occupation_status or not self.right_partner[1].occupation_status:
