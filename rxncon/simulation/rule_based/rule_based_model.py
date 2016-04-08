@@ -41,8 +41,8 @@ class RuleBasedModel:
 
 class Rule:
     @tc.typecheck
-    def __init__(self, left_hand_side: tg.List['Reactant'], right_hand_side: tg.List['Reactant'], arrow_type: 'Arrow',
-                 rates: tg.List['Parameter']):
+    def __init__(self, left_hand_side: tg.Set['Reactant'], right_hand_side: tg.Set['Reactant'], arrow_type: 'Arrow',
+                 rates: tg.Set['Parameter']):
         self.left_hand_side = left_hand_side
         self.right_hand_side = right_hand_side
         self.arrow_type = arrow_type
