@@ -39,8 +39,14 @@ class ReactionClass(Enum):
 
 @unique
 class Directionality(Enum):
-    reversible   = 1
-    irreversible = 2
+    bidirectional   = 1
+    unidirectional = 2
+
+
+@unique
+class Reversibility(Enum):
+    temporary   = 1
+    permanent = 2
 
 
 # @todo Bidirectional needs separate identifier?
@@ -48,7 +54,6 @@ class Influence(Enum):
     positive      = 1
     negative      = 2
     transfer      = 3
-    bidirectional = 1
 
 
 @unique
@@ -56,6 +61,7 @@ class Isomerism(Enum):
     undefined = None
     trans     = 1
     cis       = 2
+
 
 # @todo lower case.
 @unique
@@ -68,82 +74,82 @@ class CovalentReactionModifier(Enum):
 
 VERB_REACTION_TABLE = {
     Verb.phosphorylation:              [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.bidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.phosphor],
     Verb.dephosphorylation:            [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.bidirectional,
                                         Influence.negative,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.phosphor],
     Verb.autophosphorylation:          [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.bidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.phosphor],
     Verb.phosphotransfer:              [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.bidirectional,
                                         Influence.transfer,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.phosphor],
     Verb.guanine_nucleotide_exchange:  [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.bidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.phosphor],
     Verb.gtpase_activation:            [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.bidirectional,
                                         Influence.negative,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.phosphor],
     Verb.ubiquination:                 [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.bidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.ubiquitin],
     Verb.proteolytic_cleavage:         [ReactionClass.covalent_modification,
-                                        Directionality.irreversible,
+                                        Directionality.unidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.truncated],
     Verb.protein_protein_interaction:  [ReactionClass.interaction,
-                                        Directionality.reversible,
+                                        Directionality.bidirectional,
                                         Influence.bidirectional,
                                         Isomerism.trans,
                                         CovalentReactionModifier.undefined],
     Verb.intra_protein_interaction:    [ReactionClass.interaction,
-                                        Directionality.reversible,
+                                        Directionality.bidirectional,
                                         Influence.bidirectional,
                                         Isomerism.cis,
                                         CovalentReactionModifier.undefined],
     Verb.non_protein_interaction:      [ReactionClass.interaction,
-                                        Directionality.reversible,
+                                        Directionality.bidirectional,
                                         Influence.positive,
                                         Isomerism.trans,
                                         CovalentReactionModifier.undefined],
     Verb.binding_to_dna:               [ReactionClass.interaction,
-                                        Directionality.reversible,
+                                        Directionality.bidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.undefined],
     Verb.synthesis:                    [ReactionClass.synthesis_degradation,
-                                        Directionality.irreversible,
+                                        Directionality.unidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.undefined],
     Verb.degradation:                  [ReactionClass.synthesis_degradation,
-                                        Directionality.irreversible,
+                                        Directionality.unidirectional,
                                         Influence.negative,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.undefined],
     Verb.translation:                  [ReactionClass.synthesis_degradation,
-                                        Directionality.irreversible,
+                                        Directionality.unidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.undefined],
     Verb.transcription:                [ReactionClass.synthesis_degradation,
-                                        Directionality.irreversible,
+                                        Directionality.unidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.undefined]

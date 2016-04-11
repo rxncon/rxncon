@@ -40,6 +40,10 @@ class ExcelBook(inp.RxnConInput):
     def _load_contingency_list_entries(self):
         pass
 
+    @abstractmethod
+    def _load_reaction_definition_list(self):
+        pass
+
     def _construct_contingencies(self):
         self._contingencies = cli.contingencies_from_contingency_list_entries(self._contingency_list_entries)
 
@@ -72,6 +76,7 @@ class ExcelBookWithoutReactionType(ExcelBook):
 
         super()._open_file()
         self._validate_book()
+        self._load_reaction_definition_list()
         self._load_reaction_list()
         self._load_contingency_list_entries()
         super()._construct_contingencies()
@@ -83,6 +88,9 @@ class ExcelBookWithoutReactionType(ExcelBook):
 
         if not all([sheet in self._xlrd_book.sheet_names() for sheet in expected_sheets]):
             raise err.RxnConParseError('Excel book does not contain expected sheets')
+
+    def _load_reaction_definition_list(self):
+        pass
 
     def _load_reaction_list(self):
         sheet = self._xlrd_book.sheet_by_name(self.SHEET_REACTION_LIST)
@@ -119,6 +127,10 @@ class ExcelBookWithReactionType(ExcelBook):
     CONTINGENCY_LIST_COLUMN_TYPE = 2
     CONTINGENCY_LIST_COLUMN_MODIFIER = 3
 
+    REACTION_DEFINITION_UID = 0
+    REACTION_DEFINITION_TYPE_ID = 2
+    REACTION_DEFINITION_MODIFIER = 4
+
 
     def __init__(self, filename: str):
         self.filename = filename
@@ -130,6 +142,7 @@ class ExcelBookWithReactionType(ExcelBook):
 
         super()._open_file()
         self._validate_book()
+        #self._load_reaction_definition_list()
         self._load_reaction_list()
         self._load_contingency_list_entries()
         super()._construct_contingencies()
@@ -141,6 +154,14 @@ class ExcelBookWithReactionType(ExcelBook):
 
         if not all([sheet in self._xlrd_book.sheet_names() for sheet in expected_sheets]):
             raise err.RxnConParseError('Excel book does not contain expected sheets')
+
+    def _load_reaction_definition_list(self):
+        #todo: finish this
+        sheet = self._xlrd_book.sheet_by_name(self.SHEET_REACTION_DEFINITION)
+        reaction_definition_rows = [row for row in sheet.get_rows()][2:]
+        for row in reaction_definition_rows:
+            fst.reaction_definition_from_string(row[self.REACTION_DEFINITION_UID], row[self.REACTION_DEFINITION_TYPE_ID],
+                                                row[self.REACTION_DEFINITION_MODIFIER])
 
     def _load_reaction_list(self):
         sheet = self._xlrd_book.sheet_by_name(self.SHEET_REACTION_LIST)
@@ -161,5 +182,3 @@ class ExcelBookWithReactionType(ExcelBook):
             )
             self._contingency_list_entries.append(entry)
 
-    def _load_reaction_definition(self):
-        pass
