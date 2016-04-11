@@ -3,8 +3,8 @@ from itertools import product
 from collections import defaultdict
 from rxncon.util.utils import compose
 
-from rxncon.venntastic.sets import Set, Complement, Union, Intersection, PropertySet, nested_expression_from_list_and_binary_op, \
-    gram_schmidt_disjunctify
+from rxncon.venntastic.sets import Set, Complement, Union, Intersection, PropertySet, UniversalSet, EmptySet, \
+    nested_expression_from_list_and_binary_op, gram_schmidt_disjunctify
 from rxncon.core.specification import Specification
 from rxncon.core.reaction import Reaction, ReactionClass, Verb
 from rxncon.core.state import State, CovalentModificationState, InterProteinInteractionState, IntraProteinInteractionState, \
@@ -33,8 +33,12 @@ REACTION_TO_MOLECULE_INSTANCE_PAIRS_FUNCTIONS = {
 def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefinition], state_set: Set) -> Set:
     def _mol_instance_set_with_complements_from_state_set(mol_defs: Dict[Specification, MoleculeDefinition], state_set: Set) -> Set:
         if isinstance(state_set, PropertySet):
+            if not state_set.value:
+                return UniversalSet()
             assert isinstance(state_set.value, State)
             return globals()[STATE_TO_MOLECULE_INSTANCE_FUNCTIONS[type(state_set.value)]](mol_defs, state_set.value)
+        elif isinstance(state_set, EmptySet):
+            return EmptySet()
         elif isinstance(state_set, Complement):
             return Complement(_mol_instance_set_with_complements_from_state_set(mol_defs, state_set.expr))
         elif isinstance(state_set, Intersection):
@@ -44,7 +48,7 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
             return Union(_mol_instance_set_with_complements_from_state_set(mol_defs, state_set.left_expr),
                          _mol_instance_set_with_complements_from_state_set(mol_defs, state_set.right_expr))
         else:
-            raise NotImplemented
+            raise NotImplementedError
 
     def _expanded_complements(mol_instance_set: Set) -> Set:
         def _exploded_mol_instance(mol_instance: MoleculeInstance) -> List[MoleculeInstance]:
@@ -101,7 +105,7 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
             return Union(_expanded_complements(mol_instance_set.left_expr),
                          _expanded_complements(mol_instance_set.right_expr))
         elif isinstance(mol_instance_set, PropertySet):
-            assert isinstance(mol_instance_set.value, MoleculeInstance)
+            assert not mol_instance_set.value or isinstance(mol_instance_set.value, MoleculeInstance)
             return mol_instance_set
         else:
             raise NotImplemented
@@ -179,8 +183,9 @@ def imploded_mol_instance_set(mol_instance_set: Set) -> Set:
         instances = defaultdict(list)
         for mol in term:
             assert isinstance(mol, PropertySet)
-            assert isinstance(mol.value, MoleculeInstance)
-            instances[mol.value.mol_def] += [mol.value]
+            assert not mol.value or isinstance(mol.value, MoleculeInstance)
+            if mol.value:
+                instances[mol.value.mol_def] += [mol.value]
 
         imploded_mols = [_imploded_mol_instances(v) for k, v in instances.items() if _imploded_mol_instances(v)]
         cleaned_terms.append(
