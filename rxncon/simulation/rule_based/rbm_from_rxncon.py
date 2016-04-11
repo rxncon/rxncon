@@ -39,14 +39,18 @@ def rules_from_reaction(rxconsys: RxnConSystem, reaction: Reaction) -> Set[Rule]
             raise AssertionError
 
     def get_rates(qcc: _QuantitativeContingencyConfiguration):
+        rate_suffix = '_{}'.format(str(reaction))
+        if str(qcc):
+            rate_suffix += '_{}'.format(str(qcc))
+
         if reaction.directionality == RxnDirectionality.irreversible:
             return {
-                Parameter('k_{0}_{1}'.format(str(reaction), str(qcc)), None)
+                Parameter('k' + rate_suffix, None)
             }
         elif reaction.directionality == RxnDirectionality.reversible:
             return {
-                Parameter('kf_{0}_{1}'.format(str(reaction), str(qcc)), None),
-                Parameter('kr_{0}_{1}'.format(str(reaction), str(qcc)), None)
+                Parameter('kf' + rate_suffix, None),
+                Parameter('kr' + rate_suffix, None)
             }
 
     quant_cont_configs = _quant_contingency_configs_from_reaction(rxconsys, reaction)
@@ -54,7 +58,6 @@ def rules_from_reaction(rxconsys: RxnConSystem, reaction: Reaction) -> Set[Rule]
 
     rules = set()
 
-    # @todo no quantitative contingencies
     for qcc in quant_cont_configs:
         background_molecule_sets = \
             mol_instance_set_from_state_set(
@@ -68,7 +71,6 @@ def rules_from_reaction(rxconsys: RxnConSystem, reaction: Reaction) -> Set[Rule]
             lhs_reactants = _reactants_from_molecule_sets(lhs_reacting_molecule_set, background_molecule_set)
             rhs_reactants = _reactants_from_molecule_sets(rhs_reacting_molecule_set, background_molecule_set)
 
-            # @todo no contingencies
             rules.add(Rule(lhs_reactants, rhs_reactants, get_arrow(), get_rates(qcc)))
 
     return rules
@@ -227,16 +229,3 @@ class _QuantitativeContingencyConfiguration:
             nested_expression_from_list_and_binary_op([PropertySet(x) for x in self.present_states], Intersection),
             nested_expression_from_list_and_binary_op([Complement(PropertySet(x)) for x in self.absent_states], Intersection)
         )
-
-
-
-
-
-
-
-
-
-
-
-
-

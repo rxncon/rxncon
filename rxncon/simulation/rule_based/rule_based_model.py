@@ -170,6 +170,9 @@ class Parameter:
         assert isinstance(other, Parameter)
         return self.name == other.name and self.value == other.value
 
+    def __hash__(self):
+        return hash(self.name)
+
     def __repr__(self):
         return str(self)
 

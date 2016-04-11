@@ -51,8 +51,8 @@ def mol_instance_from_string(mol_def, mol_ins_string: str) -> MoleculeInstance:
 
 
 def mol_instances_and_bindings_from_string(mol_defs, mol_instances_string: str):
-    mol_instances = []
-    bindings = []
+    mol_instances = set()
+    bindings = set()
 
     mol_def_dict = {}
 
@@ -66,24 +66,12 @@ def mol_instances_and_bindings_from_string(mol_defs, mol_instances_string: str):
     for mol_ins_string in mol_ins_strings:
         mol_def = mol_def_dict[specification_from_string(mol_ins_string.split('#')[0])]
         mol_ins = mol_instance_from_string(mol_def, mol_ins_string)
-        mol_instances.append(mol_ins)
+        mol_instances.add(mol_ins)
 
-    finished_bindings_nums = []
-
-    for i, left_mol_ins in enumerate(mol_instances):
-        for left_ass_property in left_mol_ins.association_properties:
-            if hasattr(left_ass_property, 'binding_num') and left_ass_property.binding_num not in finished_bindings_nums:
-                left_partner = (i, left_ass_property)
-
-                for j, right_mol_ins in enumerate(mol_instances):
-                    for right_ass_property in right_mol_ins.association_properties:
-                        if hasattr(right_ass_property, 'binding_num') and left_ass_property.binding_num == right_ass_property.binding_num:
-                            right_partner = (j, right_ass_property)
-
-                assert right_partner
-                bindings.append(Binding(left_partner, right_partner))
-
-                finished_bindings_nums.append(left_ass_property.binding_num)
+    for mol_ins in mol_instances:
+        for ass_prop in mol_ins.association_properties:
+            if ass_prop.partner:
+                bindings.add(Binding(ass_prop.association_def.spec, ass_prop.partner))
 
     return mol_instances, bindings
 
@@ -99,11 +87,11 @@ def rule_from_string(mol_defs, rule_string):
     if '<->' in rule_string:
         split = rule_string.split('<->')
         arrow = Arrow('<->')
-        parameters = [Parameter('k_f', None), Parameter('k_r', None)]
+        parameters = {Parameter('k_f', None), Parameter('k_r', None)}
     elif '->' in rule_string:
         split = rule_string.split('->')
         arrow = Arrow('->')
-        parameters = [Parameter('k', None)]
+        parameters = {Parameter('k', None)}
     else:
         raise AssertionError
 
@@ -112,23 +100,23 @@ def rule_from_string(mol_defs, rule_string):
     lhs_terms = [x.strip() for x in lhs_string.split('+')]
     rhs_terms = [x.strip() for x in rhs_string.split('+')]
 
-    lhs_reactants = []
+    lhs_reactants = set()
     for term in lhs_terms:
         if '.' in term:
             instances, bindings = mol_instances_and_bindings_from_string(mol_defs, term)
-            lhs_reactants.append(ComplexReactant(instances, bindings))
+            lhs_reactants.add(ComplexReactant(instances, bindings))
         else:
             instance = mol_instance_from_string(mol_def_dict[specification_from_string(term.split('#')[0])], term)
-            lhs_reactants.append(MoleculeReactant(instance))
+            lhs_reactants.add(MoleculeReactant(instance))
 
-    rhs_reactants = []
+    rhs_reactants = set()
     for term in rhs_terms:
         if '.' in term:
             instances, bindings = mol_instances_and_bindings_from_string(mol_defs, term)
-            rhs_reactants.append(ComplexReactant(instances, bindings))
+            rhs_reactants.add(ComplexReactant(instances, bindings))
         else:
             instance = mol_instance_from_string(mol_def_dict[specification_from_string(term.split('#')[0])], term)
-            rhs_reactants.append(MoleculeReactant(instance))
+            rhs_reactants.add(MoleculeReactant(instance))
 
     return Rule(lhs_reactants, rhs_reactants, arrow, parameters)
 
