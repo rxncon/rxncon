@@ -9,9 +9,9 @@ from rxncon.core.state import State
 from rxncon.core.contingency import ContingencyType
 from rxncon.core.effector import Effector, AndEffector, NotEffector, OrEffector, StateEffector
 from rxncon.semantics.molecule_definition import MoleculeDefinition
-from rxncon.semantics.molecule_instance import MoleculeInstance
+from rxncon.semantics.molecule_instance import MoleculeInstance, Binding
 from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel, Rule, Arrow, Parameter, Reactant, \
-    ComplexReactant, MoleculeReactant, Binding
+    ComplexReactant, MoleculeReactant
 from rxncon.semantics.molecule_definition_from_rxncon import mol_defs_from_rxncon_sys
 from rxncon.simulation.rule_based.molecule_from_rxncon import mol_instance_set_from_state_set, mol_instance_set_pair_from_reaction, \
     imploded_mol_instance_set
@@ -54,6 +54,7 @@ def _rules_from_reaction(rxconsys: RxnConSystem, reaction: Reaction) -> Set[Rule
 
     rules = set()
 
+    # @todo no quantitative contingencies
     for qcc in quant_cont_configs:
         background_molecule_sets = \
             mol_instance_set_from_state_set(
@@ -67,6 +68,7 @@ def _rules_from_reaction(rxconsys: RxnConSystem, reaction: Reaction) -> Set[Rule
             lhs_reactants = _reactants_from_molecule_sets(lhs_reacting_molecule_set, background_molecule_set)
             rhs_reactants = _reactants_from_molecule_sets(rhs_reacting_molecule_set, background_molecule_set)
 
+            # @todo no contingencies
             rules.add(Rule(lhs_reactants, rhs_reactants, get_arrow(), get_rates(qcc)))
 
     return rules
@@ -74,8 +76,8 @@ def _rules_from_reaction(rxconsys: RxnConSystem, reaction: Reaction) -> Set[Rule
 
 def _reactants_from_molecule_sets(reacting_molecule_set: VennSet, background_molecule_set: VennSet) -> Set[Reactant]:
     def get_molecules():
-        molecules = imploded_mol_instance_set(
-            Intersection(reacting_molecule_set, background_molecule_set)).to_nested_list_form()
+        molecules = imploded_mol_instance_set(Intersection(reacting_molecule_set, background_molecule_set)).to_nested_list_form()
+
         assert len(molecules) == 1
         assert all(isinstance(x, PropertySet) for x in molecules[0])
         molecules = [x.value for x in molecules[0]]
@@ -84,40 +86,84 @@ def _reactants_from_molecule_sets(reacting_molecule_set: VennSet, background_mol
                               (x.value.mol_def for x in reacting_molecule_set.to_nested_list_form()[0])]
 
         background_molecules = [molecule for molecule in molecules if molecule not in reacting_molecules]
-        return reacting_molecules, background_molecules
+        return sorted(reacting_molecules), sorted(background_molecules)
 
-    reacting, background = get_molecules()
+    reacting_molecules, background_molecules = get_molecules()
 
-    reactants = set()
+    reactants = []
+    complexes_in_formation = []
 
-    while background:
-        mol = background.pop()
+    for molecule in reacting_molecules:
+        if not molecule.bindings:
+            reactants.append(MoleculeReactant(molecule))
+            continue
 
-        if not mol.is_member_of_complex:
-            reactants.add(MoleculeReactant(mol))
+        still_single = True
+        for complex in complexes_in_formation:
+            if complex.can_bind_molecule_instance(molecule):
+                complex.add_molecule_instance(molecule)
+                still_single = False
+                break
 
+        if still_single:
+            new_complex = _ComplexInFormation()
+            new_complex.add_molecule_instance(molecule)
+            complexes_in_formation.append(new_complex)
 
+    failed_binding_attempts = 0
+    while background_molecules:
+        molecule = background_molecules.pop(0)
+        if not molecule.bindings:
+            # Spurious solution, background molecule not connected.
+            return set()
 
+        still_single = True
+        for complex in complexes_in_formation:
+            if complex.can_bind_molecule_instance(molecule):
+                complex.add_molecule_instance(molecule)
+                still_single = False
+                failed_binding_attempts = 0
+                break
 
+        if still_single:
+            background_molecules.append(molecule)
+            failed_binding_attempts += 1
+            if failed_binding_attempts > len(background_molecules):
+                return set()
 
+    reactants += [cif.to_complex_reactant() for cif in complexes_in_formation]
+
+    return set(reactants)
 
 
 class _ComplexInFormation:
     def __init__(self):
-        self.molecules = []
-        self.bindings = []
+        self.molecules = set()
+        self.realized_bindings = set()
+        self.potential_bindings = set()
 
+    def can_bind_molecule_instance(self, mol: MoleculeInstance):
+        return not self.molecules or any(mol_binding in self.potential_bindings for mol_binding in mol.bindings)
 
-    def can_accept_molecule(self, molecule: MoleculeInstance) -> bool:
+    def add_molecule_instance(self, mol: MoleculeInstance):
+        assert self.can_bind_molecule_instance(mol)
+
         if not self.molecules:
-            return True
+            self.molecules.add(mol)
+            self.potential_bindings = mol.bindings
+        else:
+            # Greedily fill the bindings.
+            self.molecules.add(mol)
+            for new_binding in sorted(mol.bindings):
+                if new_binding in self.potential_bindings:
+                    self.potential_bindings.remove(new_binding)
+                    self.realized_bindings.add(new_binding)
+                else:
+                    self.potential_bindings.add(new_binding)
 
-
-
-
-
-    def add_molecule(self, molecule: MoleculeInstance):
-
+    def to_complex_reactant(self):
+        assert not self.potential_bindings
+        return ComplexReactant(self.molecules, self.realized_bindings)
 
 
 def _strict_contingency_state_set_from_reaction(rxnconsys: RxnConSystem, reaction: Reaction) -> VennSet:
