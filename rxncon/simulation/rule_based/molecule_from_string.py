@@ -77,6 +77,9 @@ def mol_instances_and_bindings_from_string(mol_defs, mol_instances_string: str):
 
 
 def rule_from_string(mol_defs, rule_string):
+    def params_from_string(param_string):
+        return {Parameter(name.strip(), None) for name in param_string.split(',')}
+
     mol_def_dict = {}
 
     for mol_def in mol_defs:
@@ -85,13 +88,15 @@ def rule_from_string(mol_defs, rule_string):
         mol_def_dict[mol_def.spec] = mol_def
 
     if '<->' in rule_string:
-        split = rule_string.split('<->')
+        split, param_string = rule_string.split('@')
+        split = split.split('<->')
         arrow = Arrow('<->')
-        parameters = {Parameter('k_f', None), Parameter('k_r', None)}
+        parameters = params_from_string(param_string)
     elif '->' in rule_string:
-        split = rule_string.split('->')
+        split, param_string = rule_string.split('@')
+        split = split.split('->')
         arrow = Arrow('->')
-        parameters = {Parameter('k', None)}
+        parameters = params_from_string(param_string)
     else:
         raise AssertionError
 
