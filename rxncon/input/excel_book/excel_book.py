@@ -103,6 +103,7 @@ class ExcelBookWithoutReactionType(ExcelBook):
             )
             self._contingency_list_entries.append(entry)
 
+
 class ExcelBookWithReactionType(ExcelBook):
 
     SHEET_COMPONENT_LIST = 'ComponentList'
@@ -110,9 +111,9 @@ class ExcelBookWithReactionType(ExcelBook):
     SHEET_REACTION_LIST = 'ReactionList'
     SHEET_CONTINGENCY_LIST = 'ContingencyList'
 
-    REACTION_LIST_COLUMN_UID = 1
-    REACTION_LIST_COLUMN_SOURCE_STATE = 2
-    REACTION_LIST_COLUMN_PRODUCT_STATE = 3
+    REACTION_LIST_COLUMN_UID = 0
+    REACTION_LIST_COLUMN_SOURCE_STATE = 1
+    REACTION_LIST_COLUMN_PRODUCT_STATE = 2
 
     CONTINGENCY_LIST_COLUMN_TARGET = 1
     CONTINGENCY_LIST_COLUMN_TYPE = 2
@@ -143,7 +144,7 @@ class ExcelBookWithReactionType(ExcelBook):
 
     def _load_reaction_list(self):
         sheet = self._xlrd_book.sheet_by_name(self.SHEET_REACTION_LIST)
-        reaction_rows = [row for row in sheet.get_rows()][1:]
+        reaction_rows = [row for row in sheet.get_rows()][2:]
 
         for row in reaction_rows:
             reaction = fst.reaction_from_string(row[self.REACTION_LIST_COLUMN_UID].value)
@@ -151,7 +152,7 @@ class ExcelBookWithReactionType(ExcelBook):
 
     def _load_contingency_list_entries(self):
         sheet = self._xlrd_book.sheet_by_name(self.SHEET_CONTINGENCY_LIST)
-        contingency_rows = [row for row in sheet.get_rows()][1:]
+        contingency_rows = [row for row in sheet.get_rows()][2:]
 
         for row in contingency_rows:
             entry = cli.contingency_list_entry_from_subject_predicate_agent_strings(
@@ -159,3 +160,6 @@ class ExcelBookWithReactionType(ExcelBook):
                 row[self.CONTINGENCY_LIST_COLUMN_MODIFIER].value
             )
             self._contingency_list_entries.append(entry)
+
+    def _load_reaction_definition(self):
+        pass

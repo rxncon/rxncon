@@ -5,7 +5,7 @@ import rxncon.input.excel_book.excel_book as exc
 TIGER_FILENAME = 'Tiger_et_al_TableS1.xls'
 TIGER_PATH = os.path.join(os.path.dirname(__file__), TIGER_FILENAME)
 
-RXNCON_NEW_TEMPLATE_FILENAME = 'rxncon_template_2_0.xls'
+RXNCON_NEW_TEMPLATE_FILENAME = 'rxncon_template_2_0_no_relocalisation.xls'
 RXNCON_NEW_TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), RXNCON_NEW_TEMPLATE_FILENAME)
 
 def test_excel_book_tiger_network():
@@ -24,5 +24,5 @@ def test_new_excel_book_input():
 
     assert isinstance(excel_book, exc.ExcelBook)
     assert isinstance(excel_book, exc.ExcelBookWithReactionType)
-    assert len(excel_book._reactions) == 23
+    assert len(excel_book._reactions) == 16
     assert len(excel_book._contingencies) == 2
