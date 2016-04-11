@@ -20,6 +20,7 @@ def test_molecule_definitions_single_reaction():
     }
 
     for spec, mol_def in expected_mol_defs.items():
+        assert mol_def.association_defs
         assert mol_def == actual_mol_defs[spec]
 
 
