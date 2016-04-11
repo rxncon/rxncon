@@ -41,7 +41,8 @@ class MoleculeDefinition:
 
         self.localization_def = localization_def
 
-        self._validate()
+        # woop woop just remove all the defs :)
+        # self._validate()
 
     def _validate(self):
         def definitions_validation(definitions: tp.Union[tp.Set[ModificationPropertyDefinition],

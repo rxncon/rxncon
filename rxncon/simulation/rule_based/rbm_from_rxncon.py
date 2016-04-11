@@ -209,7 +209,10 @@ def _quant_contingency_configs_from_reaction(rxnconsys: RxnConSystem, reaction: 
 
     combis = _true_false_combinations(states)
 
-    return {_QuantitativeContingencyConfiguration(combi[0], combi[1]) for combi in combis}
+    if combis:
+        return {_QuantitativeContingencyConfiguration(combi[0], combi[1]) for combi in combis}
+    else:
+        return {_QuantitativeContingencyConfiguration(set(), set())}
 
 
 class _QuantitativeContingencyConfiguration:
