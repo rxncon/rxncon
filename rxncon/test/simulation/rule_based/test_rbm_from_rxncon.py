@@ -14,5 +14,5 @@ def test_single_reaction():
 
     assert the_rule == rule_from_string(
         ['A#ass/A_[Bassoc]:B_[Aassoc]', 'B#ass/B_[Aassoc]:A_[Bassoc]'],
-        'A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc].B#ass/B_[Aassoc]:A_[Bassoc]'
+        'A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc].B#ass/B_[Aassoc]:A_[Bassoc] @ kf_A_ppi_B, kr_A_ppi_B'
     )
