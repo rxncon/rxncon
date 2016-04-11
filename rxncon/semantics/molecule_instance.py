@@ -61,7 +61,7 @@ class MoleculeInstance:
                     str(self.localization_property))
 
     @property
-    def bindings(self) -> Set[Binding]:
+    def bindings(self) -> Set['Binding']:
         return {Binding(ass_prop.association_def.spec, ass_prop.partner) for ass_prop in self.association_properties
                 if ass_prop.occupation_status == OccupationStatus.occupied_known_partner}
 

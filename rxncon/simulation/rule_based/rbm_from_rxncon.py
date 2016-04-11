@@ -26,14 +26,14 @@ def rbm_from_rxncon_sys(rxconsys: RxnConSystem) -> RuleBasedModel:
     rules = set()
 
     for reaction in rxconsys.reactions:
-        rules = rules.union(_rules_from_reaction(rxconsys, reaction))
+        rules = rules.union(rules_from_reaction(rxconsys, reaction))
 
     mol_defs = mol_defs_from_rxncon_sys(rxconsys)
 
     return RuleBasedModel(set(mol_defs.values()), rules, set(), set())
 
 
-def _rules_from_reaction(rxconsys: RxnConSystem, reaction: Reaction) -> Set[Rule]:
+def rules_from_reaction(rxconsys: RxnConSystem, reaction: Reaction) -> Set[Rule]:
     def get_arrow():
         if reaction.directionality == RxnDirectionality.reversible:
             return Arrow.reversible
