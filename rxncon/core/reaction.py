@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from enum import Enum, unique
 from typing import List, Optional
 import typecheck as tc
@@ -69,6 +69,7 @@ class CovalentReactionModifier(Enum):
     undefined = None
     phosphor  = 'P'
     ubiquitin = 'Ub'
+    guanosintriphosphat = 'gtp'
     truncated = 'Truncated'
 
 
@@ -97,12 +98,12 @@ VERB_REACTION_TABLE = {
                                         Directionality.bidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
-                                        CovalentReactionModifier.phosphor],
+                                        CovalentReactionModifier.guanosintriphosphat],
     Verb.gtpase_activation:            [ReactionClass.covalent_modification,
                                         Directionality.bidirectional,
                                         Influence.negative,
                                         Isomerism.undefined,
-                                        CovalentReactionModifier.phosphor],
+                                        CovalentReactionModifier.guanosintriphosphat],
     Verb.ubiquination:                 [ReactionClass.covalent_modification,
                                         Directionality.bidirectional,
                                         Influence.positive,
@@ -115,12 +116,12 @@ VERB_REACTION_TABLE = {
                                         CovalentReactionModifier.truncated],
     Verb.protein_protein_interaction:  [ReactionClass.interaction,
                                         Directionality.bidirectional,
-                                        Influence.bidirectional,
+                                        Influence.positive,
                                         Isomerism.trans,
                                         CovalentReactionModifier.undefined],
     Verb.intra_protein_interaction:    [ReactionClass.interaction,
                                         Directionality.bidirectional,
-                                        Influence.bidirectional,
+                                        Influence.positive,
                                         Isomerism.cis,
                                         CovalentReactionModifier.undefined],
     Verb.non_protein_interaction:      [ReactionClass.interaction,
@@ -243,16 +244,16 @@ def states_from_reaction(reaction: Reaction) -> SourceStateProductState:
     else:
         raise err.RxnConLogicError('Non-exhaustive switch statement in state_from_reaction for case {}'.format(reaction))
 
+mapping_modifications = OrderedDict([(CovalentReactionModifier.phosphor, sta.StateModifier.phosphor),
+                                     (CovalentReactionModifier.ubiquitin, sta.StateModifier.ubiquitin),
+                                     (CovalentReactionModifier.truncated, sta.StateModifier.truncated),
+                                     (CovalentReactionModifier.guanosintriphosphat, sta.StateModifier.guanosintriphosphat),
+                                     ])
+
 
 def _covalent_modification_states_from_reaction(reaction: Reaction) -> SourceStateProductState:
-    if reaction.modifier == CovalentReactionModifier.phosphor:
-        modifier = sta.StateModifier.phosphor
-
-    elif reaction.modifier == CovalentReactionModifier.ubiquitin:
-        modifier = sta.StateModifier.ubiquitin
-
-    elif reaction.modifier == CovalentReactionModifier.truncated:
-        modifier = sta.StateModifier.truncated
+    if reaction.modifier in mapping_modifications:
+        modifier = mapping_modifications[reaction.modifier]
 
     else:
         raise err.RxnConLogicError('Could not map rxn modifier {0} to state modifier'.format(reaction.modifier))
