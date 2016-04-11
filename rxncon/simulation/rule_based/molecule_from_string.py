@@ -2,7 +2,7 @@ from rxncon.semantics.molecule_definition import MoleculeDefinition, \
     AssociationPropertyDefinition, LocalizationPropertyDefinition, ModificationPropertyDefinition, \
     Modifier, Compartment, OccupationStatus
 from rxncon.semantics.molecule_instance import MoleculeInstance, \
-    AssociationPropertyInstance, LocalizationPropertyInstance, ModificationPropertyInstance
+    AssociationPropertyInstance, LocalizationPropertyInstance, ModificationPropertyInstance, Binding
 
 from rxncon.syntax.rxncon_from_string import specification_from_string
 from rxncon.simulation.rule_based.rule_based_model import Binding, Rule, MoleculeReactant, ComplexReactant, Arrow, \

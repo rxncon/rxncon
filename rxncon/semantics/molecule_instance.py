@@ -3,8 +3,10 @@ from typing import Set, Optional
 import typecheck as tc
 
 import rxncon.core.specification as spe
+from rxncon.core.specification import Specification
 from rxncon.semantics.molecule_definition import MoleculeDefinition, ModificationPropertyDefinition, AssociationPropertyDefinition, \
     LocalizationPropertyDefinition, Modifier, OccupationStatus, Compartment
+
 
 
 class MoleculeInstance:
@@ -59,11 +61,9 @@ class MoleculeInstance:
                     str(self.localization_property))
 
     @property
-    def is_member_of_complex(self) -> bool:
-        return any(ass_prop.occupation_status == OccupationStatus.occupied_known_partner for ass_prop in self.association_properties)
-
-    def
-
+    def bindings(self) -> Set[Binding]:
+        return {Binding(ass_prop.association_def.spec, ass_prop.partner) for ass_prop in self.association_properties
+                if ass_prop.occupation_status == OccupationStatus.occupied_known_partner}
 
     def _validate(self):
         # Assert each modification domain and each association domain is only present once.
@@ -209,3 +209,27 @@ class LocalizationPropertyInstance(PropertyInstance):
                 in self.localization_def.valid_compartments if compartment != self.compartment]
 
 
+class Binding:
+    @tc.typecheck
+    def __init__(self, left_spec: Specification, right_spec: Specification):
+        left_spec, right_spec = sorted([left_spec, right_spec])
+        self.left_partner = left_spec
+        self.right_partner = right_spec
+        self._validate()
+
+    @tc.typecheck
+    def __eq__(self, other: 'Binding'):
+        return self.left_partner == other.left_partner and self.right_partner == other.right_partner
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self) -> str:
+        return 'Binding: L = {0}, R = {1}'.format(self.left_partner, self.right_partner)
+
+    def _validate(self):
+        if self.left_partner == self.right_partner:
+            raise ValueError('Left - right binding specs are required to be distinct.')
