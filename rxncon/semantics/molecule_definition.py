@@ -46,11 +46,14 @@ class MoleculeDefinition:
     def _validate(self):
         def definitions_validation(definitions: tp.Union[tp.Set[ModificationPropertyDefinition],
                                                        tp.Set[AssociationPropertyDefinition]]):
-            while definitions:
-                ref_definition = definitions.pop()
-                for definition in definitions:
-                    if ref_definition.spec == definition.spec:
-                        raise AssertionError('Same specification in different context: {0} and {1}'.format(ref_definition, definition))
+            definitions = list(definitions)
+            i = 0
+            while i < len(definitions):
+                for definition in definitions[i+1:]:
+                    if definitions[i].spec == definition.spec:
+                        raise AssertionError('Same specification in different context: {0} and {1}'.format(definitions[i], definition))
+                i += 1
+
         definitions_validation(self.association_defs)
         definitions_validation(self.modification_defs)
 

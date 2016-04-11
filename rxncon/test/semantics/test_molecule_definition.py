@@ -30,7 +30,7 @@ def test_molecule_definition_ordering(molecule_definitions, expected_molecule_de
 
 def test_molecule_definition_wrongly_defined():
 
-    assert mol_def_from_string('A#ass/A_[d]:B_[Aassoc],mod/A_[d]:u~ub')
+    assert mol_def_from_string('A#ass/A_[d]:B_[Aassoc],mod/A_[d]:u~ub') != mol_def_from_string('A#')
     assert mol_def_from_string('A#ass/A_[d]:B_[Aassoc]~C_[Aassoc],mod/A_[d]:u~ub~p')
 
     with pytest.raises(AssertionError):
