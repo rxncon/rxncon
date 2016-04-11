@@ -8,7 +8,21 @@ import rxncon.syntax.rxncon_from_string as rfs
 from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_string
 from rxncon.input.quick.quick import Quick
 
-# TESTING MOLECULE DEFINITION CREATION BY MOLECULEDEFINITIONSUPERVISOR
+
+def test_molecule_definitions_single_reaction():
+    rxncon = rxs.RxnConSystem([rfs.reaction_from_string('A_ppi_B')], [])
+
+    actual_mol_defs = mdr.mol_defs_from_rxncon_sys(rxncon)
+
+    expected_mol_defs = {
+        rfs.specification_from_string('A'): mol_def_from_string('A#ass/A_[Bassoc]:B_[Aassoc]'),
+        rfs.specification_from_string('B'): mol_def_from_string('B#ass/B_[Aassoc]:A_[Bassoc]')
+    }
+
+    for spec, mol_def in expected_mol_defs.items():
+        assert mol_def == actual_mol_defs[spec]
+
+
 def test_molecule_definitions_no_contingencies():
     rxncon = rxs.RxnConSystem(
         [
