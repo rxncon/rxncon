@@ -13,4 +13,11 @@ class OrderedEnum(Enum):
         return "{0}: {1}".format(self.name, self.value)
 
     def __lt__(self, other):
-        return self.value < other.value
+        if self.value is not None and other.value is not None:
+            return self.value < other.value
+        elif other.value is None:
+            return False
+        elif self.value is None:
+            return True
+        else:
+            raise NotImplementedError

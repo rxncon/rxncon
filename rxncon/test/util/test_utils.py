@@ -6,6 +6,7 @@ class Feelings(OrderedEnum):
     happy = 1
     sad = 2
     tired = 3
+    mixed = None
 
 class Food(OrderedEnum):
     kebap = 'kebap'
@@ -16,6 +17,7 @@ class Food(OrderedEnum):
 def to_sort():
     return [
         [Feelings.tired, Feelings.sad, Feelings.happy],
+        [Feelings.tired, Feelings.sad, Feelings.happy, Feelings.mixed],
         [Food.pizza, Food.kebap, Food.burger]
     ]
 
@@ -23,6 +25,7 @@ def to_sort():
 def expected_sorting():
     return [
         [Feelings.happy, Feelings.sad, Feelings.tired],
+        [Feelings.mixed, Feelings.happy, Feelings.sad, Feelings.tired],
         [Food.burger, Food.kebap, Food.pizza]
     ]
 

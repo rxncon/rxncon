@@ -1,4 +1,5 @@
-from enum import Enum, unique
+from enum import unique
+from rxncon.util.utils import OrderedEnum
 import typecheck as tc
 
 import rxncon.core.effector as eff
@@ -6,7 +7,7 @@ import rxncon.core.reaction as rxn
 
 
 @unique
-class ContingencyType(Enum):
+class ContingencyType(OrderedEnum):
     undefined   = None
     requirement = '!'
     inhibition  = 'x'
