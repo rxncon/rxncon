@@ -26,7 +26,11 @@ STATE_TO_MOLECULE_INSTANCE_FUNCTIONS = {
 
 REACTION_TO_MOLECULE_INSTANCE_PAIRS_FUNCTIONS = {
     Verb.phosphorylation:             '_molecule_instance_set_pair_from_pplus_reaction',
-    Verb.protein_protein_interaction: '_molecule_instance_set_pair_from_ppi_reaction'
+    Verb.dephosphorylation:           '_molecule_instance_set_pair_from_pminus_reaction',
+    Verb.ubiquitination:              '_molecule_instance_set_pair_from_ubplus_reaction',
+    Verb.deubiquitination:            '_molecule_instance_set_pair_from_ubminus_reaction',
+    Verb.phosphotransfer:             '_molecule_instance_set_pair_from_pt_reaction',
+    Verb.protein_protein_interaction: '_molecule_instance_set_pair_from_ppi_reaction',
 }
 
 
@@ -145,7 +149,11 @@ def mol_instance_set_pair_from_reaction(mol_defs: Dict[Specification, MoleculeDe
     subject_mol_def = mol_defs[reaction.subject.to_component_specification()]
     object_mol_def = mol_defs[reaction.object.to_component_specification()]
 
-    return globals()[REACTION_TO_MOLECULE_INSTANCE_PAIRS_FUNCTIONS[reaction.verb]](reaction, subject_mol_def, object_mol_def)
+    try:
+        return globals()[REACTION_TO_MOLECULE_INSTANCE_PAIRS_FUNCTIONS[reaction.verb]](reaction, subject_mol_def, object_mol_def)
+    except KeyError:
+        raise AssertionError('Reaction verb {} missing in REACTION_TO_MOLECULE_INSTANCE_PAIRS_FUNCTIONS table.'
+                             .format(str(reaction.verb)))
 
 
 def imploded_mol_instance_set(mol_instance_set: Set) -> Set:
@@ -272,6 +280,73 @@ def _molecule_instance_set_pair_from_pplus_reaction(reaction: Reaction, subject_
             Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), set(), None)),
                          PropertySet(MoleculeInstance(object_mol_def, {phosphorylated}, set(), None))))
 
+def _molecule_instance_set_pair_from_pminus_reaction(reaction: Reaction, subject_mol_def: MoleculeDefinition, object_mol_def: MoleculeDefinition) -> Tuple[Set, Set]:
+    mod_defs = [x for x in object_mol_def.modification_defs
+                if x.spec == mod_domain_spec_from_state_and_reaction(reaction.source, reaction)]
+    assert len(mod_defs) == 1, 'Could not find phosphorylation domain for molecule {0}, for reaction {1}'.format(str(object_mol_def), str(reaction))
+    mod_def = mod_defs[0]
+
+    unmodified = ModificationPropertyInstance(mod_def, Modifier.unmodified)
+    phosphorylated = ModificationPropertyInstance(mod_def, Modifier.phosphorylated)
+
+    return (Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), set(), None)),
+                         PropertySet(MoleculeInstance(object_mol_def, {phosphorylated}, set(), None))),
+            Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), set(), None)),
+                         PropertySet(MoleculeInstance(object_mol_def, {unmodified}, set(), None))))
+
+def _molecule_instance_set_pair_from_ubplus_reaction(reaction: Reaction, subject_mol_def: MoleculeDefinition, object_mol_def: MoleculeDefinition) -> Tuple[Set, Set]:
+    mod_defs = [x for x in object_mol_def.modification_defs
+                if x.spec == mod_domain_spec_from_state_and_reaction(reaction.product, reaction)]
+    assert len(mod_defs) == 1
+    mod_def = mod_defs[0]
+
+    unmodified = ModificationPropertyInstance(mod_def, Modifier.unmodified)
+    ubiquitinated = ModificationPropertyInstance(mod_def, Modifier.ubiquitinated)
+
+    return (Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), set(), None)),
+                         PropertySet(MoleculeInstance(object_mol_def, {unmodified}, set(), None))),
+            Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), set(), None)),
+                         PropertySet(MoleculeInstance(object_mol_def, {ubiquitinated}, set(), None))))
+
+def _molecule_instance_set_pair_from_ubminus_reaction(reaction: Reaction, subject_mol_def: MoleculeDefinition, object_mol_def: MoleculeDefinition) -> Tuple[Set, Set]:
+    mod_defs = [x for x in object_mol_def.modification_defs
+                if x.spec == mod_domain_spec_from_state_and_reaction(reaction.source, reaction)]
+    assert len(mod_defs) == 1, 'Could not find ubiquination domain for molecule {0}, for reaction {1}'.format(str(object_mol_def), str(reaction))
+    mod_def = mod_defs[0]
+
+    unmodified = ModificationPropertyInstance(mod_def, Modifier.unmodified)
+    ubiquitinated = ModificationPropertyInstance(mod_def, Modifier.ubiquitinated)
+
+    return (Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), set(), None)),
+                         PropertySet(MoleculeInstance(object_mol_def, {ubiquitinated}, set(), None))),
+            Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), set(), None)),
+                         PropertySet(MoleculeInstance(object_mol_def, {unmodified}, set(), None))))
+
+def _molecule_instance_set_pair_from_pt_reaction(reaction: Reaction, subject_mol_def: MoleculeDefinition, object_mol_def: MoleculeDefinition) -> Tuple[Set, Set]:
+    object_mod_defs = [x for x in object_mol_def.modification_defs
+                       if x.spec == mod_domain_spec_from_state_and_reaction(reaction.product, reaction)]
+
+    assert len(object_mod_defs) == 1, 'Could not find object phosphorylation domain for reaction {}'.format(str(reaction))
+    object_mod_def = object_mod_defs[0]
+
+    object_unmodified = ModificationPropertyInstance(object_mod_def, Modifier.unmodified)
+    object_phosphorylated = ModificationPropertyInstance(object_mod_def, Modifier.phosphorylated)
+
+
+    subject_mod_defs = [x for x in subject_mol_def.modification_defs
+                        if x.spec == mod_domain_spec_from_state_and_reaction(reaction.source, reaction)]
+
+    assert len(subject_mod_defs) == 1, 'Could not find subject phosphorylation domain for reaction {}'.format(str(reaction))
+    subject_mod_def = subject_mod_defs[0]
+
+    subject_unmodified = ModificationPropertyInstance(subject_mod_def, Modifier.unmodified)
+    subject_phosphorylated = ModificationPropertyInstance(subject_mod_def, Modifier.phosphorylated)
+
+    return (Intersection(PropertySet(MoleculeInstance(subject_mol_def, {subject_phosphorylated}, set(), None)),
+                         PropertySet(MoleculeInstance(object_mol_def, {object_unmodified}, set(), None))),
+            Intersection(PropertySet(MoleculeInstance(subject_mol_def, {subject_unmodified}, set(), None)),
+                         PropertySet(MoleculeInstance(object_mol_def, {object_phosphorylated}, set(), None))))
+
 def _molecule_instance_set_pair_from_ppi_reaction(reaction: Reaction, subject_mol_def: MoleculeDefinition, object_mol_def: MoleculeDefinition) -> Tuple[Set, Set]:
     first_ass_spec, second_ass_spec = ass_domain_specs_from_state(reaction.product)
 
@@ -291,4 +366,3 @@ def _molecule_instance_set_pair_from_ppi_reaction(reaction: Reaction, subject_mo
                          PropertySet(MoleculeInstance(object_mol_def, set(), {second_free}, None))),
             Intersection(PropertySet(MoleculeInstance(subject_mol_def, set(), {first_bound}, None)),
                          PropertySet(MoleculeInstance(object_mol_def, set(), {second_bound}, None))))
-

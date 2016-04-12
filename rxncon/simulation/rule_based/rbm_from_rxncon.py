@@ -1,20 +1,18 @@
-from typing import Dict, List, Set, Iterable, Tuple
+from typing import List, Set, Tuple
 import itertools as itt
-from collections import defaultdict
+
 
 from rxncon.core.rxncon_system import RxnConSystem
-from rxncon.core.specification import Specification
-from rxncon.core.reaction import Reaction, Directionality as RxnDirectionality
+from rxncon.core.reaction import Reaction, Directionality as RxnDirectionality, Influence as RxnInfluence
 from rxncon.core.state import State
 from rxncon.core.contingency import ContingencyType
 from rxncon.core.effector import Effector, AndEffector, NotEffector, OrEffector, StateEffector
-from rxncon.semantics.molecule_definition import MoleculeDefinition
-from rxncon.semantics.molecule_instance import MoleculeInstance, Binding
-from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel, Rule, Arrow, Parameter, Reactant, \
-    ComplexReactant, MoleculeReactant
+from rxncon.semantics.molecule_instance import MoleculeInstance
+from rxncon.simulation.rule_based.rule_based_model import Reactant, ComplexReactant, MoleculeReactant
+from rxncon.simulation.rule_based.molecule_from_rxncon import imploded_mol_instance_set
+from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel, Rule, Arrow, Parameter
 from rxncon.semantics.molecule_definition_from_rxncon import mol_defs_from_rxncon_sys
-from rxncon.simulation.rule_based.molecule_from_rxncon import mol_instance_set_from_state_set, mol_instance_set_pair_from_reaction, \
-    imploded_mol_instance_set
+from rxncon.simulation.rule_based.molecule_from_rxncon import mol_instance_set_from_state_set, mol_instance_set_pair_from_reaction
 from rxncon.venntastic.sets import Set as VennSet, PropertySet, Complement, Union, Intersection, nested_expression_from_list_and_binary_op
 
 
@@ -30,24 +28,24 @@ def rbm_from_rxncon_sys(rxconsys: RxnConSystem) -> RuleBasedModel:
 
 
 def rules_from_reaction(rxconsys: RxnConSystem, reaction: Reaction) -> Set[Rule]:
-    def get_arrow():
-        if reaction.directionality == RxnDirectionality.reversible:
+    def get_arrow(reaction):
+        if reaction.influence == RxnInfluence.bidirectional:
             return Arrow.reversible
-        elif reaction.directionality == RxnDirectionality.irreversible:
+        elif reaction.influence in [RxnInfluence.positive, RxnInfluence.negative, RxnInfluence.transfer]:
             return Arrow.irreversible
         else:
             raise AssertionError
 
-    def get_rates(qcc: _QuantitativeContingencyConfiguration):
+    def get_rates(reaction, qcc: _QuantitativeContingencyConfiguration):
         rate_suffix = '_{}'.format(str(reaction))
         if str(qcc):
             rate_suffix += '_{}'.format(str(qcc))
 
-        if reaction.directionality == RxnDirectionality.irreversible:
+        if reaction.influence in [RxnInfluence.positive, RxnInfluence.negative, RxnInfluence.transfer]:
             return {
                 Parameter('k' + rate_suffix, None)
             }
-        elif reaction.directionality == RxnDirectionality.reversible:
+        elif reaction.influence == RxnInfluence.bidirectional:
             return {
                 Parameter('kf' + rate_suffix, None),
                 Parameter('kr' + rate_suffix, None)
@@ -71,7 +69,7 @@ def rules_from_reaction(rxconsys: RxnConSystem, reaction: Reaction) -> Set[Rule]
             lhs_reactants = _reactants_from_molecule_sets(lhs_reacting_molecule_set, background_molecule_set)
             rhs_reactants = _reactants_from_molecule_sets(rhs_reacting_molecule_set, background_molecule_set)
 
-            rules.add(Rule(lhs_reactants, rhs_reactants, get_arrow(), get_rates(qcc)))
+            rules.add(Rule(lhs_reactants, rhs_reactants, get_arrow(reaction), get_rates(reaction, qcc)))
 
     return rules
 

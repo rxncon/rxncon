@@ -87,6 +87,8 @@ def rule_from_string(mol_defs, rule_string):
             mol_def = mol_def_from_string(mol_def)
         mol_def_dict[mol_def.spec] = mol_def
 
+    assert '@' in rule_string, 'Rate constants missing from rule string'
+
     if '<->' in rule_string:
         split, param_string = rule_string.split('@')
         split = split.split('<->')

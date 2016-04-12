@@ -3,8 +3,9 @@ from typing import List
 import pytest
 from rxncon.input.quick.quick import Quick
 from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_string, rule_from_string
-from rxncon.simulation.rule_based.molecule_from_rxncon import RuleBasedModelSupervisor
 from rxncon.simulation.rule_based.rule_based_model import Rule
+from rxncon.simulation.rule_based.rbm_from_rxncon import rules_from_reaction
+from rxncon.semantics.molecule_definition_from_rxncon import mol_defs_from_rxncon_sys
 
 
 RuleTestCase = namedtuple('RuleTestCase', ['quick_string', 'mol_def_strings', 'rule_strings'])
@@ -16,61 +17,57 @@ LRdimer: L(r,r!1).R(l!1) + R(l) <-> L(r!2,r!1).R(l!1).R(l!2) kp2, km2
 
 """
 
-def test_rule_generation(test_cases):
-    for test_case in test_cases:
+def test_rule_generation(case_basic_covalent_modification):
+    for test_case in case_basic_covalent_modification:
         assert is_rule_test_case_correct(test_case)
 
 @pytest.fixture
 def case_basic_covalent_modification():
     return [
-        RuleTestCase(
-            'A_p+_B',
-            ['A#', 'B#mod/B_[(Asite)]:u~p'],
-            ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:p']
-        ),
-
-        RuleTestCase(
-            'A_ap_B',
-            ['A#', 'B#mod/B_[(Asite)]:u~p'],
-            ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:p']
-        ),
-
-        RuleTestCase(
-            'A_pt_B',
-            ['A#', 'B#mod/B_[(Asite)]:u~p'],
-            ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:p']
-        ),
-
-        RuleTestCase(
-            'A_p-_B',
-            ['A#', 'B#mod/B_[(Asite)]:u~p'],
-            ['A# + B#mod/B_[(Asite)]:p -> A# + B#mod/B_[(Asite)]:u']
-        ),
-
-        RuleTestCase(
-            'A_gef_B',
-            ['A#', 'B#mod/B_[(Asite)]:u~gtp'],
-            ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:gtp']
-        ),
-
-        RuleTestCase(
-            'A_gap_B',
-            ['A#', 'B#mod/B_[(Asite)]:u~gtp'],
-            ['A# + B#mod/B_[(Asite)]:gtp -> A# + B#mod/B_[(Asite)]:u']
-        ),
-
-        RuleTestCase(
-            'A_ub+_B',
-            ['A#', 'B#mod/B_[(Asite)]:u~ub'],
-            ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:ub']
-        ),
-
-        RuleTestCase(
-            'A_ub-_B',
-            ['A#', 'B#mod/B_[(Asite)]:u~ub'],
-            ['A# + B#mod/B_[(Asite)]:ub -> A# + B#mod/B_[(Asite)]:u']
-        ),
-
+        # RuleTestCase(
+        #     'A_p+_B',
+        #     ['A#', 'B#mod/B_[(Asite)]:u~p'],
+        #     ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:p @ k_A_p+_B']
+        # ),
+        # RuleTestCase(
+        #     'A_ap_B',
+        #     ['A#', 'B#mod/B_[(Asite)]:u~p'],
+        #     ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:p']
+        # ),
+        # RuleTestCase(
+        #     'A_pt_B',
+        #     ['A#mod/A_[(Bsite)]:u~p', 'B#mod/B_[(Asite)]:u~p'],
+        #     ['A#mod/A_[(Bsite)]:p + B#mod/B_[(Asite)]:u -> A#mod/A_[(Bsite)]:u + B#mod/B_[(Asite)]:p @ k_A_pt_B']
+        # ),
+        # RuleTestCase(
+        #     'A_p-_B',
+        #     ['A#', 'B#mod/B_[(Asite)]:u~p'],
+        #     ['A# + B#mod/B_[(Asite)]:p -> A# + B#mod/B_[(Asite)]:u @ k_A_p-_B']
+        # ),
+        #
+        # RuleTestCase(
+        #     'A_gef_B',
+        #     ['A#', 'B#mod/B_[(Asite)]:u~gtp'],
+        #     ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:gtp']
+        # ),
+        #
+        # RuleTestCase(
+        #     'A_gap_B',
+        #     ['A#', 'B#mod/B_[(Asite)]:u~gtp'],
+        #     ['A# + B#mod/B_[(Asite)]:gtp -> A# + B#mod/B_[(Asite)]:u']
+        # ),
+        # RuleTestCase(
+        #     'A_ub+_B',
+        #     ['A#', 'B#mod/B_[(Asite)]:u~ub'],
+        #     ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:ub @ k_A_ub+_B']
+        # ),
+        #
+        # RuleTestCase(
+        #     'A_ub-_B',
+        #     ['A#', 'B#mod/B_[(Asite)]:u~ub'],
+        #     ['A# + B#mod/B_[(Asite)]:ub -> A# + B#mod/B_[(Asite)]:u @ k_A_ub-_B']
+        # ),
+        #
         RuleTestCase(
             'A_cut_B',
             ['A#', 'B#mod/B_[(Asite)]:u~truncated'],
@@ -550,27 +547,15 @@ def case_indirect_depenendcies():
 
 def is_rule_test_case_correct(test_case) -> bool:
     rxncon = Quick(test_case.quick_string).rxncon_system
-    actual_mol_defs = set(RuleBasedModelSupervisor(rxncon).mol_defs.values())
-    actual_rules    = RuleBasedModelSupervisor(rxncon).rules
+
+    actual_mol_defs = set(mol_defs_from_rxncon_sys(rxncon).values())
+    actual_rules = set()
+
+    for reaction in rxncon.reactions:
+        actual_rules = actual_rules.union(rules_from_reaction(rxncon, reaction))
 
     expected_mol_defs = {mol_def_from_string(x) for x in test_case.mol_def_strings}
-    expected_rules    = [rule_from_string(expected_mol_defs, x) for x in test_case.rule_strings]
+    expected_rules    = {rule_from_string(expected_mol_defs, x) for x in test_case.rule_strings}
 
-    return actual_mol_defs == expected_mol_defs and are_rule_lists_equivalent(actual_rules, expected_rules)
+    return actual_mol_defs == expected_mol_defs and actual_rules == expected_rules
 
-
-def are_rule_lists_equivalent(first_list: List[Rule], second_list: List[Rule]) -> bool:
-    while first_list:
-        first_rule = first_list.pop()
-        for second_rule in second_list:
-            if are_rules_equivalent(first_rule, second_rule):
-                second_list.remove(second_rule)
-
-    return len(second_list) == 0
-
-
-def are_rules_equivalent(first_rule: Rule, second_rule: Rule) -> bool:
-    # @todo we disregard the rates in this equivalence.
-    return set(first_rule.left_hand_side) == set(second_rule.left_hand_side) and \
-        set(first_rule.right_hand_side) == set(second_rule.right_hand_side) and \
-        first_rule.arrow_type == second_rule.arrow_type
