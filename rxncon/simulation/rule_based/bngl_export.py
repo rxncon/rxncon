@@ -41,7 +41,7 @@ class BNGLSystem:
         return 'begin model'
 
     def _molecule_types_string(self) -> str:
-        molecule_types = [string_from_molecule_definition(molecule_definition) for molecule_definition in self.rule_based_model.molecule_defs]
+        molecule_types = [string_from_molecule_definition(molecule_definition) for molecule_definition in sorted(self.rule_based_model.molecule_defs)]
         return 'begin molecule types\n{0}\nend molecule types\n'.format('\n'.join(molecule_types))
 
     def _seed_species_string(self) -> str:
@@ -75,10 +75,10 @@ def string_from_molecule_definition(molecule_definition: rxncon.semantics.molecu
             molecule_definition.localization_def:
         return molecule_definition.spec
 
-    definition_strings = [string_from_localization_definition(molecule_definition.localization_def)
+    definition_strings = [string_from_localization_definition(sorted(molecule_definition.localization_def))
                           if molecule_definition.localization_def else None,
-                          ','.join([string_from_modification_definition(x) for x in molecule_definition.modification_defs]),
-                          ','.join([string_from_association_definition(x) for x in molecule_definition.association_defs])]
+                          ','.join([string_from_modification_definition(x) for x in sorted(molecule_definition.modification_defs)]),
+                          ','.join([string_from_association_definition(x) for x in sorted(molecule_definition.association_defs)])]
 
     return '{0}({1})'.format(molecule_definition.spec, ','.join(x for x in definition_strings if x))
 
@@ -88,17 +88,17 @@ def string_from_molecule_specification(molecule_specification: rxncon.semantics.
             molecule_specification.localization_property:
         return molecule_specification.mol_def.name
 
-    specification_strings = [string_from_localization_specification(molecule_specification.localization_property)
+    specification_strings = [string_from_localization_specification(sorted(molecule_specification.localization_property))
                              if molecule_specification.localization_property else None,
-                             ','.join(string_from_modification_specification(x) for x in molecule_specification.modification_properties),
-                             ','.join(string_from_association_specification(x) for x in molecule_specification.association_properties)]
+                             ','.join(string_from_modification_specification(x) for x in sorted(molecule_specification.modification_properties)),
+                             ','.join(string_from_association_specification(x) for x in sorted(molecule_specification.association_properties))]
 
     return '{0}({1})'.format(molecule_specification.mol_def.name, ','.join(x for x in specification_strings if x))
 
 
 # MODIFICATION DEF / SPEC
 def string_from_modification_definition(modification_definition: rxncon.semantics.molecule_definition.ModificationPropertyDefinition) -> str:
-    return '{0}~{1}'.format(modification_definition.spec, '~'.join(modification_definition.valid_modifiers))
+    return '{0}~{1}'.format(modification_definition.spec, '~'.join(sorted(modification_definition.valid_modifiers)))
 
 
 def string_from_modification_specification(modification_specification: rxncon.semantics.molecule_instance.ModificationPropertyInstance) -> str:
@@ -142,7 +142,7 @@ def string_from_reactant(reactant: rbm.Reactant) -> str:
         return string_from_molecule_reactant(reactant)
 
     elif isinstance(reactant, rbm.ComplexReactant):
-        return string_from_complex_reactant(reactant)
+        return string_from_complex_reactant(sorted(reactant))
 
     else:
         raise ValueError('Reactant {0} is neither MoleculeReactant nor ComplexReactant'.format(str(reactant)))
@@ -186,9 +186,9 @@ def string_from_complex_reactant(complex_reactant: rbm.ComplexReactant) -> str:
 
 # RULE
 def string_from_rule(rule: rbm.Rule) -> str:
-    left_hand_side = [string_from_reactant(reactant) for reactant in rule.left_hand_side]
-    right_hand_side = [string_from_reactant(reactant) for reactant in rule.right_hand_side]
-    kinetic_parameters = [parameter.name for parameter in rule.rates]
+    left_hand_side = [string_from_reactant(reactant) for reactant in sorted(rule.left_hand_side)]
+    right_hand_side = [string_from_reactant(reactant) for reactant in sorted(rule.right_hand_side)]
+    kinetic_parameters = [parameter.name for parameter in sorted(rule.rates)]
     return '{0} {1} {2} {3}'.format(' + '.join(left_hand_side), rule.arrow_type.value, ' + '.join(right_hand_side), ','.join(kinetic_parameters))
 
 

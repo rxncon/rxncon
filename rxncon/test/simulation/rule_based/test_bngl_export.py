@@ -1,13 +1,17 @@
 import pytest
 
-import rxncon.semantics.molecule_definition
+import rxncon.semantics.molecule_definition as mold
 import rxncon.semantics.molecule_instance
 import rxncon.simulation.rule_based.rule_based_model as rbm
 import rxncon.simulation.rule_based.bngl_export as bex
+import rxncon.core.specification as spec
+
+
 
 
 def test_string_from_modification_definition():
-    modification_definition = rxncon.semantics.molecule_definition.ModificationPropertyDefinition('ModDomain', ['U', 'P'])
+    modification_definition = mold.ModificationPropertyDefinition(spec.ProteinSpecification('A', None, None, 'ModDomain')
+                                                                  , {mold.Modifier.unmodified, mold.Modifier.phosphorylated})
     mod_def_str = bex.string_from_modification_definition(modification_definition)
     assert mod_def_str == 'ModDomain~U~P'
 
