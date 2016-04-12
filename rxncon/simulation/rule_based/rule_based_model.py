@@ -55,7 +55,7 @@ class Rule:
             self.arrow_type == other.arrow_type and self.rates == other.rates
 
     def __hash__(self) -> int:
-        return hash('*a-rule*')
+        return hash(str(self))
 
     def __repr__(self):
         return str(self)
@@ -102,7 +102,7 @@ class MoleculeReactant(Reactant):
         return isinstance(other, MoleculeReactant) and self.molecule_specification == other.molecule_specification
 
     def __hash__(self):
-        return hash('*a-molecule*')
+        return hash(str(self))
 
     def __lt__(self, other):
         if isinstance(other, MoleculeReactant) and self.molecule_specification < other.molecule_specification:
@@ -131,14 +131,13 @@ class ComplexReactant(Reactant):
         return isinstance(other, ComplexReactant) and self.molecules == other.molecules and self.bindings == other.bindings
 
     def __hash__(self):
-        return hash('*a-complex*')
+        return hash(str(self))
 
     def __lt__(self, other):
         if isinstance(other, ComplexReactant) and self.molecules < other.molecules:
             return True
         elif isinstance(other, MoleculeReactant):
-            # todo: is this correct that only one molecule has to be smaller than the single molecule or should all be smaller??
-            any(mol_spec < other.molecule_specification for mol_spec in self.molecules)
+            return True
         return False
 
     def __repr__(self):
