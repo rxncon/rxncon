@@ -55,14 +55,16 @@ class Rule:
             self.arrow_type == other.arrow_type and self.rates == other.rates
 
     def __hash__(self) -> int:
-        return hash(str(self))
+        return hash('*a-rule*')
 
     def __repr__(self):
         return str(self)
 
     def __str__(self) -> str:
-        return 'Rule: {0} {1} {2}, {3}'.format('+'.join(str(x) for x in self.left_hand_side), self.arrow_type,
-                                               '+'.join(str(x) for x in self.right_hand_side), ', '.join(str(x) for x in self.rates))
+        return 'Rule: {0} {1} {2}, {3}'.format('+'.join(str(x) for x in sorted(self.left_hand_side)),
+                                               self.arrow_type,
+                                               '+'.join(str(x) for x in sorted(self.right_hand_side)),
+                                               ', '.join(str(x) for x in sorted(self.rates)))
 
     @property
     def molecules(self):
@@ -100,7 +102,7 @@ class MoleculeReactant(Reactant):
         return isinstance(other, MoleculeReactant) and self.molecule_specification == other.molecule_specification
 
     def __hash__(self):
-        return hash(str(self))
+        return hash('*a-molecule*')
 
     def __lt__(self, other):
         if isinstance(other, MoleculeReactant) and self.molecule_specification < other.molecule_specification:
@@ -129,7 +131,7 @@ class ComplexReactant(Reactant):
         return isinstance(other, ComplexReactant) and self.molecules == other.molecules and self.bindings == other.bindings
 
     def __hash__(self):
-        return hash(str(self))
+        return hash('*a-complex*')
 
     def __lt__(self, other):
         if isinstance(other, ComplexReactant) and self.molecules < other.molecules:
@@ -172,6 +174,17 @@ class Parameter:
 
     def __hash__(self):
         return hash(self.name)
+
+    def __lt__(self, other: 'Parameter'):
+        if self.name != other.name:
+            return self.name < other.name
+        if not self.value:
+            return True
+        elif not other.value:
+            return False
+        else:
+            return self.value < other.value
+
 
     def __repr__(self):
         return str(self)

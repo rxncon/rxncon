@@ -17,8 +17,8 @@ class Verb(Enum):
     phosphotransfer             = 'pt'
     guanine_nucleotide_exchange = 'gef'
     gtpase_activation           = 'gap'
-    ubiquitination                = 'ub+'
-    deubiquitination              = 'ub-'
+    ubiquitination              = 'ub+'
+    deubiquitination            = 'ub-'
     proteolytic_cleavage        = 'cut'
     protein_protein_interaction = 'ppi'
     intra_protein_interaction   = 'ipi'
@@ -55,10 +55,7 @@ class Influence(Enum):
     positive      = 1
     negative      = 2
     transfer      = 3
-<<<<<<< cb9d026fb20d40d5ab8053caf2721632377c6352
-=======
     bidirectional = 4
->>>>>>> before rebase
 
 
 @unique
@@ -108,14 +105,14 @@ VERB_REACTION_TABLE = {
                                         Directionality.unidirectional,
                                         Influence.negative,
                                         Isomerism.undefined,
-                                        CovalentReactionModifier.phosphor],
+                                        CovalentReactionModifier.guanosintriphosphat],
     Verb.ubiquitination:               [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.unidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.ubiquitin],
     Verb.deubiquitination:             [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.unidirectional,
                                         Influence.negative,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.ubiquitin],

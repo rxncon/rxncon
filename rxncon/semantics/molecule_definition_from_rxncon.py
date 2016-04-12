@@ -16,16 +16,12 @@ def mol_defs_from_rxncon_sys(rxnconsys: rxs.RxnConSystem) -> tg.Dict[spe.Specifi
 def mol_modifier_from_state_modifier(state_mod: sta.StateModifier) -> mol.Modifier:
     if state_mod == sta.StateModifier.phosphor:
         return mol.Modifier.phosphorylated
-
     elif state_mod == sta.StateModifier.ubiquitin:
         return mol.Modifier.ubiquitinated
-
     elif state_mod == sta.StateModifier.truncated:
         return mol.Modifier.truncated
-
-    elif state_mod == sta.StateModifier.unmodified:
-        raise NotImplementedError
-
+    elif state_mod == sta.StateModifier.guanosintriphosphat:
+        return mol.Modifier.guanosintriphosphat
     else:
         raise NotImplementedError
 

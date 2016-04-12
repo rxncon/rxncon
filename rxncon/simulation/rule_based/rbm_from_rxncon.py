@@ -29,9 +29,9 @@ def rbm_from_rxncon_sys(rxconsys: RxnConSystem) -> RuleBasedModel:
 
 def rules_from_reaction(rxconsys: RxnConSystem, reaction: Reaction) -> Set[Rule]:
     def get_arrow(reaction):
-        if reaction.influence == RxnInfluence.bidirectional:
+        if reaction.directionality == RxnDirectionality.bidirectional:
             return Arrow.reversible
-        elif reaction.influence in [RxnInfluence.positive, RxnInfluence.negative, RxnInfluence.transfer]:
+        elif reaction.directionality == RxnDirectionality.unidirectional:
             return Arrow.irreversible
         else:
             raise AssertionError
@@ -41,11 +41,11 @@ def rules_from_reaction(rxconsys: RxnConSystem, reaction: Reaction) -> Set[Rule]
         if str(qcc):
             rate_suffix += '_{}'.format(str(qcc))
 
-        if reaction.influence in [RxnInfluence.positive, RxnInfluence.negative, RxnInfluence.transfer]:
+        if reaction.directionality == RxnDirectionality.unidirectional:
             return {
                 Parameter('k' + rate_suffix, None)
             }
-        elif reaction.influence == RxnInfluence.bidirectional:
+        elif reaction.directionality == RxnDirectionality.bidirectional:
             return {
                 Parameter('kf' + rate_suffix, None),
                 Parameter('kr' + rate_suffix, None)
@@ -69,7 +69,8 @@ def rules_from_reaction(rxconsys: RxnConSystem, reaction: Reaction) -> Set[Rule]
             lhs_reactants = _reactants_from_molecule_sets(lhs_reacting_molecule_set, background_molecule_set)
             rhs_reactants = _reactants_from_molecule_sets(rhs_reacting_molecule_set, background_molecule_set)
 
-            rules.add(Rule(lhs_reactants, rhs_reactants, get_arrow(reaction), get_rates(reaction, qcc)))
+            if lhs_reactants and rhs_reactants:
+                rules.add(Rule(lhs_reactants, rhs_reactants, get_arrow(reaction), get_rates(reaction, qcc)))
 
     return rules
 

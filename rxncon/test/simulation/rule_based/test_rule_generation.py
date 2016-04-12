@@ -17,123 +17,142 @@ LRdimer: L(r,r!1).R(l!1) + R(l) <-> L(r!2,r!1).R(l!1).R(l!2) kp2, km2
 
 """
 
-def test_rule_generation(case_basic_covalent_modification):
-    for test_case in case_basic_covalent_modification:
+def test_rule_generation(case_covalent_modifications_strict_contingencies):
+    for test_case in case_covalent_modifications_strict_contingencies:
         assert is_rule_test_case_correct(test_case)
 
+# DONE
 @pytest.fixture
 def case_basic_covalent_modification():
     return [
-        # RuleTestCase(
-        #     'A_p+_B',
-        #     ['A#', 'B#mod/B_[(Asite)]:u~p'],
-        #     ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:p @ k_A_p+_B']
-        # ),
+        RuleTestCase(
+            'A_p+_B',
+            ['A#', 'B#mod/B_[(Asite)]:u~p'],
+            ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:p @ k_A_p+_B']
+        ),
+        # @todo fix this.
         # RuleTestCase(
         #     'A_ap_B',
         #     ['A#', 'B#mod/B_[(Asite)]:u~p'],
         #     ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:p']
         # ),
-        # RuleTestCase(
-        #     'A_pt_B',
-        #     ['A#mod/A_[(Bsite)]:u~p', 'B#mod/B_[(Asite)]:u~p'],
-        #     ['A#mod/A_[(Bsite)]:p + B#mod/B_[(Asite)]:u -> A#mod/A_[(Bsite)]:u + B#mod/B_[(Asite)]:p @ k_A_pt_B']
-        # ),
-        # RuleTestCase(
-        #     'A_p-_B',
-        #     ['A#', 'B#mod/B_[(Asite)]:u~p'],
-        #     ['A# + B#mod/B_[(Asite)]:p -> A# + B#mod/B_[(Asite)]:u @ k_A_p-_B']
-        # ),
-        #
-        # RuleTestCase(
-        #     'A_gef_B',
-        #     ['A#', 'B#mod/B_[(Asite)]:u~gtp'],
-        #     ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:gtp']
-        # ),
-        #
-        # RuleTestCase(
-        #     'A_gap_B',
-        #     ['A#', 'B#mod/B_[(Asite)]:u~gtp'],
-        #     ['A# + B#mod/B_[(Asite)]:gtp -> A# + B#mod/B_[(Asite)]:u']
-        # ),
-        # RuleTestCase(
-        #     'A_ub+_B',
-        #     ['A#', 'B#mod/B_[(Asite)]:u~ub'],
-        #     ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:ub @ k_A_ub+_B']
-        # ),
-        #
-        # RuleTestCase(
-        #     'A_ub-_B',
-        #     ['A#', 'B#mod/B_[(Asite)]:u~ub'],
-        #     ['A# + B#mod/B_[(Asite)]:ub -> A# + B#mod/B_[(Asite)]:u @ k_A_ub-_B']
-        # ),
-        #
+        RuleTestCase(
+            'A_pt_B',
+            ['A#mod/A_[(Bsite)]:u~p', 'B#mod/B_[(Asite)]:u~p'],
+            ['A#mod/A_[(Bsite)]:p + B#mod/B_[(Asite)]:u -> A#mod/A_[(Bsite)]:u + B#mod/B_[(Asite)]:p @ k_A_pt_B']
+        ),
+        RuleTestCase(
+            'A_p-_B',
+            ['A#', 'B#mod/B_[(Asite)]:u~p'],
+            ['A# + B#mod/B_[(Asite)]:p -> A# + B#mod/B_[(Asite)]:u @ k_A_p-_B']
+        ),
+        RuleTestCase(
+            'A_gef_B',
+            ['A#', 'B#mod/B_[(Asite)]:u~gtp'],
+            ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:gtp @ k_A_gef_B']
+        ),
+        RuleTestCase(
+            'A_gap_B',
+            ['A#', 'B#mod/B_[(Asite)]:u~gtp'],
+            ['A# + B#mod/B_[(Asite)]:gtp -> A# + B#mod/B_[(Asite)]:u @ k_A_gap_B']
+        ),
+        RuleTestCase(
+            'A_ub+_B',
+            ['A#', 'B#mod/B_[(Asite)]:u~ub'],
+            ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:ub @ k_A_ub+_B']
+        ),
+        RuleTestCase(
+            'A_ub-_B',
+            ['A#', 'B#mod/B_[(Asite)]:u~ub'],
+            ['A# + B#mod/B_[(Asite)]:ub -> A# + B#mod/B_[(Asite)]:u @ k_A_ub-_B']
+        ),
         RuleTestCase(
             'A_cut_B',
             ['A#', 'B#mod/B_[(Asite)]:u~truncated'],
-            ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:truncated']
+            ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:truncated @ k_A_cut_B']
         ),
     ]
 
 
 @pytest.fixture
-def case_covalent_modifications_strikt_contingencies():
+def case_covalent_modifications_strict_contingencies():
     return [
         RuleTestCase(
-            '''
-            D_ppi_E
-            A_ppi_B
-            D_pt_A; ! <comp>
-            <comp>; AND D--E
-            <comp>; AND A--B
-            ''',
-            ['A#ass/A_[Bassoc]:B_[Aassoc],mod/A_[(Dsite)]:u~p', 'B#ass/B_[Aassoc]:A_[Bassoc]',
-             'D#ass/D_[Eassoc]:E_[Dassoc],mod/D_[(Asite)]~u~p, E#ass/E_[Dassoc]:D_[Eassoc]'],
-            ['D#ass/D_[Eassoc]: + E#ass/E_[Dassoc]: <-> D#ass/D_[Eassoc]:E_[Dassoc]~0.E#ass/E_[Dassoc]:D_[Eassoc]~0',
-             'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0',
-             '''D#mod/D_[(Asite)]~p,ass/D_[Eassoc]:E_[Dassoc]~0.E#ass/E_[Dassoc]:D_[Eassoc]~0 + A#mod/A_[(Dsite)]:u,ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0
-             -> D#mod/D_[(Asite)]~u,ass/D_[Eassoc]:E_[Dassoc]~0.E#ass/E_[Dassoc]:D_[Eassoc]~0 + A#mod/A_[(Dsite)]:p,ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0'''
-             ]
+            '''A_p+_B; ! A--C
+            A_ppi_C''',
+            ['A#ass/A_[Cassoc]:C_[Aassoc]', 'B#mod/B_[(Asite)]:u~p', 'C#ass/C_[Aassoc]:A_[Cassoc]'],
+            ['A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] + B#mod/B_[(Asite)]:u -> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] + B#mod/B_[(Asite)]:p @ k_A_p+_B',
+             'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C']
         ),
-
         RuleTestCase(
-            '''
-            D_p+_C
-            A_ppi_C
-            C_p+_B_[(r)]; ! C-{p}
-            C_ub+_B_[(r)]; ! A--C; ! C-{P}
-            ''',
-            ['A#ass/A_[Cassoc]:C_[Aassoc]', 'B#mod/B_[(r)]:u~p~ub', 'C#ass/C_[Aassoc]:A_[Cassoc],mod/C_[(Dsite)]:u~p',
-             'D#'],
-            ['D# + C#mod/C_[(Dsite)]:u -> D# + C#mod/C_[(Dsite)]:p',
-             'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0',
-             'C#mod/C_[(Dsite)]:p + B#mod/B_[(r)]:u -> C#mod/C_[(Dsite)]:p + B#mod/B_[(r)]:p',
-             '''A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:u
-             -> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:ub'''
-             ]
+            '''A_p+_B; x A--C
+            A_ppi_C''',
+            ['A#ass/A_[Cassoc]:C_[Aassoc]', 'B#mod/B_[(Asite)]:u~p', 'C#ass/C_[Aassoc]:A_[Cassoc]'],
+            ['A#ass/A_[Cassoc]: + B#mod/B_[(Asite)]:u -> A#ass/A_[Cassoc]: + B#mod/B_[(Asite)]:p @ k_A_p+_B',
+             'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C']
         ),
-
         RuleTestCase(
-            '''
-            Ste5_[MEKK]_ppi_Ste11
-            Ste5_[MEK]_ppi_Ste7
-            Ste5_[BDSte5]_ppi_Ste5_[BDSte5]
-            Ste11_[KD]_P+_Ste7_[(ALS359)]; ! <Ste7-5-5-11>
-            <Ste7-5-5-11>; AND Ste5_[MEKK]--Ste11; AND Ste5_[MEK]--Ste7; AND Ste5_[BDSte5]--Ste5_[BDSte5]''',
-            ['Ste5#ass/Ste5_[MEK]:Ste7_[Ste5assoc], ass/Ste5_[MEKK]:Ste11_[Ste5assoc], ass/Ste5_[BDSte5]:Ste5_[BDSte5]',
-             'Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEKK]','Ste7#mod/Ste7_[(ALS359)]:u~p, ass/Ste7_[Ste5assoc]:Ste5_[MEK]'
-             ],
-            # Ste11#ass/Ste11_Ste5assoc]:Ste5_[MEKK], Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]
-            #                                              ass/Ste5_[MEKK]:Ste11_[Ste5assoc]
-            # Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5], ass/Ste5_[MEK]:Ste7_[Ste5assoc]
-            # the first rule is new and conciders that we should have the pattern Ste5(BDSte5, MEKK).Ste5(BDSte5, MEK) and Ste5(BDSte5, MEKK, MEK).Ste5(BDSte5) to
-            # reach the entire state space
-            ['''Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEKK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2.Ste7#mod/Ste7_[(ALS359)]:u, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2
-             -> Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEKK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2.Ste7#mod/Ste7_[(ALS359)]:p, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2''',
-             '''Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1.Ste7#mod/Ste7_[(ALS359)]:u, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2
-             -> Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1.Ste7#mod/Ste7_[(ALS359)]:p, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2'''
-             ]
-        )
+            '''A_p+_B
+            B_ppi_C; ! B-{p}''',
+            ['A#', 'B#ass/B_[Cassoc]:C_[Bassoc],mod/B_[(Asite)]:u~p', 'C#ass/C_[Bassoc]:B_[Cassoc]'],
+            ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:p @ k_A_p+_B',
+             'B#mod/B_[(Asite)]:p,ass/B_[Cassoc]: + C#ass/C_[Bassoc]: <-> B#mod/B_[(Asite)]:p,ass/B_[Cassoc]:C_[Bassoc].C#ass/C_[Bassoc]:B_[Cassoc] @ kf_B_ppi_C, kr_B_ppi_C']
+        ),
+        # RuleTestCase(
+        #     '''
+        #     D_ppi_E
+        #     A_ppi_B
+        #     D_pt_A; ! <comp>
+        #     <comp>; AND D--E
+        #     <comp>; AND A--B
+        #     ''',
+        #     ['A#ass/A_[Bassoc]:B_[Aassoc],mod/A_[(Dsite)]:u~p', 'B#ass/B_[Aassoc]:A_[Bassoc]',
+        #      'D#ass/D_[Eassoc]:E_[Dassoc],mod/D_[(Asite)]~u~p, E#ass/E_[Dassoc]:D_[Eassoc]'],
+        #     ['D#ass/D_[Eassoc]: + E#ass/E_[Dassoc]: <-> D#ass/D_[Eassoc]:E_[Dassoc]~0.E#ass/E_[Dassoc]:D_[Eassoc]~0',
+        #      'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0',
+        #      '''D#mod/D_[(Asite)]~p,ass/D_[Eassoc]:E_[Dassoc]~0.E#ass/E_[Dassoc]:D_[Eassoc]~0 + A#mod/A_[(Dsite)]:u,ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0
+        #      -> D#mod/D_[(Asite)]~u,ass/D_[Eassoc]:E_[Dassoc]~0.E#ass/E_[Dassoc]:D_[Eassoc]~0 + A#mod/A_[(Dsite)]:p,ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0'''
+        #      ]
+        # ),
+        #
+        # RuleTestCase(
+        #     '''
+        #     D_p+_C
+        #     A_ppi_C
+        #     C_p+_B_[(r)]; ! C-{p}
+        #     C_ub+_B_[(r)]; ! A--C; ! C-{P}
+        #     ''',
+        #     ['A#ass/A_[Cassoc]:C_[Aassoc]', 'B#mod/B_[(r)]:u~p~ub', 'C#ass/C_[Aassoc]:A_[Cassoc],mod/C_[(Dsite)]:u~p',
+        #      'D#'],
+        #     ['D# + C#mod/C_[(Dsite)]:u -> D# + C#mod/C_[(Dsite)]:p',
+        #      'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0',
+        #      'C#mod/C_[(Dsite)]:p + B#mod/B_[(r)]:u -> C#mod/C_[(Dsite)]:p + B#mod/B_[(r)]:p',
+        #      '''A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:u
+        #      -> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:ub'''
+        #      ]
+        # ),
+        #
+        # RuleTestCase(
+        #     '''
+        #     Ste5_[MEKK]_ppi_Ste11
+        #     Ste5_[MEK]_ppi_Ste7
+        #     Ste5_[BDSte5]_ppi_Ste5_[BDSte5]
+        #     Ste11_[KD]_P+_Ste7_[(ALS359)]; ! <Ste7-5-5-11>
+        #     <Ste7-5-5-11>; AND Ste5_[MEKK]--Ste11; AND Ste5_[MEK]--Ste7; AND Ste5_[BDSte5]--Ste5_[BDSte5]''',
+        #     ['Ste5#ass/Ste5_[MEK]:Ste7_[Ste5assoc], ass/Ste5_[MEKK]:Ste11_[Ste5assoc], ass/Ste5_[BDSte5]:Ste5_[BDSte5]',
+        #      'Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEKK]','Ste7#mod/Ste7_[(ALS359)]:u~p, ass/Ste7_[Ste5assoc]:Ste5_[MEK]'
+        #      ],
+        #     # Ste11#ass/Ste11_Ste5assoc]:Ste5_[MEKK], Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]
+        #     #                                              ass/Ste5_[MEKK]:Ste11_[Ste5assoc]
+        #     # Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5], ass/Ste5_[MEK]:Ste7_[Ste5assoc]
+        #     # the first rule is new and conciders that we should have the pattern Ste5(BDSte5, MEKK).Ste5(BDSte5, MEK) and Ste5(BDSte5, MEKK, MEK).Ste5(BDSte5) to
+        #     # reach the entire state space
+        #     ['''Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEKK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2.Ste7#mod/Ste7_[(ALS359)]:u, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2
+        #      -> Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEKK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2.Ste7#mod/Ste7_[(ALS359)]:p, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2''',
+        #      '''Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1.Ste7#mod/Ste7_[(ALS359)]:u, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2
+        #      -> Ste11#ass/Ste11_[Ste5assoc]:Ste5_[MEK]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1, ass/Ste5_[MEK]:Ste7_[Ste5assoc]~2, ass/Ste5_[MEKK]:Ste11_[Ste5assoc]~0.Ste5#ass/Ste5_[BDSte5]:Ste5_[BDSte5]~1.Ste7#mod/Ste7_[(ALS359)]:p, ass/Ste7_[Ste5assoc]:Ste5_[MEK]~2'''
+        #      ]
+        # )
     ]
 
 
@@ -557,5 +576,26 @@ def is_rule_test_case_correct(test_case) -> bool:
     expected_mol_defs = {mol_def_from_string(x) for x in test_case.mol_def_strings}
     expected_rules    = {rule_from_string(expected_mol_defs, x) for x in test_case.rule_strings}
 
-    return actual_mol_defs == expected_mol_defs and actual_rules == expected_rules
+    correct_mol_defs = actual_mol_defs == expected_mol_defs
+    correct_rules = actual_rules == expected_rules
+
+    if not correct_mol_defs:
+        print('Expected molecule definitions:')
+        print(expected_mol_defs)
+        print()
+        print('Actual molecule definitions:')
+        print(actual_mol_defs)
+
+    if not correct_rules:
+        print('Expected rules:')
+        for rule in expected_rules:
+            print(rule)
+            print()
+        print()
+        print('Actual rules:')
+        for rule in actual_rules:
+            print(rule)
+            print()
+
+    return correct_mol_defs and correct_rules
 

@@ -7,10 +7,11 @@ import rxncon.core.specification as spe
 
 @unique
 class Modifier(Enum):
-    unmodified     = 'u'
-    phosphorylated = 'p'
-    ubiquitinated  = 'ub'
-    truncated       = 'truncated'
+    unmodified          = 'u'
+    phosphorylated      = 'p'
+    ubiquitinated       = 'ub'
+    truncated           = 'truncated'
+    guanosintriphosphat = 'gtp'
 
 @unique
 class OccupationStatus(Enum):
