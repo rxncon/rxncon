@@ -72,12 +72,12 @@ def specification_from_string(specification_string: str) -> com.Specification:
             residue = None
 
         else:
-            raise AssertionError
+            raise SyntaxError('Could not parse specification string {}'.format(specification_string))
 
         return create_specification_from_name_suffix(name, domain, subdomain, residue)
 
     else:
-        raise err.RxnConParseError('Could not parse component string '.format(specification_string))
+        raise SyntaxError('Could not parse specification string {}'.format(specification_string))
 
 
 @tc.typecheck

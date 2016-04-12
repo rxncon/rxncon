@@ -17,8 +17,8 @@ LRdimer: L(r,r!1).R(l!1) + R(l) <-> L(r!2,r!1).R(l!1).R(l!2) kp2, km2
 
 """
 
-def test_rule_generation(case_covalent_modifications_strict_contingencies):
-    for test_case in case_covalent_modifications_strict_contingencies:
+def test_rule_generation(case_covalent_modifications_quant_contingencies):
+    for test_case in case_covalent_modifications_quant_contingencies:
         assert is_rule_test_case_correct(test_case)
 
 # DONE
@@ -74,63 +74,61 @@ def case_basic_covalent_modification():
     ]
 
 
+# DONE
 @pytest.fixture
 def case_covalent_modifications_strict_contingencies():
     return [
         RuleTestCase(
-            '''A_p+_B; ! A--C
+            '''
+            A_p+_B; ! A--C
             A_ppi_C''',
             ['A#ass/A_[Cassoc]:C_[Aassoc]', 'B#mod/B_[(Asite)]:u~p', 'C#ass/C_[Aassoc]:A_[Cassoc]'],
             ['A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] + B#mod/B_[(Asite)]:u -> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] + B#mod/B_[(Asite)]:p @ k_A_p+_B',
              'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C']
         ),
         RuleTestCase(
-            '''A_p+_B; x A--C
+            '''
+            A_p+_B; x A--C
             A_ppi_C''',
             ['A#ass/A_[Cassoc]:C_[Aassoc]', 'B#mod/B_[(Asite)]:u~p', 'C#ass/C_[Aassoc]:A_[Cassoc]'],
             ['A#ass/A_[Cassoc]: + B#mod/B_[(Asite)]:u -> A#ass/A_[Cassoc]: + B#mod/B_[(Asite)]:p @ k_A_p+_B',
              'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C']
         ),
         RuleTestCase(
-            '''A_p+_B
+            '''
+            A_p+_B
             B_ppi_C; ! B-{p}''',
             ['A#', 'B#ass/B_[Cassoc]:C_[Bassoc],mod/B_[(Asite)]:u~p', 'C#ass/C_[Bassoc]:B_[Cassoc]'],
             ['A# + B#mod/B_[(Asite)]:u -> A# + B#mod/B_[(Asite)]:p @ k_A_p+_B',
              'B#mod/B_[(Asite)]:p,ass/B_[Cassoc]: + C#ass/C_[Bassoc]: <-> B#mod/B_[(Asite)]:p,ass/B_[Cassoc]:C_[Bassoc].C#ass/C_[Bassoc]:B_[Cassoc] @ kf_B_ppi_C, kr_B_ppi_C']
         ),
-        # RuleTestCase(
-        #     '''
-        #     D_ppi_E
-        #     A_ppi_B
-        #     D_pt_A; ! <comp>
-        #     <comp>; AND D--E
-        #     <comp>; AND A--B
-        #     ''',
-        #     ['A#ass/A_[Bassoc]:B_[Aassoc],mod/A_[(Dsite)]:u~p', 'B#ass/B_[Aassoc]:A_[Bassoc]',
-        #      'D#ass/D_[Eassoc]:E_[Dassoc],mod/D_[(Asite)]~u~p, E#ass/E_[Dassoc]:D_[Eassoc]'],
-        #     ['D#ass/D_[Eassoc]: + E#ass/E_[Dassoc]: <-> D#ass/D_[Eassoc]:E_[Dassoc]~0.E#ass/E_[Dassoc]:D_[Eassoc]~0',
-        #      'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0',
-        #      '''D#mod/D_[(Asite)]~p,ass/D_[Eassoc]:E_[Dassoc]~0.E#ass/E_[Dassoc]:D_[Eassoc]~0 + A#mod/A_[(Dsite)]:u,ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0
-        #      -> D#mod/D_[(Asite)]~u,ass/D_[Eassoc]:E_[Dassoc]~0.E#ass/E_[Dassoc]:D_[Eassoc]~0 + A#mod/A_[(Dsite)]:p,ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0'''
-        #      ]
-        # ),
-        #
-        # RuleTestCase(
-        #     '''
-        #     D_p+_C
-        #     A_ppi_C
-        #     C_p+_B_[(r)]; ! C-{p}
-        #     C_ub+_B_[(r)]; ! A--C; ! C-{P}
-        #     ''',
-        #     ['A#ass/A_[Cassoc]:C_[Aassoc]', 'B#mod/B_[(r)]:u~p~ub', 'C#ass/C_[Aassoc]:A_[Cassoc],mod/C_[(Dsite)]:u~p',
-        #      'D#'],
-        #     ['D# + C#mod/C_[(Dsite)]:u -> D# + C#mod/C_[(Dsite)]:p',
-        #      'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#ass/C_[Aassoc]:A_[Cassoc]~0',
-        #      'C#mod/C_[(Dsite)]:p + B#mod/B_[(r)]:u -> C#mod/C_[(Dsite)]:p + B#mod/B_[(r)]:p',
-        #      '''A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:u
-        #      -> A#ass/A_[Cassoc]:C_[Aassoc]~0.C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc]~0 + B#mod/B_[(r)]:ub'''
-        #      ]
-        # ),
+        RuleTestCase(
+            '''
+            D_ppi_E
+            A_ppi_B
+            D_pt_A; ! <comp>
+            <comp>; AND D--E
+            <comp>; AND A--B
+            ''',
+            ['A#ass/A_[Bassoc]:B_[Aassoc],mod/A_[(Dsite)]:u~p', 'B#ass/B_[Aassoc]:A_[Bassoc]',
+             'D#ass/D_[Eassoc]:E_[Dassoc],mod/D_[(Asite)]:u~p', 'E#ass/E_[Dassoc]:D_[Eassoc]'],
+            ['D#ass/D_[Eassoc]: + E#ass/E_[Dassoc]: <-> D#ass/D_[Eassoc]:E_[Dassoc].E#ass/E_[Dassoc]:D_[Eassoc] @ kr_D_ppi_E, kf_D_ppi_E',
+             'A#ass/A_[Bassoc]: + B#ass/B_[Aassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc].B#ass/B_[Aassoc]:A_[Bassoc] @ kf_A_ppi_B, kr_A_ppi_B',
+             'D#mod/D_[(Asite)]:p,ass/D_[Eassoc]:E_[Dassoc].E#ass/E_[Dassoc]:D_[Eassoc] + A#mod/A_[(Dsite)]:u,ass/A_[Bassoc]:B_[Aassoc].B#ass/B_[Aassoc]:A_[Bassoc] -> D#mod/D_[(Asite)]:u,ass/D_[Eassoc]:E_[Dassoc].E#ass/E_[Dassoc]:D_[Eassoc] + A#mod/A_[(Dsite)]:p,ass/A_[Bassoc]:B_[Aassoc].B#ass/B_[Aassoc]:A_[Bassoc] @ k_D_pt_A']
+        ),
+        RuleTestCase(
+            '''
+            D_p+_C
+            A_ppi_C
+            C_p+_B_[(r)]; ! C-{p}
+            C_ub+_B_[(r)]; ! A--C; ! C-{P}
+            ''',
+            ['A#ass/A_[Cassoc]:C_[Aassoc]', 'B#mod/B_[(r)]:u~p~ub', 'C#ass/C_[Aassoc]:A_[Cassoc],mod/C_[(Dsite)]:u~p', 'D#'],
+            ['D# + C#mod/C_[(Dsite)]:u -> D# + C#mod/C_[(Dsite)]:p @ k_D_p+_C',
+             'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
+             'C#mod/C_[(Dsite)]:p + B#mod/B_[(r)]:u -> C#mod/C_[(Dsite)]:p + B#mod/B_[(r)]:p @ k_C_p+_B_[(r)]',
+             'A#ass/A_[Cassoc]:C_[Aassoc].C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc] + B#mod/B_[(r)]:u -> A#ass/A_[Cassoc]:C_[Aassoc].C#mod/C_[(Dsite)]:p,ass/C_[Aassoc]:A_[Cassoc] + B#mod/B_[(r)]:ub @ k_C_ub+_B_[(r)]']
+        ),
         #
         # RuleTestCase(
         #     '''
@@ -166,7 +164,7 @@ def case_covalent_modifications_quant_contingencies():
             ['B#mod/B_[(r)]:u~p', 'C#mod/C_[(Dsite)]:u~p', 'D#'],
             ['D# + C#mod/C_[(Dsite)]:u -> D# + C#mod/C_[(Dsite)]:p',
              'C#mod/C_[(Dsite)]:p + B#mod/B_[(r)]:u -> C#mod/C_[(Dsite)]:p + B#mod/B_[(r)]:p',
-             'C#mod/C_[(Dsite)]:u + B#mod/B_[(r)]:u -> C#mod/C_[(Dsite)]:u + B#mod/B_[(r)]:p',]
+             'C#mod/C_[(Dsite)]:u + B#mod/B_[(r)]:u -> C#mod/C_[(Dsite)]:u + B#mod/B_[(r)]:p']
         ),
 
         RuleTestCase(
