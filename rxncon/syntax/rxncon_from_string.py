@@ -198,7 +198,17 @@ def _covalent_modification_state_from_string(state_string: str, modifier: sta.St
 def _component_state_from_string(state_string: str):
     return sta.ComponentState(specification_from_string(state_string))
 
+
 @tc.typecheck
 def _translocation_state_from_string(state_string) -> sta.TranslocationState:
     # @todo Implement this.
     pass
+
+
+def reaction_definition_from_string(rxn_uid: str, rxn_type: str, modifier: str):
+    verb = rxn_uid
+    reaction_class = rxn_type.split('.')[0]
+    reversibility = rxn_type.split('.')[1]
+    influence = rxn_type.split('.')[2]
+    isomerism = rxn_type.split('.')[3]
+    modifier = modifier

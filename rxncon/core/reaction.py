@@ -1,4 +1,4 @@
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 from enum import Enum, unique
 from typing import List, Optional
 import typecheck as tc
@@ -39,8 +39,14 @@ class ReactionClass(Enum):
 
 @unique
 class Directionality(Enum):
-    reversible   = 1
-    irreversible = 2
+    bidirectional   = 1
+    unidirectional = 2
+
+
+@unique
+class Reversibility(Enum):
+    temporary   = 1
+    permanent = 2
 
 
 # @todo Bidirectional needs separate identifier?
@@ -48,7 +54,6 @@ class Influence(Enum):
     positive      = 1
     negative      = 2
     transfer      = 3
-    bidirectional = 1
 
 
 @unique
@@ -57,93 +62,95 @@ class Isomerism(Enum):
     trans     = 1
     cis       = 2
 
+
 # @todo lower case.
 @unique
 class CovalentReactionModifier(Enum):
     undefined = None
     phosphor  = 'P'
     ubiquitin = 'Ub'
+    guanosintriphosphat = 'gtp'
     truncated = 'Truncated'
 
 
 VERB_REACTION_TABLE = {
     Verb.phosphorylation:              [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.unidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.phosphor],
     Verb.dephosphorylation:            [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.unidirectional,
                                         Influence.negative,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.phosphor],
     Verb.autophosphorylation:          [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.unidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.phosphor],
     Verb.phosphotransfer:              [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.unidirectional,
                                         Influence.transfer,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.phosphor],
     Verb.guanine_nucleotide_exchange:  [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.unidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
-                                        CovalentReactionModifier.phosphor],
+                                        CovalentReactionModifier.guanosintriphosphat],
     Verb.gtpase_activation:            [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.unidirectional,
                                         Influence.negative,
                                         Isomerism.undefined,
-                                        CovalentReactionModifier.phosphor],
+                                        CovalentReactionModifier.guanosintriphosphat],
     Verb.ubiquination:                 [ReactionClass.covalent_modification,
-                                        Directionality.reversible,
+                                        Directionality.unidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.ubiquitin],
     Verb.proteolytic_cleavage:         [ReactionClass.covalent_modification,
-                                        Directionality.irreversible,
+                                        Directionality.unidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.truncated],
     Verb.protein_protein_interaction:  [ReactionClass.interaction,
-                                        Directionality.reversible,
-                                        Influence.bidirectional,
+                                        Directionality.bidirectional,
+                                        Influence.positive,
                                         Isomerism.trans,
                                         CovalentReactionModifier.undefined],
     Verb.intra_protein_interaction:    [ReactionClass.interaction,
-                                        Directionality.reversible,
-                                        Influence.bidirectional,
+                                        Directionality.bidirectional,
+                                        Influence.positive,
                                         Isomerism.cis,
                                         CovalentReactionModifier.undefined],
     Verb.non_protein_interaction:      [ReactionClass.interaction,
-                                        Directionality.reversible,
+                                        Directionality.bidirectional,
                                         Influence.positive,
                                         Isomerism.trans,
                                         CovalentReactionModifier.undefined],
     Verb.binding_to_dna:               [ReactionClass.interaction,
-                                        Directionality.reversible,
+                                        Directionality.bidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.undefined],
     Verb.synthesis:                    [ReactionClass.synthesis_degradation,
-                                        Directionality.irreversible,
+                                        Directionality.unidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.undefined],
     Verb.degradation:                  [ReactionClass.synthesis_degradation,
-                                        Directionality.irreversible,
+                                        Directionality.unidirectional,
                                         Influence.negative,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.undefined],
     Verb.translation:                  [ReactionClass.synthesis_degradation,
-                                        Directionality.irreversible,
+                                        Directionality.unidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.undefined],
     Verb.transcription:                [ReactionClass.synthesis_degradation,
-                                        Directionality.irreversible,
+                                        Directionality.unidirectional,
                                         Influence.positive,
                                         Isomerism.undefined,
                                         CovalentReactionModifier.undefined]
@@ -237,16 +244,16 @@ def states_from_reaction(reaction: Reaction) -> SourceStateProductState:
     else:
         raise err.RxnConLogicError('Non-exhaustive switch statement in state_from_reaction for case {}'.format(reaction))
 
+mapping_modifications = OrderedDict([(CovalentReactionModifier.phosphor, sta.StateModifier.phosphor),
+                                     (CovalentReactionModifier.ubiquitin, sta.StateModifier.ubiquitin),
+                                     (CovalentReactionModifier.truncated, sta.StateModifier.truncated),
+                                     (CovalentReactionModifier.guanosintriphosphat, sta.StateModifier.guanosintriphosphat),
+                                     ])
+
 
 def _covalent_modification_states_from_reaction(reaction: Reaction) -> SourceStateProductState:
-    if reaction.modifier == CovalentReactionModifier.phosphor:
-        modifier = sta.StateModifier.phosphor
-
-    elif reaction.modifier == CovalentReactionModifier.ubiquitin:
-        modifier = sta.StateModifier.ubiquitin
-
-    elif reaction.modifier == CovalentReactionModifier.truncated:
-        modifier = sta.StateModifier.truncated
+    if reaction.modifier in mapping_modifications:
+        modifier = mapping_modifications[reaction.modifier]
 
     else:
         raise err.RxnConLogicError('Could not map rxn modifier {0} to state modifier'.format(reaction.modifier))

@@ -12,6 +12,7 @@ class StateModifier(Enum):
     unmodified = 'u'
     phosphor   = 'p'
     ubiquitin  = 'ub'
+    guanosintriphosphat = 'gtp'
     truncated  = 'truncated'
 
 
