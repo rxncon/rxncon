@@ -205,6 +205,52 @@ def imploded_mol_instance_set(mol_instance_set: Set) -> Set:
     return nested_expression_from_list_and_binary_op(cleaned_terms, Union)
 
 
+def imploded_mol_instance_set(mol_instance_set: Set) -> Set:
+    def _imploded_mol_instances(mol_instances: List[MoleculeInstance]) -> Optional[MoleculeInstance]:
+        # Returns None if the List of MoleculeInstance contains internal inconsistencies, e.g.
+        # if there are multiple localization properties, or if a single residue is both phosphorylated and
+        # unmodified.
+        mol_def = mol_instances[0].mol_def
+        assert all(x.mol_def == mol_def for x in mol_instances)
+        asss = set()
+        mods = set()
+        loc = None
+
+        for mol_instance in mol_instances:
+            [asss.add(x) for x in mol_instance.association_properties]
+            [mods.add(x) for x in mol_instance.modification_properties]
+            if mol_instance.localization_property:
+                if loc is None:
+                    loc = mol_instance.localization_property
+                else:
+                    return None
+
+        if len([ass.association_def for ass in asss]) != len(set([ass.association_def for ass in asss])):
+            return None
+
+        if len([mod.modification_def for mod in mods]) != len(set([mod.modification_def for mod in mods])):
+            return None
+
+        return MoleculeInstance(mol_def, mods, asss, loc)
+
+    nested_form = mol_instance_set.to_nested_list_form()
+    cleaned_terms = []
+
+    for term in nested_form:
+        instances = defaultdict(list)
+        for mol in term:
+            assert isinstance(mol, PropertySet)
+            assert not mol.value or isinstance(mol.value, MoleculeInstance)
+            if mol.value:
+                instances[mol.value.mol_def] += [mol.value]
+
+        imploded_mols = [_imploded_mol_instances(v) for k, v in instances.items() if _imploded_mol_instances(v)]
+        cleaned_terms.append(
+            nested_expression_from_list_and_binary_op([PropertySet(x) for x in imploded_mols], Intersection))
+
+    return nested_expression_from_list_and_binary_op(cleaned_terms, Union)
+
+
 ### MAPPING STATES TO MOLECULE INSTANCES ###
 def _molecule_instance_set_from_mod_state(mol_defs: Dict[Specification, MoleculeDefinition], state: CovalentModificationState) -> Set:
     def _mol_modifier_from_state_modifier(state_modifier: StateModifier) -> Modifier:
