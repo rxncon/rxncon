@@ -108,8 +108,7 @@ class MoleculeReactant(Reactant):
         if isinstance(other, MoleculeReactant) and self.molecule_specification < other.molecule_specification:
             return True
         elif isinstance(other, ComplexReactant):
-            all(self.molecule_specification < mol_spec for mol_spec in other.molecules)
-
+            return False
         return False
 
     def __repr__(self):
@@ -134,7 +133,7 @@ class ComplexReactant(Reactant):
         return hash(str(self))
 
     def __lt__(self, other):
-        if isinstance(other, ComplexReactant) and self.molecules < other.molecules:
+        if isinstance(other, ComplexReactant) and sorted(self.molecules) < sorted(other.molecules):
             return True
         elif isinstance(other, MoleculeReactant):
             return True
