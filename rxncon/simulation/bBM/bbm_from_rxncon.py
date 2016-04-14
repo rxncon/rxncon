@@ -43,6 +43,7 @@ def initial_states_from_rxncon(rxconsys: rxs.RxnConSystem):
 
 def rule_for_reaction_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reaction: rxn.Reaction,
                                                   system_rules: tg.List[bbm.Rule]) -> bbm.Rule:
+    # do we need this here?
     all_visited_nodes = get_rule_targets(system_rules)
     if bbm.Node(reaction) in all_visited_nodes:
         return None

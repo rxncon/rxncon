@@ -6,9 +6,7 @@ import rxncon.simulation.bBM.bBM_boolnet_exporter as bbe
 
 def test_rule():
     rxncon_sys = quick.Quick("""A_ppi_B; ! <comp>
-                               <comp>; AND A--C
-                               <comp>; AND A--D
-                               <comp>; AND A-{p}
+                               <comp>; AND A--C; AND A--D; AND A-{p}
                                A_ppi_C
                                A_ppi_D
                                C_p+_A

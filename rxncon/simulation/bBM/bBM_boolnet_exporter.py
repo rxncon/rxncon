@@ -63,6 +63,7 @@ class BoolNetSystem:
 
     def _factor_to_string(self, factor: bbm.Factor):
         if isinstance(factor, venn.PropertySet):
+            # smallest element, leaf of vennSet
             return self._generate_name(factor.value)
         elif isinstance(factor, venn.Complement):
             return "! {0}".format(self._factor_to_string(factor.expr))
@@ -100,6 +101,7 @@ def string_from_reaction(reaction: rxn.Reaction) -> str:
 
 
 def replace_invalid_chars(value):
+    # todo: make a table out of this for marcus
     value = re.sub("-", "_", value)
     value = re.sub('[\[{(]', ".", value)
     value = re.sub('[\]})]', ".", value)
