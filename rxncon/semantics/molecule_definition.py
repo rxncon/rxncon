@@ -4,9 +4,10 @@ import typing as tp
 import typecheck as tc
 import rxncon.core.specification as spe
 
+from rxncon.util.utils import OrderedEnum
 
 @unique
-class Modifier(Enum):
+class Modifier(OrderedEnum):
     unmodified          = 'u'
     phosphorylated      = 'p'
     ubiquitinated       = 'ub'
@@ -14,14 +15,14 @@ class Modifier(Enum):
     guanosintriphosphat = 'gtp'
 
 @unique
-class OccupationStatus(Enum):
+class OccupationStatus(OrderedEnum):
     not_specified = 0
     not_occupied = 1
     occupied_known_partner = 2
     occupied_unknown_partner = 3
 
 @unique
-class Compartment(Enum):
+class Compartment(OrderedEnum):
     cell = 'cell'
     cytosole = 'cytosole'
     nucleus = 'nucleus'

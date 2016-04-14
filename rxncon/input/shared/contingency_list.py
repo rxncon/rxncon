@@ -1,9 +1,9 @@
 import re
-from enum import Enum
 from functools import reduce
 from typing import Dict, List, Union
 import typecheck as tc
 
+from rxncon.util.utils import OrderedEnum
 import rxncon.core.contingency as con
 import rxncon.core.effector as eff
 import rxncon.core.reaction as rxn
@@ -13,7 +13,7 @@ import rxncon.syntax.rxncon_from_string as fst
 BOOLEAN_CONTINGENCY_REGEX = '^<.*>$'
 
 
-class BooleanOperator(Enum):
+class BooleanOperator(OrderedEnum):
     op_and = 'and'
     op_or  = 'or'
     op_not = 'not'

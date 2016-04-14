@@ -1,14 +1,15 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
-from enum import Enum, unique
+from enum import unique
 import typecheck as tc
 from typing import List
 
+from rxncon.util.utils import OrderedEnum
 import rxncon.core.specification as com
 import rxncon.syntax.string_from_rxncon as sfr
 
 
 @unique
-class StateModifier(Enum):
+class StateModifier(OrderedEnum):
     unmodified = 'u'
     phosphor   = 'p'
     ubiquitin  = 'ub'

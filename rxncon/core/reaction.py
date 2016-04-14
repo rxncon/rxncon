@@ -1,5 +1,5 @@
 from collections import namedtuple, OrderedDict
-from enum import Enum, unique
+from enum import unique
 from typing import List, Optional
 import typecheck as tc
 
@@ -7,10 +7,10 @@ import rxncon.core.specification as com
 import rxncon.core.error as err
 import rxncon.core.state as sta
 import rxncon.syntax.string_from_rxncon as sfr
-
+from rxncon.util.utils import OrderedEnum
 
 @unique
-class Verb(Enum):
+class Verb(OrderedEnum):
     phosphorylation             = 'p+'
     dephosphorylation           = 'p-'
     autophosphorylation         = 'ap'
@@ -31,7 +31,7 @@ class Verb(Enum):
 
 
 @unique
-class ReactionClass(Enum):
+class ReactionClass(OrderedEnum):
     covalent_modification = 1
     interaction           = 2
     synthesis_degradation = 3
@@ -39,19 +39,19 @@ class ReactionClass(Enum):
 
 
 @unique
-class Directionality(Enum):
+class Directionality(OrderedEnum):
     bidirectional   = 1
     unidirectional = 2
 
 
 @unique
-class Reversibility(Enum):
+class Reversibility(OrderedEnum):
     temporary   = 1
     permanent = 2
 
 
 # @todo Bidirectional needs separate identifier?
-class Influence(Enum):
+class Influence(OrderedEnum):
     positive      = 1
     negative      = 2
     transfer      = 3
@@ -59,7 +59,7 @@ class Influence(Enum):
 
 
 @unique
-class Isomerism(Enum):
+class Isomerism(OrderedEnum):
     undefined = None
     trans     = 1
     cis       = 2
@@ -67,12 +67,12 @@ class Isomerism(Enum):
 
 # @todo lower case.
 @unique
-class CovalentReactionModifier(Enum):
+class CovalentReactionModifier(OrderedEnum):
     undefined = None
-    phosphor  = 'P'
-    ubiquitin = 'Ub'
+    phosphor  = 'p'
+    ubiquitin = 'ub'
     guanosintriphosphat = 'gtp'
-    truncated = 'Truncated'
+    truncated = 'truncated'
 
 
 VERB_REACTION_TABLE = {
