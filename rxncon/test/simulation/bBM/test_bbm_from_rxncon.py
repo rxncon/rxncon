@@ -78,3 +78,8 @@ def test_contradictory_expression():
     with pytest.raises(AssertionError):
         bfr.bipartite_boolean_model_from_rxncon(quick_sys.rxncon_system)
 
+
+def test_rule_validation():
+    with pytest.raises(AssertionError):
+        # TODO: create 1 or 2 objects that are not allowed
+        pass
