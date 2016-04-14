@@ -42,8 +42,7 @@ class MoleculeDefinition:
 
         self.localization_def = localization_def
 
-        # woop woop just remove all the defs :)
-        # self._validate()
+        self._validate()
 
     def _validate(self):
         def definitions_validation(definitions: tp.Union[tp.Set[ModificationPropertyDefinition],
@@ -154,7 +153,6 @@ class LocalizationPropertyDefinition(PropertyDefinition):
     @tc.typecheck
     def __eq__(self, other: PropertyDefinition):
         return isinstance(other, LocalizationPropertyDefinition) and self.valid_compartments == other.valid_compartments
-
 
     def __lt__(self, other: 'LocalizationPropertyDefinition') -> bool:
         return sorted(list(self.valid_compartments)) < sorted(list(other.valid_compartments))
