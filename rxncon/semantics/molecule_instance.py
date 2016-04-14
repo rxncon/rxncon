@@ -8,7 +8,6 @@ from rxncon.semantics.molecule_definition import MoleculeDefinition, Modificatio
     LocalizationPropertyDefinition, Modifier, OccupationStatus, Compartment
 
 
-
 class MoleculeInstance:
     @tc.typecheck
     def __init__(self,
@@ -31,18 +30,17 @@ class MoleculeInstance:
             self.modification_properties == other.modification_properties and \
             self.association_properties == other.association_properties
 
+    @tc.typecheck
     def __lt__(self, other: 'MoleculeInstance') -> bool:
         if self.mol_def.spec < other.mol_def.spec:
             return True
         elif self.mol_def.spec == other.mol_def.spec:
             if sorted(self.modification_properties) < sorted(other.modification_properties):
                 return True
-
             if sorted(self.association_properties) < sorted(other.association_properties):
                 return True
-
             if self.localization_property is not None and other.localization_property is not None \
-               and self.localization_property < other.localization_property:
+                    and self.localization_property < other.localization_property:
                 return True
 
         return False
@@ -54,11 +52,12 @@ class MoleculeInstance:
         return str(self)
 
     def __str__(self) -> str:
-        return 'MoleculeInstance: {0}, mod_instances = {1}. assoc_instances = {2}. loc_instances = {3}'\
-            .format(self.mol_def.spec,
-                    ', '.join(str(x) for x in sorted(self.modification_properties)),
-                    ', '.join(str(x) for x in sorted(self.association_properties)),
-                    str(self.localization_property))
+        props = sorted(self.modification_properties) + sorted(self.association_properties)
+        if self.localization_property:
+            props += [self.localization_property]
+
+        return '{0}#{1}'\
+            .format(self.mol_def.spec, ','.join(str(x) for x in props))
 
     @property
     def bindings(self) -> Set['Binding']:
@@ -103,8 +102,7 @@ class ModificationPropertyInstance(PropertyInstance):
         return str(self)
 
     def __str__(self) -> str:
-        return 'ModificationPropertyInstance: Domain = {0}, Modifier = {1}'\
-            .format(self.modification_def.spec, self.modifier)
+        return 'mod/{0}:{1}'.format(self.modification_def.spec, self.modifier)
 
     def _validate(self):
         if self.modifier not in self.modification_def.valid_modifiers:
@@ -150,8 +148,7 @@ class AssociationPropertyInstance(PropertyInstance):
         return str(self)
 
     def __str__(self) -> str:
-        return 'AssociationPropertyInstance: Domain = {0}, occupation_status = {1}, partner = {2}'\
-            .format(self.association_def.spec, self.occupation_status, self.partner)
+        return 'ass/{0}:{1}'.format(self.association_def.spec, self.partner)
 
     def complementary_instances(self):
         if self.occupation_status == OccupationStatus.occupied_known_partner:
@@ -167,9 +164,10 @@ class AssociationPropertyInstance(PropertyInstance):
             raise NotImplementedError
 
     def _validate(self):
-        # For associations the molecule/domain/subdomain spec should match exactly.
         if self.partner:
-            assert self.partner in self.association_def.valid_partners
+            assert self.partner in self.association_def.valid_partners, \
+                'For association domain {0}, binding partner {1} does not appear in list of valid partners {2}.' \
+                .format(str(self.association_def.spec), str(self.partner), ','.join(str(x) for x in sorted(self.association_def.valid_partners)))
 
         if self.occupation_status == OccupationStatus.not_occupied:
             assert not self.partner
@@ -197,7 +195,7 @@ class LocalizationPropertyInstance(PropertyInstance):
         return str(self)
 
     def __str__(self) -> str:
-        return 'LocalizationPropertyInstance: {0}'.format(self.compartment)
+        return 'loc/{0}'.format(self.compartment)
 
     def _validate(self):
         if self.compartment not in self.localization_def.valid_compartments:
@@ -223,6 +221,12 @@ class Binding:
 
     def __hash__(self):
         return hash(str(self))
+
+    def __lt__(self, other: 'Binding'):
+        if self.left_partner != other.left_partner:
+            return self.left_partner < other.left_partner
+        else:
+            return self.right_partner < other.right_partner
 
     def __repr__(self):
         return str(self)

@@ -6,8 +6,9 @@ from rxncon.venntastic.sets import PropertySet, Intersection, Union, Complement,
 from rxncon.syntax.rxncon_from_string import state_from_string, specification_from_string, reaction_from_string
 from rxncon.semantics.molecule_instance import MoleculeInstance
 from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_string, mol_instance_from_string
-from rxncon.simulation.rule_based.molecule_from_rxncon import mol_instance_set_from_state_set, mol_instance_set_pair_from_reaction
-
+from rxncon.simulation.rule_based.molecule_from_rxncon import mol_instance_set_pair_from_reaction
+from rxncon.simulation.rule_based.rbm_from_rxncon import mol_instance_set_from_state_set, \
+    mol_instance_set_pair_from_reaction
 
 MoleculeInstancesFromStateSetTestCase = namedtuple('MoleculeInstancesFromStateSetTestCase',
                                                    ['mol_defs', 'state_set', 'expected_mol_instances'])

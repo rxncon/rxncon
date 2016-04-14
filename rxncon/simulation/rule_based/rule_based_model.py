@@ -115,7 +115,7 @@ class MoleculeReactant(Reactant):
         return str(self)
 
     def __str__(self) -> str:
-        return 'MoleculeReactant: [{0}]'.format(self.molecule_specification)
+        return 'Mol<{0}>'.format(self.molecule_specification)
 
 
 class ComplexReactant(Reactant):
@@ -143,9 +143,7 @@ class ComplexReactant(Reactant):
         return str(self)
 
     def __str__(self) -> str:
-        return 'ComplexReactant: Molecules = [{0}], Bindings = [{1}]'\
-            .format(', '.join(sorted([str(x) for x in self.molecules])),
-                    ', '.join(sorted([str(x) for x in self.bindings])))
+        return 'Comp<{0}>'.format(', '.join(sorted([str(x) for x in self.molecules])))
 
     def _validate(self):
         unique_localizations = {molecule.localization_property for molecule in self.molecules}

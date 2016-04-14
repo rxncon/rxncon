@@ -198,7 +198,7 @@ def _property_ins_from_string(mol_def, prop_string):
     elif identifier == 'loc':
         return _loc_property_ins_from_string(mol_def, prop_string)
     else:
-        raise NotImplementedError
+        raise NotImplementedError('Unknown property type identifier {0}'.format(identifier))
 
 
 def _ass_property_ins_from_string(mol_def, prop_string):
