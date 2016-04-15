@@ -25,9 +25,10 @@ def test_rule_generation(the_cases):
 def the_cases(case_basic_covalent_modification, case_covalent_modifications_strict_contingencies,
               case_covalent_modifications_quant_contingencies, case_basic_interaction,
               case_interaction_with_contingencies, case_disjunction):
-    return case_basic_covalent_modification + case_covalent_modifications_strict_contingencies + \
-        case_covalent_modifications_quant_contingencies + case_basic_interaction + \
-        case_interaction_with_contingencies + case_disjunction
+    # return case_basic_covalent_modification + case_covalent_modifications_strict_contingencies + \
+    #     case_covalent_modifications_quant_contingencies + case_basic_interaction + \
+    #     case_interaction_with_contingencies + case_disjunction
+    return case_disjunction
 
 # DONE
 @pytest.fixture
@@ -418,7 +419,87 @@ def case_disjunction():
                 'A#ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Aassoc]:,ass/B_[Eassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[Eassoc]: @ kf_A_ppi_B, kr_A_ppi_B',
             ]
         ),
-
+        RuleTestCase(
+            '''
+            A_ppi_C
+            C_ppi_D
+            B_ppi_E
+            B_ppi_C
+            A_ppi_B; x <comp1>
+            <comp1>; OR <comp1C1>
+            <comp1>; OR <comp2C1>
+            <comp1C1>; AND A--C
+            <comp1C1>; AND C--D
+            <comp2C1>; AND B--C
+            <comp2C1>; AND B--E''',
+            [
+                'A#ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
+                'B#ass/B_[Eassoc]:E_[Bassoc],ass/B_[Aassoc]:A_[Bassoc],ass/B_[Cassoc]:C_[Bassoc]',
+                'C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Bassoc]:B_[Cassoc],ass/C_[Dassoc]:D_[Cassoc]',
+                'D#ass/D_[Cassoc]:C_[Dassoc]',
+                'E#ass/E_[Bassoc]:B_[Eassoc]'
+            ],
+            [
+                'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
+                'B#ass/B_[Cassoc]: + C#ass/C_[Bassoc]: <-> B#ass/B_[Cassoc]:C_[Bassoc].C#ass/C_[Bassoc]:B_[Cassoc] @ kf_B_ppi_C, kr_B_ppi_C',
+                'C#ass/C_[Dassoc]: + D#ass/D_[Cassoc]: <-> C#ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] @ kf_C_ppi_D, kr_C_ppi_D',
+                'B#ass/B_[Eassoc]: + E#ass/E_[Bassoc]: <-> B#ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_B_ppi_E, kr_B_ppi_E',
+                'A#ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Aassoc]:,ass/B_[Cassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[Cassoc]: @ kf_A_ppi_B, kr_A_ppi_B',
+                'A#ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Eassoc]:,ass/B_[Aassoc]:,ass/B_[Cassoc]:C_[Bassoc].C#ass/C_[Bassoc]:B_[Cassoc] <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Eassoc]:,ass/B_[Aassoc]:A_[Bassoc],ass/B_[Cassoc]:C_[Bassoc].C#ass/C_[Bassoc]:B_[Cassoc] @ kf_A_ppi_B, kr_A_ppi_B'
+            ]
+        ),
+        RuleTestCase(
+            '''
+            A_ppi_C
+            C_ppi_D
+            B_ppi_E
+            A_ppi_B; x <comp1>
+            <comp1>; AND <comp1C1>
+            <comp1>; AND <comp2C1>
+            <comp1C1>; OR A--C
+            <comp1C1>; OR C--D
+            <comp2C1>; OR A--C
+            <comp2C1>; OR B--E''',
+            [
+                'A#ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
+                'B#ass/B_[Eassoc]:E_[Bassoc],ass/B_[Aassoc]:A_[Bassoc]',
+                'C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc]',
+                'D#ass/D_[Cassoc]:C_[Dassoc]',
+                'E#ass/E_[Bassoc]:B_[Eassoc]'
+            ],
+            [
+                'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
+                'C#ass/C_[Dassoc]: + D#ass/D_[Cassoc]: <-> C#ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] @ kf_C_ppi_D, kr_C_ppi_D',
+                'B#ass/B_[Eassoc]: + E#ass/E_[Bassoc]: <-> B#ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_B_ppi_E, kr_B_ppi_E',
+                'A#ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Aassoc]:,ass/B_[Eassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[Eassoc]: @ kf_A_ppi_B, kr_A_ppi_B',
+            ]
+        ),
+        RuleTestCase(
+            '''
+            A_ppi_C
+            C_ppi_D
+            B_ppi_E
+            A_ppi_B; ! <comp1>
+            <comp1>; AND <comp1C1>
+            <comp1>; AND <comp2C1>
+            <comp1C1>; OR A--C
+            <comp1C1>; OR C--D
+            <comp2C1>; OR A--C
+            <comp2C1>; OR B--E''',
+            [
+                'A#ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
+                'B#ass/B_[Eassoc]:E_[Bassoc],ass/B_[Aassoc]:A_[Bassoc]',
+                'C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc]',
+                'D#ass/D_[Cassoc]:C_[Dassoc]',
+                'E#ass/E_[Bassoc]:B_[Eassoc]'
+            ],
+            [
+                'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
+                'C#ass/C_[Dassoc]: + D#ass/D_[Cassoc]: <-> C#ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] @ kf_C_ppi_D, kr_C_ppi_D',
+                'B#ass/B_[Eassoc]: + E#ass/E_[Bassoc]: <-> B#ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_B_ppi_E, kr_B_ppi_E',
+                'A#ass/A_[Bassoc]:,ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] + B#ass/B_[Aassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc].B#ass/B_[Aassoc]:A_[Bassoc] @ kf_A_ppi_B, kr_A_ppi_B',
+            ]
+        ),
     ]
 
 

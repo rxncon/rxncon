@@ -13,14 +13,14 @@ from rxncon.core.contingency import ContingencyType
 from rxncon.core.effector import Effector, AndEffector, NotEffector, OrEffector, StateEffector
 from rxncon.semantics.molecule_definition import MoleculeDefinition, Modifier, OccupationStatus
 from rxncon.semantics.molecule_instance import MoleculeInstance, ModificationPropertyInstance, \
-    AssociationPropertyInstance
+    AssociationPropertyInstance, create_partner_mol_instance
 from rxncon.simulation.rule_based.rule_based_model import Reactant, ComplexReactant, MoleculeReactant
 from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel, Rule, Arrow, Parameter
 from rxncon.semantics.molecule_definition_from_rxncon import mol_defs_from_rxncon_sys, \
     mod_domain_spec_from_state_and_reaction, ass_domain_specs_from_state
 from rxncon.util.utils import compose
 from rxncon.venntastic.sets import Set as VennSet, PropertySet, Complement, Union, Intersection, nested_expression_from_list_and_binary_op, \
-    UniversalSet, EmptySet, gram_schmidt_disjunctify
+    UniversalSet, EmptySet, gram_schmidt_disjunctify, set_from_nested_list_form
 
 
 STATE_TO_MOLECULE_INSTANCE_FUNCTIONS = {
@@ -353,6 +353,22 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
 
         return nested_expression_from_list_and_binary_op(connected_solutions, Union)
 
+    def _add_missing_molecules(mol_instance_set: VennSet, reacting_set: VennSet) -> VennSet:
+        reacting_mols = reacting_set.to_nested_list_form()[0]
+
+        solutions = mol_instance_set.to_nested_list_form()
+        for solution in solutions:
+            for molecule_set in solution:
+                molecule = molecule_set.value
+                if molecule:
+                    assert isinstance(molecule, MoleculeInstance)
+                    if molecule.bindings:
+                        partner = create_partner_mol_instance(mol_defs, molecule)
+                        if partner not in [x.value for x in solution] + [x.value for x in reacting_mols]:
+                            solution.append(PropertySet(partner))
+
+        return set_from_nested_list_form(solutions)
+
     def _disjunctified(mol_instance_set: VennSet) -> VennSet:
         return nested_expression_from_list_and_binary_op(gram_schmidt_disjunctify(mol_instance_set.to_union_list_form()), Union)
 
@@ -371,10 +387,12 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
 
     mols_from_states = lambda x: _mol_instance_set_with_complements_from_state_set(mol_defs, x)
     filter_disconnected = lambda x: _filter_disconnected_components(x, reacting_set)
+    add_missing_molecules = lambda x: _add_missing_molecules(x, reacting_set)
 
     full_mapping = compose(
         _sorted,
         imploded_mol_instance_set,
+        add_missing_molecules,
         _expanded_complements,
         _disjunctified,
         _sorted,

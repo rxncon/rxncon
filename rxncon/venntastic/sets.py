@@ -386,6 +386,11 @@ def nested_expression_from_list_and_binary_op(xs: tg.List[Set], binary_op) -> Se
         return functools.reduce(binary_op, xs[1:], xs[0])
 
 
+def set_from_nested_list_form(xss: tg.List[tg.List[Set]]) -> Set:
+    union_terms = [nested_expression_from_list_and_binary_op(xs, Intersection) for xs in xss]
+    return nested_expression_from_list_and_binary_op(union_terms, Union)
+
+
 def gram_schmidt_disjunctify(overlapping_sets: tg.List[Set]) -> tg.List[Set]:
     non_overlapping_sets = []
 
