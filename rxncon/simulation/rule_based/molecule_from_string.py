@@ -1,12 +1,8 @@
-from rxncon.semantics.molecule_definition import MoleculeDefinition, \
-    AssociationPropertyDefinition, LocalizationPropertyDefinition, ModificationPropertyDefinition, \
-    Modifier, Compartment, OccupationStatus
-from rxncon.semantics.molecule_instance import MoleculeInstance, \
-    AssociationPropertyInstance, LocalizationPropertyInstance, ModificationPropertyInstance, Binding
+from rxncon.semantics.molecule_definition import MoleculeDefinition, AssociationPropertyDefinition, LocalizationPropertyDefinition, ModificationPropertyDefinition, Modifier, Compartment, OccupationStatus
+from rxncon.semantics.molecule_instance import MoleculeInstance, AssociationPropertyInstance, LocalizationPropertyInstance, ModificationPropertyInstance, Binding
 
 from rxncon.syntax.rxncon_from_string import specification_from_string
-from rxncon.simulation.rule_based.rule_based_model import Binding, Rule, MoleculeReactant, ComplexReactant, Arrow, \
-    Parameter
+from rxncon.simulation.rule_based.rule_based_model import Rule, MoleculeReactant, ComplexReactant, Arrow, Parameter
 
 from typecheck import typecheck
 import typing as tg
@@ -15,12 +11,14 @@ ID_ASS = 'ass/'
 ID_MOD = 'mod/'
 ID_LOC = 'loc/'
 
-TOK_MOL_SEP = '#'
+TOK_MOL_SEP  = '#'
 TOK_PROP_SEP = ','
 TOK_PROP_VAL = ':'
 TOK_RATE_SEP = '@'
-TOK_IRREV = '->'
-TOK_REV = '<->'
+TOK_IRREV    = '->'
+TOK_REV      = '<->'
+TOK_BIND     = '.'
+
 
 @typecheck
 def mol_def_from_string(mol_def_string: str) -> MoleculeDefinition:
@@ -74,25 +72,22 @@ def mol_def_from_string(mol_def_string: str) -> MoleculeDefinition:
             raise NotImplementedError
 
     name_spec = specification_from_string(mol_def_string.split(TOK_MOL_SEP)[0])
-    def_strings = mol_def_string.split(TOK_MOL_SEP)[1].split(TOK_PROP_SEP)
 
-    property_defs = [_property_def_from_string(def_string) for def_string in def_strings if def_string]
+    property_defs = [_property_def_from_string(def_string) for def_string in
+                     mol_def_string.split(TOK_MOL_SEP)[1].split(TOK_PROP_SEP) if def_string]
 
     ass_defs = {x for x in property_defs if isinstance(x, AssociationPropertyDefinition)}
     mod_defs = {x for x in property_defs if isinstance(x, ModificationPropertyDefinition)}
     loc_defs = {x for x in property_defs if isinstance(x, LocalizationPropertyDefinition)}
 
-    assert len(loc_defs) <= 1
-    if len(loc_defs) == 1:
-        loc_def = list(loc_defs)[0]
-    else:
-        loc_def = None
+    assert len(loc_defs) <= 1, 'Number of LocalizationPropertyDefinition in {0} exceeds one.'.format(mol_def_string)
+    loc_def = list(loc_defs)[0] if len(loc_defs) == 1 else None
 
     return MoleculeDefinition(name_spec, mod_defs, ass_defs, loc_def)
 
 
 @typecheck
-def mol_instance_from_string(mol_def: MoleculeDefinition, mol_instance_string: str) -> MoleculeInstance:
+def mol_instance_from_string(mol_def: tg.Union[str, MoleculeDefinition], mol_instance_string: str) -> MoleculeInstance:
     def _property_ins_from_string(mol_def, prop_string):
         def _ass_property_ins_from_string(mol_def, prop_string):
             assert prop_string[0:4] == ID_ASS
@@ -152,24 +147,22 @@ def mol_instance_from_string(mol_def: MoleculeDefinition, mol_instance_string: s
 
     assert isinstance(mol_def, MoleculeDefinition)
 
-    property_instance_strings = mol_instance_string.split(TOK_MOL_SEP)[1].split(TOK_PROP_SEP)
-    property_instances = [_property_ins_from_string(mol_def, x) for x in property_instance_strings if x]
+    property_instances = [_property_ins_from_string(mol_def, prop_string) for prop_string in
+                          mol_instance_string.split(TOK_MOL_SEP)[1].split(TOK_PROP_SEP) if prop_string]
 
     mod_props = {x for x in property_instances if isinstance(x, ModificationPropertyInstance)}
     ass_props = {x for x in property_instances if isinstance(x, AssociationPropertyInstance)}
     loc_props = {x for x in property_instances if isinstance(x, LocalizationPropertyInstance)}
 
-    assert len(loc_props) <= 1
-    if loc_props:
-        loc_prop = list(loc_props)[0]
-    else:
-        loc_prop = None
+    assert len(loc_props) <= 1, 'Number of LocalizationPropertyInstance in {0} exceeds one.'.format(prop_string)
+    loc_prop = list(loc_props)[0] if len(loc_props) == 1 else None
 
     return MoleculeInstance(mol_def, mod_props, ass_props, loc_prop)
 
 
 @typecheck
-def mol_instances_and_bindings_from_string(mol_defs, mol_instances_string: str) -> tg.Tuple[tg.Set[MoleculeInstance], tg.Set[Binding]]:
+def mol_instances_and_bindings_from_string(mol_defs: tg.Union[tg.Iterable[str], tg.Iterable[MoleculeDefinition]], mol_instances_string: str) \
+        -> tg.Tuple[tg.Set[MoleculeInstance], tg.Set[Binding]]:
     mol_instances = set()
     bindings = set()
 
@@ -181,7 +174,7 @@ def mol_instances_and_bindings_from_string(mol_defs, mol_instances_string: str) 
         assert isinstance(mol_def, MoleculeDefinition)
         mol_def_dict[mol_def.spec] = mol_def
 
-    mol_ins_strings = mol_instances_string.split('.')
+    mol_ins_strings = mol_instances_string.split(TOK_BIND)
 
     for mol_ins_string in mol_ins_strings:
         mol_def = mol_def_dict[specification_from_string(mol_ins_string.split(TOK_MOL_SEP)[0])]
@@ -208,7 +201,7 @@ def rule_from_string(mol_defs, rule_string: str) -> Rule:
             mol_def = mol_def_from_string(mol_def)
         mol_def_dict[mol_def.spec] = mol_def
 
-    assert TOK_RATE_SEP in rule_string, 'Rate constants missing from rule string'
+    assert TOK_RATE_SEP in rule_string, 'Rate constants missing from rule string.'
 
     if TOK_REV in rule_string:
         split, param_string = rule_string.split(TOK_RATE_SEP)
@@ -230,7 +223,7 @@ def rule_from_string(mol_defs, rule_string: str) -> Rule:
 
     lhs_reactants = set()
     for term in lhs_terms:
-        if '.' in term:
+        if TOK_BIND in term:
             instances, bindings = mol_instances_and_bindings_from_string(mol_defs, term)
             lhs_reactants.add(ComplexReactant(instances, bindings))
         else:
@@ -239,7 +232,7 @@ def rule_from_string(mol_defs, rule_string: str) -> Rule:
 
     rhs_reactants = set()
     for term in rhs_terms:
-        if '.' in term:
+        if TOK_BIND in term:
             instances, bindings = mol_instances_and_bindings_from_string(mol_defs, term)
             rhs_reactants.add(ComplexReactant(instances, bindings))
         else:
