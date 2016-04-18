@@ -4,8 +4,12 @@ G1_S_Bool.xls
 test_workflow.py
 output.txt
 
+
+
+
 ### Python template
 .idea/
+sets.cpython-35.pyc
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
