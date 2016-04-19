@@ -8,12 +8,13 @@ import rxncon.core.effector as eff
 import rxncon.core.contingency as con
 
 
-@unique
+#@unique
 class NodeType(Enum):
     reaction = 'reaction'
     state = 'state'
     AND = "boolean_and"
     OR = "boolean_or"
+    NOT = "boolean_not"
     input = 'input'
     output = 'output'
 
@@ -28,14 +29,17 @@ class EdgeInteractionType(Enum):
     negative    = 'k-'
     AND = 'AND'
     OR = 'OR'
+    NOT = 'NOT'
 
 
-effector_edge_interaction_type_mapping = { eff.OrEffector: EdgeInteractionType.OR,
-                                           eff.AndEffector: EdgeInteractionType.AND }
+effector_edge_interaction_type_mapping = {eff.OrEffector: EdgeInteractionType.OR,
+                                          eff.AndEffector: EdgeInteractionType.AND,
+                                          eff.NotEffector: EdgeInteractionType.NOT}
 
 
-effocor_node_type_mapping = { eff.OrEffector: NodeType.OR,
-                              eff.AndEffector: NodeType.AND }
+effocor_node_type_mapping = {eff.OrEffector: NodeType.OR,
+                             eff.AndEffector: NodeType.AND,
+                             eff.NotEffector: NodeType.NOT}
 
 
 class RegulatoryGraph():
@@ -102,5 +106,13 @@ class RegulatoryGraph():
             graph = self.add_edges_from_effector(effector.left_expr, effector, graph)
             graph = self.add_edges_from_effector(effector.right_expr, effector, graph)
             return graph
+        elif isinstance(effector, eff.NotEffector):
+            graph.add_node(self.replace_invalid_chars(effector.name),
+                           type=effocor_node_type_mapping[type(effector)].value)
+            graph.add_edge(self.replace_invalid_chars(effector.name), self.replace_invalid_chars(root.name),
+                           interaction=effector_edge_interaction_type_mapping[type(root)].value)
+            graph = self.add_edges_from_effector(effector.expr, effector, graph)
+            return graph
+
         else:
             raise NotImplementedError

@@ -144,9 +144,10 @@ def can_xgmml_be_written_to_file(test_case):
     actual_system = qui.Quick(test_case.quick_string)
     reg_system = reg.RegulatoryGraph(actual_system.rxncon_system)
     actual_graph = reg_system.to_graph()
-    gml_system = gml.XGMML(actual_graph, "test_graph")
+    name = "test{0}".format(time.time())
+    gml_system = gml.XGMML(actual_graph, "name")
 
-    path = "{0}/test{1}.bool".format(tempfile.gettempdir(), time.time())
+    path = "{0}/{1}.xgmml".format(tempfile.gettempdir(), name)
     gml_system.to_file(path)
     file_exists = os.path.exists(path)
     os.remove(path)
