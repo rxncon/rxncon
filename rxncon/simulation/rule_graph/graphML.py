@@ -40,6 +40,7 @@ class XGMML:
 
     def _footer_string(self):
         return '</graph>'
+
     def _nodes_string(self):
         nodes = []
         for graph_node in self.graph.nodes(data=True):
@@ -69,57 +70,3 @@ class XGMML:
             edge += '</edge>'
             edges.append(edge)
         return "\n".join(edges)
-
-    def xgmmlwriter(self, file: str):
-
-        with open(file, "w") as writehandle:
-            writehandle.write(self.to_xgmml())
-
-# for cytoscape export:
-# reaction graph of rxncon: visalisation of specifications and there relationships
-# for each spec one node of certain size
-# for each domain/subdomain/residue one node of certain size with edge length 0 to it's main node,
-# the length of a edge should be defined by it's weight since there is no algorithm considering the length, which makes
-# the length of an edge dependent on the node position only
-
-# def _create_node(specification):
-#     pass
-# def create_detailed_reaction_graph(rxncon_system: rxs.RxnConSystem):
-#     G = nex.Graph()
-#     for reaction in rxncon_system.reactions:
-#         _create_node(reaction.object)
-#         _create_node(reaction.subject)
-
-#G = nex.Graph()
-# G.add_nodes_from(["a", "b", "c"])
-# G.add_node('e', dict(size=40, domain="d", subdomain= "s", residue='r'))
-#
-# #G.add_node('e', dict(name="e", size=40))
-# #G.add_node('f', dict(name="f", size=20))
-#
-# #G.add_node('e', dict(name='e', size=20))
-# G.add_node('d', dict(size=30))
-# G.add_node('s', dict(size=20))
-# G.add_node('r', dict(size=10))
-#
-#
-# G.add_edge('b', 'e', weight=10, length=10)
-# G.add_edge("a", "c", weight=10, length=10)
-# G.add_edge("a", "b", weight=10, length=10)
-# G.add_edge('e', 'd', weight=0.0, length=0.0)
-# G.add_edge('e', 's', weight=0.0, length=0.0)
-# G.add_edge('e', 'r', weight=0.0, length=0.0)
-#     for state in all_states:
-#         if state in contingency_meta['modifiers']:
-#             node_attributes.append(dict(name='type', id=str(state), value='input'))
-#         else:
-#             node_attributes.append(dict(name='type', id=str(state), value='state'))
-#     for r_name in all_reactions:
-#         if r_name in contingency_meta['boolean_and']:
-#             node_attributes.append(dict(name='type', id=str(r_name), value='boolean_and'))
-#         elif r_name in contingency_meta['boolean_or']:
-#             node_attributes.append(dict(name='type', id=str(r_name), value='boolean_or'))
-#         elif r_name in contingency_meta['targets']:
-#             node_attributes.append(dict(name='type', id=str(r_name), value='output'))
-#         else:
-#             node_attributes.append(dict(name='type', id=str(r_name), value='reaction'))

@@ -7,6 +7,12 @@ import rxncon.core.reaction as rxn
 import rxncon.core.effector as eff
 import rxncon.core.contingency as con
 
+# for cytoscape export:
+# reaction graph of rxncon: visalisation of specifications and there relationships
+# for each spec one node of certain size
+# for each domain/subdomain/residue one node of certain size with edge length 0 to it's main node,
+# the length of a edge should be defined by it's weight since there is no algorithm considering the length, which makes
+# the length of an edge dependent on the node position only
 
 #@unique
 class NodeType(Enum):
