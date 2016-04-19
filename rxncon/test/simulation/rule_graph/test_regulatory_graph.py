@@ -81,8 +81,7 @@ def is_graph_test_case_correct(test_case) -> bool:
     actual_system = qui.Quick(test_case.quick_string)
     reg_system = reg.RegulatoryGraph(actual_system.rxncon_system)
     actual_graph = reg_system.to_graph()
-    xgmml_system = gml.XGMML(actual_graph, 'test_graph')
-    xgmml_system.xgmmlwriter("/home/thiemese/project/rxncon/graphml/test.xgmml")
+    gml_system = gml.XGMML(actual_graph, "test_graph")
     expected_graph = nex.DiGraph()
     [expected_graph.add_node(node, type=reg.NodeType.reaction.value) for node in test_case.reaction_node_strings]
     [expected_graph.add_node(node, type=reg.NodeType.state.value) for node in test_case.state_node_strings]

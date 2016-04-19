@@ -1,3 +1,4 @@
+import os
 
 
 class XGMML:
@@ -5,9 +6,29 @@ class XGMML:
         self.graph = graph
         self.graph_name = graph_name
 
-    def to_xgmml(self):
+    def to_string(self):
         xgmml = [self._header_string(), self._nodes_string(), self._edges_string(), self._footer_string()]
         return "\n".join(xgmml)
+
+    def to_file(self, file_path):
+        path, file = os.path.split(file_path)
+        if path and os.path.exists(path):
+            if not os.path.isfile(file_path):
+                self._write_to_file(file_path)
+            else:
+                raise FileExistsError("{0} exists! remove file and run again".format(file_path))
+        elif not path:
+            if not os.path.isfile(file):
+                self._write_to_file(file_path)
+            else:
+                print(os.path.dirname(file_path))
+                raise FileExistsError("{0} exists! remove file and run again".format(file_path))
+        elif path and not os.path.exists(path):
+            raise NotADirectoryError("Path {0} does not exists.".format(path))
+
+    def _write_to_file(self, file_path):
+        with open(file_path, mode='w') as writehandle:
+            writehandle.write(self.to_string())
 
     def _header_string(self):
         return """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
