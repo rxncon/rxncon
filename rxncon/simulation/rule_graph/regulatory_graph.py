@@ -4,11 +4,9 @@ from enum import Enum, unique
 import networkx as nex
 import rxncon.core.rxncon_system as rxs
 import rxncon.core.reaction as rxn
-import rxncon.venntastic.sets as venn
 import rxncon.core.effector as eff
 import rxncon.core.contingency as con
 
-from rxncon.simulation.bBM.bbm_from_rxncon import _state_set_from_contingencies
 
 @unique
 class NodeType(Enum):
@@ -18,6 +16,7 @@ class NodeType(Enum):
     OR = "boolean_or"
     input = 'input'
     output = 'output'
+
 
 @unique
 class EdgeInteractionType(Enum):
@@ -30,17 +29,13 @@ class EdgeInteractionType(Enum):
     AND = 'AND'
     OR = 'OR'
 
-boolean_edge_mapping = {eff.OrEffector: EdgeInteractionType.OR,
-                         eff.AndEffector: EdgeInteractionType.AND}
 
-boolean_state_mapping = {eff.OrEffector: NodeType.OR,
-                         eff.AndEffector: NodeType.AND }
-class Edge:
-    def __init__(self, source, target, type, boolname: tp.Optional[str]):
-        self.boolname = boolname
-        self.source = source
-        self.target = target
-        self.type = type
+effector_edge_interaction_type_mapping = { eff.OrEffector: EdgeInteractionType.OR,
+                                           eff.AndEffector: EdgeInteractionType.AND }
+
+
+effocor_node_type_mapping = { eff.OrEffector: NodeType.OR,
+                              eff.AndEffector: NodeType.AND }
 
 
 class RegulatoryGraph():
@@ -81,7 +76,7 @@ class RegulatoryGraph():
         if isinstance(contingency.target, rxn.Reaction):
             if isinstance(contingency.effector, eff.AndEffector) or isinstance(contingency.effector, eff.OrEffector):
                 graph.add_node(self.replace_invalid_chars(contingency.effector.name),
-                               type=boolean_state_mapping[type(contingency.effector)].value)
+                               type=effocor_node_type_mapping[type(contingency.effector)].value)
                 graph.add_edge(self.replace_invalid_chars(contingency.effector.name), str(contingency.target),
                                interaction=contingency.type.value)
                 graph = self.add_edges_from_effector(contingency.effector.left_expr, contingency.effector, graph)
@@ -97,19 +92,13 @@ class RegulatoryGraph():
     def add_edges_from_effector(self, effector: eff.Effector, root, graph: nex.DiGraph):
         if isinstance(effector, eff.StateEffector):
             graph.add_edge(self.replace_invalid_chars(str(effector.expr)), self.replace_invalid_chars(root.name),
-                           interaction=boolean_edge_mapping[type(root)].value)
+                           interaction=effector_edge_interaction_type_mapping[type(root)].value)
             return graph
-        elif isinstance(effector, eff.AndEffector):
-            graph.add_node(self.replace_invalid_chars(effector.name), type=NodeType.AND.value)
+        elif isinstance(effector, eff.AndEffector) or isinstance(effector, eff.OrEffector):
+            graph.add_node(self.replace_invalid_chars(effector.name),
+                           type=effocor_node_type_mapping[type(effector)].value)
             graph.add_edge(self.replace_invalid_chars(effector.name), self.replace_invalid_chars(root.name),
-                           interaction=boolean_edge_mapping[type(root)].value)
-            graph = self.add_edges_from_effector(effector.left_expr, effector, graph)
-            graph = self.add_edges_from_effector(effector.right_expr, effector, graph)
-            return graph
-        elif isinstance(effector, eff.OrEffector):
-            graph.add_node(self.replace_invalid_chars(effector.name), type=NodeType.OR.value)
-            graph.add_edge(self.replace_invalid_chars(effector.name), self.replace_invalid_chars(root.name),
-                           interaction=boolean_edge_mapping[type(root)].value)
+                           interaction=effector_edge_interaction_type_mapping[type(root)].value)
             graph = self.add_edges_from_effector(effector.left_expr, effector, graph)
             graph = self.add_edges_from_effector(effector.right_expr, effector, graph)
             return graph
