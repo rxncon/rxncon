@@ -28,6 +28,9 @@ class Contingency:
     def __eq__(self, other: 'Contingency') -> bool:
         return self.target == other.target and self.type == other.type and self.effector == other.effector
 
+    def __repr__(self):
+        return str(self)
+
     def __str__(self) -> str:
         return 'Contingency(target={0}, type={1}, effector={2}'.format(self.target, self.type, self.effector)
 

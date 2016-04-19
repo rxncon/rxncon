@@ -1,9 +1,12 @@
 import typing as tp
+import re
 from enum import Enum, unique
 import networkx as nex
 import rxncon.core.rxncon_system as rxs
 import rxncon.core.reaction as rxn
 import rxncon.venntastic.sets as venn
+import rxncon.core.effector as eff
+import rxncon.core.contingency as con
 
 from rxncon.simulation.bBM.bbm_from_rxncon import _state_set_from_contingencies
 
@@ -11,6 +14,10 @@ from rxncon.simulation.bBM.bbm_from_rxncon import _state_set_from_contingencies
 class NodeType(Enum):
     reaction = 'reaction'
     state = 'state'
+    AND = "boolean_and"
+    OR = "boolean_or"
+    input = 'input'
+    output = 'output'
 
 @unique
 class EdgeInteractionType(Enum):
@@ -20,6 +27,20 @@ class EdgeInteractionType(Enum):
     inhibition = "x"
     positive    = 'k+'
     negative    = 'k-'
+    AND = 'AND'
+    OR = 'OR'
+
+boolean_edge_mapping = {eff.OrEffector: EdgeInteractionType.OR,
+                         eff.AndEffector: EdgeInteractionType.AND}
+
+boolean_state_mapping = {eff.OrEffector: NodeType.OR,
+                         eff.AndEffector: NodeType.AND }
+class Edge:
+    def __init__(self, source, target, type, boolname: tp.Optional[str]):
+        self.boolname = boolname
+        self.source = source
+        self.target = target
+        self.type = type
 
 
 class RegulatoryGraph():
@@ -29,47 +50,68 @@ class RegulatoryGraph():
     def to_graph(self):
         graph = nex.DiGraph()
         for reaction in self.rxncon_system.reactions:
-            graph.add_node(str(reaction), dict(type=NodeType.reaction.value))
-            if reaction.product:
-                graph.add_node(str(reaction.product), dict(type=NodeType.state.value))
-                graph.add_edge(str(reaction), str(reaction.product), interaction=EdgeInteractionType.produce.value)
-            elif reaction.source:
-                graph.add_edge(str(reaction), str(reaction.source), interaction=EdgeInteractionType.consume.value)
+            graph = self.add_reaction_to_graph(reaction, graph)
 
-            contingency_state_set = self.contingencies_from_rxncon_system_and_reaction(reaction)
-            if contingency_state_set:
-                graph = self.add_contingency_edges_to_regulatory_graph(contingency_state_set, reaction, graph)
+            contingencies = self.rxncon_system.strict_contingencies_for_reaction(reaction)
+            contingencies.extend(self.rxncon_system.quantitative_contingencies_for_reaction(reaction))
+            graph = self.add_contingencies_to_graph(contingencies, reaction, graph)
         return graph
 
-    def add_contingency_edges_to_regulatory_graph(self, vennset: venn.Set, reaction:rxn.Reaction, graph: nex.Graph):
+    def add_reaction_to_graph(self, reaction: rxn.Reaction, graph: nex.DiGraph):
+        graph.add_node(str(reaction), dict(type=NodeType.reaction.value))
+        if reaction.product:
+            graph.add_node(str(reaction.product), dict(type=NodeType.state.value))
+            graph.add_edge(str(reaction), str(reaction.product), interaction=EdgeInteractionType.produce.value)
+        elif reaction.source:
+            graph.add_edge(str(reaction), str(reaction.source), interaction=EdgeInteractionType.consume.value)
+        return graph
 
-        if isinstance(vennset, venn.EmptySet):
+    def add_contingencies_to_graph(self, contingencies: tp.List[con.Contingency], reaction: rxn.Reaction, graph: nex.DiGraph):
+        for contingency in contingencies:
+            if isinstance(contingency.effector, eff.StateEffector):
+                graph.add_edge(str(contingency.effector.expr), str(reaction), interaction=contingency.type.value)
+            elif isinstance(contingency.effector, eff.AndEffector) or isinstance(contingency.effector, eff.OrEffector):
+                graph = self.add_edges_from_contingency(contingency, graph)
+        return graph
+
+    def replace_invalid_chars(self, name: str):
+        return re.sub('[<>]', '', name)
+
+    def add_edges_from_contingency(self, contingency: con.Contingency, graph: nex.DiGraph):
+        if isinstance(contingency.target, rxn.Reaction):
+            if isinstance(contingency.effector, eff.AndEffector) or isinstance(contingency.effector, eff.OrEffector):
+                graph.add_node(self.replace_invalid_chars(contingency.effector.name),
+                               type=boolean_state_mapping[type(contingency.effector)].value)
+                graph.add_edge(self.replace_invalid_chars(contingency.effector.name), str(contingency.target),
+                               interaction=contingency.type.value)
+                graph = self.add_edges_from_effector(contingency.effector.left_expr, contingency.effector, graph)
+                graph = self.add_edges_from_effector(contingency.effector.right_expr, contingency.effector, graph)
+                return graph
+            elif isinstance(contingency.effector, eff.StateEffector):
+                graph.add_edge(self.replace_invalid_chars(str(contingency.effector.expr)), str(contingency.target),
+                               interaction=contingency.type.value)
+                return graph
+        else:
             raise AssertionError
-        if isinstance(vennset, venn.PropertySet):
-            #todo add node
-            graph.add_edge(str(vennset.value), str(reaction), interaction=EdgeInteractionType.required.value)
+
+    def add_edges_from_effector(self, effector: eff.Effector, root, graph: nex.DiGraph):
+        if isinstance(effector, eff.StateEffector):
+            graph.add_edge(self.replace_invalid_chars(str(effector.expr)), self.replace_invalid_chars(root.name),
+                           interaction=boolean_edge_mapping[type(root)].value)
             return graph
-            #return venn.PropertySet(vennset.value)
-        if isinstance(vennset, venn.Complement):
-            #todo add node complement and edges
-            return venn.Complement(self.add_contingency_edges_to_regulatory_graph(vennset.expr, reaction, graph))
-        elif isinstance(vennset, venn.Intersection):
-            #todo: G.add_node(boolean_and) and edges
-            return venn.Intersection(self.add_contingency_edges_to_regulatory_graph(vennset.left_expr, reaction, graph), self.add_contingency_edges_to_regulatory_graph(vennset.right_expr, reaction, graph))
-        elif isinstance(vennset, venn.Union):
-            #todo: G.add_node(boolean_or) and edges
-            return venn.Union(self.add_contingency_edges_to_regulatory_graph(vennset.left_expr, reaction, graph), self.add_contingency_edges_to_regulatory_graph(vennset.right_expr, reaction, graph))
+        elif isinstance(effector, eff.AndEffector):
+            graph.add_node(self.replace_invalid_chars(effector.name), type=NodeType.AND.value)
+            graph.add_edge(self.replace_invalid_chars(effector.name), self.replace_invalid_chars(root.name),
+                           interaction=boolean_edge_mapping[type(root)].value)
+            graph = self.add_edges_from_effector(effector.left_expr, effector, graph)
+            graph = self.add_edges_from_effector(effector.right_expr, effector, graph)
+            return graph
+        elif isinstance(effector, eff.OrEffector):
+            graph.add_node(self.replace_invalid_chars(effector.name), type=NodeType.OR.value)
+            graph.add_edge(self.replace_invalid_chars(effector.name), self.replace_invalid_chars(root.name),
+                           interaction=boolean_edge_mapping[type(root)].value)
+            graph = self.add_edges_from_effector(effector.left_expr, effector, graph)
+            graph = self.add_edges_from_effector(effector.right_expr, effector, graph)
+            return graph
         else:
             raise NotImplementedError
-
-    def contingencies_from_rxncon_system_and_reaction(self, reaction: rxn.Reaction):
-        strict_contingency_state_set = _state_set_from_contingencies(self.rxncon_system.strict_contingencies_for_reaction(reaction))
-        if isinstance(strict_contingency_state_set.to_full_simplified_form(), venn.EmptySet):
-            raise AssertionError("There is no way to fulfill the contingencies: {}".format(strict_contingency_state_set))
-
-        additional_contingency_state_set = _state_set_from_contingencies(self.rxncon_system.quantitative_contingencies_for_reaction(reaction))
-
-        if isinstance(additional_contingency_state_set.to_full_simplified_form(), venn.EmptySet):
-            raise AssertionError("There is no way to fulfill the contingencies: {}".format(additional_contingency_state_set))
-        vennset = venn.Intersection(strict_contingency_state_set.to_full_simplified_form(), additional_contingency_state_set.to_full_simplified_form())
-        return vennset.to_full_simplified_form()
