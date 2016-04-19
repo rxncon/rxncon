@@ -1,5 +1,8 @@
 import pytest
 from collections import namedtuple
+import os
+import time
+import tempfile
 
 import rxncon.input.quick.quick as qui
 import rxncon.simulation.rule_graph.regulatory_graph as reg
@@ -8,8 +11,12 @@ import rxncon.simulation.rule_graph.graphML as gml
 RuleTestCase = namedtuple('RuleTestCase', ['quick_string', 'expected_xgmml'])
 
 def test_graph_generation(the_cases):
+   for test_case in the_cases:
+       assert is_xgmml_export_test_case_correct(test_case)
+
+def test_graph_writing(the_cases):
     for test_case in the_cases:
-        assert is_xgmml_export_test_case_correct(test_case)
+        assert can_xgmml_be_written_to_file(test_case)
 
 
 @pytest.fixture
@@ -123,7 +130,7 @@ def is_xgmml_export_test_case_correct(test_case):
     gml_system = gml.XGMML(actual_graph, "test_graph")
 
     expected_xgmml_lines= [line.strip() for line in test_case.expected_xgmml.split("\n")]
-    produced_xgmml_lines = [line.strip() for line in gml_system.to_xgmml().split("\n")]
+    produced_xgmml_lines = [line.strip() for line in gml_system.to_string().split("\n")]
 
     if not sorted(produced_xgmml_lines) == sorted(expected_xgmml_lines):
         for i, line in enumerate(produced_xgmml_lines):
@@ -138,3 +145,10 @@ def can_xgmml_be_written_to_file(test_case):
     reg_system = reg.RegulatoryGraph(actual_system.rxncon_system)
     actual_graph = reg_system.to_graph()
     gml_system = gml.XGMML(actual_graph, "test_graph")
+
+    path = "{0}/test{1}.bool".format(tempfile.gettempdir(), time.time())
+    gml_system.to_file(path)
+    file_exists = os.path.exists(path)
+    os.remove(path)
+    return file_exists
+
