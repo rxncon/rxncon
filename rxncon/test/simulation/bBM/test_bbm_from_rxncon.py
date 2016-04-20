@@ -61,12 +61,39 @@ def test_complex_multiple_boolean_expression():
     <comp1>; AND C--D; AND C--E
     <comp2>; AND G--F; AND <comp4>
     <comp3>;AND H--F; AND <comp4>
-    <comp4>; AND F--E; AND <comp1>""")
+    <comp4>; AND F--E; AND <comp1>
+    C_ppi_D
+    C_ppi_E
+    G_ppi_F
+    H_ppi_F
+    F_ppi_E
+    """)
 
-    expected_str = """target, factors
+#     expected_str = """target, factors
+# A, A
+# A_trsc_B, (((C__D & C__E) & ! F__E) & (A & B))
+# B, (B | A_trsc_B)"""
+
+    expected_str= """target, factors
 A, A
+C, C
+D, D
+E, E
+G, G
+F, F
+H, H
 A_trsc_B, (((C__D & C__E) & ! F__E) & (A & B))
-B, (B | A_trsc_B)"""
+B, (B | A_trsc_B)
+C_ppi_D, (C & D)
+C__D, (C__D | C_ppi_D)
+C_ppi_E, (C & E)
+C__E, (C__E | C_ppi_E)
+G_ppi_F, (G & F)
+G__F, (G__F | G_ppi_F)
+H_ppi_F, (H & F)
+H__F, (H__F | H_ppi_F)
+F_ppi_E, (F & E)
+F__E, (F__E | F_ppi_E)"""
 
     bbm_sys = bfr.bipartite_boolean_model_from_rxncon(quick_sys.rxncon_system)
     bbe_system = bbe.BoolNetSystem(bbm_sys)
