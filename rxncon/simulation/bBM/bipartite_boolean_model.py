@@ -13,8 +13,18 @@ class BipartiteBooleanModel:
         self._validate()
 
     def _validate(self):
-        # TODO: validate all contingencies, check for all rules if all factors also have rules
-        pass
+        # check for all rules if all factors also have rules
+        rule_targets = [rule.target for rule in self.rules]
+        init_targets = [init_condition.target for init_condition in self.init_conditions]
+        targets = rule_targets + init_targets
+        for rule in self.rules:
+            assert rule.factor.value is not None
+            for list in rule.factor.value.to_nested_list_form():
+                for property in list:
+                    if hasattr(property, "expr"):
+                        assert (property.expr.value in targets) is True
+                    else:
+                        assert (property.value in targets) is True
 
 
 class InitCondition:

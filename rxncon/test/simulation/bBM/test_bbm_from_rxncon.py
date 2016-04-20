@@ -81,5 +81,6 @@ def test_contradictory_expression():
 
 def test_rule_validation():
     with pytest.raises(AssertionError):
-        # TODO: create 1 or 2 objects that are not allowed
-        pass
+        rxncon_sys = quick.Quick("""A_ppi_B; ! A-{P}; ! A--C
+                                   D_p+_A""")
+        bfr.bipartite_boolean_model_from_rxncon(rxncon_sys.rxncon_system)
