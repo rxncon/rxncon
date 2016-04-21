@@ -40,12 +40,17 @@ class EdgeInteractionType(Enum):
 
 effector_edge_interaction_type_mapping = {eff.OrEffector: EdgeInteractionType.OR,
                                           eff.AndEffector: EdgeInteractionType.AND,
-                                          eff.NotEffector: EdgeInteractionType.NOT}
+                                          eff.NotEffector: EdgeInteractionType.NOT,
+                                          con.ContingencyType.requirement: EdgeInteractionType.required,
+                                          con.ContingencyType.inhibition: EdgeInteractionType.inhibition,
+                                          con.ContingencyType.positive: EdgeInteractionType.positive,
+                                          con.ContingencyType.negative: EdgeInteractionType.negative
+                                          }
 
-
-effocor_node_type_mapping = {eff.OrEffector: NodeType.OR,
-                             eff.AndEffector: NodeType.AND,
-                             eff.NotEffector: NodeType.NOT}
+# handling Input, Output?
+effector_node_type_mapping = { eff.OrEffector: NodeType.OR,
+                               eff.AndEffector: NodeType.AND,
+                               eff.NotEffector: NodeType.NOT}
 
 
 class RegulatoryGraph():
@@ -75,50 +80,50 @@ class RegulatoryGraph():
         for contingency in contingencies:
             if isinstance(contingency.effector, eff.StateEffector):
                 graph.add_edge(str(contingency.effector.expr), str(reaction), interaction=contingency.type.value)
-            elif isinstance(contingency.effector, eff.AndEffector) or isinstance(contingency.effector, eff.OrEffector):
-                graph = self.add_edges_from_contingency(contingency, graph)
+            elif isinstance(contingency.effector, eff.AndEffector) or isinstance(contingency.effector, eff.OrEffector) \
+                    or isinstance(contingency.effector, eff.NotEffector):
+                graph = self.add_edges_from_contingency(contingency.effector, contingency.target,
+                                                        effector_edge_interaction_type_mapping[contingency.type], graph)
+
         return graph
 
     def replace_invalid_chars(self, name: str):
         return re.sub('[<>]', '', name)
 
-    def add_edges_from_contingency(self, contingency: con.Contingency, graph: nex.DiGraph):
-        if isinstance(contingency.target, rxn.Reaction):
-            if isinstance(contingency.effector, eff.AndEffector) or isinstance(contingency.effector, eff.OrEffector):
-                graph.add_node(self.replace_invalid_chars(contingency.effector.name),
-                               type=effocor_node_type_mapping[type(contingency.effector)].value)
-                graph.add_edge(self.replace_invalid_chars(contingency.effector.name), str(contingency.target),
-                               interaction=contingency.type.value)
-                graph = self.add_edges_from_effector(contingency.effector.left_expr, contingency.effector, graph)
-                graph = self.add_edges_from_effector(contingency.effector.right_expr, contingency.effector, graph)
-                return graph
-            elif isinstance(contingency.effector, eff.StateEffector):
-                graph.add_edge(self.replace_invalid_chars(str(contingency.effector.expr)), str(contingency.target),
-                               interaction=contingency.type.value)
-                return graph
+    def target_name_from_reaction_or_effector(self, target: tp.Union[eff.Effector, rxn.Reaction]):
+        if isinstance(target, rxn.Reaction):
+            return self.replace_invalid_chars(str(target))
+        elif isinstance(target, eff.Effector):
+            return self.replace_invalid_chars(target.name)
         else:
             raise AssertionError
 
-    def add_edges_from_effector(self, effector: eff.Effector, root, graph: nex.DiGraph):
-        if isinstance(effector, eff.StateEffector):
-            graph.add_edge(self.replace_invalid_chars(str(effector.expr)), self.replace_invalid_chars(root.name),
-                           interaction=effector_edge_interaction_type_mapping[type(root)].value)
-            return graph
-        elif isinstance(effector, eff.AndEffector) or isinstance(effector, eff.OrEffector):
+    def add_edges_from_contingency(self, effector: eff.Effector, target: tp.Union[eff.Effector, rxn.Reaction],
+                                   edge_type: EdgeInteractionType, graph: nex.DiGraph):
+
+        target_name = self.target_name_from_reaction_or_effector(target)
+
+        if isinstance(effector, eff.AndEffector) or isinstance(effector, eff.OrEffector):
             graph.add_node(self.replace_invalid_chars(effector.name),
-                           type=effocor_node_type_mapping[type(effector)].value)
-            graph.add_edge(self.replace_invalid_chars(effector.name), self.replace_invalid_chars(root.name),
-                           interaction=effector_edge_interaction_type_mapping[type(root)].value)
-            graph = self.add_edges_from_effector(effector.left_expr, effector, graph)
-            graph = self.add_edges_from_effector(effector.right_expr, effector, graph)
+                           type=effector_node_type_mapping[type(effector)].value)
+            graph.add_edge(self.replace_invalid_chars(effector.name), target_name,
+                           interaction=edge_type.value)
+            graph = self.add_edges_from_contingency(effector.left_expr, effector,
+                                                    effector_edge_interaction_type_mapping[type(effector)], graph)
+            graph = self.add_edges_from_contingency(effector.right_expr, effector,
+                                                    effector_edge_interaction_type_mapping[type(effector)], graph)
+            return graph
+        elif isinstance(effector, eff.StateEffector):
+            graph.add_edge(self.replace_invalid_chars(str(effector.expr)), target_name,
+                           interaction=edge_type.value)
             return graph
         elif isinstance(effector, eff.NotEffector):
             graph.add_node(self.replace_invalid_chars(effector.name),
-                           type=effocor_node_type_mapping[type(effector)].value)
-            graph.add_edge(self.replace_invalid_chars(effector.name), self.replace_invalid_chars(root.name),
-                           interaction=effector_edge_interaction_type_mapping[type(root)].value)
-            graph = self.add_edges_from_effector(effector.expr, effector, graph)
+                           type=effector_node_type_mapping[type(effector)].value)
+            graph.add_edge(self.replace_invalid_chars(effector.name), target_name,
+                           interaction=edge_type.value)
+            graph = self.add_edges_from_contingency(effector.expr, effector,
+                                                    effector_edge_interaction_type_mapping[type(effector)], graph)
             return graph
-
         else:
-            raise NotImplementedError
+            raise AssertionError
