@@ -23,6 +23,7 @@ class NodeType(Enum):
     NOT = "boolean_not"
     input = 'input'
     output = 'output'
+    componentstate = 'component_state'
 
 
 @unique
@@ -36,6 +37,9 @@ class EdgeInteractionType(Enum):
     AND = 'AND'
     OR = 'OR'
     NOT = 'NOT'
+    component = 'component'
+    product_state = 'ps'
+    source_state = 'ss'
 
 
 effector_edge_interaction_type_mapping = {eff.OrEffector: EdgeInteractionType.OR,
@@ -124,6 +128,68 @@ class RegulatoryGraph():
                            interaction=edge_type.value)
             graph = self.add_edges_from_contingency(effector.expr, effector,
                                                     effector_edge_interaction_type_mapping[type(effector)], graph)
+            return graph
+        else:
+            raise AssertionError
+
+
+class SemanticRegulatoryGraph(RegulatoryGraph):
+    def __init__(self, rxncon_system: rxs.RxnConSystem):
+        self.rxncon_system = rxncon_system
+
+    def add_reaction_to_graph(self, reaction: rxn.Reaction, graph: nex.DiGraph):
+        graph.add_node(str(reaction), dict(type=NodeType.reaction.value))
+        if isinstance(reaction, rxn.OutputReaction):
+            graph.add_node(str(reaction), dict(type=NodeType.output.value))
+            return graph
+        elif reaction.product:
+            graph.add_node(str(reaction.product), dict(type=NodeType.state.value))
+            graph.add_edge(str(reaction), str(reaction.product), interaction=EdgeInteractionType.produce.value)
+            graph.add_edge(str(reaction.product), str(reaction), interaction=EdgeInteractionType.product_state.value)
+            return graph
+        elif reaction.source:
+            graph.add_edge(str(reaction), str(reaction.source), interaction=EdgeInteractionType.consume.value)
+            graph.add_edge(str(reaction.source), str(reaction), interaction=EdgeInteractionType.source_state.value)
+            return graph
+        else:
+            raise AssertionError
+
+class BooleanReagulatoryGraph(RegulatoryGraph):
+    def __init__(self, rxncon_system: rxs.RxnConSystem):
+        self.rxncon_system = rxncon_system
+
+    def add_component_states_to_graph(self, reaction: rxn.Reaction, graph: nex.DiGraph):
+        #todo: check if a component is produced. As soon as it gets produced change the node type
+        #todo: from componentstate to state
+        graph.add_node(str(sta.ComponentState(reaction.subject.to_component_specification())),
+                       dict(type=NodeType.componentstate.value))
+        graph.add_edge(str(sta.ComponentState(reaction.subject.to_component_specification())),
+                       str(reaction), interaction=EdgeInteractionType.component.value)
+
+        graph.add_node(str(sta.ComponentState(reaction.object.to_component_specification())),
+                       dict(type=NodeType.componentstate.value))
+        graph.add_edge(str(sta.ComponentState(reaction.object.to_component_specification())),
+                       str(reaction), interaction=EdgeInteractionType.component.value)
+
+        return graph
+
+    def add_reaction_to_graph(self, reaction: rxn.Reaction, graph: nex.DiGraph):
+        graph.add_node(str(reaction), dict(type=NodeType.reaction.value))
+        if isinstance(reaction, rxn.OutputReaction):
+            graph.add_node(str(reaction), dict(type=NodeType.output.value))
+            return graph
+
+        graph = self.add_component_states_to_graph(reaction, graph)
+
+        if reaction.product:
+            graph.add_node(str(reaction.product), dict(type=NodeType.state.value))
+            graph.add_edge(str(reaction), str(reaction.product), interaction=EdgeInteractionType.produce.value)
+            graph.add_edge(str(reaction.product), str(reaction), interaction=EdgeInteractionType.product_state.value)
+            return graph
+        if reaction.source:
+            graph.add_node(str(reaction.source), dict(type=NodeType.state.value))
+            graph.add_edge(str(reaction), str(reaction.source), interaction=EdgeInteractionType.consume.value)
+            graph.add_edge(str(reaction.source), str(reaction), interaction=EdgeInteractionType.source_state.value)
             return graph
         else:
             raise AssertionError
