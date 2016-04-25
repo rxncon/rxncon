@@ -13,18 +13,19 @@ class BipartiteBooleanModel:
         self._validate()
 
     def _validate(self):
-        # check for all rules if all factors also have rules
+        # check for all rules if all factors also have rules and if rules are defined multiple times
         rule_targets = [rule.target for rule in self.rules]
         init_targets = [init_condition.target for init_condition in self.init_conditions]
         targets = rule_targets + init_targets
         for rule in self.rules:
+            assert self.rules.count(rule) == 1
             assert rule.factor.value is not None
             for list in rule.factor.value.to_nested_list_form():
                 for property in list:
                     if hasattr(property, "expr"):
-                        assert (property.expr.value in targets) is True
+                        assert (property.expr.value in targets)
                     else:
-                        assert (property.value in targets) is True
+                        assert (property.value in targets)
 
 
 class InitCondition:
@@ -70,7 +71,7 @@ class Node:
 
 class Rule:
     @tc.typecheck
-    def __init__(self, target: Node, factor: 'Factor'):  # should factor expect class 'Factor' ?
+    def __init__(self, target: Node, factor: 'Factor'):
         self.target = target
         self.factor = factor
         self._validate()
@@ -80,8 +81,6 @@ class Rule:
         assert isinstance(self.target, Node)
         assert self.factor.value is not None
         assert isinstance(self.factor, Factor)
-        #assert self.factor.value != venn.UniversalSet()
-        #assert self.factor.value != venn.EmptySet
 
     def __str__(self):
         return "target: {0}, factors: {1}".format(self.target, self.factor)
@@ -95,6 +94,4 @@ class Factor(venn.Set):
         self._validate()
 
     def _validate(self):
-        #assert self.value != venn.UniversalSet()
-        #assert self.value != venn.EmptySet
         pass

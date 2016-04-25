@@ -69,6 +69,7 @@ def test_complex_multiple_boolean_expression():
     F_ppi_E
     """)
 
+# Original by Basti:
 #     expected_str = """target, factors
 # A, A
 # A_trsc_B, (((C__D & C__E) & ! F__E) & (A & B))
