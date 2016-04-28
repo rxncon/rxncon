@@ -214,6 +214,9 @@ class OutputReaction(Reaction):
     def __init__(self, name: str):
         self.name = name
 
+    def __hash__(self):
+        return hash(str(self))
+
     def __eq__(self, other: Reaction) -> bool:
         assert isinstance(other, Reaction)
 

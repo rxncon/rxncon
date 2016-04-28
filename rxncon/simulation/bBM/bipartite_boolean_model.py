@@ -10,7 +10,7 @@ class BipartiteBooleanModel:
     def __init__(self, rules: tg.List["Rule"], init_conditions: tg.List['InitCondition']):
         self.rules = rules
         self.init_conditions = init_conditions
-        #self._validate()
+        self._validate()
 
     def _validate(self):
         # check for all rules if all factors also have rules and if rules are defined multiple times

@@ -69,12 +69,6 @@ def test_complex_multiple_boolean_expression():
     F_ppi_E
     """)
 
-# Original by Basti:
-#     expected_str = """target, factors
-# A, A
-# A_trsc_B, (((C__D & C__E) & ! F__E) & (A & B))
-# B, (B | A_trsc_B)"""
-
     expected_str= """target, factors
 A, A
 C, C
@@ -115,11 +109,11 @@ A, A
 B, B
 C, C
 .Input., .Input.
-A__B, (A_ppi_B | A__B)
-A_ppi_B, ((A & B) & A_.p.)
-A_.p., (C_pplus_A | A_.p.)
+A_ppi_B, ((.Input. & A_.p.) & (A & B))
+A__B, (A__B | A_ppi_B)
 C_pplus_A, (C & A)
-.Output., (.Output. | A__B)"""
+A_.p., (A_.p. | C_pplus_A)
+.Output., (A__B | .Output.)"""
 
     assert bbe_system.to_string() == expected_str
 

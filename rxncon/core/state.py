@@ -230,7 +230,7 @@ class InputState(State):
 
     def __eq__(self, other):
         assert isinstance(other, State)
-        return isinstance(self, InputState) and self.name == other.name
+        return isinstance(other, InputState) and self.name == other.name
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:
