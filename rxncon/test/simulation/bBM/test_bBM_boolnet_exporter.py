@@ -27,9 +27,9 @@ def test_generate_name():
     assert bbe.string_from_reaction(A_ppi_B.value) == "A_.n._ppi_B_.d.s.r.."
 
 
-def test_boolnet_string(rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A, initialConditions):
+def test_boolnet_string(rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A, initialConditions_boolnet_string):
     bbm_system = bbm.BipartiteBooleanModel([rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A],
-                                           initialConditions)
+                                           initialConditions_boolnet_string)
 
     bbe_system = bbe.BoolNetSystem(bbm_system)
     bbe_str = bbe_system.to_string()
@@ -46,8 +46,8 @@ C_pplus_A, (C & A)"""
     assert bbe_str == expected_str
 
 
-def test_boolnet_string_with_complement(rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, initialConditions):
-    bbm_system = bbm.BipartiteBooleanModel([rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A],
+def test_boolnet_string_with_complement(rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, rule_D_pminus_A, rule_E_pminus_A, initialConditions):
+    bbm_system = bbm.BipartiteBooleanModel([rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, rule_D_pminus_A, rule_E_pminus_A],
                                            initialConditions)
 
     bbe_system = bbe.BoolNetSystem(bbm_system)
@@ -56,17 +56,20 @@ def test_boolnet_string_with_complement(rule_A__B, rule_A_ppi_B, rule_A_p_deg, r
 A, A
 B, B
 C, C
+D, D
+E, E
 A__B, (A_ppi_B | A__B)
 A_ppi_B, ((A & B) & A_.p.)
 A_.p., ((C_pplus_A | A_.p.) & (! D_pminus_A & ! E_pminus_A))
-C_pplus_A, (C & A)"""
+C_pplus_A, (C & A)
+D_pminus_A, (D & A)
+E_pminus_A, (E & A)"""
 
     assert bbe_str == expected_str
 
 
-def test_to_file(rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, initialConditions):
-    bbm_system = bbm.BipartiteBooleanModel([rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A],
-                                           initialConditions)
+def test_to_file(rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, rule_D_pminus_A, rule_E_pminus_A, initialConditions):
+    bbm_system = bbm.BipartiteBooleanModel([rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, rule_D_pminus_A, rule_E_pminus_A], initialConditions)
 
     bbe_system = bbe.BoolNetSystem(bbm_system)
     bbe_str = bbe_system.to_string()
@@ -123,15 +126,33 @@ def rule_C_pplus_A():
 @pytest.fixture
 def rule_D_pminus_A():
     value_D_pminus_A = venn.Intersection(venn.PropertySet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("D_p-_A").components[0].to_component_specification()))),
-                                        venn.PropertySet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("D_p-_A").components[1].to_component_specification()))))
+                                         venn.PropertySet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("D_p-_A").components[1].to_component_specification()))))
     return bbm.Rule(bbm.Node(rfs.reaction_from_string("D_p-_A")), bbm.Factor(value_D_pminus_A))
+
+
+@pytest.fixture
+def rule_E_pminus_A():
+    value_E_pminus_A = venn.Intersection(venn.PropertySet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("E_p-_A").components[0].to_component_specification()))),
+                                         venn.PropertySet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("E_p-_A").components[1].to_component_specification()))))
+
+    return bbm.Rule(bbm.Node(rfs.reaction_from_string("E_p-_A")), bbm.Factor(value_E_pminus_A))
+
+
+@pytest.fixture
+def initialConditions_boolnet_string():
+    return [bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[0].to_component_specification())), None),
+            bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[1].to_component_specification())),None),
+            bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components[0].to_component_specification())),None)
+            ]
 
 
 @pytest.fixture
 def initialConditions():
     return [bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[0].to_component_specification())), None),
                       bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[1].to_component_specification())), None),
-                      bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components[0].to_component_specification())), None)
+                      bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components[0].to_component_specification())), None),
+                      bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("D_p-_A").components[0].to_component_specification())), None),
+                      bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("E_p-_A").components[0].to_component_specification())), None)
            ]
 
 
