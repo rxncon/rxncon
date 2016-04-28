@@ -223,6 +223,12 @@ class OutputReaction(Reaction):
         else:
             return False
 
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return "{}".format(self.name)
+
 
 SourceStateProductState = namedtuple('SourceStateProductState', ['source_state', 'product_state'])
 

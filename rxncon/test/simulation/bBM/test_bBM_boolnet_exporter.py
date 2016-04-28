@@ -45,6 +45,25 @@ C_pplus_A, (C & A)"""
 
     assert bbe_str == expected_str
 
+def test_boolnet_input_output_string(rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A, rule_output, initial_conditions_boolnet_input_output_string):
+    bbm_system = bbm.BipartiteBooleanModel([rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A, rule_output],
+                                           initial_conditions_boolnet_input_output_string)
+
+    bbe_system = bbe.BoolNetSystem(bbm_system)
+    bbe_str = bbe_system.to_string()
+
+    expected_str = """target, factors
+A, A
+B, B
+C, C
+.Input., .Input.
+A__B, (A_ppi_B | A__B)
+A_ppi_B, ((A & B) & A_.p.)
+A_.p., (C_pplus_A | A_.p.)
+C_pplus_A, (C & A)
+.Output., (.Output. | A__B)"""
+
+    assert bbe_str == expected_str
 
 def test_boolnet_string_with_complement(rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, rule_D_pminus_A, rule_E_pminus_A, initialConditions):
     bbm_system = bbm.BipartiteBooleanModel([rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, rule_D_pminus_A, rule_E_pminus_A],
@@ -78,6 +97,11 @@ def test_to_file(rule_A__B, rule_A_ppi_B, rule_A_p_deg, rule_C_pplus_A, rule_D_p
     assert os.path.exists(path)
     os.remove(path)
 
+@pytest.fixture
+def rule_output():
+    value_ouput = venn.Union(venn.PropertySet(bbm.Node(rfs.reaction_from_string('[Output]'))),
+                             venn.PropertySet(bbm.Node(rfs.state_from_string("A--B"))))
+    return bbm.Rule(bbm.Node(rfs.reaction_from_string('[Output]')), bbm.Factor(value_ouput))
 
 @pytest.fixture
 def rule_A__B():
@@ -137,6 +161,13 @@ def rule_E_pminus_A():
 
     return bbm.Rule(bbm.Node(rfs.reaction_from_string("E_p-_A")), bbm.Factor(value_E_pminus_A))
 
+@pytest.fixture
+def initial_conditions_boolnet_input_output_string():
+    return [bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[0].to_component_specification())), None),
+            bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[1].to_component_specification())),None),
+            bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components[0].to_component_specification())),None),
+            bbm.InitCondition(bbm.Node(rfs.state_from_string("[Input]")),None)
+            ]
 
 @pytest.fixture
 def initialConditions_boolnet_string():

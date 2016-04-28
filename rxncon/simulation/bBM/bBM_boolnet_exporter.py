@@ -96,6 +96,8 @@ def string_from_reaction(reaction: rxn.Reaction) -> str:
             return re.sub("\+", "plus", verb.value)
         else:
             return verb.value
+    if isinstance(reaction, rxn.OutputReaction):
+        return replace_invalid_chars(str(reaction))
     reaction_str = "{0}_{1}_{2}".format(reaction.subject, generate_reaction_verb_name(reaction.verb), reaction.object)
     return replace_invalid_chars(reaction_str)
 
