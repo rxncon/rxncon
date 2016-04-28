@@ -228,6 +228,10 @@ class InputState(State):
     def __str__(self) -> str:
         return sfr.string_from_input_state(self)
 
+    def __eq__(self, other):
+        assert isinstance(other, State)
+        return isinstance(self, InputState) and self.name == other.name
+
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:
         raise NotImplementedError

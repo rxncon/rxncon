@@ -28,11 +28,9 @@ def test_quick_single_reaction_simple_contingency():
     assert rfs.reaction_from_string('A_ppi_C') in quick.rxncon_system.reactions
 
     assert len(quick.rxncon_system.contingencies) == 1
-    assert quick.rxncon_system.contingencies[0] == con.Contingency(
-            rfs.reaction_from_string('A_ppi_B'),
-            con.ContingencyType.requirement,
-            eff.StateEffector(rfs.state_from_string('A--C'))
-    )
+    assert quick.rxncon_system.contingencies[0] == con.Contingency(rfs.reaction_from_string('A_ppi_B'),
+                                                                   con.ContingencyType.requirement,
+                                                                   eff.StateEffector(rfs.state_from_string('A--C')))
 
 
 def test_quick_single_reaction_two_contingencies():
@@ -75,11 +73,9 @@ def test_quick_single_reaction_simple_boolean_contingency():
 
     expected_effector.name = '<bool>'
 
-    assert quick.rxncon_system.contingencies[0] == con.Contingency(
-        rfs.reaction_from_string('A_ppi_B'),
-        con.ContingencyType.requirement,
-        expected_effector
-    )
+    assert quick.rxncon_system.contingencies[0] == con.Contingency(rfs.reaction_from_string('A_ppi_B'),
+                                                                   con.ContingencyType.requirement,
+                                                                   expected_effector)
 
 
 def test_quick_multiple_reactions_contingencies():
@@ -103,16 +99,34 @@ def test_quick_multiple_reactions_contingencies():
     bool_effector = eff.OrEffector(eff.StateEffector(rfs.state_from_string('B--D')), bool1_effector)
     bool_effector.name = '<bool>'
 
-    assert con.Contingency(
-        rfs.reaction_from_string('A_ppi_B'),
-        con.ContingencyType.requirement,
-        eff.StateEffector(rfs.state_from_string('A_[n]--[m]'))
-    ) in quick.rxncon_system.contingencies
+    assert con.Contingency(rfs.reaction_from_string('A_ppi_B'),
+                           con.ContingencyType.requirement,
+                           eff.StateEffector(rfs.state_from_string('A_[n]--[m]'))) in quick.rxncon_system.contingencies
 
-    assert con.Contingency(
-        rfs.reaction_from_string('B_p+_C'),
-        con.ContingencyType.requirement,
-        bool_effector
-    ) in quick.rxncon_system.contingencies
+    assert con.Contingency(rfs.reaction_from_string('B_p+_C'),
+                           con.ContingencyType.requirement,
+                           bool_effector) in quick.rxncon_system.contingencies
 
 
+def test_quick_input_output():
+    quick = qui.Quick("""A_ppi_B; ! A-{P}; ! [Input]
+                               C_p+_A
+                               [Output]; ! A--B
+                            """)
+
+    assert isinstance(quick, qui.Quick)
+
+    assert len(quick.rxncon_system.reactions) == 2
+    assert len(quick.rxncon_system.contingencies) == 3
+
+    assert con.Contingency(rfs.reaction_from_string('A_ppi_B'),
+                           con.ContingencyType.requirement,
+                           eff.StateEffector(rfs.state_from_string('A-{p}'))) in quick.rxncon_system.contingencies
+
+    assert con.Contingency(rfs.reaction_from_string('A_ppi_B'),
+                           con.ContingencyType.requirement,
+                           eff.StateEffector(rfs.state_from_string('[Input]'))) in quick.rxncon_system.contingencies
+
+    assert con.Contingency(rfs.reaction_from_string('[Output]'),
+                           con.ContingencyType.requirement,
+                           eff.StateEffector(rfs.state_from_string('A--B'))) in quick.rxncon_system.contingencies

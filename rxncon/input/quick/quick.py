@@ -1,5 +1,6 @@
 from typing import List
 import typecheck as tc
+import re
 
 import rxncon.input.rxncon_input as inp
 import rxncon.core.rxncon_system as rxs
@@ -25,11 +26,13 @@ class Quick(inp.RxnConInput):
         return self._rxncon_system
 
     def _parse_str(self):
+        INPUT_REGEX = '^\[.+?\]$'
+        BOOL_REGEX = '^\<.+?\>$'
         for line in self.quick_input:
             reaction_string = line.split(";")[0].strip()
             contingency_strings = line.split(";")[1:]
             if reaction_string:
-                if reaction_string[0] != "<":
+                if not re.match(BOOL_REGEX, reaction_string) and not re.match(INPUT_REGEX, reaction_string):
                     self._add_reaction_from_string(reaction_string)
                 self._add_contingency_list_entries(contingency_strings, reaction_string)
 

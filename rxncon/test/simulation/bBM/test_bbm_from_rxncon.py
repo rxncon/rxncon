@@ -100,6 +100,30 @@ F__E, (F__E | F_ppi_E)"""
     bbe_system = bbe.BoolNetSystem(bbm_sys)
     assert bbe_system.to_string() == expected_str
 
+
+def test_input_output_system():
+    rxncon_sys = quick.Quick("""A_ppi_B; ! A-{P}; ! [Input]
+                               C_p+_A
+                               [Output]; ! A--B
+                            """)
+
+    bbm_sys = bfr.bipartite_boolean_model_from_rxncon(rxncon_sys.rxncon_system)
+    bbe_system = bbe.BoolNetSystem(bbm_sys)
+
+    expected_str = """target, factors
+A, A
+B, B
+C, C
+.Input., .Input.
+A__B, (A_ppi_B | A__B)
+A_ppi_B, ((A & B) & A_.p.)
+A_.p., (C_pplus_A | A_.p.)
+C_pplus_A, (C & A)
+.Output., (.Output. | A__B)"""
+
+    assert bbe_system.to_string() == expected_str
+
+
 def test_contradictory_expression():
     quick_sys = quick.Quick("""C_p+_A
                                A_ppi_B; x A-{p}; ! A-{P}""")
