@@ -117,6 +117,26 @@ A_.p., (A_.p. | C_pplus_A)
 
     assert bbe_system.to_string() == expected_str
 
+def test_input_equals_output_system():
+    rxncon_sys = quick.Quick("""A_ppi_B; ! A-{P}; ! [Output]
+                               C_p+_A
+                               [Output]; ! A--B
+                            """)
+
+    bbm_sys = bfr.bipartite_boolean_model_from_rxncon(rxncon_sys.rxncon_system)
+    bbe_system = bbe.BoolNetSystem(bbm_sys)
+
+    expected_str = """target, factors
+A, A
+B, B
+C, C
+A_ppi_B, ((.Output. & A_.p.) & (A & B))
+A__B, (A__B | A_ppi_B)
+C_pplus_A, (C & A)
+A_.p., (A_.p. | C_pplus_A)
+.Output., (A__B | .Output.)"""
+
+    assert bbe_system.to_string() == expected_str
 
 def test_contradictory_expression():
     quick_sys = quick.Quick("""C_p+_A
