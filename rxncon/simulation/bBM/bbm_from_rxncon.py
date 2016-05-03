@@ -76,6 +76,8 @@ def _get_vennset_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reacti
         vennset = venn.Intersection(strict_contingency_state_set.to_full_simplified_form(),
                                    venn.Intersection(venn.PropertySet(sta.ComponentState(reaction.subject.to_component_specification())),
                                                      venn.PropertySet(sta.ComponentState(reaction.object.to_component_specification()))))
+        if reaction.source:
+            vennset = venn.Intersection(vennset, venn.PropertySet(reaction.source))
     additional_strict_cont = convert_quantitative_contingencies_into_strict_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))
     additional_contingency_state_set = _state_set_from_contingencies(additional_strict_cont)
     _empty_set_validation(additional_contingency_state_set)
@@ -132,7 +134,7 @@ def rule_for_state_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reac
     if reaction.product is None or bbm.Node(reaction.product) in all_visited_nodes:
         return None
 
-    pos_bool_def=[venn.PropertySet(bbm.Node(reaction.product)), venn.PropertySet(bbm.Node(reaction))]
+    pos_bool_def=[venn.PropertySet(bbm.Node(reaction))]
     neg_bool_def=[]
 
     for rxn in rxnconsys.reactions:
@@ -142,8 +144,14 @@ def rule_for_state_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reac
             neg_bool_def.append(venn.PropertySet(bbm.Node(rxn)))
 
     pos_rules= venn.nested_expression_from_list_and_binary_op(pos_bool_def, venn.Union)
-    neg_rules = venn.nested_expression_from_list_and_binary_op(neg_bool_def, venn.Union)
-    vennset = venn.Intersection(pos_rules, venn.Complement(neg_rules))
+    neg_rules = venn.Complement(venn.nested_expression_from_list_and_binary_op(neg_bool_def, venn.Union))
+
+    if not neg_rules.is_equivalent_to(venn.UniversalSet()):
+        neg_rules = venn.Intersection(venn.PropertySet(bbm.Node(reaction.product)), neg_rules)
+
+        vennset = venn.Union(pos_rules, neg_rules)
+    else:
+        vennset = pos_rules
 
     if isinstance(vennset.to_full_simplified_form(), venn.EmptySet):
         raise AssertionError("There is no way to fulfill this rule: {}".format(vennset))

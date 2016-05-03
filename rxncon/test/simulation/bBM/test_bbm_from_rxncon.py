@@ -22,15 +22,15 @@ C, C
 D, D
 E, E
 A_ppi_B, (((A__C & A__D) & A_.p.) & (A & B))
-A__B, (A__B | A_ppi_B)
+A__B, A_ppi_B
 A_ppi_C, (A & C)
-A__C, (A__C | A_ppi_C)
+A__C, A_ppi_C
 A_ppi_D, (A & D)
-A__D, (A__D | A_ppi_D)
+A__D, A_ppi_D
 C_pplus_A, (C & A)
-A_.p., (((A_.p. & ! D_pminus_A) & ! E_pminus_A) | ((C_pplus_A & ! D_pminus_A) & ! E_pminus_A))
-D_pminus_A, (D & A)
-E_pminus_A, (E & A)"""
+A_.p., (C_pplus_A | ((A_.p. & ! D_pminus_A) & ! E_pminus_A))
+D_pminus_A, ((D & A) & A_.p.)
+E_pminus_A, ((E & A) & A_.p.)"""
 
     assert bbe_system.to_string() == expected_str
 
@@ -47,11 +47,11 @@ B, B
 C, C
 D, D
 A_ppi_B, ((A & B) & (A__C & ! A_.p.))
-A__B, (A__B | A_ppi_B)
+A__B, A_ppi_B
 A_ppi_C, (A & C)
-A__C, (A__C | A_ppi_C)
+A__C, A_ppi_C
 D_pplus_A, (D & A)
-A_.p., (A_.p. | D_pplus_A)"""
+A_.p., D_pplus_A"""
     assert bbe_system.to_string() == expected_expression
 
 
@@ -78,17 +78,17 @@ G, G
 F, F
 H, H
 A_trsc_B, (((C__D & C__E) & ! F__E) & (A & B))
-B, (B | A_trsc_B)
+B, A_trsc_B
 C_ppi_D, (C & D)
-C__D, (C__D | C_ppi_D)
+C__D, C_ppi_D
 C_ppi_E, (C & E)
-C__E, (C__E | C_ppi_E)
+C__E, C_ppi_E
 G_ppi_F, (G & F)
-G__F, (G__F | G_ppi_F)
+G__F, G_ppi_F
 H_ppi_F, (H & F)
-H__F, (H__F | H_ppi_F)
+H__F, H_ppi_F
 F_ppi_E, (F & E)
-F__E, (F__E | F_ppi_E)"""
+F__E, F_ppi_E"""
 
     bbm_sys = bfr.bipartite_boolean_model_from_rxncon(quick_sys.rxncon_system)
     bbe_system = bbe.BoolNetSystem(bbm_sys)
@@ -110,9 +110,9 @@ B, B
 C, C
 .Input., .Input.
 A_ppi_B, ((.Input. & A_.p.) & (A & B))
-A__B, (A__B | A_ppi_B)
+A__B, A_ppi_B
 C_pplus_A, (C & A)
-A_.p., (A_.p. | C_pplus_A)
+A_.p., C_pplus_A
 .Output., (A__B | .Output.)"""
 
     assert bbe_system.to_string() == expected_str
@@ -131,9 +131,9 @@ A, A
 B, B
 C, C
 A_ppi_B, ((.Output. & A_.p.) & (A & B))
-A__B, (A__B | A_ppi_B)
+A__B, A_ppi_B
 C_pplus_A, (C & A)
-A_.p., (A_.p. | C_pplus_A)
+A_.p., C_pplus_A
 .Output., (A__B | .Output.)"""
 
     assert bbe_system.to_string() == expected_str
@@ -144,7 +144,7 @@ def test_contradictory_expression():
     with pytest.raises(AssertionError):
         bfr.bipartite_boolean_model_from_rxncon(quick_sys.rxncon_system)
 
-
+#
 def test_rule_validation():
     with pytest.raises(AssertionError):
         rxncon_sys = quick.Quick("""A_ppi_B; ! A-{P}; ! A--C
