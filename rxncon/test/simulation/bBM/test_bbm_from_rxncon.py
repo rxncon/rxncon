@@ -4,6 +4,27 @@ import rxncon.input.quick.quick as quick
 import rxncon.simulation.bBM.bBM_boolnet_exporter as bbe
 
 
+def test_simple_rule_system_with_degradation():
+    rxncon_sys = quick.Quick("""A_ppi_B; ! A-{p}
+                            C_p+_A
+                            D_p-_A""")
+
+    bbm_sys = bfr.bipartite_boolean_model_from_rxncon(rxncon_sys.rxncon_system)
+    bbe_system = bbe.BoolNetSystem(bbm_sys)
+    expected_str = """target, factors
+A, A
+B, B
+C, C
+D, D
+A_ppi_B, (A_p & (A & B))
+A__B, A_ppi_B
+C_pplus_A, (C & A)
+A_p, (C_pplus_A | (A_p & ! D_pminus_A))
+D_pminus_A, ((D & A) & A_p)"""
+
+    assert bbe_system.to_string() == expected_str
+
+
 def test_rule():
     rxncon_sys = quick.Quick("""A_ppi_B; ! <comp>
                                <comp>; AND A--C; AND A--D; AND A-{p}
@@ -21,16 +42,16 @@ B, B
 C, C
 D, D
 E, E
-A_ppi_B, (((A__C & A__D) & A_.p.) & (A & B))
+A_ppi_B, (((A__C & A__D) & A_p) & (A & B))
 A__B, A_ppi_B
 A_ppi_C, (A & C)
 A__C, A_ppi_C
 A_ppi_D, (A & D)
 A__D, A_ppi_D
 C_pplus_A, (C & A)
-A_.p., (C_pplus_A | ((A_.p. & ! D_pminus_A) & ! E_pminus_A))
-D_pminus_A, ((D & A) & A_.p.)
-E_pminus_A, ((E & A) & A_.p.)"""
+A_p, (C_pplus_A | ((A_p & ! D_pminus_A) & ! E_pminus_A))
+D_pminus_A, ((D & A) & A_p)
+E_pminus_A, ((E & A) & A_p)"""
 
     assert bbe_system.to_string() == expected_str
 
@@ -46,12 +67,12 @@ A, A
 B, B
 C, C
 D, D
-A_ppi_B, ((A & B) & (A__C & ! A_.p.))
+A_ppi_B, ((A & B) & (A__C & ! A_p))
 A__B, A_ppi_B
 A_ppi_C, (A & C)
 A__C, A_ppi_C
 D_pplus_A, (D & A)
-A_.p., D_pplus_A"""
+A_p, D_pplus_A"""
     assert bbe_system.to_string() == expected_expression
 
 
@@ -108,12 +129,12 @@ def test_input_output_system():
 A, A
 B, B
 C, C
-.Input., .Input.
-A_ppi_B, ((.Input. & A_.p.) & (A & B))
+_Input_, _Input_
+A_ppi_B, ((_Input_ & A_p) & (A & B))
 A__B, A_ppi_B
 C_pplus_A, (C & A)
-A_.p., C_pplus_A
-.Output., (A__B | .Output.)"""
+A_p, C_pplus_A
+_Output_, (A__B | _Output_)"""
 
     assert bbe_system.to_string() == expected_str
 
@@ -130,11 +151,11 @@ def test_input_equals_output_system():
 A, A
 B, B
 C, C
-A_ppi_B, ((.Output. & A_.p.) & (A & B))
+A_ppi_B, ((_Output_ & A_p) & (A & B))
 A__B, A_ppi_B
 C_pplus_A, (C & A)
-A_.p., C_pplus_A
-.Output., (A__B | .Output.)"""
+A_p, C_pplus_A
+_Output_, (A__B | _Output_)"""
 
     assert bbe_system.to_string() == expected_str
 
@@ -144,9 +165,9 @@ def test_contradictory_expression():
     with pytest.raises(AssertionError):
         bfr.bipartite_boolean_model_from_rxncon(quick_sys.rxncon_system)
 
-#
+
 def test_rule_validation():
     with pytest.raises(AssertionError):
-        rxncon_sys = quick.Quick("""A_ppi_B; ! A-{P}; ! A--C
+        quick_sys = quick.Quick("""A_ppi_B; ! A-{P}; ! A--C
                                    D_p+_A""")
-        bfr.bipartite_boolean_model_from_rxncon(rxncon_sys.rxncon_system)
+        bfr.bipartite_boolean_model_from_rxncon(quick_sys.rxncon_system)

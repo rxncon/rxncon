@@ -20,11 +20,21 @@ def test_generate_name():
 
     b_intra = bbm.Node(rfs.state_from_string("b_[n]--[m]"))
 
-    assert bbe.replace_invalid_chars(str(b_intra.value)) == "b_.n.__.m."
+    assert bbe.replace_invalid_chars(str(b_intra.value)) == "b_n__m"
 
     A_ppi_B = bbm.Node(rfs.reaction_from_string("A_[n]_ppi_B_[d/s(r)]"))
 
-    assert bbe.string_from_reaction(A_ppi_B.value) == "A_.n._ppi_B_.d.s.r.."
+    assert bbe.string_from_reaction(A_ppi_B.value) == "A_n_ppi_B_dsr"
+
+    A_p = bbm.Node(rfs.state_from_string("A_[d/s(r)]-{p}"))
+    assert bbe.replace_invalid_chars(str(A_p)) == 'A_dsr_p'
+
+    A_p = bbm.Node(rfs.state_from_string("A-{p}"))
+    assert bbe.replace_invalid_chars(str(A_p)) == 'A_p'
+
+    output = bbm.Node(rfs.reaction_from_string('[Output]'))
+    assert bbe.replace_invalid_chars(str(output)) == "_Output_"
+
 
 
 def test_boolnet_string(rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A, initialConditions_boolnet_string):
@@ -38,9 +48,9 @@ def test_boolnet_string(rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_pplus_A, initi
 A, A
 B, B
 C, C
-A__B, (A_ppi_B | A__B)
-A_ppi_B, ((A & B) & A_.p.)
-A_.p., (C_pplus_A | A_.p.)
+A__B, A_ppi_B
+A_ppi_B, ((A & B) & A_p)
+A_p, C_pplus_A
 C_pplus_A, (C & A)"""
 
     assert bbe_str == expected_str
@@ -56,12 +66,12 @@ def test_boolnet_input_output_string(rule_A__B, rule_A_ppi_B, rule_A_p, rule_C_p
 A, A
 B, B
 C, C
-.Input., .Input.
-A__B, (A_ppi_B | A__B)
-A_ppi_B, ((A & B) & A_.p.)
-A_.p., (C_pplus_A | A_.p.)
+_Input_, _Input_
+A__B, A_ppi_B
+A_ppi_B, ((A & B) & A_p)
+A_p, C_pplus_A
 C_pplus_A, (C & A)
-.Output., (.Output. | A__B)"""
+_Output_, (_Output_ | A__B)"""
 
     assert bbe_str == expected_str
 
@@ -77,9 +87,9 @@ B, B
 C, C
 D, D
 E, E
-A__B, (A_ppi_B | A__B)
-A_ppi_B, ((A & B) & A_.p.)
-A_.p., ((C_pplus_A | A_.p.) & (! D_pminus_A & ! E_pminus_A))
+A__B, A_ppi_B
+A_ppi_B, ((A & B) & A_p)
+A_p, (C_pplus_A | (A_p & (! D_pminus_A & ! E_pminus_A)))
 C_pplus_A, (C & A)
 D_pminus_A, (D & A)
 E_pminus_A, (E & A)"""
@@ -106,9 +116,7 @@ def rule_output():
 @pytest.fixture
 def rule_A__B():
 
-    value_A__B = venn.Union(venn.PropertySet(bbm.Node(rfs.reaction_from_string("A_ppi_B"))),
-                            venn.PropertySet(bbm.Node(rfs.state_from_string("A--B"))),
-                            )
+    value_A__B = venn.PropertySet(bbm.Node(rfs.reaction_from_string("A_ppi_B")))
 
     return bbm.Rule(bbm.Node(rfs.state_from_string("A--B")), bbm.Factor(value_A__B))
 
@@ -123,19 +131,22 @@ def rule_A_ppi_B():
 
 @pytest.fixture
 def rule_A_p():
-    value_A_p = venn.Union(venn.PropertySet(bbm.Node(rfs.reaction_from_string("C_p+_A"))),
-                           venn.PropertySet(bbm.Node(rfs.state_from_string("A-{P}"))))
+    value_A_p = venn.PropertySet(bbm.Node(rfs.reaction_from_string("C_p+_A")))
+
 
     return bbm.Rule(bbm.Node(rfs.state_from_string("A-{P}")), bbm.Factor(value_A_p))
 
 
 @pytest.fixture
 def rule_A_p_deg():
-    value_A_p_deg = venn.Intersection(venn.Union(venn.PropertySet(bbm.Node(rfs.reaction_from_string("C_p+_A"))),
-                                                 venn.PropertySet(bbm.Node(rfs.state_from_string("A-{P}")))),
-                                      venn.Intersection(venn.Complement(venn.PropertySet(bbm.Node(rfs.reaction_from_string("D_p-_A")))),
-                                                        venn.Complement(venn.PropertySet(bbm.Node(rfs.reaction_from_string("E_p-_A")))))
-                                      )
+    value_A_p_deg = venn.Union(venn.PropertySet(bbm.Node(rfs.reaction_from_string("C_p+_A"))),
+                               venn.Intersection(venn.PropertySet(bbm.Node(rfs.state_from_string("A-{P}"))),
+                                                 venn.Intersection(venn.Complement(venn.PropertySet(bbm.Node(rfs.reaction_from_string("D_p-_A")))),
+                                                                   venn.Complement(venn.PropertySet(bbm.Node(rfs.reaction_from_string("E_p-_A"))))
+                                                                   )
+                                                 )
+                                )
+
 
     return bbm.Rule(bbm.Node(rfs.state_from_string("A-{P}")), bbm.Factor(value_A_p_deg))
 

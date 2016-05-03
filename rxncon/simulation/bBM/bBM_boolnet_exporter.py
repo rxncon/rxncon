@@ -101,11 +101,15 @@ def string_from_reaction(reaction: rxn.Reaction) -> str:
     reaction_str = "{0}_{1}_{2}".format(reaction.subject, generate_reaction_verb_name(reaction.verb), reaction.object)
     return replace_invalid_chars(reaction_str)
 
+def replace_invalid_input_output_chars(value):
+    return re.sub('^\[|\]$', "_", value)
 
 def replace_invalid_chars(value):
     # todo: make a table out of this for marcus
     value = re.sub("-", "_", value)
-    value = re.sub('[\[{(]', ".", value)
-    value = re.sub('[\]})]', ".", value)
-    value = re.sub('/', ".", value)
+    if re.search('^\[\w+\]$', value):
+        value = replace_invalid_input_output_chars(value)
+    value = re.sub('[\[{(]', "", value)
+    value = re.sub('[\]})]', "", value)
+    value = re.sub('/', "", value)
     return value

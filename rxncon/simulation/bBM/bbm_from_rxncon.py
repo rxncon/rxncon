@@ -22,10 +22,9 @@ def bipartite_boolean_model_from_rxncon(rxnconsys: rxs.RxnConSystem):
 
 
 def rules_from_rxncon(rxconsys: rxs.RxnConSystem):
-
     rules = []
     for reaction in rxconsys.reactions:
-        rules.append(rule_for_reaction_from_rxnconsys_and_reaction(rxconsys, reaction, rules))
+        rules.append(rule_for_reaction_from_rxnconsys_and_reaction(rxconsys, reaction))
 
         rules.append(rule_for_state_from_rxnconsys_and_reaction(rxconsys, reaction, rules))
     rules = [rule for rule in rules if rule]
@@ -56,12 +55,8 @@ def rule_for_output_state_from_rxnconsys(rxnconsys: rxs.RxnConSystem):
             output_rules.append(bbm.Rule(bbm.Node(contingency.target), bbm.Factor(vennset_to_bbm_factor_vennset(vennset.simplified_form()))))
     return output_rules
 
-def rule_for_reaction_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reaction: rxn.Reaction,
-                                                  system_rules: tg.List[bbm.Rule]) -> bbm.Rule:
-    # do we need this here?
-    all_visited_nodes = get_rule_targets(system_rules)
-    if bbm.Node(reaction) in all_visited_nodes:
-        return None
+def rule_for_reaction_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reaction: rxn.Reaction) -> bbm.Rule:
+
     vennset = _get_vennset_from_rxnconsys_and_reaction(rxnconsys, reaction)
     return bbm.Rule(bbm.Node(reaction), bbm.Factor(vennset_to_bbm_factor_vennset(vennset.simplified_form())))
 
