@@ -78,6 +78,7 @@ class RegulatoryGraph():
             graph.add_edge(str(reaction), str(reaction.product), interaction=EdgeInteractionType.produce.value)
         elif reaction.source:
             graph.add_edge(str(reaction), str(reaction.source), interaction=EdgeInteractionType.consume.value)
+
         return graph
 
     def add_contingencies_to_graph(self, contingencies: tp.List[con.Contingency], reaction: rxn.Reaction, graph: nex.DiGraph):
@@ -88,7 +89,6 @@ class RegulatoryGraph():
                     or isinstance(contingency.effector, eff.NotEffector):
                 graph = self.add_edges_from_contingency(contingency.effector, contingency.target,
                                                         effector_edge_interaction_type_mapping[contingency.type], graph)
-
         return graph
 
     def replace_invalid_chars(self, name: str):
