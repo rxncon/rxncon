@@ -6,6 +6,7 @@ import rxncon.core.rxncon_system as rxs
 import rxncon.core.reaction as rxn
 import rxncon.core.effector as eff
 import rxncon.core.contingency as con
+import rxncon.core.state as sta
 
 # for cytoscape export:
 # reaction graph of rxncon: visalisation of specifications and there relationships
@@ -54,7 +55,8 @@ effector_edge_interaction_type_mapping = {eff.OrEffector: EdgeInteractionType.OR
 # handling Input, Output?
 effector_node_type_mapping = { eff.OrEffector: NodeType.OR,
                                eff.AndEffector: NodeType.AND,
-                               eff.NotEffector: NodeType.NOT}
+                               eff.NotEffector: NodeType.NOT
+                               }
 
 
 class RegulatoryGraph():
@@ -73,9 +75,13 @@ class RegulatoryGraph():
 
     def add_reaction_to_graph(self, reaction: rxn.Reaction, graph: nex.DiGraph):
         graph.add_node(str(reaction), dict(type=NodeType.reaction.value))
-        if reaction.product:
+        if isinstance(reaction, rxn.OutputReaction):
+            graph.add_node(str(reaction), dict(type=NodeType.output.value))
+            return graph
+        elif reaction.product:
             graph.add_node(str(reaction.product), dict(type=NodeType.state.value))
             graph.add_edge(str(reaction), str(reaction.product), interaction=EdgeInteractionType.produce.value)
+            return graph
         elif reaction.source:
             for state_effector in self.get_subspecifications_of_state(reaction.source):
                 graph.add_edge(str(reaction), str(state_effector.expr), interaction=EdgeInteractionType.consume.value)
@@ -83,6 +89,12 @@ class RegulatoryGraph():
         else:
             raise AssertionError
 
+    def add_state_effector_edge_or_input_to_graph(self, effector: eff.StateEffector, target_name, edge_type: EdgeInteractionType,
+                                                  graph: nex.DiGraph):
+        if isinstance(effector.expr, sta.InputState):
+            graph.add_node(self.replace_invalid_chars(str(effector.expr)), type=NodeType.input.value)
+        graph.add_edge(self.replace_invalid_chars(str(effector.expr)), target_name,
+                       interaction=edge_type.value)
         return graph
 
     def get_subspecifications_of_state(self, state: sta.State) -> tp.List[eff.StateEffector]:
@@ -102,8 +114,9 @@ class RegulatoryGraph():
                                                                            effector_edge_interaction_type_mapping[contingency.type], graph)
             elif isinstance(contingency.effector, eff.AndEffector) or isinstance(contingency.effector, eff.OrEffector) \
                     or isinstance(contingency.effector, eff.NotEffector):
-                graph = self.add_edges_from_contingency(contingency.effector, contingency.target,
-                                                        effector_edge_interaction_type_mapping[contingency.type], graph)
+                graph = self.add_information_from_effector_reaction_contingency_type_to_graph(contingency.effector, contingency.target,
+                                                                                              effector_edge_interaction_type_mapping[contingency.type], graph)
+
         return graph
 
     def replace_invalid_chars(self, name: str):
@@ -117,8 +130,8 @@ class RegulatoryGraph():
         else:
             raise AssertionError
 
-    def add_edges_from_contingency(self, effector: eff.Effector, target: tp.Union[eff.Effector, rxn.Reaction],
-                                   edge_type: EdgeInteractionType, graph: nex.DiGraph):
+    def add_information_from_effector_reaction_contingency_type_to_graph(self, effector: eff.Effector, target: tp.Union[eff.Effector, rxn.Reaction],
+                                                                         edge_type: EdgeInteractionType, graph: nex.DiGraph):
 
         target_name = self.target_name_from_reaction_or_effector(target)
 
@@ -127,10 +140,10 @@ class RegulatoryGraph():
                            type=effector_node_type_mapping[type(effector)].value)
             graph.add_edge(self.replace_invalid_chars(effector.name), target_name,
                            interaction=edge_type.value)
-            graph = self.add_edges_from_contingency(effector.left_expr, effector,
-                                                    effector_edge_interaction_type_mapping[type(effector)], graph)
-            graph = self.add_edges_from_contingency(effector.right_expr, effector,
-                                                    effector_edge_interaction_type_mapping[type(effector)], graph)
+            graph = self.add_information_from_effector_reaction_contingency_type_to_graph(effector.left_expr, effector,
+                                                                                          effector_edge_interaction_type_mapping[type(effector)], graph)
+            graph = self.add_information_from_effector_reaction_contingency_type_to_graph(effector.right_expr, effector,
+                                                                                          effector_edge_interaction_type_mapping[type(effector)], graph)
             return graph
         elif isinstance(effector, eff.StateEffector):
             for state_effector in self.get_subspecifications_of_state(effector.expr):
@@ -142,8 +155,8 @@ class RegulatoryGraph():
                            type=effector_node_type_mapping[type(effector)].value)
             graph.add_edge(self.replace_invalid_chars(effector.name), target_name,
                            interaction=edge_type.value)
-            graph = self.add_edges_from_contingency(effector.expr, effector,
-                                                    effector_edge_interaction_type_mapping[type(effector)], graph)
+            graph = self.add_information_from_effector_reaction_contingency_type_to_graph(effector.expr, effector,
+                                                                                          effector_edge_interaction_type_mapping[type(effector)], graph)
             return graph
         else:
             raise AssertionError
@@ -177,15 +190,17 @@ class BooleanReagulatoryGraph(RegulatoryGraph):
     def add_component_states_to_graph(self, reaction: rxn.Reaction, graph: nex.DiGraph):
         #todo: check if a component is produced. As soon as it gets produced change the node type
         #todo: from componentstate to state
-        graph.add_node(str(sta.ComponentState(reaction.subject.to_component_specification())),
-                       dict(type=NodeType.componentstate.value))
-        graph.add_edge(str(sta.ComponentState(reaction.subject.to_component_specification())),
-                       str(reaction), interaction=EdgeInteractionType.component.value)
+        if str(sta.ComponentState(reaction.subject.to_component_specification())) not in graph.nodes():
+            graph.add_node(str(sta.ComponentState(reaction.subject.to_component_specification())),
+                           dict(type=NodeType.componentstate.value))
 
-        graph.add_node(str(sta.ComponentState(reaction.object.to_component_specification())),
-                       dict(type=NodeType.componentstate.value))
+        if str(sta.ComponentState(reaction.object.to_component_specification())) not in graph.nodes():
+            graph.add_node(str(sta.ComponentState(reaction.object.to_component_specification())),
+                           dict(type=NodeType.componentstate.value))
+        graph.add_edge(str(sta.ComponentState(reaction.subject.to_component_specification())),
+                           str(reaction), interaction=EdgeInteractionType.component.value)
         graph.add_edge(str(sta.ComponentState(reaction.object.to_component_specification())),
-                       str(reaction), interaction=EdgeInteractionType.component.value)
+                           str(reaction), interaction=EdgeInteractionType.component.value)
 
         return graph
 

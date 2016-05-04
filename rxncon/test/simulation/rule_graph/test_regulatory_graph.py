@@ -67,7 +67,7 @@ def the_case_boolean_regulatory_graph(case_and_expected_boolean_regulatory_graph
 
 
 @pytest.fixture
-def case_and_expected_graph():
+def case_and_expected_regulatory_graph():
     return [
         RuleTestCase('''A_ppi_B; ! A-{p}
                         C_p+_A''',
