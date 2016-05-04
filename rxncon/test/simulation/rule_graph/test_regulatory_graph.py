@@ -157,7 +157,7 @@ def case_and_expected_graph():
         #              [('A_ppi_B', 'A--B', reg.EdgeInteractionType.produce.value),
         #               ('[Input]', 'A_ppi_B', reg.EdgeInteractionType.required.value),
         #               ('A--B', '[Output]', reg.EdgeInteractionType.inhibition.value)]),
-        #
+
         # RuleTestCase('''A_ppi_B; ! <comp>
         #                 <comp>; AND <comp1>; AND [Input]
         #                 <comp1>; OR A--D; OR A--C
