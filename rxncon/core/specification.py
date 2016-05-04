@@ -75,10 +75,14 @@ class Specification(metaclass=ABCMeta):
 
         return other.is_subspecification_of(self)
 
-    @abstractmethod
-    def to_component_specification(self):
-        pass
+    def to_dna_component_specification(self) -> 'DnaSpecification':
+        return DnaSpecification(self.name, None, None, None)
 
+    def to_rna_component_specification(self) -> 'RnaSpecification':
+        return RnaSpecification(self.name, None, None, None)
+
+    def to_protein_component_specification(self) -> 'ProteinSpecification':
+        return ProteinSpecification(self.name, None, None, None)
 
 class ProteinSpecification(Specification):
     @tc.typecheck
@@ -112,6 +116,8 @@ class ProteinSpecification(Specification):
             return super().__lt__(other)
         elif isinstance(other, RnaSpecification):
             return False
+        elif isinstance(other, DnaSpecification):
+            return False
         else:
             raise NotImplementedError
 
@@ -123,7 +129,13 @@ class ProteinSpecification(Specification):
         else:
             return self == other
 
-    def to_component_specification(self) -> 'ProteinSpecification':
+    def to_dna_component_specification(self) -> 'DnaSpecification':
+        return DnaSpecification(self.name, None, None, None)
+
+    def to_rna_component_specification(self) -> 'RnaSpecification':
+        return RnaSpecification(self.name, None, None, None)
+
+    def to_protein_component_specification(self) -> 'ProteinSpecification':
         return ProteinSpecification(self.name, None, None, None)
 
 
@@ -154,8 +166,11 @@ class RnaSpecification(Specification):
 
     @tc.typecheck
     def __lt__(self, other: Specification):
+
         if isinstance(other, RnaSpecification):
             return super().__lt__(other)
+        elif isinstance(other, DnaSpecification):
+            return False
         elif isinstance(other, ProteinSpecification):
             return True
 
@@ -170,5 +185,47 @@ class RnaSpecification(Specification):
         else:
             return self == other
 
-    def to_component_specification(self) -> 'RnaSpecification':
-        return RnaSpecification(self.name, None, None, None)
+
+class DnaSpecification(Specification):
+    @tc.typecheck
+    def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
+        self.name = name
+        self.domain = domain
+        self.subdomain = subdomain
+        self.residue = residue
+        self._validate()
+
+    def _validate(self):
+        if self.subdomain:
+            assert self.domain is not None
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __str__(self) -> str:
+        return sfr.string_from_rna_specification(self)
+
+    @tc.typecheck
+    def __eq__(self, other: Specification) -> bool:
+        return isinstance(other, RnaSpecification) and self.name == other.name \
+               and self.domain == other.domain and self.subdomain == other.subdomain \
+               and self.residue == other.residue
+
+    @tc.typecheck
+    def __lt__(self, other: Specification):
+        if isinstance(other, DnaSpecification):
+            return super().__lt__(other)
+        elif isinstance(other, RnaSpecification):
+            return True
+        elif isinstance(other, ProteinSpecification):
+            return True
+        else:
+            raise NotImplementedError
+
+    @tc.typecheck
+    def is_equivalent_to(self, other: Specification):
+        if isinstance(other, DnaSpecification) and (self.name == other.name) \
+                and self.residue and (self.residue == other.residue):
+            return True
+        else:
+            return self == other
