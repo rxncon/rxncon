@@ -77,7 +77,11 @@ class RegulatoryGraph():
             graph.add_node(str(reaction.product), dict(type=NodeType.state.value))
             graph.add_edge(str(reaction), str(reaction.product), interaction=EdgeInteractionType.produce.value)
         elif reaction.source:
-            graph.add_edge(str(reaction), str(reaction.source), interaction=EdgeInteractionType.consume.value)
+            for state_effector in self.get_subspecifications_of_state(reaction.source):
+                graph.add_edge(str(reaction), str(state_effector.expr), interaction=EdgeInteractionType.consume.value)
+            return graph
+        else:
+            raise AssertionError
 
         return graph
 
