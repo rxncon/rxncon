@@ -142,11 +142,13 @@ def reactants_from_molecule_sets(reacting_molecule_set: VennSet, background_mole
     failed_binding_attempts = 0
     while background_molecules:
         molecule = background_molecules.pop(0)
+        still_single = True
+
         if not molecule.bindings:
             # Spurious solution, background molecule not connected.
-            return set()
+            continue
 
-        still_single = True
+
         for complex in complexes_in_formation:
             if complex.can_bind_molecule_instance(molecule):
                 complex.add_molecule_instance(molecule)
@@ -318,7 +320,7 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
                     assert not instance.localization_property
                     prop = list(instance.association_properties)[0]
                     expanded_instances += [MoleculeInstance(mol_def, set(), {x}, None) for x in
-                                           prop.complementary_instances()]
+                                           prop.complementary_instances]
                 elif instance.localization_property:
                     assert not instance.modification_properties
                     assert not instance.association_properties
@@ -346,12 +348,11 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
         else:
             raise NotImplemented
 
-    def _filter_disconnected_components(mol_instance_set: VennSet, reacting_set: VennSet) -> VennSet:
-        all_solutions = mol_instance_set.to_union_list_form()
-
-        connected_solutions = [x for x in all_solutions if reactants_from_molecule_sets(reacting_set, x)]
-
-        return nested_expression_from_list_and_binary_op(connected_solutions, Union)
+    # def _filter_disconnected_components(mol_instance_set: VennSet, reacting_set: VennSet) -> VennSet:
+    #     all_solutions = mol_instance_set.to_union_list_form()
+    #     connected_solutions = [x for x in all_solutions if reactants_from_molecule_sets(reacting_set, x)]
+    #
+    #     return nested_expression_from_list_and_binary_op(connected_solutions, Union)
 
     def _add_missing_molecules(mol_instance_set: VennSet, reacting_set: VennSet) -> VennSet:
         reacting_mols = reacting_set.to_nested_list_form()[0]
@@ -370,7 +371,9 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
         return set_from_nested_list_form(solutions)
 
     def _disjunctified(mol_instance_set: VennSet) -> VennSet:
-        return nested_expression_from_list_and_binary_op(gram_schmidt_disjunctify(mol_instance_set.to_union_list_form()), Union)
+        da_sets = mol_instance_set.to_union_list_form()
+        da_res = nested_expression_from_list_and_binary_op(gram_schmidt_disjunctify(mol_instance_set.to_union_list_form()), Union)
+        return nested_expression_from_list_and_binary_op(gram_schmidt_disjunctify(mol_instance_set.to_union_list_form()), Union).simplified_form()
 
     def _sorted(mol_instance_set: VennSet) -> VennSet:
         sorted_nested_list = []
@@ -386,20 +389,20 @@ def mol_instance_set_from_state_set(mol_defs: Dict[Specification, MoleculeDefini
         return nested_expression_from_list_and_binary_op(sorted_sets, Union)
 
     mols_from_states = lambda x: _mol_instance_set_with_complements_from_state_set(mol_defs, x)
-    filter_disconnected = lambda x: _filter_disconnected_components(x, reacting_set)
+    # filter_disconnected = lambda x: _filter_disconnected_components(x, reacting_set)
     add_missing_molecules = lambda x: _add_missing_molecules(x, reacting_set)
 
     full_mapping = compose(
         _sorted,
         imploded_mol_instance_set,
-        add_missing_molecules,
         _expanded_complements,
         _disjunctified,
         _sorted,
-        filter_disconnected,
         _expanded_complements,
         mols_from_states
     )
+
+    solns = full_mapping(state_set).simplified_form().to_nested_list_form()
 
     return full_mapping(state_set).simplified_form()
 
@@ -435,10 +438,10 @@ def imploded_mol_instance_set(mol_instance_set: VennSet) -> VennSet:
                 else:
                     return None
 
-        if len([ass.association_def for ass in asss]) != len(set([ass.association_def for ass in asss])):
+        if len([ass.property_def for ass in asss]) != len(set([ass.property_def for ass in asss])):
             return None
 
-        if len([mod.modification_def for mod in mods]) != len(set([mod.modification_def for mod in mods])):
+        if len([mod.property_def for mod in mods]) != len(set([mod.property_def for mod in mods])):
             return None
 
         return MoleculeInstance(mol_def, mods, asss, loc)
@@ -508,7 +511,7 @@ def _molecule_instance_set_from_ppi_state(mol_defs: Dict[Specification, Molecule
     sets = [Intersection(PropertySet(MoleculeInstance(first_mol_def, set(), {pair[0]}, None)),
                          PropertySet(MoleculeInstance(second_mol_def, set(), {pair[1]}, None))) for pair in
             product(first_ass_instances, second_ass_instances)
-            if pair[0].association_def.spec == pair[1].partner and pair[0].partner == pair[1].association_def.spec]
+            if pair[0].property_def.spec == pair[1].partner and pair[0].partner == pair[1].property_def.spec]
 
     return nested_expression_from_list_and_binary_op(sets, Union)
 

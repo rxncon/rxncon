@@ -102,7 +102,7 @@ def string_from_modification_definition(modification_definition: rxncon.semantic
 
 
 def string_from_modification_specification(modification_specification: rxncon.semantics.molecule_instance.ModificationPropertyInstance) -> str:
-    return '{0}~{1}'.format(modification_specification.modification_def.domain, modification_specification.modifier)
+    return '{0}~{1}'.format(modification_specification.property_def.domain, modification_specification.modifier)
 
 
 # ASSOCIATION DEF / SPEC
@@ -112,13 +112,13 @@ def string_from_association_definition(association_definition: rxncon.semantics.
 
 def string_from_association_specification(association_specification: rxncon.semantics.molecule_instance.AssociationPropertyInstance) -> str:
     if association_specification.occupation_status == rxncon.semantics.molecule_definition.OccupationStatus.not_specified:
-        return association_specification.association_def.domain + '!?'
+        return association_specification.property_def.domain + '!?'
 
     elif association_specification.occupation_status == rxncon.semantics.molecule_definition.OccupationStatus.occupied_unknown_partner:
-        return association_specification.association_def.domain + '!+'
+        return association_specification.property_def.domain + '!+'
 
     elif association_specification.occupation_status == rxncon.semantics.molecule_definition.OccupationStatus.not_occupied:
-        return association_specification.association_def.domain
+        return association_specification.property_def.domain
 
     elif association_specification.occupation_status == rxncon.semantics.molecule_definition.OccupationStatus.occupied_known_partner:
         raise NotImplementedError('AssociationSpecification with domain occupied by known partner cannot be stringified outside complex.')

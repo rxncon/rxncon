@@ -61,16 +61,23 @@ class MoleculeInstance:
 
     @property
     def bindings(self) -> tg.Set['Binding']:
-        return {Binding(ass_prop.association_def.spec, ass_prop.partner) for ass_prop in self.association_properties
+        return {Binding(ass_prop.property_def.spec, ass_prop.partner) for ass_prop in self.association_properties
                 if ass_prop.occupation_status == OccupationStatus.occupied_known_partner}
+
+    @property
+    def properties(self):
+        if self.localization_property:
+            return self.association_properties.union(self.modification_properties).union({self.localization_property})
+        else:
+            return self.association_properties.union(self.modification_properties)
 
     def _validate(self):
         # Assert each modification domain and each association domain is only present once.
-        assert len([mod_prop.modification_def for mod_prop in self.modification_properties]) == \
-            len(set([mod_prop.modification_def for mod_prop in self.modification_properties]))
+        assert len([mod_prop.property_def for mod_prop in self.modification_properties]) == \
+            len(set([mod_prop.property_def for mod_prop in self.modification_properties]))
 
-        assert len([ass_prop.association_def for ass_prop in self.association_properties]) == \
-            len(set([ass_prop.association_def for ass_prop in self.association_properties]))
+        assert len([ass_prop.property_def for ass_prop in self.association_properties]) == \
+            len(set([ass_prop.property_def for ass_prop in self.association_properties]))
 
 
 class PropertyInstance:
@@ -79,46 +86,47 @@ class PropertyInstance:
 
 class ModificationPropertyInstance(PropertyInstance):
     @tc.typecheck
-    def __init__(self, modification_def: ModificationPropertyDefinition, modifier: 'Modifier'):
-        self.modification_def = modification_def
+    def __init__(self, property_def: ModificationPropertyDefinition, modifier: 'Modifier'):
+        self.property_def = property_def
         self.modifier = modifier
         self._validate()
 
     @tc.typecheck
     def __eq__(self, other: PropertyInstance) -> bool:
-        return isinstance(other, ModificationPropertyInstance) and self.modification_def == other.modification_def and \
+        return isinstance(other, ModificationPropertyInstance) and self.property_def == other.modification_def and \
             self.modifier == other.modifier
 
     def __lt__(self, other: 'ModificationPropertyInstance'):
-        if self.modification_def.spec < other.modification_def.spec:
+        if self.property_def.spec < other.property_def.spec:
             return True
 
         return self.modifier.value < other.modifier.value
 
     def __hash__(self) -> bool:
-        return hash(str(self.modification_def.spec))
+        return hash(str(self.property_def.spec))
 
     def __repr__(self):
         return str(self)
 
     def __str__(self) -> str:
-        return 'mod/{0}:{1}'.format(self.modification_def.spec, self.modifier)
+        return 'mod/{0}:{1}'.format(self.property_def.spec, self.modifier)
 
     def _validate(self):
-        if self.modifier not in self.modification_def.valid_modifiers:
+        if self.modifier not in self.property_def.valid_modifiers:
             raise ValueError('Modifier {0} does not appear in Set of valid modifiers for domain {1}.'
-                             .format(self.modifier, self.modification_def.spec))
+                             .format(self.modifier, self.property_def.spec))
 
+    @property
     def complementary_instances(self):
-        return [ModificationPropertyInstance(self.modification_def, modifier) for modifier
-                in self.modification_def.valid_modifiers if modifier != self.modifier]
+        return [ModificationPropertyInstance(self.property_def, modifier) for modifier
+                in self.property_def.valid_modifiers if modifier != self.modifier]
 
 
 class AssociationPropertyInstance(PropertyInstance):
     @tc.typecheck
-    def __init__(self, association_def: AssociationPropertyDefinition, occupation_status: 'OccupationStatus',
+    def __init__(self, property_def: AssociationPropertyDefinition, occupation_status: 'OccupationStatus',
                  partner: tg.Optional[spe.Specification]):
-        self.association_def = association_def
+        self.property_def = property_def
         self.occupation_status = occupation_status
         self.partner = partner
 
@@ -130,44 +138,45 @@ class AssociationPropertyInstance(PropertyInstance):
             return False
 
         if self.partner and other.partner:
-            return self.association_def == other.association_def and self.occupation_status == other.occupation_status and self.partner == other.partner
+            return self.property_def == other.property_def and self.occupation_status == other.occupation_status and self.partner == other.partner
         elif not self.partner and not other.partner:
-            return self.association_def == other.association_def and self.occupation_status == other.occupation_status
+            return self.property_def == other.property_def and self.occupation_status == other.occupation_status
         else:
             return False
 
     def __lt__(self, other: 'AssociationPropertyInstance'):
-        if self.association_def.spec < other.association_def.spec:
+        if self.property_def.spec < other.property_def.spec:
             return True
         return False
 
     def __hash__(self) -> int:
-        return hash(str(self.association_def.spec))
+        return hash(str(self.property_def.spec))
 
     def __repr__(self):
         return str(self)
 
     def __str__(self) -> str:
-        return 'ass/{0}:{1}'.format(self.association_def.spec, self.partner)
+        return 'ass/{0}:{1}'.format(self.property_def.spec, self.partner)
 
+    @property
     def complementary_instances(self):
         if self.occupation_status == OccupationStatus.occupied_known_partner:
-            unoccupied = AssociationPropertyInstance(self.association_def, OccupationStatus.not_occupied, None)
-            other_partners = [AssociationPropertyInstance(self.association_def, OccupationStatus.occupied_known_partner, x)
-                              for x in self.association_def.valid_partners if x != self.partner]
+            unoccupied = AssociationPropertyInstance(self.property_def, OccupationStatus.not_occupied, None)
+            other_partners = [AssociationPropertyInstance(self.property_def, OccupationStatus.occupied_known_partner, x)
+                              for x in self.property_def.valid_partners if x != self.partner]
 
             return other_partners + [unoccupied]
         elif self.occupation_status == OccupationStatus.not_occupied:
-            return [AssociationPropertyInstance(self.association_def, OccupationStatus.occupied_known_partner, x)
-                    for x in self.association_def.valid_partners]
+            return [AssociationPropertyInstance(self.property_def, OccupationStatus.occupied_known_partner, x)
+                    for x in self.property_def.valid_partners]
         else:
             raise NotImplementedError
 
     def _validate(self):
         if self.partner:
-            assert self.partner in self.association_def.valid_partners, \
+            assert self.partner in self.property_def.valid_partners, \
                 'For association domain {0}, binding partner {1} does not appear in list of valid partners {2}.' \
-                .format(str(self.association_def.spec), str(self.partner), ','.join(str(x) for x in sorted(self.association_def.valid_partners)))
+                .format(str(self.property_def.spec), str(self.partner), ','.join(str(x) for x in sorted(self.property_def.valid_partners)))
 
         if self.occupation_status == OccupationStatus.not_occupied:
             assert not self.partner
@@ -175,14 +184,14 @@ class AssociationPropertyInstance(PropertyInstance):
 
 class LocalizationPropertyInstance(PropertyInstance):
     @tc.typecheck
-    def __init__(self, localization_def: LocalizationPropertyDefinition, compartment: Compartment):
-        self.localization_def = localization_def
+    def __init__(self, property_def: LocalizationPropertyDefinition, compartment: Compartment):
+        self.property_def = property_def
         self.compartment = compartment
         self._validate()
 
     @tc.typecheck
     def __eq__(self, other: PropertyInstance) -> bool:
-        return isinstance(other, LocalizationPropertyInstance) and self.localization_def == other.localization_def and \
+        return isinstance(other, LocalizationPropertyInstance) and self.property_def == other.localization_def and \
             self.compartment == other.compartment
 
     def __lt__(self, other: 'LocalizationPropertyInstance') -> bool:
@@ -198,13 +207,14 @@ class LocalizationPropertyInstance(PropertyInstance):
         return 'loc/{0}'.format(self.compartment)
 
     def _validate(self):
-        if self.compartment not in self.localization_def.valid_compartments:
+        if self.compartment not in self.property_def.valid_compartments:
             raise ValueError('Compartment {0} does not appear in Set of valid compartments {1}.'
-                             .format(self.compartment, ', '.join(str(x) for x in self.localization_def.valid_compartments)))
+                             .format(self.compartment, ', '.join(str(x) for x in self.property_def.valid_compartments)))
 
+    @property
     def complementary_instances(self):
-        return [LocalizationPropertyInstance(self.localization_def, compartment) for compartment
-                in self.localization_def.valid_compartments if compartment != self.compartment]
+        return [LocalizationPropertyInstance(self.property_def, compartment) for compartment
+                in self.property_def.valid_compartments if compartment != self.compartment]
 
 
 class Binding:
@@ -243,7 +253,7 @@ def create_partner_mol_instance(mol_defs: tg.Dict[Specification, MoleculeDefinit
     assert len(mol_instance.association_properties) == 1, \
         'MoleculeInstance passed to create_partner_mol_instance should contain exactly one AssociationPropertyInstance.'
 
-    the_other_assoc_spec = list(mol_instance.association_properties)[0].association_def.spec
+    the_other_assoc_spec = list(mol_instance.association_properties)[0].property_def.spec
 
     the_mol_def = mol_defs[list(mol_instance.association_properties)[0].partner.to_component_specification()]
     the_assoc_spec = list(mol_instance.association_properties)[0].partner

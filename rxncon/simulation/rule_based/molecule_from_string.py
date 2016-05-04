@@ -154,7 +154,7 @@ def mol_instance_from_string(mol_def: tg.Union[str, MoleculeDefinition], mol_ins
     ass_props = {x for x in property_instances if isinstance(x, AssociationPropertyInstance)}
     loc_props = {x for x in property_instances if isinstance(x, LocalizationPropertyInstance)}
 
-    assert len(loc_props) <= 1, 'Number of LocalizationPropertyInstance in {0} exceeds one.'.format(prop_string)
+    assert len(loc_props) <= 1, 'Number of LocalizationPropertyInstance in {0} exceeds one.'.format(mol_instance_string)
     loc_prop = list(loc_props)[0] if len(loc_props) == 1 else None
 
     return MoleculeInstance(mol_def, mod_props, ass_props, loc_prop)
@@ -184,7 +184,7 @@ def mol_instances_and_bindings_from_string(mol_defs: tg.Union[tg.Iterable[str], 
     for mol_ins in mol_instances:
         for ass_prop in mol_ins.association_properties:
             if ass_prop.partner:
-                bindings.add(Binding(ass_prop.association_def.spec, ass_prop.partner))
+                bindings.add(Binding(ass_prop.property_def.spec, ass_prop.partner))
 
     return mol_instances, bindings
 

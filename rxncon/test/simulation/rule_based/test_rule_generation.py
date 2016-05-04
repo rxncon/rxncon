@@ -312,113 +312,113 @@ def case_disjunction():
                 'A#ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Aassoc]:,ass/B_[Dassoc]:D_[Bassoc].D#ass/D_[Bassoc]:B_[Dassoc] <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[Dassoc]:D_[Bassoc].D#ass/D_[Bassoc]:B_[Dassoc] @ kf_A_ppi_B, kr_A_ppi_B',
             ]
         ),
-        RuleTestCase(
-            '''
-            C_p+_A_[(x)]
-            C_p+_B_[(y)]
-            C_p+_B_[(z)]
-            A_ppi_C
-            B_ppi_D
-            A_ppi_B; ! <ORS>
-            <ORS>; OR A_[(x)]-{p}; OR B-{p}; OR A--C; OR B--D''',
-            [
-                'A#mod/A_[(x)]:u~p,ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
-                'B#mod/B_[(y)]:u~p,mod/B_[(z)]:u~p,ass/B_[Dassoc]:D_[Bassoc],ass/B_[Aassoc]:A_[Bassoc]',
-                'C#ass/C_[Aassoc]:A_[Cassoc]',
-                'D#ass/D_[Bassoc]:B_[Dassoc]'
-            ],
-            [
-                'C# + A#mod/A_[(x)]:u -> C# + A#mod/A_[(x)]:p @ k_C_p+_A_[(x)]',
-                'C# + B#mod/B_[(y)]:u -> C# + B#mod/B_[(y)]:p @ k_C_p+_B_[(y)]',
-                'C# + B#mod/B_[(z)]:u -> C# + B#mod/B_[(z)]:p @ k_C_p+_B_[(z)]',
-                'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
-                'B#ass/B_[Dassoc]: + D#ass/D_[Bassoc]: <-> B#ass/B_[Dassoc]:D_[Bassoc].D#ass/D_[Bassoc]:B_[Dassoc] @ kf_B_ppi_D, kr_B_ppi_D',
-                'A#mod/A_[(x)]:p,ass/A_[Bassoc]: + B#ass/B_[Aassoc]: <-> A#mod/A_[(x)]:p,ass/A_[Bassoc]:B_[Aassoc].B#ass/B_[Aassoc]:A_[Bassoc] @ kf_A_ppi_B, kr_A_ppi_B',
-                'A#mod/A_[(x)]:u,ass/A_[Bassoc]: + B#ass/B_[Aassoc]:,mod/B_[(y)]:p <-> A#mod/A_[(x)]:u,ass/A_[Bassoc]:B_[Aassoc].B#ass/B_[Aassoc]:A_[Bassoc],mod/B_[(y)]:p @ kf_A_ppi_B, kr_A_ppi_B',
-                'A#mod/A_[(x)]:u,ass/A_[Bassoc]: + B#ass/B_[Aassoc]:,mod/B_[(y)]:u,mod/B_[(z)]:p <-> A#mod/A_[(x)]:u,ass/A_[Bassoc]:B_[Aassoc].B#ass/B_[Aassoc]:A_[Bassoc],mod/B_[(y)]:u,mod/B_[(z)]:p @ kf_A_ppi_B, kr_A_ppi_B',
-                'A#mod/A_[(x)]:u,ass/A_[Bassoc]:,ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] + B#ass/B_[Aassoc]:,mod/B_[(y)]:u,mod/B_[(z)]:u <-> A#mod/A_[(x)]:u,ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc].B#ass/B_[Aassoc]:A_[Bassoc],mod/B_[(y)]:u,mod/B_[(z)]:u @ kf_A_ppi_B, kr_A_ppi_B',
-                'A#mod/A_[(x)]:u,ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Aassoc]:,mod/B_[(y)]:u,mod/B_[(z)]:u,ass/B_[Dassoc]:D_[Bassoc].D#ass/D_[Bassoc]:B_[Dassoc] <-> A#mod/A_[(x)]:u,ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Aassoc]:A_[Bassoc],mod/B_[(y)]:u,mod/B_[(z)]:u,ass/B_[Dassoc]:D_[Bassoc].D#ass/D_[Bassoc]:B_[Dassoc] @ kf_A_ppi_B, kr_A_ppi_B'
-            ]
-        ),
-        RuleTestCase(
-            '''
-            A_ppi_C
-            C_ppi_D
-            B_ppi_E
-            A_ppi_B; ! <comp1>
-            <comp1>; OR <comp1C1>
-            <comp1>; OR <comp2C1>
-            <comp1C1>; AND A--C
-            <comp1C1>; AND C--D
-            <comp2C1>; AND A--C
-            <comp2C1>; AND B--E''',
-            [
-                'A#ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
-                'B#ass/B_[Eassoc]:E_[Bassoc],ass/B_[Aassoc]:A_[Bassoc]',
-                'C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc]',
-                'D#ass/D_[Cassoc]:C_[Dassoc]',
-                'E#ass/E_[Bassoc]:B_[Eassoc]'
-            ],
-            [
-                'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
-                'C#ass/C_[Dassoc]: + D#ass/D_[Cassoc]: <-> C#ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] @ kf_C_ppi_D, kr_C_ppi_D',
-                'B#ass/B_[Eassoc]: + E#ass/E_[Bassoc]: <-> B#ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_B_ppi_E, kr_B_ppi_E',
-                'A#ass/A_[Bassoc]:,ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] + B#ass/B_[Aassoc]:,ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc].B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_A_ppi_B, kr_A_ppi_B',
-                'A#ass/A_[Bassoc]:,ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] + B#ass/B_[Aassoc]:,ass/B_[Eassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc].B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[Eassoc]:.D#ass/D_[Cassoc]:C_[Dassoc] @ kf_A_ppi_B, kr_A_ppi_B'
-            ]
-        ),
-        RuleTestCase(
-            '''
-            A_ppi_C
-            C_ppi_D
-            B_ppi_E
-            A_ppi_B; x <comp1>
-            <comp1>; OR <comp1C1>
-            <comp1>; OR <comp2C1>
-            <comp1C1>; AND A--C
-            <comp1C1>; AND C--D
-            <comp2C1>; AND A--C
-            <comp2C1>; AND B--E''',
-            [
-                'A#ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
-                'B#ass/B_[Eassoc]:E_[Bassoc],ass/B_[Aassoc]:A_[Bassoc]',
-                'C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc]',
-                'D#ass/D_[Cassoc]:C_[Dassoc]',
-                'E#ass/E_[Bassoc]:B_[Eassoc]'
-            ],
-            [
-                'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
-                'C#ass/C_[Dassoc]: + D#ass/D_[Cassoc]: <-> C#ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] @ kf_C_ppi_D, kr_C_ppi_D',
-                'B#ass/B_[Eassoc]: + E#ass/E_[Bassoc]: <-> B#ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_B_ppi_E, kr_B_ppi_E',
-                'A#ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Aassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Aassoc]:A_[Bassoc] @ kf_A_ppi_B, kr_A_ppi_B',
-            ]
-        ),
-        RuleTestCase(
-            '''
-            A_ppi_C
-            C_ppi_D
-            B_ppi_E
-            A_ppi_B; x <comp1>
-            <comp1>; AND <comp1C1>
-            <comp1>; AND <comp2C1>
-            <comp1C1>; OR A--C
-            <comp1C1>; OR C--D
-            <comp2C1>; OR A--C
-            <comp2C1>; OR B--E''',
-            [
-                'A#ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
-                'B#ass/B_[Eassoc]:E_[Bassoc],ass/B_[Aassoc]:A_[Bassoc]',
-                'C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc]',
-                'D#ass/D_[Cassoc]:C_[Dassoc]',
-                'E#ass/E_[Bassoc]:B_[Eassoc]'
-            ],
-            [
-                'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
-                'C#ass/C_[Dassoc]: + D#ass/D_[Cassoc]: <-> C#ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] @ kf_C_ppi_D, kr_C_ppi_D',
-                'B#ass/B_[Eassoc]: + E#ass/E_[Bassoc]: <-> B#ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_B_ppi_E, kr_B_ppi_E',
-                'A#ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Aassoc]:,ass/B_[Eassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[Eassoc]: @ kf_A_ppi_B, kr_A_ppi_B',
-            ]
-        ),
+        # RuleTestCase(
+        #     '''
+        #     C_p+_A_[(x)]
+        #     C_p+_B_[(y)]
+        #     C_p+_B_[(z)]
+        #     A_ppi_C
+        #     B_ppi_D
+        #     A_ppi_B; ! <ORS>
+        #     <ORS>; OR A_[(x)]-{p}; OR B-{p}; OR A--C; OR B--D''',
+        #     [
+        #         'A#mod/A_[(x)]:u~p,ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
+        #         'B#mod/B_[(y)]:u~p,mod/B_[(z)]:u~p,ass/B_[Dassoc]:D_[Bassoc],ass/B_[Aassoc]:A_[Bassoc]',
+        #         'C#ass/C_[Aassoc]:A_[Cassoc]',
+        #         'D#ass/D_[Bassoc]:B_[Dassoc]'
+        #     ],
+        #     [
+        #         'C# + A#mod/A_[(x)]:u -> C# + A#mod/A_[(x)]:p @ k_C_p+_A_[(x)]',
+        #         'C# + B#mod/B_[(y)]:u -> C# + B#mod/B_[(y)]:p @ k_C_p+_B_[(y)]',
+        #         'C# + B#mod/B_[(z)]:u -> C# + B#mod/B_[(z)]:p @ k_C_p+_B_[(z)]',
+        #         'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
+        #         'B#ass/B_[Dassoc]: + D#ass/D_[Bassoc]: <-> B#ass/B_[Dassoc]:D_[Bassoc].D#ass/D_[Bassoc]:B_[Dassoc] @ kf_B_ppi_D, kr_B_ppi_D',
+        #         'A#mod/A_[(x)]:p,ass/A_[Bassoc]: + B#ass/B_[Aassoc]: <-> A#mod/A_[(x)]:p,ass/A_[Bassoc]:B_[Aassoc].B#ass/B_[Aassoc]:A_[Bassoc] @ kf_A_ppi_B, kr_A_ppi_B',
+        #         'A#mod/A_[(x)]:u,ass/A_[Bassoc]: + B#ass/B_[Aassoc]:,mod/B_[(y)]:p <-> A#mod/A_[(x)]:u,ass/A_[Bassoc]:B_[Aassoc].B#ass/B_[Aassoc]:A_[Bassoc],mod/B_[(y)]:p @ kf_A_ppi_B, kr_A_ppi_B',
+        #         'A#mod/A_[(x)]:u,ass/A_[Bassoc]: + B#ass/B_[Aassoc]:,mod/B_[(y)]:u,mod/B_[(z)]:p <-> A#mod/A_[(x)]:u,ass/A_[Bassoc]:B_[Aassoc].B#ass/B_[Aassoc]:A_[Bassoc],mod/B_[(y)]:u,mod/B_[(z)]:p @ kf_A_ppi_B, kr_A_ppi_B',
+        #         'A#mod/A_[(x)]:u,ass/A_[Bassoc]:,ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] + B#ass/B_[Aassoc]:,mod/B_[(y)]:u,mod/B_[(z)]:u <-> A#mod/A_[(x)]:u,ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc].B#ass/B_[Aassoc]:A_[Bassoc],mod/B_[(y)]:u,mod/B_[(z)]:u @ kf_A_ppi_B, kr_A_ppi_B',
+        #         'A#mod/A_[(x)]:u,ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Aassoc]:,mod/B_[(y)]:u,mod/B_[(z)]:u,ass/B_[Dassoc]:D_[Bassoc].D#ass/D_[Bassoc]:B_[Dassoc] <-> A#mod/A_[(x)]:u,ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Aassoc]:A_[Bassoc],mod/B_[(y)]:u,mod/B_[(z)]:u,ass/B_[Dassoc]:D_[Bassoc].D#ass/D_[Bassoc]:B_[Dassoc] @ kf_A_ppi_B, kr_A_ppi_B'
+        #     ]
+        # ),
+        # RuleTestCase(
+        #     '''
+        #     A_ppi_C
+        #     C_ppi_D
+        #     B_ppi_E
+        #     A_ppi_B; ! <comp1>
+        #     <comp1>; OR <comp1C1>
+        #     <comp1>; OR <comp2C1>
+        #     <comp1C1>; AND A--C
+        #     <comp1C1>; AND C--D
+        #     <comp2C1>; AND A--C
+        #     <comp2C1>; AND B--E''',
+        #     [
+        #         'A#ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
+        #         'B#ass/B_[Eassoc]:E_[Bassoc],ass/B_[Aassoc]:A_[Bassoc]',
+        #         'C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc]',
+        #         'D#ass/D_[Cassoc]:C_[Dassoc]',
+        #         'E#ass/E_[Bassoc]:B_[Eassoc]'
+        #     ],
+        #     [
+        #         'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
+        #         'C#ass/C_[Dassoc]: + D#ass/D_[Cassoc]: <-> C#ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] @ kf_C_ppi_D, kr_C_ppi_D',
+        #         'B#ass/B_[Eassoc]: + E#ass/E_[Bassoc]: <-> B#ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_B_ppi_E, kr_B_ppi_E',
+        #         'A#ass/A_[Bassoc]:,ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] + B#ass/B_[Aassoc]:,ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc].B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_A_ppi_B, kr_A_ppi_B',
+        #         'A#ass/A_[Bassoc]:,ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] + B#ass/B_[Aassoc]:,ass/B_[Eassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc].B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[Eassoc]:.D#ass/D_[Cassoc]:C_[Dassoc] @ kf_A_ppi_B, kr_A_ppi_B'
+        #     ]
+        # ),
+        # RuleTestCase(
+        #     '''
+        #     A_ppi_C
+        #     C_ppi_D
+        #     B_ppi_E
+        #     A_ppi_B; x <comp1>
+        #     <comp1>; OR <comp1C1>
+        #     <comp1>; OR <comp2C1>
+        #     <comp1C1>; AND A--C
+        #     <comp1C1>; AND C--D
+        #     <comp2C1>; AND A--C
+        #     <comp2C1>; AND B--E''',
+        #     [
+        #         'A#ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
+        #         'B#ass/B_[Eassoc]:E_[Bassoc],ass/B_[Aassoc]:A_[Bassoc]',
+        #         'C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc]',
+        #         'D#ass/D_[Cassoc]:C_[Dassoc]',
+        #         'E#ass/E_[Bassoc]:B_[Eassoc]'
+        #     ],
+        #     [
+        #         'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
+        #         'C#ass/C_[Dassoc]: + D#ass/D_[Cassoc]: <-> C#ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] @ kf_C_ppi_D, kr_C_ppi_D',
+        #         'B#ass/B_[Eassoc]: + E#ass/E_[Bassoc]: <-> B#ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_B_ppi_E, kr_B_ppi_E',
+        #         'A#ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Aassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Aassoc]:A_[Bassoc] @ kf_A_ppi_B, kr_A_ppi_B',
+        #     ]
+        # ),
+        # RuleTestCase(
+        #     '''
+        #     A_ppi_C
+        #     C_ppi_D
+        #     B_ppi_E
+        #     A_ppi_B; x <comp1>
+        #     <comp1>; AND <comp1C1>
+        #     <comp1>; AND <comp2C1>
+        #     <comp1C1>; OR A--C
+        #     <comp1C1>; OR C--D
+        #     <comp2C1>; OR A--C
+        #     <comp2C1>; OR B--E''',
+        #     [
+        #         'A#ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
+        #         'B#ass/B_[Eassoc]:E_[Bassoc],ass/B_[Aassoc]:A_[Bassoc]',
+        #         'C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc]',
+        #         'D#ass/D_[Cassoc]:C_[Dassoc]',
+        #         'E#ass/E_[Bassoc]:B_[Eassoc]'
+        #     ],
+        #     [
+        #         'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
+        #         'C#ass/C_[Dassoc]: + D#ass/D_[Cassoc]: <-> C#ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] @ kf_C_ppi_D, kr_C_ppi_D',
+        #         'B#ass/B_[Eassoc]: + E#ass/E_[Bassoc]: <-> B#ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_B_ppi_E, kr_B_ppi_E',
+        #         'A#ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Aassoc]:,ass/B_[Eassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[Eassoc]: @ kf_A_ppi_B, kr_A_ppi_B',
+        #     ]
+        # ),
         RuleTestCase(
             '''
             A_ppi_C
@@ -448,58 +448,58 @@ def case_disjunction():
                 'A#ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Eassoc]:,ass/B_[Aassoc]:,ass/B_[Cassoc]:C_[Bassoc].C#ass/C_[Bassoc]:B_[Cassoc] <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Eassoc]:,ass/B_[Aassoc]:A_[Bassoc],ass/B_[Cassoc]:C_[Bassoc].C#ass/C_[Bassoc]:B_[Cassoc] @ kf_A_ppi_B, kr_A_ppi_B'
             ]
         ),
-        RuleTestCase(
-            '''
-            A_ppi_C
-            C_ppi_D
-            B_ppi_E
-            A_ppi_B; x <comp1>
-            <comp1>; AND <comp1C1>
-            <comp1>; AND <comp2C1>
-            <comp1C1>; OR A--C
-            <comp1C1>; OR C--D
-            <comp2C1>; OR A--C
-            <comp2C1>; OR B--E''',
-            [
-                'A#ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
-                'B#ass/B_[Eassoc]:E_[Bassoc],ass/B_[Aassoc]:A_[Bassoc]',
-                'C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc]',
-                'D#ass/D_[Cassoc]:C_[Dassoc]',
-                'E#ass/E_[Bassoc]:B_[Eassoc]'
-            ],
-            [
-                'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
-                'C#ass/C_[Dassoc]: + D#ass/D_[Cassoc]: <-> C#ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] @ kf_C_ppi_D, kr_C_ppi_D',
-                'B#ass/B_[Eassoc]: + E#ass/E_[Bassoc]: <-> B#ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_B_ppi_E, kr_B_ppi_E',
-                'A#ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Aassoc]:,ass/B_[Eassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[Eassoc]: @ kf_A_ppi_B, kr_A_ppi_B',
-            ]
-        ),
-        RuleTestCase(
-            '''
-            A_ppi_C
-            C_ppi_D
-            B_ppi_E
-            A_ppi_B; ! <comp1>
-            <comp1>; AND <comp1C1>
-            <comp1>; AND <comp2C1>
-            <comp1C1>; OR A--C
-            <comp1C1>; OR C--D
-            <comp2C1>; OR A--C
-            <comp2C1>; OR B--E''',
-            [
-                'A#ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
-                'B#ass/B_[Eassoc]:E_[Bassoc],ass/B_[Aassoc]:A_[Bassoc]',
-                'C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc]',
-                'D#ass/D_[Cassoc]:C_[Dassoc]',
-                'E#ass/E_[Bassoc]:B_[Eassoc]'
-            ],
-            [
-                'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
-                'C#ass/C_[Dassoc]: + D#ass/D_[Cassoc]: <-> C#ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] @ kf_C_ppi_D, kr_C_ppi_D',
-                'B#ass/B_[Eassoc]: + E#ass/E_[Bassoc]: <-> B#ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_B_ppi_E, kr_B_ppi_E',
-                'A#ass/A_[Bassoc]:,ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] + B#ass/B_[Aassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc].B#ass/B_[Aassoc]:A_[Bassoc] @ kf_A_ppi_B, kr_A_ppi_B',
-            ]
-        ),
+        # RuleTestCase(
+        #     '''
+        #     A_ppi_C
+        #     C_ppi_D
+        #     B_ppi_E
+        #     A_ppi_B; x <comp1>
+        #     <comp1>; AND <comp1C1>
+        #     <comp1>; AND <comp2C1>
+        #     <comp1C1>; OR A--C
+        #     <comp1C1>; OR C--D
+        #     <comp2C1>; OR A--C
+        #     <comp2C1>; OR B--E''',
+        #     [
+        #         'A#ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
+        #         'B#ass/B_[Eassoc]:E_[Bassoc],ass/B_[Aassoc]:A_[Bassoc]',
+        #         'C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc]',
+        #         'D#ass/D_[Cassoc]:C_[Dassoc]',
+        #         'E#ass/E_[Bassoc]:B_[Eassoc]'
+        #     ],
+        #     [
+        #         'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
+        #         'C#ass/C_[Dassoc]: + D#ass/D_[Cassoc]: <-> C#ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] @ kf_C_ppi_D, kr_C_ppi_D',
+        #         'B#ass/B_[Eassoc]: + E#ass/E_[Bassoc]: <-> B#ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_B_ppi_E, kr_B_ppi_E',
+        #         'A#ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Aassoc]:,ass/B_[Eassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[Eassoc]: @ kf_A_ppi_B, kr_A_ppi_B',
+        #     ]
+        # ),
+        # RuleTestCase(
+        #     '''
+        #     A_ppi_C
+        #     C_ppi_D
+        #     B_ppi_E
+        #     A_ppi_B; ! <comp1>
+        #     <comp1>; AND <comp1C1>
+        #     <comp1>; AND <comp2C1>
+        #     <comp1C1>; OR A--C
+        #     <comp1C1>; OR C--D
+        #     <comp2C1>; OR A--C
+        #     <comp2C1>; OR B--E''',
+        #     [
+        #         'A#ass/A_[Cassoc]:C_[Aassoc],ass/A_[Bassoc]:B_[Aassoc]',
+        #         'B#ass/B_[Eassoc]:E_[Bassoc],ass/B_[Aassoc]:A_[Bassoc]',
+        #         'C#ass/C_[Aassoc]:A_[Cassoc],ass/C_[Dassoc]:D_[Cassoc]',
+        #         'D#ass/D_[Cassoc]:C_[Dassoc]',
+        #         'E#ass/E_[Bassoc]:B_[Eassoc]'
+        #     ],
+        #     [
+        #         'A#ass/A_[Cassoc]: + C#ass/C_[Aassoc]: <-> A#ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] @ kf_A_ppi_C, kr_A_ppi_C',
+        #         'C#ass/C_[Dassoc]: + D#ass/D_[Cassoc]: <-> C#ass/C_[Dassoc]:D_[Cassoc].D#ass/D_[Cassoc]:C_[Dassoc] @ kf_C_ppi_D, kr_C_ppi_D',
+        #         'B#ass/B_[Eassoc]: + E#ass/E_[Bassoc]: <-> B#ass/B_[Eassoc]:E_[Bassoc].E#ass/E_[Bassoc]:B_[Eassoc] @ kf_B_ppi_E, kr_B_ppi_E',
+        #         'A#ass/A_[Bassoc]:,ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc] + B#ass/B_[Aassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:C_[Aassoc].C#ass/C_[Aassoc]:A_[Cassoc].B#ass/B_[Aassoc]:A_[Bassoc] @ kf_A_ppi_B, kr_A_ppi_B',
+        #     ]
+        # ),
     ]
 
 

@@ -197,7 +197,7 @@ class Reaction:
 
     @property
     def components(self):
-        return [self.subject, self.object]
+        return [self.subject.to_component_specification(), self.object.to_component_specification()]
 
     def _determine_source_product_states(self):
         self.source, self.product = states_from_reaction(self)
