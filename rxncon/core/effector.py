@@ -35,6 +35,12 @@ class StateEffector(Effector):
     def __init__(self, expr: sta.State):
         self.expr = expr
 
+    def __hash__(self):
+        return hash(str(self))
+
+    def __repr__(self):
+        return str(self)
+
     def __str__(self) -> str:
         return 'StateEffector({})'.format(self.expr)
 

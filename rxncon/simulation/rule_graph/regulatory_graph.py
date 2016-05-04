@@ -81,10 +81,21 @@ class RegulatoryGraph():
 
         return graph
 
+    def get_subspecifications_of_state(self, state: sta.State) -> tp.List[eff.StateEffector]:
+        state_subspecification_effectors = set()
+        for react in self.rxncon_system.reactions:
+            if react.product is not None and state.is_superspecification_of(react.product):
+                state_subspecification_effectors.add(eff.StateEffector(react.product))
+            elif react.source is not None and state.is_superspecification_of(react.source):
+                state_subspecification_effectors.add(eff.StateEffector(react.source))
+        return state_subspecification_effectors
+
     def add_contingencies_to_graph(self, contingencies: tp.List[con.Contingency], reaction: rxn.Reaction, graph: nex.DiGraph):
         for contingency in contingencies:
             if isinstance(contingency.effector, eff.StateEffector):
-                graph.add_edge(str(contingency.effector.expr), str(reaction), interaction=contingency.type.value)
+                for state_effector in self.get_subspecifications_of_state(contingency.effector.expr):
+                    graph = self.add_state_effector_edge_or_input_to_graph(state_effector, str(reaction),
+                                                                           effector_edge_interaction_type_mapping[contingency.type], graph)
             elif isinstance(contingency.effector, eff.AndEffector) or isinstance(contingency.effector, eff.OrEffector) \
                     or isinstance(contingency.effector, eff.NotEffector):
                 graph = self.add_edges_from_contingency(contingency.effector, contingency.target,
@@ -118,8 +129,9 @@ class RegulatoryGraph():
                                                     effector_edge_interaction_type_mapping[type(effector)], graph)
             return graph
         elif isinstance(effector, eff.StateEffector):
-            graph.add_edge(self.replace_invalid_chars(str(effector.expr)), target_name,
-                           interaction=edge_type.value)
+            for state_effector in self.get_subspecifications_of_state(effector.expr):
+                graph = self.add_state_effector_edge_or_input_to_graph(state_effector, target_name,
+                                                                       edge_type, graph)
             return graph
         elif isinstance(effector, eff.NotEffector):
             graph.add_node(self.replace_invalid_chars(effector.name),
