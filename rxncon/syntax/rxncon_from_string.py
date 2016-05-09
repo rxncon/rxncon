@@ -14,11 +14,13 @@ from enum import Enum, unique
 @unique
 class SpecificationSuffix(Enum):
     mrna = "mRNA"
+    gene = "gene"
     protein = ""
 
 
 mapping_suffix_to_specification = OrderedDict([(SpecificationSuffix.mrna, com.RnaSpecification),
-                                               (SpecificationSuffix.protein, com.ProteinSpecification)])
+                                               (SpecificationSuffix.protein, com.ProteinSpecification),
+                                               (SpecificationSuffix.gene, com.DnaSpecification)])
 
 
 def create_specification_from_name_suffix(name, domain, subdomain, residue):

@@ -186,6 +186,7 @@ class RnaSpecification(Specification):
     def to_component_specification(self) -> 'RnaSpecification':
         return RnaSpecification(self.name, None, None, None)
 
+
 class DnaSpecification(Specification):
     @tc.typecheck
     def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
@@ -203,11 +204,11 @@ class DnaSpecification(Specification):
         return hash(str(self))
 
     def __str__(self) -> str:
-        return sfr.string_from_rna_specification(self)
+        return sfr.string_from_gene_specification(self)
 
     @tc.typecheck
     def __eq__(self, other: Specification) -> bool:
-        return isinstance(other, RnaSpecification) and self.name == other.name \
+        return isinstance(other, DnaSpecification) and self.name == other.name \
                and self.domain == other.domain and self.subdomain == other.subdomain \
                and self.residue == other.residue
 

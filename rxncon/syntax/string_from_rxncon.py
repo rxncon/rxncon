@@ -8,6 +8,7 @@ import typecheck as tc
 @unique
 class SpecificationSuffix(Enum):
     mrna = "mRNA"
+    gene = "Gene"
     protein = ""
 
 @tc.typecheck
@@ -33,18 +34,22 @@ def string_from_specification(specification, prefix: Enum) -> str:
     else:
         raise AssertionError
 
+
 def string_from_rna_specification(specification):
     return string_from_specification(specification, SpecificationSuffix.mrna)
+
+
+def string_from_gene_specification(specification):
+    return string_from_specification(specification, SpecificationSuffix.gene)
+
 
 def string_from_protein_specification(specification):
     return string_from_specification(specification, SpecificationSuffix.protein)
 
+
 @tc.typecheck
 def create_name(specification, prefix: tp.Optional[Enum]):
-    if prefix == SpecificationSuffix.mrna:
-        return "{0}{1}".format(specification.name, SpecificationSuffix.mrna.value)
-    else:
-        return specification.name
+    return "{0}{1}".format(specification.name, prefix.value)
 
 
 def string_from_reaction(reaction) -> str:
