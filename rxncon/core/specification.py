@@ -75,6 +75,10 @@ class Specification(metaclass=ABCMeta):
 
         return other.is_subspecification_of(self)
 
+    @abstractmethod
+    def to_component_specification(self):
+        pass
+
     def to_dna_component_specification(self) -> 'DnaSpecification':
         return DnaSpecification(self.name, None, None, None)
 
@@ -129,13 +133,7 @@ class ProteinSpecification(Specification):
         else:
             return self == other
 
-    def to_dna_component_specification(self) -> 'DnaSpecification':
-        return DnaSpecification(self.name, None, None, None)
-
-    def to_rna_component_specification(self) -> 'RnaSpecification':
-        return RnaSpecification(self.name, None, None, None)
-
-    def to_protein_component_specification(self) -> 'ProteinSpecification':
+    def to_component_specification(self) -> 'ProteinSpecification':
         return ProteinSpecification(self.name, None, None, None)
 
 
@@ -185,6 +183,8 @@ class RnaSpecification(Specification):
         else:
             return self == other
 
+    def to_component_specification(self) -> 'RnaSpecification':
+        return RnaSpecification(self.name, None, None, None)
 
 class DnaSpecification(Specification):
     @tc.typecheck
@@ -229,3 +229,6 @@ class DnaSpecification(Specification):
             return True
         else:
             return self == other
+
+    def to_component_specification(self) -> 'DnaSpecification':
+        return DnaSpecification(self.name, None, None, None)

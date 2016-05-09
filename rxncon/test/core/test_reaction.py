@@ -36,7 +36,7 @@ def test_states_from_reaction_gef():
 
     assert states.source_state is None
     assert isinstance(states.product_state, sta.CovalentModificationState)
-    assert str(states.product_state) == 'Rho1_[GnP]-{p}'
+    assert str(states.product_state) == 'Rho1_[GnP]-{gtp}'
 
 
 def test_states_from_reaction_gap():
@@ -45,7 +45,7 @@ def test_states_from_reaction_gap():
 
     assert states.product_state is None
     assert isinstance(states.source_state, sta.CovalentModificationState)
-    assert str(states.source_state) == 'Rho1_[GnP]-{p}'
+    assert str(states.source_state) == 'Rho1_[GnP]-{gtp}'
 
 
 def test_states_from_reaction_ub_plus():
