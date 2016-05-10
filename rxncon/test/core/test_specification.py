@@ -22,7 +22,17 @@ def specifications_input():
             [spec.RnaSpecification("A", "d", "sC", None), spec.RnaSpecification("A", None, None, None), spec.RnaSpecification("A", "d", "sA", None)],
             [spec.RnaSpecification("A", None, None, "rC"), spec.RnaSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, "rA")],
             [spec.RnaSpecification("C", "dC", "sC", "rC"), spec.RnaSpecification("B", "dB", "sB", "rB"), spec.RnaSpecification("A", "dA", "sA", "rA")],
-            [spec.RnaSpecification("A", None, None, "rC"), spec.RnaSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, None)]
+            [spec.RnaSpecification("A", None, None, "rC"), spec.RnaSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, None)],
+
+            [spec.DnaSpecification("C", None, None, None), spec.DnaSpecification("B", None, None, None), spec.DnaSpecification("A", None, None, None)],
+            [spec.DnaSpecification("A", "dC", None, None), spec.DnaSpecification("A", "dB", None, None), spec.DnaSpecification("A", "dA", None, None)],
+            [spec.DnaSpecification("A", "d", "sC", None), spec.DnaSpecification("A", "d", "sB", None), spec.DnaSpecification("A", "d", "sA", None)],
+            [spec.DnaSpecification("A", None, None, "rC"), spec.DnaSpecification("A", None, None, "rB"), spec.DnaSpecification("A", None, None, "rA")],
+            [spec.DnaSpecification("A", "dC", None, None), spec.DnaSpecification("A", None, None, None), spec.DnaSpecification("A", "dA", None, None)],
+            [spec.DnaSpecification("A", "d", "sC", None), spec.DnaSpecification("A", None, None, None), spec.DnaSpecification("A", "d", "sA", None)],
+            [spec.DnaSpecification("A", None, None, "rC"), spec.DnaSpecification("A", None, None, None), spec.DnaSpecification("A", None, None, "rA")],
+            [spec.DnaSpecification("C", "dC", "sC", "rC"), spec.DnaSpecification("B", "dB", "sB", "rB"), spec.DnaSpecification("A", "dA", "sA", "rA")],
+            [spec.DnaSpecification("A", None, None, "rC"), spec.DnaSpecification("A", None, None, None), spec.DnaSpecification("A", None, None, None)],
             ]
 
 
@@ -46,12 +56,25 @@ def expected_specification_ordering():
             [spec.RnaSpecification("A", None, None, None), spec.RnaSpecification("A", "d", "sA", None), spec.RnaSpecification("A", "d", "sC", None)],
             [spec.RnaSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, "rA"), spec.RnaSpecification("A", None, None, "rC")],
             [spec.RnaSpecification("A", "dA", "sA", "rA"), spec.RnaSpecification("B", "dB", "sB", "rB"), spec.RnaSpecification("C", "dC", "sC", "rC")],
-            [spec.RnaSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, "rC")]
+            [spec.RnaSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, "rC")],
+
+            [spec.DnaSpecification("A", None, None, None), spec.DnaSpecification("B", None, None, None), spec.DnaSpecification("C", None, None, None)],
+            [spec.DnaSpecification("A", "dA", None, None), spec.DnaSpecification("A", "dB", None, None), spec.DnaSpecification("A", "dC", None, None)],
+            [spec.DnaSpecification("A", "d", "sA", None), spec.DnaSpecification("A", "d", "sB", None), spec.DnaSpecification("A", "d", "sC", None)],
+            [spec.DnaSpecification("A", None, None, "rA"), spec.DnaSpecification("A", None, None, "rB"), spec.DnaSpecification("A", None, None, "rC")],
+            [spec.DnaSpecification("A", None, None, None), spec.DnaSpecification("A", "dA", None, None), spec.DnaSpecification("A", "dC", None, None)],
+            [spec.DnaSpecification("A", None, None, None), spec.DnaSpecification("A", "d", "sA", None), spec.DnaSpecification("A", "d", "sC", None)],
+            [spec.DnaSpecification("A", None, None, None), spec.DnaSpecification("A", None, None, "rA"), spec.DnaSpecification("A", None, None, "rC")],
+            [spec.DnaSpecification("A", "dA", "sA", "rA"), spec.DnaSpecification("B", "dB", "sB", "rB"), spec.DnaSpecification("C", "dC", "sC", "rC")],
+            [spec.DnaSpecification("A", None, None, None), spec.DnaSpecification("A", None, None, None), spec.DnaSpecification("A", None, None, "rC")]
            ]
+
 
 @pytest.fixture
 def specification_classes():
     return [[spec.ProteinSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, None)],
+
+            [spec.ProteinSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, None), spec.DnaSpecification("A", None, None, None)],
             [spec.ProteinSpecification("A", "dA", None, None), spec.RnaSpecification("A", "dB", None, None)],
             [spec.ProteinSpecification("A", "d", "sA", None), spec.RnaSpecification("A", "d", "sB", None)],
             [spec.ProteinSpecification("A", None, None, "rA"), spec.RnaSpecification("A", None, None, "rB")],
@@ -60,13 +83,19 @@ def specification_classes():
             [spec.ProteinSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, "rA")],
             [spec.ProteinSpecification("A", "dA", "sA", "rA"), spec.RnaSpecification("B", "dB", "sB", "rB")],
             [spec.RnaSpecification("B", None, None, None), spec.ProteinSpecification("B", None, None, None)],
-            [spec.ProteinSpecification("A", "dA", "sA", "rA"), spec.RnaSpecification("B", "dB", "sB", "rB"), spec.RnaSpecification("A", "dB", "sB", None)]
-            ]
+
+            [spec.ProteinSpecification("A", "dA", "sA", "rA"), spec.RnaSpecification("B", "dB", "sB", "rB"), spec.RnaSpecification("A", "dB", "sB", None)],
+            [spec.ProteinSpecification("A", "dA", "sA", "rA"), spec.DnaSpecification("B", "dB", "sB", "rB"), spec.RnaSpecification("A", "dB", "sB", None)],
+            [spec.ProteinSpecification("A", None, None, None), spec.DnaSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, None)]
+
+
+    ]
 
 
 @pytest.fixture
 def expected_specification_class_sorting():
     return [[spec.RnaSpecification("A", None, None, None), spec.ProteinSpecification("A", None, None, None)],
+            [spec.DnaSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, None), spec.ProteinSpecification("A", None, None, None)],
             [spec.RnaSpecification("A", "dB", None, None), spec.ProteinSpecification("A", "dA", None, None)],
             [spec.RnaSpecification("A", "d", "sB", None), spec.ProteinSpecification("A", "d", "sA", None)],
             [spec.RnaSpecification("A", None, None, "rB"), spec.ProteinSpecification("A", None, None, "rA")],
@@ -75,7 +104,10 @@ def expected_specification_class_sorting():
             [spec.RnaSpecification("A", None, None, "rA"), spec.ProteinSpecification("A", None, None, None)],
             [spec.RnaSpecification("B", "dB", "sB", "rB"), spec.ProteinSpecification("A", "dA", "sA", "rA")],
             [spec.RnaSpecification("B", None, None, None), spec.ProteinSpecification("B", None, None, None)],
-            [spec.RnaSpecification("A", "dB", "sB", None), spec.RnaSpecification("B", "dB", "sB", "rB"), spec.ProteinSpecification("A", "dA", "sA", "rA")]
+            [spec.RnaSpecification("A", "dB", "sB", None), spec.RnaSpecification("B", "dB", "sB", "rB"), spec.ProteinSpecification("A", "dA", "sA", "rA")],
+
+            [spec.DnaSpecification("B", "dB", "sB", "rB"), spec.RnaSpecification("A", "dB", "sB", None),  spec.ProteinSpecification("A", "dA", "sA", "rA")],
+            [spec.DnaSpecification("A", None, None, None), spec.RnaSpecification("A", None, None, None), spec.ProteinSpecification("A", None, None, None)]
             ]
 
 

@@ -1,17 +1,21 @@
-from enum import Enum, unique
+from enum import unique
+from rxncon.util.utils import OrderedEnum
 import typing as tp
 import typecheck as tc
+
 
 # Note: Here be no type annotations, because this would require importing the state, component and reaction modules,
 # which would induce a circular dependency.
 
 @unique
-class SpecificationSuffix(Enum):
+class SpecificationSuffix(OrderedEnum):
     mrna = "mRNA"
+    gene = "Gene"
     protein = ""
 
+
 @tc.typecheck
-def string_from_specification(specification, prefix: Enum) -> str:
+def string_from_specification(specification, prefix: OrderedEnum) -> str:
     if specification.domain and specification.subdomain and specification.residue:
         return '{0}_[{1}/{2}({3})]'.format(create_name(specification, prefix), specification.domain, specification.subdomain, specification.residue)
 
@@ -33,18 +37,22 @@ def string_from_specification(specification, prefix: Enum) -> str:
     else:
         raise AssertionError
 
+
 def string_from_rna_specification(specification):
     return string_from_specification(specification, SpecificationSuffix.mrna)
+
+
+def string_from_gene_specification(specification):
+    return string_from_specification(specification, SpecificationSuffix.gene)
+
 
 def string_from_protein_specification(specification):
     return string_from_specification(specification, SpecificationSuffix.protein)
 
+
 @tc.typecheck
-def create_name(specification, prefix: tp.Optional[Enum]):
-    if prefix == SpecificationSuffix.mrna:
-        return "{0}{1}".format(specification.name, SpecificationSuffix.mrna.value)
-    else:
-        return specification.name
+def create_name(specification, prefix: tp.Optional[OrderedEnum]):
+    return "{0}{1}".format(specification.name, prefix.value)
 
 
 def string_from_reaction(reaction) -> str:
