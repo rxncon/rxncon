@@ -70,7 +70,7 @@ def the_case_no_hierarchy():
                           [rfs.state_from_string('A--B_[m]')]),
     ]
 
-def test_superspec_subspec_ppi():
+#def test_superspec_subspec_ppi():
     # Superspecification
     #assert rfs.state_from_string('A--B').is_superspecification_of(rfs.state_from_string('A_[n]--B'))
     #assert rfs.state_from_string('A--B').is_superspecification_of(rfs.state_from_string('A--B_[m]'))
