@@ -43,7 +43,7 @@ def mod_domain_spec_from_state_and_reaction(state: sta.CovalentModificationState
     return spec
 
 
-def ass_domain_specs_from_state(state: tg.Union[sta.InterProteinInteractionState, sta.IntraProteinInteractionState]):
+def ass_domain_specs_from_state(state: tg.Union[sta.InteractionState, sta.SelfInteractionState]):
     # Need to copy, since otherwise we will mutate the specs appearing in the original state/reaction.
     first_spec = copy.copy(state.first_component)
     second_spec = copy.copy(state.second_component)
@@ -81,7 +81,7 @@ class _MoleculeDefinitionSupervisor:
 
                     mod_def = _mod_def_from_state_and_reaction(state, reaction)
                     _update_defs(spec_to_mod_defs[state.substrate.to_component_specification()], mod_def)
-                elif isinstance(state, sta.InterProteinInteractionState) or isinstance(state, sta.IntraProteinInteractionState):
+                elif isinstance(state, sta.InteractionState) or isinstance(state, sta.SelfInteractionState):
                     specs.add(state.first_component.to_component_specification())
                     specs.add(state.second_component.to_component_specification())
 
@@ -110,7 +110,7 @@ def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, react
     return mod_def
 
 
-def _assoc_defs_from_state(state: tg.Union[sta.InterProteinInteractionState, sta.IntraProteinInteractionState]):
+def _assoc_defs_from_state(state: tg.Union[sta.InteractionState, sta.SelfInteractionState]):
     first_spec, second_spec = ass_domain_specs_from_state(state)
 
     first_def = mol.AssociationPropertyDefinition(first_spec, {second_spec})

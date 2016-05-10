@@ -68,7 +68,7 @@ class ComponentState(State):
     def is_superspecification_of(self, other: State) -> bool:
         if isinstance(other, ComponentState) and self.component == other.component:
             return True
-        elif isinstance(other, InterProteinInteractionState) or isinstance(other, IntraProteinInteractionState):
+        elif isinstance(other, InteractionState) or isinstance(other, SelfInteractionState):
             return self.component.is_superspecification_of(other.first_component) or self.component.is_superspecification_of(other.second_component)
         elif isinstance(other, CovalentModificationState):
             return self.component.is_superspecification_of(other.substrate)
@@ -118,7 +118,7 @@ class CovalentModificationState(State):
         return [self.substrate]
 
 
-class InterProteinInteractionState(State):
+class InteractionState(State):
     @tc.typecheck
     def __init__(self, first_component: com.Specification, second_component: com.Specification):
         self.first_component = first_component
@@ -126,23 +126,23 @@ class InterProteinInteractionState(State):
 
     @tc.typecheck
     def __eq__(self, other: State) -> bool:
-        return isinstance(other, InterProteinInteractionState) and self.first_component == other.first_component and \
+        return isinstance(other, InteractionState) and self.first_component == other.first_component and \
             self.second_component == other.second_component
 
     def __hash__(self) -> int:
-        return hash('*ppi-state-{}-{}*'.format(self.first_component, self.second_component))
+        return hash('*interaction-state-{}-{}*'.format(self.first_component, self.second_component))
 
     def __str__(self) -> str:
         return sfr.string_from_inter_protein_interaction_state(self)
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:
-        return isinstance(other, InterProteinInteractionState) and self.first_component.is_superspecification_of(other.first_component) \
+        return isinstance(other, InteractionState) and self.first_component.is_superspecification_of(other.first_component) \
             and self.second_component.is_superspecification_of(other.second_component)
 
     @tc.typecheck
     def is_subspecification_of(self, other: State) -> bool:
-        return isinstance(other, InterProteinInteractionState) and self.first_component.is_subspecification_of(other.first_component) \
+        return isinstance(other, InteractionState) and self.first_component.is_subspecification_of(other.first_component) \
             and self.second_component.is_subspecification_of(other.second_component)
 
     @property
@@ -151,7 +151,7 @@ class InterProteinInteractionState(State):
         return [self.first_component, self.second_component]
 
 
-class IntraProteinInteractionState(State):
+class SelfInteractionState(State):
     @tc.typecheck
     def __init__(self, first_component: com.Specification, second_component: com.Specification):
         assert first_component.name == second_component.name
@@ -160,23 +160,23 @@ class IntraProteinInteractionState(State):
 
     @tc.typecheck
     def __eq__(self, other: State) -> bool:
-        return isinstance(other, IntraProteinInteractionState) and self.first_component == other.first_component and \
+        return isinstance(other, SelfInteractionState) and self.first_component == other.first_component and \
             self.second_component == other.second_component
 
     def __hash__(self) -> int:
-        return hash('*ipi-state-{}-{}*'.format(self.first_component, self.second_component))
+        return hash('*self-interaction-state-{}-{}*'.format(self.first_component, self.second_component))
 
     def __str__(self) -> str:
         return sfr.string_from_intra_protein_interaction_state(self)
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:
-        return isinstance(other, IntraProteinInteractionState) and self.first_component.is_superspecification_of(other.first_component) \
+        return isinstance(other, SelfInteractionState) and self.first_component.is_superspecification_of(other.first_component) \
             and self.second_component.is_superspecification_of(other.second_component)
 
     @tc.typecheck
     def is_subspecification_of(self, other: State) -> bool:
-        return isinstance(other, IntraProteinInteractionState) and self.first_component.is_subspecification_of(other.first_component) \
+        return isinstance(other, SelfInteractionState) and self.first_component.is_subspecification_of(other.first_component) \
             and self.second_component.is_subspecification_of(other.second_component)
 
     @property
@@ -218,20 +218,20 @@ class TranslocationState(State):
         return [self.substrate]
 
 
-class InputState(State):
+class GlobalQuantityState(State):
     @tc.typecheck
     def __init__(self, name: str):
         self.name = name
 
     def __hash__(self) -> int:
-        return hash('*input-state-{}*'.format(self.name))
+        return hash('*global-quantity-state-{}*'.format(self.name))
 
     def __str__(self) -> str:
         return sfr.string_from_input_state(self)
 
     def __eq__(self, other):
         assert isinstance(other, State)
-        return isinstance(other, InputState) and self.name == other.name
+        return isinstance(other, GlobalQuantityState) and self.name == other.name
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:
