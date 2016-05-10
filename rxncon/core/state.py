@@ -1,6 +1,7 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 from enum import unique
 import typecheck as tc
+import re
 from typing import List
 
 from rxncon.util.utils import OrderedEnum
@@ -21,6 +22,10 @@ class State(metaclass=ABCMeta):
 
     def __repr__(self) -> str:
         return str(self)
+
+    @abstractmethod
+    def __hash__(self):
+        pass
 
     @abstractmethod
     def __str__(self):
@@ -91,6 +96,12 @@ class CovalentModificationState(State):
     def __init__(self, substrate: com.Specification, modifier: StateModifier):
         self.substrate = substrate
         self.modifier = modifier
+        self._validate()
+
+    def _validate(self):
+        assert self.substrate.name is not None
+#        assert self.substrate.residue is not None  # the residue has to be defined by the user
+        assert self.modifier.value is not None
 
     @tc.typecheck
     def __eq__(self, other: State) -> bool:
@@ -123,6 +134,11 @@ class InteractionState(State):
     def __init__(self, first_component: com.Specification, second_component: com.Specification):
         self.first_component = first_component
         self.second_component = second_component
+        self._validate()
+
+    def _validate(self):
+        assert self.first_component is not None
+        assert self.second_component is not None
 
     @tc.typecheck
     def __eq__(self, other: State) -> bool:
@@ -154,9 +170,15 @@ class InteractionState(State):
 class SelfInteractionState(State):
     @tc.typecheck
     def __init__(self, first_component: com.Specification, second_component: com.Specification):
-        assert first_component.name == second_component.name
         self.first_component = first_component
         self.second_component = second_component
+        self._validate()
+
+    def _validate(self):
+        assert self.first_component is not None
+        assert self.second_component is not None
+        assert self.first_component.name == self.second_component.name
+
 
     @tc.typecheck
     def __eq__(self, other: State) -> bool:
@@ -190,6 +212,10 @@ class TranslocationState(State):
     def __init__(self, substrate: com.Specification, compartment: str):
         self.substrate = substrate
         self.compartment = compartment
+        self._validate()
+
+    def _validate(self):
+        assert self.compartment is not None and not ""
 
     @tc.typecheck
     def __eq__(self, other: State) -> bool:
@@ -222,6 +248,10 @@ class GlobalQuantityState(State):
     @tc.typecheck
     def __init__(self, name: str):
         self.name = name
+        self._validate()
+
+    def _validate(self):
+        assert re.match('^\[.+?\]$', self.name)
 
     def __hash__(self) -> int:
         return hash('*global-quantity-state-{}*'.format(self.name))
@@ -231,15 +261,19 @@ class GlobalQuantityState(State):
 
     def __eq__(self, other):
         assert isinstance(other, State)
-        return isinstance(other, GlobalQuantityState) and self.name == other.name
+        return isinstance(other, GlobalQuantityState) and self.components == other.components and self.name == other.name
+
+    def is_produced_by(self, other):
+        """check if a GLobalQuantityState is produced by a certain GlobalQuantityReaction"""
+        pass
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:
-        raise NotImplementedError
+        return isinstance(other, GlobalQuantityState) and self == other
 
     @tc.typecheck
     def is_subspecification_of(self, other: State) -> bool:
-        raise NotImplementedError
+        return isinstance(other, GlobalQuantityState) and self == other
 
     @property
     @tc.typecheck
