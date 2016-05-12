@@ -7,14 +7,14 @@ import rxncon.core.specification as com
 import rxncon.core.error as err
 import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
-from enum import Enum, unique
-
+from enum import unique
+from rxncon.util.utils import OrderedEnum
 
 
 @unique
-class SpecificationSuffix(Enum):
+class SpecificationSuffix(OrderedEnum):
     mrna = "mRNA"
-    gene = "gene"
+    gene = "Gene"
     protein = ""
 
 
@@ -164,7 +164,7 @@ def state_from_string(state_string: str) -> sta.State:
             return _translocation_state_from_string(state_string)
 
     elif re.match(OUTPUT_REGEX, state_string):
-        return sta.InputState(state_string)
+        return sta.GlobalQuantityState(state_string)
     elif re.match(COMPONENT_REGEX, state_string):
         return _component_state_from_string(state_string)
     else:
@@ -172,21 +172,21 @@ def state_from_string(state_string: str) -> sta.State:
 
 
 @tc.typecheck
-def _interaction_state_from_string(state_string: str) -> Union[sta.InterProteinInteractionState,
-                                                               sta.IntraProteinInteractionState]:
+def _interaction_state_from_string(state_string: str) -> Union[sta.InteractionState,
+                                                               sta.SelfInteractionState]:
     component_strings = state_string.split('--')
 
     if component_strings[1].startswith('['):
         first_component = specification_from_string(component_strings[0])
         second_component = specification_from_string("{0}_{1}".format(first_component.name, component_strings[1]))
 
-        return sta.IntraProteinInteractionState(first_component, second_component)
+        return sta.SelfInteractionState(first_component, second_component)
 
     else:
         first_component = specification_from_string(component_strings[0])
         second_component = specification_from_string(component_strings[1])
 
-        return sta.InterProteinInteractionState(first_component, second_component)
+        return sta.InteractionState(first_component, second_component)
 
 
 @tc.typecheck

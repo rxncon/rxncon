@@ -317,7 +317,7 @@ def test_rxncon_from_string_reaction_cut():
 def test_rxncon_from_string_state_inter_protein_interaction():
     state = fst.state_from_string('Fus3_[CD]--Msg5_[n]')
 
-    assert isinstance(state, sta.InterProteinInteractionState)
+    assert isinstance(state, sta.InteractionState)
     assert str(state) == 'Fus3_[CD]--Msg5_[n]'
     assert str(state.first_component) == 'Fus3_[CD]'
     assert str(state.second_component) == 'Msg5_[n]'
@@ -326,7 +326,7 @@ def test_rxncon_from_string_state_inter_protein_interaction():
 def test_rxncon_from_string_state_intra_protein_interaction():
     state = fst.state_from_string('A_[n]--[m]')
 
-    assert isinstance(state, sta.IntraProteinInteractionState)
+    assert isinstance(state, sta.SelfInteractionState)
     assert str(state) == 'A_[n]--[m]'
     assert str(state.first_component) == 'A_[n]'
     assert str(state.second_component) == 'A_[m]'

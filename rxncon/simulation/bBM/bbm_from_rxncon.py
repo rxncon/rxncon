@@ -42,7 +42,7 @@ def initial_states_from_rxncon(rxconsys: rxs.RxnConSystem):
 
     for contingency in rxconsys.contingencies:
         for effector_state in contingency.effector.states:
-            if isinstance(effector_state, sta.InputState):
+            if isinstance(effector_state, sta.GlobalQuantityState):
                 initial_states.append(bbm.InitCondition(bbm.Node(effector_state), None))
     return initial_states
 

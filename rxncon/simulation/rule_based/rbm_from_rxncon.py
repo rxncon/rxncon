@@ -7,8 +7,8 @@ import itertools as itt
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reaction, Directionality as RxnDirectionality, Influence as RxnInfluence, Verb
 from rxncon.core.specification import Specification
-from rxncon.core.state import State, CovalentModificationState, InterProteinInteractionState, \
-    IntraProteinInteractionState, TranslocationState, InputState, StateModifier
+from rxncon.core.state import State, CovalentModificationState, InteractionState, \
+    SelfInteractionState, TranslocationState, GlobalQuantityState, StateModifier
 from rxncon.core.contingency import ContingencyType
 from rxncon.core.effector import Effector, AndEffector, NotEffector, OrEffector, StateEffector
 from rxncon.semantics.molecule_definition import MoleculeDefinition, Modifier, OccupationStatus
@@ -25,10 +25,10 @@ from rxncon.venntastic.sets import Set as VennSet, PropertySet, Complement, Unio
 
 STATE_TO_MOLECULE_INSTANCE_FUNCTIONS = {
     CovalentModificationState:    '_molecule_instance_set_from_mod_state',
-    InterProteinInteractionState: '_molecule_instance_set_from_ppi_state',
-    IntraProteinInteractionState: '_molecule_instance_set_from_ipi_state',
+    InteractionState: '_molecule_instance_set_from_ppi_state',
+    SelfInteractionState: '_molecule_instance_set_from_ipi_state',
     TranslocationState:           '_molecule_instance_set_from_loc_state',
-    InputState:                   '_molecule_instance_set_from_inp_state'
+    GlobalQuantityState: '_molecule_instance_set_from_inp_state'
 }
 REACTION_TO_MOLECULE_INSTANCE_PAIRS_FUNCTIONS = {
     Verb.phosphorylation:             '_molecule_instance_set_pair_from_pplus_reaction',
@@ -490,7 +490,7 @@ def _molecule_instance_set_from_mod_state(mol_defs: Dict[Specification, Molecule
     return nested_expression_from_list_and_binary_op(mol_instances, Union)
 
 
-def _molecule_instance_set_from_ppi_state(mol_defs: Dict[Specification, MoleculeDefinition], state: InterProteinInteractionState) -> VennSet:
+def _molecule_instance_set_from_ppi_state(mol_defs: Dict[Specification, MoleculeDefinition], state: InteractionState) -> VennSet:
     first_mol_def = mol_defs[state.first_component.to_component_specification()]
     second_mol_def = mol_defs[state.second_component.to_component_specification()]
 
@@ -516,7 +516,7 @@ def _molecule_instance_set_from_ppi_state(mol_defs: Dict[Specification, Molecule
     return nested_expression_from_list_and_binary_op(sets, Union)
 
 
-def _molecule_instance_set_from_ipi_state(mol_defs: Dict[Specification, MoleculeDefinition], state: IntraProteinInteractionState) -> VennSet:
+def _molecule_instance_set_from_ipi_state(mol_defs: Dict[Specification, MoleculeDefinition], state: SelfInteractionState) -> VennSet:
     # @todo
     pass
 
@@ -526,7 +526,7 @@ def _molecule_instance_set_from_loc_state(mol_defs: Dict[Specification, Molecule
     pass
 
 
-def _molecule_instance_set_from_inp_state(mol_defs: Dict[Specification, MoleculeDefinition], state: InputState) -> VennSet:
+def _molecule_instance_set_from_inp_state(mol_defs: Dict[Specification, MoleculeDefinition], state: GlobalQuantityState) -> VennSet:
     # @todo
     pass
 

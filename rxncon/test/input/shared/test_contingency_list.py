@@ -12,7 +12,7 @@ def test_contingency_list_entry_boolean_subject_state_agent():
     assert entry.is_boolean_entry
     assert entry.subject == cli.BooleanContingencyName('<Ste11^{M/5}>')
     assert entry.predicate == cli.BooleanOperator.op_and
-    assert isinstance(entry.agent, sta.InterProteinInteractionState)
+    assert isinstance(entry.agent, sta.InteractionState)
     assert str(entry.agent) == 'Ste5_[MEKK]--Ste11'
 
 

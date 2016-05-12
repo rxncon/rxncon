@@ -1,5 +1,5 @@
 import typecheck as tc
-
+import re
 from abc import ABCMeta, abstractmethod, abstractproperty
 from typing import Optional
 
@@ -10,6 +10,16 @@ class Specification(metaclass=ABCMeta):
 
     def __init__(self):
         raise AssertionError
+
+    def _validate(self):
+        assert self.name is not None and re.match("\w+", self.name)
+        if self.domain:
+            assert re.match("\w+", self.domain)
+        if self.subdomain:
+            assert re.match("\w+", self.subdomain)
+            assert self.domain is not None
+        if self.residue:
+            assert re.match("\w+", self.residue)
 
     @abstractmethod
     def __hash__(self) -> int:
@@ -88,6 +98,7 @@ class Specification(metaclass=ABCMeta):
     def to_protein_component_specification(self) -> 'ProteinSpecification':
         return ProteinSpecification(self.name, None, None, None)
 
+
 class ProteinSpecification(Specification):
     @tc.typecheck
     def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
@@ -97,10 +108,6 @@ class ProteinSpecification(Specification):
         self.subdomain = subdomain
         self.residue = residue
         self._validate()
-
-    def _validate(self):
-        if self.subdomain:
-            assert self.domain is not None
 
     def __hash__(self):
         return hash(str(self))
@@ -145,10 +152,6 @@ class RnaSpecification(Specification):
         self.subdomain = subdomain
         self.residue = residue
         self._validate()
-
-    def _validate(self):
-        if self.subdomain:
-            assert self.domain is not None
 
     def __hash__(self):
         return hash(str(self))
@@ -195,10 +198,6 @@ class DnaSpecification(Specification):
         self.subdomain = subdomain
         self.residue = residue
         self._validate()
-
-    def _validate(self):
-        if self.subdomain:
-            assert self.domain is not None
 
     def __hash__(self):
         return hash(str(self))

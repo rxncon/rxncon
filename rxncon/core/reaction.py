@@ -294,14 +294,14 @@ def _covalent_modification_states_from_reaction(reaction: Reaction) -> SourceSta
 
 def _inter_protein_interaction_states_from_reaction(reaction: Reaction) -> SourceStateProductState:
     source = None
-    product = sta.InterProteinInteractionState(reaction.subject, reaction.object)
+    product = sta.InteractionState(reaction.subject, reaction.object)
 
     return SourceStateProductState(source, product)
 
 
 def _intra_protein_interaction_states_from_reaction(reaction: Reaction) -> SourceStateProductState:
     source = None
-    product = sta.IntraProteinInteractionState(reaction.subject, reaction.object)
+    product = sta.SelfInteractionState(reaction.subject, reaction.object)
 
     return SourceStateProductState(source, product)
 

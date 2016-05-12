@@ -91,7 +91,7 @@ class RegulatoryGraph():
 
     def add_state_effector_edge_or_input_to_graph(self, effector: eff.StateEffector, target_name, edge_type: EdgeInteractionType,
                                                   graph: nex.DiGraph):
-        if isinstance(effector.expr, sta.InputState):
+        if isinstance(effector.expr, sta.GlobalQuantityState):
             graph.add_node(self.replace_invalid_chars(str(effector.expr)), type=NodeType.input.value)
         graph.add_edge(self.replace_invalid_chars(str(effector.expr)), target_name,
                        interaction=edge_type.value)
