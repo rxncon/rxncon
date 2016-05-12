@@ -107,8 +107,7 @@ class ProteinSpecification(Specification):
         self.domain = domain
         self.subdomain = subdomain
         self.residue = residue
-        super()._validate()
-
+        self._validate()
 
     def __hash__(self):
         return hash(str(self))
@@ -152,7 +151,7 @@ class RnaSpecification(Specification):
         self.domain = domain
         self.subdomain = subdomain
         self.residue = residue
-        super()._validate()
+        self._validate()
 
     def __hash__(self):
         return hash(str(self))
@@ -198,7 +197,8 @@ class DnaSpecification(Specification):
         self.domain = domain
         self.subdomain = subdomain
         self.residue = residue
-        super()._validate()
+        self._validate()
+
     def __hash__(self):
         return hash(str(self))
 
