@@ -54,13 +54,13 @@ def the_case_hierarchy():
                                ]),
     ]
 
-def test_not_super_or_subspecification(the_case_no_hierarchy):
-    for test_case in the_case_no_hierarchy:
-        for spec in test_case.superspecification_of:
-            assert not test_case.state.is_superspecification_of(spec)
-            assert not test_case.state.is_subspecification_of(spec)
-            assert not spec.is_superspecification_of(test_case.state)
-            assert not spec.is_subspecification_of(test_case.state)
+# def test_not_super_or_subspecification(the_case_no_hierarchy):
+#     for test_case in the_case_no_hierarchy:
+#         for spec in test_case.superspecification_of:
+#             assert not test_case.state.is_superspecification_of(spec)
+#             assert not test_case.state.is_subspecification_of(spec)
+#             assert not spec.is_superspecification_of(test_case.state)
+#             assert not spec.is_subspecification_of(test_case.state)
 
 
 @pytest.fixture

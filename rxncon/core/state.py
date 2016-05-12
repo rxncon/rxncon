@@ -43,6 +43,7 @@ class State(metaclass=ABCMeta):
     def components(self) -> List[com.Specification]:
         pass
 
+
 class ComponentState(State):
 
     @tc.typecheck
@@ -71,8 +72,8 @@ class ComponentState(State):
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:
-        if isinstance(other, ComponentState) and self.component == other.component:
-            return True
+        if isinstance(other, ComponentState):
+            return self.component == other.component
         elif isinstance(other, InteractionState) or isinstance(other, SelfInteractionState):
             return self.component.is_superspecification_of(other.first_component) or self.component.is_superspecification_of(other.second_component)
         elif isinstance(other, CovalentModificationState):
@@ -90,6 +91,7 @@ class ComponentState(State):
     @tc.typecheck
     def components(self) -> List[com.Specification]:
         return [self.component]
+
 
 class CovalentModificationState(State):
     @tc.typecheck
@@ -115,13 +117,19 @@ class CovalentModificationState(State):
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:
+        assert isinstance(other, State)
         return isinstance(other, CovalentModificationState) and self.modifier == other.modifier and \
             self.substrate.is_superspecification_of(other.substrate)
 
     @tc.typecheck
     def is_subspecification_of(self, other: State) -> bool:
-        return isinstance(other, CovalentModificationState) and self.modifier == other.modifier and \
-            self.substrate.is_subspecification_of(other.substrate)
+        assert isinstance(other, State)
+        if isinstance(other, CovalentModificationState):
+            return self.modifier == other.modifier and \
+                    self.substrate.is_subspecification_of(other.substrate)
+        elif isinstance(other, ComponentState):
+            return other.is_superspecification_of(self)
+        return False
 
     @property
     @tc.typecheck
@@ -142,6 +150,7 @@ class InteractionState(State):
 
     @tc.typecheck
     def __eq__(self, other: State) -> bool:
+        assert isinstance(other, State)
         return isinstance(other, InteractionState) and self.first_component == other.first_component and \
             self.second_component == other.second_component
 
@@ -153,13 +162,19 @@ class InteractionState(State):
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:
+        assert isinstance(other, State)
         return isinstance(other, InteractionState) and self.first_component.is_superspecification_of(other.first_component) \
             and self.second_component.is_superspecification_of(other.second_component)
 
     @tc.typecheck
     def is_subspecification_of(self, other: State) -> bool:
-        return isinstance(other, InteractionState) and self.first_component.is_subspecification_of(other.first_component) \
+        assert isinstance(other, State)
+        if isinstance(other, InteractionState):
+            return self.first_component.is_subspecification_of(other.first_component) \
             and self.second_component.is_subspecification_of(other.second_component)
+        elif isinstance(other, ComponentState):
+            return other.is_superspecification_of(self) or other.is_superspecification_of(self)
+        return False
 
     @property
     @tc.typecheck
@@ -179,9 +194,9 @@ class SelfInteractionState(State):
         assert self.second_component is not None
         assert self.first_component.name == self.second_component.name
 
-
     @tc.typecheck
     def __eq__(self, other: State) -> bool:
+        assert isinstance(other, State)
         return isinstance(other, SelfInteractionState) and self.first_component == other.first_component and \
             self.second_component == other.second_component
 
@@ -193,13 +208,19 @@ class SelfInteractionState(State):
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:
+        assert isinstance(other, State)
         return isinstance(other, SelfInteractionState) and self.first_component.is_superspecification_of(other.first_component) \
             and self.second_component.is_superspecification_of(other.second_component)
 
     @tc.typecheck
     def is_subspecification_of(self, other: State) -> bool:
-        return isinstance(other, SelfInteractionState) and self.first_component.is_subspecification_of(other.first_component) \
-            and self.second_component.is_subspecification_of(other.second_component)
+        assert isinstance(other, State)
+        if isinstance(other, SelfInteractionState):
+            return self.first_component.is_subspecification_of(other.first_component) \
+                    and self.second_component.is_subspecification_of(other.second_component)
+        elif isinstance(other, ComponentState):
+            return other.is_superspecification_of(self)
+        return False
 
     @property
     @tc.typecheck
@@ -219,6 +240,7 @@ class TranslocationState(State):
 
     @tc.typecheck
     def __eq__(self, other: State) -> bool:
+        assert isinstance(other, State)
         return isinstance(other, TranslocationState) and self.substrate == other.substrate and \
             self.compartment == other.compartment
 
@@ -230,13 +252,19 @@ class TranslocationState(State):
 
     @tc.typecheck
     def is_superspecification_of(self, other: State) -> bool:
+        assert isinstance(other, State)
         return isinstance(other, TranslocationState) and self.compartment == other.compartment and \
             self.substrate.is_superspecification_of(other.substrate)
 
     @tc.typecheck
     def is_subspecification_of(self, other: State) -> bool:
-        return isinstance(other, TranslocationState) and self.compartment == other.compartment and \
-            self.substrate.is_subspecification_of(other.substrate)
+        assert isinstance(other, State)
+        if isinstance(other, TranslocationState):
+            return self.compartment == other.compartment and \
+                    self.substrate.is_subspecification_of(other.substrate)
+        elif isinstance(other, ComponentState):
+            return other.is_superspecification_of(self)
+        return False
 
     @property
     @tc.typecheck
