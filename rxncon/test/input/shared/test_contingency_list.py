@@ -1,3 +1,6 @@
+import pytest
+from collections import namedtuple
+
 import rxncon.core.contingency as con
 import rxncon.core.effector as eff
 import rxncon.core.state as sta
@@ -5,67 +8,149 @@ import rxncon.input.shared.contingency_list as cli
 import rxncon.syntax.rxncon_from_string as fst
 
 
-# ContingencyListEntry from strings
-def test_contingency_list_entry_boolean_subject_state_agent():
-    entry = cli.contingency_list_entry_from_subject_predicate_agent_strings('<Ste11^{M/5}>', 'AND', 'Ste5_[MEKK]--Ste11')
-
-    assert entry.is_boolean_entry
-    assert entry.subject == cli.BooleanContingencyName('<Ste11^{M/5}>')
-    assert entry.predicate == cli.BooleanOperator.op_and
-    assert isinstance(entry.agent, sta.InteractionState)
-    assert str(entry.agent) == 'Ste5_[MEKK]--Ste11'
+ContingencyListTestCase = namedtuple('ContingencyListTestCase', ['entry', 'expected_contingency_name',
+                                                                 'expected_operator', 'expected_state', 'expected_agent',
+                                                                 'expected_agent_string'])
 
 
-def test_contingency_list_entry_boolean_subject_boolean_agent():
-    entry = cli.contingency_list_entry_from_subject_predicate_agent_strings('<Cdc24^{M}>', 'OR', '<Cdc24^{M/4}>')
+def test_contingency_list_entry_boolean_subject_state_agent(the_case_contingency_list_entry_boolean_subject_state_agent):
+    for the_case in the_case_contingency_list_entry_boolean_subject_state_agent:
+        is_boolean_entry_correct(the_case)
 
-    assert entry.is_boolean_entry
-    assert entry.subject == cli.BooleanContingencyName('<Cdc24^{M}>')
-    assert entry.predicate == cli.BooleanOperator.op_or
-    assert entry.agent == cli.BooleanContingencyName('<Cdc24^{M/4}>')
+def test_contingency_list_entry_reaction_subject_state_agent(the_case_contingency_list_entry_reaction_subject_state_agent):
+    for the_case in the_case_contingency_list_entry_reaction_subject_state_agent:
+        is_reaction_entry_correct(the_case)
+
+def is_boolean_entry_correct(the_case):
+    assert the_case.entry.is_boolean_entry
+    assert the_case.entry.subject == the_case.expected_contingency_name
+    assert the_case.entry.predicate == the_case.expected_operator
+    assert isinstance(the_case.entry.agent, the_case.expected_state)
+    assert the_case.entry.agent == the_case.expected_agent
+    assert str(the_case.entry.agent) == the_case.expected_agent_string
+
+def is_reaction_entry_correct(the_case):
+    assert the_case.entry.is_reaction_entry
+    assert the_case.entry.subject == the_case.expected_contingency_name
+    assert the_case.entry.predicate == the_case.expected_operator
+    assert isinstance(the_case.entry.agent, the_case.expected_state)
+    assert the_case.entry.agent == the_case.expected_agent
+    assert str(the_case.entry.agent) == the_case.expected_agent_string
 
 
-def test_contingency_list_entry_reaction_subject_state_agent():
-    entry = cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_B', '!', 'A-{P}')
+@pytest.fixture
+def the_case_contingency_list_entry_boolean_subject_state_agent():
+    return [
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('<Ste11^{M/5}>', 'AND', 'Ste5_[MEKK]--Ste11'),
+                                cli.BooleanContingencyName('<Ste11^{M/5}>'),
+                                cli.BooleanOperator.op_and,
+                                sta.InteractionState,
+                                fst.state_from_string('Ste5_[MEKK]--Ste11'),
+                                'Ste5_[MEKK]--Ste11'),
 
-    assert entry.is_reaction_entry
-    assert entry.subject == fst.reaction_from_string('A_ppi_B')
-    assert entry.predicate == con.ContingencyType.requirement
-    assert entry.agent == fst.state_from_string('A-{P}')
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('<Ste11^{M/5}>', 'NOT', 'Ste5_[MEKK]--Ste11'),
+                                cli.BooleanContingencyName('<Ste11^{M/5}>'),
+                                cli.BooleanOperator.op_not,
+                                sta.InteractionState,
+                                fst.state_from_string('Ste5_[MEKK]--Ste11'),
+                                'Ste5_[MEKK]--Ste11'),
+
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('<Cdc24^{M}>', 'OR', '<Cdc24^{M/4}>'),
+                                cli.BooleanContingencyName('<Cdc24^{M}>'),
+                                cli.BooleanOperator.op_or,
+                                cli.BooleanContingencyName,
+                                cli.BooleanContingencyName('<Cdc24^{M/4}>'),
+                                '<Cdc24^{M/4}>'),
+    ]
+
+
+@pytest.fixture
+def the_case_contingency_list_entry_reaction_subject_state_agent():
+    return [
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_B', '!', 'A-{P}'),
+                                fst.reaction_from_string('A_ppi_B'),
+                                con.ContingencyType.requirement,
+                                sta.CovalentModificationState,
+                                fst.state_from_string('A-{P}'),
+                                'A-{p}'),
+
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_B', 'x', 'A-{P}'),
+                                fst.reaction_from_string('A_ppi_B'),
+                                con.ContingencyType.inhibition,
+                                sta.CovalentModificationState,
+                                fst.state_from_string('A-{P}'),
+                                'A-{p}'),
+
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_B', 'k+', 'A-{P}'),
+                                fst.reaction_from_string('A_ppi_B'),
+                                con.ContingencyType.positive,
+                                sta.CovalentModificationState,
+                                fst.state_from_string('A-{P}'),
+                                'A-{p}'),
+
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_B', 'k-', 'A-{P}'),
+                                fst.reaction_from_string('A_ppi_B'),
+                                con.ContingencyType.negative,
+                                sta.CovalentModificationState,
+                                fst.state_from_string('A-{P}'),
+                                'A-{p}'),
+
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_B', '0', 'A-{P}'),
+                                fst.reaction_from_string('A_ppi_B'),
+                                con.ContingencyType.no_effect,
+                                sta.CovalentModificationState,
+                                fst.state_from_string('A-{P}'),
+                                'A-{p}'),
+
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_B', '?', 'A-{P}'),
+                                fst.reaction_from_string('A_ppi_B'),
+                                con.ContingencyType.unknown,
+                                sta.CovalentModificationState,
+                                fst.state_from_string('A-{P}'),
+                                'A-{p}')
+    ]
+
+
+LookupTableTestCase = namedtuple('LookupTableTestCase', ['lookup_table', 'look_up', 'expected_effector', 'expected_lookup_table_len'])
+
+
+def test_lookup_table_from_contingency_list_entries(the_case_lookup_table):
+    for the_case in the_case_lookup_table:
+        is_lookup_table_correct(the_case)
+
+
+def is_lookup_table_correct(the_case):
+    if the_case.look_up:
+        assert the_case.lookup_table[the_case.look_up] == the_case.expected_effector
+    else:
+        assert the_case.lookup_table == the_case.expected_effector
+
+    assert len(the_case.lookup_table) == the_case.expected_lookup_table_len
 
 
 # {BooleanContingencyName -> Effector} lookup table from [ContingencyListEntry]
-def test_lookup_table_from_contingency_list_entries_empty():
-    lookup_table = cli._create_boolean_contingency_lookup_table([])
+@pytest.fixture
+def the_case_lookup_table():
+    return [
+        LookupTableTestCase(cli._create_boolean_contingency_lookup_table([]),
+                            '',
+                            {},
+                            0),
 
-    assert lookup_table == {}
+        LookupTableTestCase(cli._create_boolean_contingency_lookup_table([cli.contingency_list_entry_from_subject_predicate_agent_strings('<X>', 'AND', 'A-{P}'),
+                                                                          cli.contingency_list_entry_from_subject_predicate_agent_strings('<X>', 'AND', 'A--B')]),
+                            cli.BooleanContingencyName('<X>'),
+                            eff.AndEffector(eff.StateEffector(fst.state_from_string('A-{P}')),
+                                            eff.StateEffector(fst.state_from_string('A--B'))),
+                            1),
 
-
-def test_lookup_table_from_contingency_list_entries_boolean_subjects_state_agents():
-    entries = [
-        cli.contingency_list_entry_from_subject_predicate_agent_strings('<X>', 'AND', 'A-{P}'),
-        cli.contingency_list_entry_from_subject_predicate_agent_strings('<X>', 'AND', 'A--B')
+        LookupTableTestCase(cli._create_boolean_contingency_lookup_table([cli.contingency_list_entry_from_subject_predicate_agent_strings('<X>', 'AND', '<Y>'),
+                                                                          cli.contingency_list_entry_from_subject_predicate_agent_strings('<X>', 'AND', '<Z>')]),
+                            cli.BooleanContingencyName('<X>'),
+                            eff.AndEffector(cli._BooleanContingencyEffector(cli.BooleanContingencyName('<Y>')),
+                                            cli._BooleanContingencyEffector(cli.BooleanContingencyName('<Z>'))),
+                            1)
     ]
-    lookup_table = cli._create_boolean_contingency_lookup_table(entries)
-
-    expected_effector = eff.AndEffector(eff.StateEffector(fst.state_from_string('A-{P}')), eff.StateEffector(fst.state_from_string('A--B')))
-
-    assert lookup_table[cli.BooleanContingencyName('<X>')] == expected_effector
-    assert len(lookup_table) == 1
-
-
-def test_lookup_table_from_contingency_list_entries_boolean_subjects_boolean_agents():
-    entries = [
-        cli.contingency_list_entry_from_subject_predicate_agent_strings('<X>', 'AND', '<Y>'),
-        cli.contingency_list_entry_from_subject_predicate_agent_strings('<X>', 'AND', '<Z>')
-    ]
-    lookup_table = cli._create_boolean_contingency_lookup_table(entries)
-
-    expected_effector = eff.AndEffector(cli._BooleanContingencyEffector(cli.BooleanContingencyName('<Y>')),
-                                        cli._BooleanContingencyEffector(cli.BooleanContingencyName('<Z>')))
-
-    assert lookup_table[cli.BooleanContingencyName('<X>')] == expected_effector
-    assert len(lookup_table) == 1
 
 
 # [Contingency] from [ContingencyListEntry]

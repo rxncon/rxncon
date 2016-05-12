@@ -29,7 +29,13 @@ class BooleanContingencyName:
         return self.name == other.name
 
     def __hash__(self) -> int:
-        return hash(self.name)
+        return hash(str(self))
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return self.name
 
 
 class ContingencyListEntry:
