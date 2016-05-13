@@ -84,6 +84,7 @@ def the_case_molecule_instances():
 
             ]
 
+
 def test_molecule_instance_sorting(the_case_molecule_instances,):
     for the_case in the_case_molecule_instances:
         assert sorted(the_case.actual_molecule_instances) == the_case.expected_molecule_instances_sorting
