@@ -1,5 +1,3 @@
-import rxncon.core.contingency as con
-import rxncon.core.effector as eff
 import pytest
 from collections import namedtuple
 
