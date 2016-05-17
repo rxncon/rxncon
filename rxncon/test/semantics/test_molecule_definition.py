@@ -1,31 +1,27 @@
 import pytest
+from collections import namedtuple
 from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_string
 
-@pytest.fixture
-def molecule_definitions():
-    return [
-        [mol_def_from_string('C#'), mol_def_from_string('A#'), mol_def_from_string('B#')],
-        [mol_def_from_string('C#ass/C_[a]:A[z]'), mol_def_from_string('A#ass/A_[z]:C[a]~B_[a]'),
+MoleculeDefinitionOrderingTestCase = namedtuple('MoleculeDefinitionOrderingTestCase', ['to_sort', 'expected_ordering'])
 
-         mol_def_from_string('B#ass/B_[a]:A[z]')],
-        [mol_def_from_string('CmRNA#'), mol_def_from_string('B#'), mol_def_from_string('A#')]
-
-    ]
 
 @pytest.fixture
-def expected_molecule_definition_order():
+def the_case_molecule_definition_ordering():
     return [
-        [mol_def_from_string('A#'), mol_def_from_string('B#'), mol_def_from_string('C#')],
-        [mol_def_from_string('A#ass/A_[z]:C[a]~B_[a]'), mol_def_from_string('B#ass/B_[a]:A[z]'),
+        MoleculeDefinitionOrderingTestCase([mol_def_from_string('C#'), mol_def_from_string('A#'), mol_def_from_string('B#')],
+                                           [mol_def_from_string('A#'), mol_def_from_string('B#'), mol_def_from_string('C#')]),
 
-         mol_def_from_string('C#ass/C_[a]:A[z]')],
-        [mol_def_from_string('CmRNA#'), mol_def_from_string('A#'), mol_def_from_string('B#')]
+        MoleculeDefinitionOrderingTestCase([mol_def_from_string('C#ass/C_[a]:A[z]'), mol_def_from_string('A#ass/A_[z]:C[a]~B_[a]'), mol_def_from_string('B#ass/B_[a]:A[z]')],
+                                            [mol_def_from_string('A#ass/A_[z]:C[a]~B_[a]'), mol_def_from_string('B#ass/B_[a]:A[z]'), mol_def_from_string('C#ass/C_[a]:A[z]')]),
 
+        MoleculeDefinitionOrderingTestCase([mol_def_from_string('CmRNA#'), mol_def_from_string('B#'), mol_def_from_string('A#')],
+                                           [mol_def_from_string('CmRNA#'), mol_def_from_string('A#'), mol_def_from_string('B#')])
     ]
 
-def test_molecule_definition_ordering(molecule_definitions, expected_molecule_definition_order):
-    for i, mol_def in enumerate(molecule_definitions):
-        assert sorted(mol_def) == expected_molecule_definition_order[i]
+
+def test_molecule_definition_ordering(the_case_molecule_definition_ordering):
+    for the_case in the_case_molecule_definition_ordering:
+        assert sorted(the_case.to_sort) == the_case.expected_ordering
 
 
 def test_molecule_definition_wrongly_defined():
