@@ -11,7 +11,7 @@ import rxncon.syntax.string_from_rxncon as sfr
 
 @unique
 class StateModifier(OrderedEnum):
-    unmodified = 'u'
+    unmodified = '0'
     phosphor   = 'p'
     ubiquitin  = 'ub'
     guanosintriphosphat = 'gtp'
@@ -19,7 +19,6 @@ class StateModifier(OrderedEnum):
 
 
 class State(metaclass=ABCMeta):
-
     def __repr__(self) -> str:
         return str(self)
 
@@ -45,7 +44,6 @@ class State(metaclass=ABCMeta):
 
 
 class ComponentState(State):
-
     @tc.typecheck
     def __init__(self, component: com.Specification):
         self.component = component

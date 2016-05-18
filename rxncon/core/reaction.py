@@ -113,6 +113,7 @@ class ReactionDefinition:
 
         return regex
 
+
 REACTION_DEFINITIONS = [
     ReactionDefinition(
         'phosphorylation',
@@ -127,8 +128,8 @@ REACTION_DEFINITIONS = [
         'protein-protein interaction',
         '$x_ppi_$y',
         {
-            '$x': (ProteinSpecification, SpecificationResolution.subdomain),
-            '$y': (ProteinSpecification, SpecificationResolution.subdomain)
+            '$x': (ProteinSpecification, SpecificationResolution.domain),
+            '$y': (ProteinSpecification, SpecificationResolution.domain)
         },
         '$x#$x--0 + $y#$y--0 <-> $x#$x--$y + $y#$x--$y'
     ),
