@@ -25,9 +25,9 @@ def parse_reactant(definition: str, variables):
     if len(component_parts) == 1:
         component = variables[component_parts[0]].to_component_specification()
     elif len(component_parts) == 2 and component_parts[1] == 'mRNA':
-        component = variables[component_parts[0]].to_rna_specification().to_component_specification()
+        component = variables[component_parts[0]].to_rna_component_specification()
     elif len(component_parts) == 2 and component_parts[1] == 'gene':
-        component = variables[component_parts[0]].to_gene_specification().to_component_specification()
+        component = variables[component_parts[0]].to_dna_component_specification()
     else:
         raise NotImplementedError
 

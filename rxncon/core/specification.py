@@ -114,6 +114,7 @@ class Specification(metaclass=ABCMeta):
     def has_resolution(self, resolution: 'SpecificationResolution'):
         return self.resolution == resolution
 
+
 class ProteinSpecification(Specification):
     @tc.typecheck
     def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
@@ -156,9 +157,6 @@ class ProteinSpecification(Specification):
 
     def to_component_specification(self) -> 'ProteinSpecification':
         return ProteinSpecification(self.name, None, None, None)
-
-    def to_rna_specification(self):
-        return RnaSpecification(self.name, self.domain, self.subdomain, self.residue)
 
 
 class RnaSpecification(Specification):
