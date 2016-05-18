@@ -93,7 +93,7 @@ class ModificationPropertyInstance(PropertyInstance):
 
     @tc.typecheck
     def __eq__(self, other: PropertyInstance) -> bool:
-        return isinstance(other, ModificationPropertyInstance) and self.property_def == other.modification_def and \
+        return isinstance(other, ModificationPropertyInstance) and self.property_def == other.property_def and \
             self.modifier == other.modifier
 
     def __lt__(self, other: 'ModificationPropertyInstance'):
