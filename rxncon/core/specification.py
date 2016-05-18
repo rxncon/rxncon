@@ -2,12 +2,12 @@ import typecheck as tc
 import re
 from abc import ABCMeta, abstractmethod, abstractproperty
 from typing import Optional
+from enum import Enum
 
 import rxncon.syntax.string_from_rxncon as sfr
 
 
 class Specification(metaclass=ABCMeta):
-
     def __init__(self):
         raise AssertionError
 
@@ -98,11 +98,25 @@ class Specification(metaclass=ABCMeta):
     def to_protein_component_specification(self) -> 'ProteinSpecification':
         return ProteinSpecification(self.name, None, None, None)
 
+    @property
+    def resolution(self):
+        if self.name and not self.domain and not self.subdomain and not self.residue:
+            return SpecificationResolution.component
+        elif self.name and self.domain and not self.subdomain and not self.residue:
+            return SpecificationResolution.domain
+        elif self.name and self.domain and self.subdomain and not self.residue:
+            return SpecificationResolution.subdomain
+        elif self.residue is not None:
+            return SpecificationResolution.residue
+        else:
+            raise NotImplementedError
+
+    def has_resolution(self, resolution: 'SpecificationResolution'):
+        return self.resolution == resolution
 
 class ProteinSpecification(Specification):
     @tc.typecheck
     def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
-
         self.name = name
         self.domain = domain
         self.subdomain = subdomain
@@ -142,6 +156,9 @@ class ProteinSpecification(Specification):
 
     def to_component_specification(self) -> 'ProteinSpecification':
         return ProteinSpecification(self.name, None, None, None)
+
+    def to_rna_specification(self):
+        return RnaSpecification(self.name, self.domain, self.subdomain, self.residue)
 
 
 class RnaSpecification(Specification):
@@ -232,3 +249,10 @@ class DnaSpecification(Specification):
 
     def to_component_specification(self) -> 'DnaSpecification':
         return DnaSpecification(self.name, None, None, None)
+
+
+class SpecificationResolution(Enum):
+    component = 'component'
+    domain    = 'domain'
+    subdomain = 'subdomain'
+    residue   = 'residue'

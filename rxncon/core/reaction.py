@@ -1,339 +1,195 @@
-from collections import namedtuple, OrderedDict
-from enum import unique
-from typing import List, Optional
-import typecheck as tc
+from rxncon.core.specification import Specification, RnaSpecification, ProteinSpecification, SpecificationResolution
+from rxncon.core.state import State
+from rxncon.syntax.rxncon_from_string import state_from_string, specification_from_string
 
-import rxncon.core.specification as com
-import rxncon.core.error as err
-import rxncon.core.state as sta
-import rxncon.syntax.string_from_rxncon as sfr
-from rxncon.util.utils import OrderedEnum
+from typing import List, Set
 
-@unique
-class Verb(OrderedEnum):
-    phosphorylation             = 'p+'
-    dephosphorylation           = 'p-'
-    autophosphorylation         = 'ap'
-    phosphotransfer             = 'pt'
-    guanine_nucleotide_exchange = 'gef'
-    gtpase_activation           = 'gap'
-    ubiquitination              = 'ub+'
-    deubiquitination            = 'ub-'
-    proteolytic_cleavage        = 'cut'
-    protein_protein_interaction = 'ppi'
-    intra_protein_interaction   = 'ipi'
-    non_protein_interaction     = 'i'
-    binding_to_dna              = 'bind'
-    degradation                 = 'deg'
-    synthesis                   = 'syn'
-    translation                 = 'trsl'
-    transcription               = 'trsc'
+import re
 
-
-@unique
-class ReactionClass(OrderedEnum):
-    covalent_modification = 1
-    interaction           = 2
-    synthesis_degradation = 3
-    translocation         = 4
-
-
-@unique
-class Directionality(OrderedEnum):
-    bidirectional   = 1
-    unidirectional = 2
-
-
-@unique
-class Reversibility(OrderedEnum):
-    temporary   = 1
-    permanent = 2
-
-
-# @todo Bidirectional needs separate identifier?
-class Influence(OrderedEnum):
-    positive      = 1
-    negative      = 2
-    transfer      = 3
-    bidirectional = 4
-
-
-@unique
-class Isomerism(OrderedEnum):
-    undefined = None
-    trans     = 1
-    cis       = 2
-
-
-# @todo lower case.
-@unique
-class CovalentReactionModifier(OrderedEnum):
-    undefined = None
-    phosphor  = 'p'
-    ubiquitin = 'ub'
-    guanosintriphosphat = 'gtp'
-    truncated = 'truncated'
-
-
-VERB_REACTION_TABLE = {
-    Verb.phosphorylation:              [ReactionClass.covalent_modification,
-                                        Directionality.unidirectional,
-                                        Influence.positive,
-                                        Isomerism.undefined,
-                                        CovalentReactionModifier.phosphor],
-    Verb.dephosphorylation:            [ReactionClass.covalent_modification,
-                                        Directionality.unidirectional,
-                                        Influence.negative,
-                                        Isomerism.undefined,
-                                        CovalentReactionModifier.phosphor],
-    Verb.autophosphorylation:          [ReactionClass.covalent_modification,
-                                        Directionality.unidirectional,
-                                        Influence.positive,
-                                        Isomerism.undefined,
-                                        CovalentReactionModifier.phosphor],
-    Verb.phosphotransfer:              [ReactionClass.covalent_modification,
-                                        Directionality.unidirectional,
-                                        Influence.transfer,
-                                        Isomerism.undefined,
-                                        CovalentReactionModifier.phosphor],
-    Verb.guanine_nucleotide_exchange:  [ReactionClass.covalent_modification,
-                                        Directionality.unidirectional,
-                                        Influence.positive,
-                                        Isomerism.undefined,
-                                        CovalentReactionModifier.guanosintriphosphat],
-    Verb.gtpase_activation:            [ReactionClass.covalent_modification,
-                                        Directionality.unidirectional,
-                                        Influence.negative,
-                                        Isomerism.undefined,
-                                        CovalentReactionModifier.guanosintriphosphat],
-    Verb.ubiquitination:               [ReactionClass.covalent_modification,
-                                        Directionality.unidirectional,
-                                        Influence.positive,
-                                        Isomerism.undefined,
-                                        CovalentReactionModifier.ubiquitin],
-    Verb.deubiquitination:             [ReactionClass.covalent_modification,
-                                        Directionality.unidirectional,
-                                        Influence.negative,
-                                        Isomerism.undefined,
-                                        CovalentReactionModifier.ubiquitin],
-    Verb.proteolytic_cleavage:         [ReactionClass.covalent_modification,
-                                        Directionality.unidirectional,
-                                        Influence.positive,
-                                        Isomerism.undefined,
-                                        CovalentReactionModifier.truncated],
-    Verb.protein_protein_interaction:  [ReactionClass.interaction,
-                                        Directionality.bidirectional,
-                                        Influence.positive,
-                                        Isomerism.trans,
-                                        CovalentReactionModifier.undefined],
-    Verb.intra_protein_interaction:    [ReactionClass.interaction,
-                                        Directionality.bidirectional,
-                                        Influence.positive,
-                                        Isomerism.cis,
-                                        CovalentReactionModifier.undefined],
-    Verb.non_protein_interaction:      [ReactionClass.interaction,
-                                        Directionality.bidirectional,
-                                        Influence.positive,
-                                        Isomerism.trans,
-                                        CovalentReactionModifier.undefined],
-    Verb.binding_to_dna:               [ReactionClass.interaction,
-                                        Directionality.bidirectional,
-                                        Influence.positive,
-                                        Isomerism.undefined,
-                                        CovalentReactionModifier.undefined],
-    Verb.synthesis:                    [ReactionClass.synthesis_degradation,
-                                        Directionality.unidirectional,
-                                        Influence.positive,
-                                        Isomerism.undefined,
-                                        CovalentReactionModifier.undefined],
-    Verb.degradation:                  [ReactionClass.synthesis_degradation,
-                                        Directionality.unidirectional,
-                                        Influence.negative,
-                                        Isomerism.undefined,
-                                        CovalentReactionModifier.undefined],
-    Verb.translation:                  [ReactionClass.synthesis_degradation,
-                                        Directionality.unidirectional,
-                                        Influence.positive,
-                                        Isomerism.undefined,
-                                        CovalentReactionModifier.undefined],
-    Verb.transcription:                [ReactionClass.synthesis_degradation,
-                                        Directionality.unidirectional,
-                                        Influence.positive,
-                                        Isomerism.undefined,
-                                        CovalentReactionModifier.undefined]
-}
-
-
-class Reaction:
-    @tc.typecheck
-    def __init__(self, subject: com.Specification, verb: Verb, object: com.Specification,
-                 reaction_class: ReactionClass, directionality: Directionality, influence: Influence,
-                 isomerism: Isomerism, modifier: CovalentReactionModifier):
-        self.subject = subject
-        self.verb = verb
-        self.object = object
-
-        self.reaction_class = reaction_class
-        self.directionality = directionality
-        self.influence = influence
-        self.isomerism = isomerism
-        self.modifier = modifier
-
-        self.source = None   # type: Optional[sta.State]
-        self.product = None  # type: Optional[sta.State]
-        self.classification_code = None  # type: str
-
-        self._determine_source_product_states()
-        self._determine_classification_code()
+class Reactant:
+    def __init__(self, component: Specification, states: List[State]):
+        self.component, self.states = component, states
 
     def __str__(self):
-        return sfr.string_from_reaction(self)
-
-    @tc.typecheck
-    def __eq__(self, other: 'Reaction') -> bool:
-        return self.subject == other.subject and self.verb == other.verb and self.object == other.object and \
-            self.reaction_class == other.reaction_class and self.directionality == other.directionality and \
-            self.influence == other.influence and self.isomerism == other.isomerism and self.modifier == other.modifier
-
-    @property
-    def components(self):
-        return [self.subject.to_component_specification(), self.object.to_component_specification()]
-
-    def _determine_source_product_states(self):
-        self.source, self.product = states_from_reaction(self)
-
-    def _determine_classification_code(self):
-        properties = [self.reaction_class, self.directionality, self.influence]
-        if self.isomerism.value:
-            properties.append(self.isomerism)
-
-        self.classification_code = '.'.join([str(p.value) for p in properties])
-
-
-class OutputReaction(Reaction):
-    def __init__(self, name: str):
-        self.name = name
-
-    def __hash__(self):
-        return hash(str(self))
-
-    def __eq__(self, other: Reaction) -> bool:
-        assert isinstance(other, Reaction)
-
-        if isinstance(other, OutputReaction):
-            return self.name == other.name
-
-        else:
-            return False
+        return 'Reactant<{0}>:{1}'.format(str(self.component),
+                                          ','.join(str(x) for x in self.states))
 
     def __repr__(self):
         return str(self)
 
+
+def parse_reactant(definition: str, variables):
+    component_str, states_str = definition.split('#')
+    component_parts = component_str.split('.')
+
+    if len(component_parts) == 1:
+        component = variables[component_parts[0]].to_component_specification()
+    elif len(component_parts) == 2 and component_parts[1] == 'mRNA':
+        component = variables[component_parts[0]].to_rna_specification().to_component_specification()
+    elif len(component_parts) == 2 and component_parts[1] == 'gene':
+        component = variables[component_parts[0]].to_gene_specification().to_component_specification()
+    else:
+        raise NotImplementedError
+
+    state_strs = states_str.split(',')
+    states = []
+
+    for state_str in state_strs:
+        if state_str:
+            for var, val in variables.items():
+                state_str = state_str.replace(var, str(val))
+
+            states.append(state_from_string(state_str))
+
+    return Reactant(component, states)
+
+
+class ReactionDefinition:
+    SPEC_REGEX_GROUPED = '([a-zA-Z0-9\/\[\]\(\)_]+?)'
+    SPEC_REGEX_UNGROUPED = '[a-zA-Z0-9\/\[\]\(\)_]+?'
+
+    def __init__(self, name, representation_def, variables_def, reactants_def):
+        self.name, self.representation_def, self.variables_def, self.reactants_defs = \
+            name, representation_def, variables_def, reactants_def
+
+        self._parse_reactants_def()
+
+    def _parse_reactants_def(self):
+        if '<->' in self.reactants_defs:
+            arrow = '<->'
+        elif '->' in self.reactants_defs:
+            arrow = '->'
+        else:
+            raise AssertionError
+
+        reactants_def_pre_str, reactants_def_post_str = self.reactants_defs.split(arrow)
+
+        self.reactant_defs_pre = [x.strip() for x in reactants_def_pre_str.split('+')]
+        self.reactant_defs_post = [x.strip() for x in reactants_def_post_str.split('+')]
+
+    def matches_representation(self, representation):
+        return re.match(self._to_matching_regex(), representation)
+
+    def representation_from_variables(self, variables):
+        representation = self.representation_def
+        for var, val in variables.items():
+            representation = representation.replace(var, str(val))
+
+        return representation
+
+    def variables_from_representation(self, representation):
+        assert self.matches_representation(representation)
+        variables = {}
+        for var, var_def in self.variables_def.items():
+            var_regex = self._to_base_regex().replace(var, self.SPEC_REGEX_GROUPED)
+            for other_var in self.variables_def.keys():
+                if other_var != var:
+                    var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)
+
+            val_str = re.match(var_regex, representation).group(1)
+            val_spec = specification_from_string(val_str)
+            assert isinstance(val_spec, self.variables_def[var][0]), \
+                '{0} is of type {1}, required to be of type {2}'.format(var, type(val_spec), self.variables_def[var][0])
+            assert val_spec.has_resolution(self.variables_def[var][1]), \
+                '{0} is of resolution {1}, required to be of resolution {2}'.format(var, val_spec.resolution, self.variables_def[var][1])
+
+            variables[var] = val_spec
+
+        return variables
+
+    def reactants_pre_from_variables(self, variables):
+        return [parse_reactant(x, variables) for x in self.reactant_defs_pre]
+
+    def reactants_post_from_variables(self, variables):
+        return [parse_reactant(x, variables) for x in self.reactant_defs_post]
+
+    def _to_base_regex(self):
+        return '^{}$'.format(self.representation_def.replace('+', '\+'))
+
+    def _to_matching_regex(self):
+        regex = self._to_base_regex()
+        for var in self.variables_def.keys():
+            regex = regex.replace(var, self.SPEC_REGEX_GROUPED)
+
+        return regex
+
+REACTION_DEFINITIONS = [
+    ReactionDefinition(
+        'phosphorylation',
+        '$x_p+_$y',
+        {
+            '$x': (ProteinSpecification, SpecificationResolution.component),
+            '$y': (Specification, SpecificationResolution.residue)
+        },
+        '$x# + $y#$y-{0} -> $x# + $y#$y-{p}'
+    ),
+    ReactionDefinition(
+        'protein-protein interaction',
+        '$x_ppi_$y',
+        {
+            '$x': (ProteinSpecification, SpecificationResolution.subdomain),
+            '$y': (ProteinSpecification, SpecificationResolution.subdomain)
+        },
+        '$x#$x--0 + $y#$y--0 <-> $x#$x--$y + $y#$x--$y'
+    ),
+    ReactionDefinition(
+        'transcription',
+        '$x_trsc_$y',
+        {
+            '$x': (ProteinSpecification, SpecificationResolution.component),
+            '$y': (ProteinSpecification, SpecificationResolution.component)
+        },
+        '$x# + $y.gene# -> $x# + $y.gene# + $y.mRNA#'
+    ),
+    ReactionDefinition(
+        'translation',
+        '$x_trsl_$y',
+        {
+            '$x': (ProteinSpecification, SpecificationResolution.component),
+            '$y': (ProteinSpecification, SpecificationResolution.component)
+        },
+        '$x# + $y.mRNA# -> $x# + $y.mRNA# + $y#'
+    )
+]
+
+
+class Reaction:
+    def __init__(self, definition: ReactionDefinition, variables):
+        self.definition, self.variables = definition, variables
+
     def __str__(self):
-        return "{}".format(self.name)
+        return self.definition.representation_from_variables(self.variables)
+
+    @property
+    def reactants_pre(self):
+        return self.definition.reactants_pre_from_variables(self.variables)
+
+    @property
+    def reactants_post(self):
+        return self.definition.reactants_post_from_variables(self.variables)
 
 
-SourceStateProductState = namedtuple('SourceStateProductState', ['source_state', 'product_state'])
+def reaction_from_string(definitions: List[ReactionDefinition], representation: str) -> Reaction:
+    the_definition = None
+    for definition in definitions:
+        if definition.matches_representation(representation):
+            assert not the_definition
+            the_definition = definition
+
+    assert the_definition
+    variables = the_definition.variables_from_representation(representation)
+
+    return Reaction(the_definition, variables)
 
 
-def states_from_reaction(reaction: Reaction) -> SourceStateProductState:
-    if isinstance(reaction, OutputReaction):
-        return SourceStateProductState(None, None)
-
-    elif reaction.reaction_class == ReactionClass.covalent_modification:
-        return _covalent_modification_states_from_reaction(reaction)
-
-    # @todo Is this correct?
-    elif reaction.reaction_class == ReactionClass.interaction and \
-            (reaction.isomerism == Isomerism.trans or reaction.isomerism == Isomerism.undefined):
-        return _inter_protein_interaction_states_from_reaction(reaction)
-
-    elif reaction.reaction_class == ReactionClass.interaction and reaction.isomerism == Isomerism.cis:
-        return _intra_protein_interaction_states_from_reaction(reaction)
-
-    elif reaction.reaction_class == ReactionClass.synthesis_degradation:
-        return _component_states_from_reaction(reaction)
-
-    elif reaction.reaction_class == ReactionClass.translocation:
-        return _translocation_states_from_reaction(reaction)
-
-    else:
-        raise err.RxnConLogicError('Non-exhaustive switch statement in state_from_reaction for case {}'.format(reaction))
-
-mapping_modifications = OrderedDict([(CovalentReactionModifier.phosphor, sta.StateModifier.phosphor),
-                                     (CovalentReactionModifier.ubiquitin, sta.StateModifier.ubiquitin),
-                                     (CovalentReactionModifier.truncated, sta.StateModifier.truncated),
-                                     (CovalentReactionModifier.guanosintriphosphat, sta.StateModifier.guanosintriphosphat),
-                                     ])
 
 
-def _covalent_modification_states_from_reaction(reaction: Reaction) -> SourceStateProductState:
-    if reaction.modifier in mapping_modifications:
-        modifier = mapping_modifications[reaction.modifier]
-
-    else:
-        raise err.RxnConLogicError('Could not map rxn modifier {0} to state modifier'.format(reaction.modifier))
-
-    source = product = None
-
-    if reaction.influence == Influence.positive:
-        product = sta.CovalentModificationState(reaction.object, modifier)
-
-    elif reaction.influence == Influence.negative:
-        source = sta.CovalentModificationState(reaction.object, modifier)
-
-    elif reaction.influence == Influence.transfer:
-        source = sta.CovalentModificationState(reaction.subject, modifier)
-        product = sta.CovalentModificationState(reaction.object, modifier)
-
-    else:
-        raise err.RxnConLogicError('Could not determine product/source pair for reaction {}'.format(reaction))
-
-    return SourceStateProductState(source, product)
 
 
-def _inter_protein_interaction_states_from_reaction(reaction: Reaction) -> SourceStateProductState:
-    source = None
-    product = sta.InteractionState(reaction.subject, reaction.object)
-
-    return SourceStateProductState(source, product)
 
 
-def _intra_protein_interaction_states_from_reaction(reaction: Reaction) -> SourceStateProductState:
-    source = None
-    product = sta.SelfInteractionState(reaction.subject, reaction.object)
-
-    return SourceStateProductState(source, product)
 
 
-def _component_states_from_reaction(reaction: Reaction) -> SourceStateProductState:
-    source = product = None
-
-    if reaction.influence == Influence.positive:
-        product = sta.ComponentState(reaction.object.to_component_specification())
-
-    elif reaction.influence == Influence.negative:
-        source = sta.ComponentState(reaction.object.to_component_specification())
-
-    else:
-        raise err.RxnConLogicError('Could not determine syn/deg state for reaction {}'.format(reaction))
-
-    return SourceStateProductState(source, product)
 
 
-def _translocation_states_from_reaction(reaction: Reaction) -> SourceStateProductState:
-    source = product = None
 
-    # @todo Map the reaction modifiers to state modifiers.
-    assert False
-
-    if reaction.influence == Influence.positive:
-        product = sta.TranslocationState(reaction.object, reaction.modifier)
-
-    elif reaction.influence == Influence.negative:
-        source = sta.TranslocationState(reaction.object, reaction.modifier)
-
-    else:
-        raise err.RxnConLogicError('Could not determine product/source pair for reaction {}'.format(reaction))
-
-    return SourceStateProductState(source, product)

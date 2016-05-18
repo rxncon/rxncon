@@ -5,7 +5,7 @@ import typecheck as tc
 
 import rxncon.core.specification as com
 import rxncon.core.error as err
-import rxncon.core.reaction as rxn
+#import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
 from enum import unique
 from rxncon.util.utils import OrderedEnum
@@ -82,61 +82,61 @@ def specification_from_string(specification_string: str) -> com.Specification:
         raise SyntaxError('Could not parse specification string {}'.format(specification_string))
 
 
-@tc.typecheck
-def reaction_from_string(reaction_string: str) -> rxn.Reaction:
-    INPUT_REGEX = '^\[.+?\]$'
-
-    if re.match(INPUT_REGEX, reaction_string):
-        return rxn.OutputReaction(reaction_string)
-
-    subject, verb, object = _reaction_string_to_subject_verb_object_strings(reaction_string)
-
-    subject = specification_from_string(subject)
-    verb = rxn.Verb(verb.lower())
-    object = specification_from_string(object)
-
-    try:
-        reaction_definition = rxn.VERB_REACTION_TABLE[verb]
-
-    except KeyError:
-        raise err.RxnConParseError('The verb {} could not be found in the reaction lookup table'.format(verb))
-
-    category, directionality, influence, isomerism, modifier = reaction_definition
-
-    return rxn.Reaction(subject, verb, object, category, directionality, influence, isomerism, modifier)
-
-
-@tc.typecheck
-def _reaction_string_to_subject_verb_object_strings(reaction_string: str) -> Tuple[str, str, str]:
-    known_verbs = [v.value for v in rxn.Verb]
-    delimiters = ['_' + verb + '_' for verb in known_verbs]
-
-    matches = 0
-    verb_position, object_position = 0, 0
-
-    for delimiter in delimiters:
-        splitted = reaction_string.lower().split(delimiter)
-
-        if len(splitted) > 1:
-            matches += 1
-
-            if len(splitted) != 2:
-                raise err.RxnConParseError('Incorrect S-V-O in reaction string {}'.format(reaction_string))
-
-            verb_position = len(splitted[0]) + 1
-            object_position = verb_position + len(delimiter) - 1
-
-    if matches == 0:
-        raise err.RxnConParseError('Unknown verb in reaction string {}'.format(reaction_string))
-
-    elif matches > 1:
-        raise err.RxnConParseError('Ambiguous verb in reaction string {}'.format(reaction_string))
-
-    subject_string = reaction_string[0:verb_position-1]
-    verb_string = reaction_string[verb_position:object_position-1]
-    object_string = reaction_string[object_position:]
-
-    return subject_string, verb_string, object_string
+# @tc.typecheck
+# def reaction_from_string(reaction_string: str) -> rxn.Reaction:
+#     INPUT_REGEX = '^\[.+?\]$'
+#
+#     if re.match(INPUT_REGEX, reaction_string):
+#         return rxn.OutputReaction(reaction_string)
+#
+#     subject, verb, object = _reaction_string_to_subject_verb_object_strings(reaction_string)
+#
+#     subject = specification_from_string(subject)
+#     verb = rxn.Verb(verb.lower())
+#     object = specification_from_string(object)
+#
+#     try:
+#         reaction_definition = rxn.VERB_REACTION_TABLE[verb]
+#
+#     except KeyError:
+#         raise err.RxnConParseError('The verb {} could not be found in the reaction lookup table'.format(verb))
+#
+#     category, directionality, influence, isomerism, modifier = reaction_definition
+#
+#     return rxn.Reaction(subject, verb, object, category, directionality, influence, isomerism, modifier)
+#
+#
+# @tc.typecheck
+# def _reaction_string_to_subject_verb_object_strings(reaction_string: str) -> Tuple[str, str, str]:
+#     known_verbs = [v.value for v in rxn.Verb]
+#     delimiters = ['_' + verb + '_' for verb in known_verbs]
+#
+#     matches = 0
+#     verb_position, object_position = 0, 0
+#
+#     for delimiter in delimiters:
+#         splitted = reaction_string.lower().split(delimiter)
+#
+#         if len(splitted) > 1:
+#             matches += 1
+#
+#             if len(splitted) != 2:
+#                 raise err.RxnConParseError('Incorrect S-V-O in reaction string {}'.format(reaction_string))
+#
+#             verb_position = len(splitted[0]) + 1
+#             object_position = verb_position + len(delimiter) - 1
+#
+#     if matches == 0:
+#         raise err.RxnConParseError('Unknown verb in reaction string {}'.format(reaction_string))
+#
+#     elif matches > 1:
+#         raise err.RxnConParseError('Ambiguous verb in reaction string {}'.format(reaction_string))
+#
+#     subject_string = reaction_string[0:verb_position-1]
+#     verb_string = reaction_string[verb_position:object_position-1]
+#     object_string = reaction_string[object_position:]
+#
+#     return subject_string, verb_string, object_string
 
 
 @tc.typecheck
