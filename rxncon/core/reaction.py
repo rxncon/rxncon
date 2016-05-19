@@ -125,7 +125,16 @@ REACTION_DEFINITIONS = [
         '$x# + $y#$y-{0} -> $x# + $y#$y-{p}'
     ),
     ReactionDefinition(
-        'protein-protein interaction',
+        'phosphotransfer',
+        '$x_pt_$y',
+        {
+            '$x': (Specification, SpecificationResolution.residue),
+            '$y': (Specification, SpecificationResolution.residue)
+        },
+        '$x#$x-{p} + $y#$y-{0} -> $x#$x-{0} + $y#$y-{p}'
+    ),
+    ReactionDefinition(
+        'protein-protein-interaction',
         '$x_ppi_$y',
         {
             '$x': (ProteinSpecification, SpecificationResolution.domain),
@@ -150,7 +159,16 @@ REACTION_DEFINITIONS = [
             '$y': (ProteinSpecification, SpecificationResolution.component)
         },
         '$x# + $y.mRNA# -> $x# + $y.mRNA# + $y#'
-    )
+    ),
+    # ReactionDefinition(
+    #     'intra-protein-interaction',
+    #     '$x_ipi_$y',
+    #     {
+    #         '$x': (ProteinSpecification, SpecificationResolution.domain),
+    #         '$y': (ProteinSpecification, SpecificationResolution.domain)
+    #     },
+    #     '$x#$x--0,$y--0 -> $x#$x--$y.domain'
+    # )
 ]
 
 
@@ -181,16 +199,4 @@ def reaction_from_string(definitions: List[ReactionDefinition], representation: 
     variables = the_definition.variables_from_representation(representation)
 
     return Reaction(the_definition, variables)
-
-
-
-
-
-
-
-
-
-
-
-
 
