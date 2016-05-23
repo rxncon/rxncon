@@ -22,8 +22,8 @@ class StateModifier(OrderedEnum):
 
 
 class StateDefinition():
-    SPEC_REGEX_GROUPED = '([a-zA-Z0-9\/\[\]\(\)_]+)'
-    SPEC_REGEX_UNGROUPED = '[a-zA-Z0-9\/\[\]\(\)_]+'
+    SPEC_REGEX_GROUPED = '([a-zA-Z0-9\/\[\]\(\)_]+?)'
+    SPEC_REGEX_UNGROUPED = '[a-zA-Z0-9\/\[\]\(\)_]+?'
 
     def __init__(self, name, representation_def, variables_def, superspecification_def):
 
@@ -49,7 +49,7 @@ class StateDefinition():
         assert self.matches_representation(representation)
         variables = { }
         for var, var_def in self.variables_def.items():
-            var_regex = self.representation_def.replace(var, self.SPEC_REGEX_GROUPED)
+            var_regex = '^{}$'.format(self.representation_def.replace(var, self.SPEC_REGEX_GROUPED))
             for other_var in self.variables_def.keys():
                 if other_var != var:
                     var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)

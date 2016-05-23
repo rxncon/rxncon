@@ -1,6 +1,7 @@
 from rxncon.core.specification import Specification, RnaSpecification, ProteinSpecification, SpecificationResolution
-from rxncon.core.state import State
-from rxncon.syntax.rxncon_from_string import state_from_string, specification_from_string
+from rxncon.core.state import state_from_string, State
+from rxncon.syntax.rxncon_from_string import specification_from_string
+
 
 from typing import List, Set
 
