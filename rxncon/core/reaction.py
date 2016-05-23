@@ -54,6 +54,11 @@ class ReactionDefinition:
 
         self._parse_reactants_def()
 
+    def __eq__(self, other):
+        assert isinstance(other, ReactionDefinition)
+        return self.name == other.name and self.representation_def == other.representation_def \
+               and self.variables_def == other.variables_def and self.reactants_defs == other.reactants_defs
+
     def _parse_reactants_def(self):
         if '<->' in self.reactants_defs:
             arrow = '<->'
@@ -178,6 +183,10 @@ class Reaction:
 
     def __str__(self):
         return self.definition.representation_from_variables(self.variables)
+
+    def __eq__(self, other):
+        assert isinstance(other, Reaction)
+        return self.definition == other.definition and self.variables == other.variables
 
     @property
     def reactants_pre(self):
