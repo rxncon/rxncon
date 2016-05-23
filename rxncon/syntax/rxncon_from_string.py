@@ -6,7 +6,7 @@ import typecheck as tc
 import rxncon.core.specification as com
 import rxncon.core.error as err
 #import rxncon.core.reaction as rxn
-import rxncon.core.state as sta
+#import rxncon.core.state as sta
 from enum import unique
 from rxncon.util.utils import OrderedEnum
 
@@ -139,70 +139,70 @@ def specification_from_string(specification_string: str) -> com.Specification:
 #     return subject_string, verb_string, object_string
 
 
-@tc.typecheck
-def state_from_string(state_string: str) -> sta.State:
-    OUTPUT_REGEX = '^\[.+?\]$'
-    INTERACTION_REGEX = '^.+?--.+?$'
-    MODIFIER_REGEX = '.+?-{.+?}'
-    MODIFIER_VALUE_REGEX = '{.+?}'
-    COMPONENT_REGEX = '\w'
-
-    assert isinstance(state_string, str)
-
-    if re.match(INTERACTION_REGEX, state_string):
-        return _interaction_state_from_string(state_string)
-
-    elif re.match(MODIFIER_REGEX, state_string):
-        modifier_string = re.search(MODIFIER_VALUE_REGEX, state_string).group(0).strip('{}').lower()
-
-        # @todo Maybe this is a bit dirty.
-        try:
-            modifier = sta.StateModifier(modifier_string)
-            return _covalent_modification_state_from_string(state_string, modifier)
-
-        except ValueError:
-            return _translocation_state_from_string(state_string)
-
-    elif re.match(OUTPUT_REGEX, state_string):
-        return sta.GlobalQuantityState(state_string)
-    elif re.match(COMPONENT_REGEX, state_string):
-        return _component_state_from_string(state_string)
-    else:
-        raise err.RxnConParseError('Could not parse state string {} into State'.format(state_string))
-
-
-@tc.typecheck
-def _interaction_state_from_string(state_string: str) -> Union[sta.InteractionState,
-                                                               sta.SelfInteractionState]:
-    component_strings = state_string.split('--')
-
-    if component_strings[1].startswith('['):
-        first_component = specification_from_string(component_strings[0])
-        second_component = specification_from_string("{0}_{1}".format(first_component.name, component_strings[1]))
-
-        return sta.SelfInteractionState(first_component, second_component)
-
-    else:
-        first_component = specification_from_string(component_strings[0])
-        second_component = specification_from_string(component_strings[1])
-
-        return sta.InteractionState(first_component, second_component)
-
-
-@tc.typecheck
-def _covalent_modification_state_from_string(state_string: str, modifier: sta.StateModifier) -> sta.CovalentModificationState:
-    substrate_string = state_string.split('-{')[0]
-    substrate = specification_from_string(substrate_string)
-
-    return sta.CovalentModificationState(substrate, modifier)
-
-
-def _component_state_from_string(state_string: str):
-    return sta.ComponentState(specification_from_string(state_string))
-
-
-@tc.typecheck
-def _translocation_state_from_string(state_string) -> sta.TranslocationState:
-    # @todo Implement this.
-    pass
-
+# @tc.typecheck
+# def state_from_string(state_string: str) -> sta.State:
+#     OUTPUT_REGEX = '^\[.+?\]$'
+#     INTERACTION_REGEX = '^.+?--.+?$'
+#     MODIFIER_REGEX = '.+?-{.+?}'
+#     MODIFIER_VALUE_REGEX = '{.+?}'
+#     COMPONENT_REGEX = '\w'
+#
+#     assert isinstance(state_string, str)
+#
+#     if re.match(INTERACTION_REGEX, state_string):
+#         return _interaction_state_from_string(state_string)
+#
+#     elif re.match(MODIFIER_REGEX, state_string):
+#         modifier_string = re.search(MODIFIER_VALUE_REGEX, state_string).group(0).strip('{}').lower()
+#
+#         # @todo Maybe this is a bit dirty.
+#         try:
+#             modifier = sta.StateModifier(modifier_string)
+#             return _covalent_modification_state_from_string(state_string, modifier)
+#
+#         except ValueError:
+#             return _translocation_state_from_string(state_string)
+#
+#     elif re.match(OUTPUT_REGEX, state_string):
+#         return sta.GlobalQuantityState(state_string)
+#     elif re.match(COMPONENT_REGEX, state_string):
+#         return _component_state_from_string(state_string)
+#     else:
+#         raise err.RxnConParseError('Could not parse state string {} into State'.format(state_string))
+#
+#
+# @tc.typecheck
+# def _interaction_state_from_string(state_string: str) -> Union[sta.InteractionState,
+#                                                                sta.SelfInteractionState]:
+#     component_strings = state_string.split('--')
+#
+#     if component_strings[1].startswith('['):
+#         first_component = specification_from_string(component_strings[0])
+#         second_component = specification_from_string("{0}_{1}".format(first_component.name, component_strings[1]))
+#
+#         return sta.SelfInteractionState(first_component, second_component)
+#
+#     else:
+#         first_component = specification_from_string(component_strings[0])
+#         second_component = specification_from_string(component_strings[1])
+#
+#         return sta.InteractionState(first_component, second_component)
+#
+#
+# @tc.typecheck
+# def _covalent_modification_state_from_string(state_string: str, modifier: sta.StateModifier) -> sta.CovalentModificationState:
+#     substrate_string = state_string.split('-{')[0]
+#     substrate = specification_from_string(substrate_string)
+#
+#     return sta.CovalentModificationState(substrate, modifier)
+#
+#
+# def _component_state_from_string(state_string: str):
+#     return sta.ComponentState(specification_from_string(state_string))
+#
+#
+# @tc.typecheck
+# def _translocation_state_from_string(state_string) -> sta.TranslocationState:
+#     # @todo Implement this.
+#     pass
+#

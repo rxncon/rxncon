@@ -2,13 +2,11 @@ from abc import ABCMeta, abstractmethod, abstractproperty
 from enum import unique
 import typecheck as tc
 import re
-import typing as tp
+from typing import List
 
 from rxncon.util.utils import OrderedEnum
-#import rxncon.syntax.string_from_rxncon as sfr
-import rxncon.core.specification as spec
-
-from rxncon.syntax.rxncon_from_string import specification_from_string
+import rxncon.core.specification as com
+import rxncon.syntax.string_from_rxncon as sfr
 
 
 @unique
@@ -20,134 +18,31 @@ class StateModifier(OrderedEnum):
     truncated  = 'truncated'
 
 
-
-class StateDefinition():
-    SPEC_REGEX_GROUPED = '([a-zA-Z0-9\/\[\]\(\)_]+?)'
-    SPEC_REGEX_UNGROUPED = '[a-zA-Z0-9\/\[\]\(\)_]+?'
-
-    def __init__(self, name, representation_def, variables_def):
-
-        self.name, self.representation_def, self.variables_def  = name, representation_def, variables_def
-
-    def __repr__(self):
+class State(metaclass=ABCMeta):
+    def __repr__(self) -> str:
         return str(self)
 
+    @abstractmethod
+    def __hash__(self):
+        pass
+
+    @abstractmethod
     def __str__(self):
-        return 'state-definition: name={0}, representation_def={1}'.format(self.name, self.representation_def)
+        pass
 
-    def matches_representation(self, representation):
-        return re.match(self._to_matching_regex(), representation)
+    @abstractmethod
+    def is_superspecification_of(self, other) -> bool:
+        pass
 
-    def _to_matching_regex(self):
-        regex = '{}'.format(self.representation_def)
-        for var in self.variables_def.keys():
-            regex = regex.replace(var, self.SPEC_REGEX_GROUPED)
-        return '^{}$'.format(regex)
+    @abstractmethod
+    def is_subspecification_of(self, other) -> bool:
+        pass
 
-    def variables_from_representation(self, representation):
-        assert self.matches_representation(representation)
-        variables = { }
-        for var, var_def in self.variables_def.items():
-            var_regex = self.representation_def.replace(var, self.SPEC_REGEX_GROUPED)
-            for other_var in self.variables_def.keys():
-                if other_var != var:
-                    var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)
-
-            val_str = re.match(var_regex, representation).group(1)
-            if self.variables_def[var] is StateModifier:
-                val_spec = state_modifier_from_string(val_str)
-            else:
-                val_spec = specification_from_string(val_str)
-
-            variables[var] = val_spec
-
-        return variables
-
-    def representation_from_variables(self, variables):
-        representation = self.representation_def
-        for var, val in variables.items():
-            representation = representation.replace(var, str(val))
-
-        return representation
-
-def state_modifier_from_string(modifier: str):
-    return StateModifier(modifier.lower()).value
-
-# OUTPUT_REGEX = '^\[.+?\]$'
-#     INTERACTION_REGEX = '^.+?--.+?$'
-#     MODIFIER_REGEX = '.+?-{.+?}'
-#     MODIFIER_VALUE_REGEX = '{.+?}'
-#     COMPONENT_REGEX = '\w'
-
-STATE_DEFINITION = [
-    StateDefinition('interaction-state',
-                    '$x--$y',
-                    {'$x': spec.Specification,
-                     '$y': spec.Specification},
-                    ),
-
-    StateDefinition('covalent-modification-state',
-                    '$x-{$y}',
-                    {'$x': spec.Specification,
-                      '$y': StateModifier},
-                    ),
-
-    StateDefinition('component-state',
-                    '$x',
-                    {'$x': spec.Specification}
-                    )
-
-]
+    @abstractproperty
+    def components(self) -> List[com.Specification]:
+        pass
 
 
-class State():
-    def __init__(self, definition: StateDefinition, variables):
-        self.definition, self.variables = definition, variables
-
-    def __repr__(self):
-        return str(self)
-
-    def __str__(self):
-        return self.definition.representation_from_variables(self.variables)
-
-
-def state_from_string(definitions: tp.List[StateDefinition], representation: str):
-    the_definition = None
-    for definition in definitions:
-        if definition.matches_representation(representation):
-            assert not the_definition
-            the_definition = definition
-
-    assert the_definition
-    variables = the_definition.variables_from_representation(representation)
-    return State(the_definition, variables)
-
-
-# class State(metaclass=ABCMeta):
-#     def __repr__(self) -> str:
-#         return str(self)
-#
-#     @abstractmethod
-#     def __hash__(self):
-#         pass
-#
-#     @abstractmethod
-#     def __str__(self):
-#         pass
-#
-#     @abstractmethod
-#     def is_superspecification_of(self, other) -> bool:
-#         pass
-#
-#     @abstractmethod
-#     def is_subspecification_of(self, other) -> bool:
-#         pass
-#
-#     @abstractproperty
-#     def components(self) -> List[com.Specification]:
-#         pass
-#
-#
 # class ComponentState(State):
 #     @tc.typecheck
 #     def __init__(self, component: com.Specification):
