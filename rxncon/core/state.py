@@ -22,12 +22,13 @@ class StateModifier(OrderedEnum):
 
 
 class StateDefinition():
-    SPEC_REGEX_GROUPED = '([a-zA-Z0-9\/\[\]\(\)_]+?)'
-    SPEC_REGEX_UNGROUPED = '[a-zA-Z0-9\/\[\]\(\)_]+?'
+    SPEC_REGEX_GROUPED = '([a-zA-Z0-9\/\[\]\(\)_]+)'
+    SPEC_REGEX_UNGROUPED = '[a-zA-Z0-9\/\[\]\(\)_]+'
 
-    def __init__(self, name, representation_def, variables_def):
+    def __init__(self, name, representation_def, variables_def, superspecification_def):
 
-        self.name, self.representation_def, self.variables_def  = name, representation_def, variables_def
+        self.name, self.representation_def, \
+        self.variables_def, self.superspecification_of_def  = name, representation_def, variables_def, superspecification_def
 
     def __repr__(self):
         return str(self)
@@ -55,23 +56,29 @@ class StateDefinition():
 
             val_str = re.match(var_regex, representation).group(1)
             if self.variables_def[var] is StateModifier:
-                val_spec = state_modifier_from_string(val_str)
+                value = state_modifier_from_string(val_str)
             else:
-                val_spec = specification_from_string(val_str)
+                value = specification_from_string(val_str)
 
-            variables[var] = val_spec
+            variables[var] = value
 
         return variables
 
     def representation_from_variables(self, variables):
         representation = self.representation_def
         for var, val in variables.items():
-            representation = representation.replace(var, str(val))
+            if val is StateModifier:
+                representation = representation.replace(var, str(val.value))
+            else:
+                representation = representation.replace(var, str(val))
 
         return representation
 
+    def superspec_from_definition(self):
+        pass
+
 def state_modifier_from_string(modifier: str):
-    return StateModifier(modifier.lower()).value
+    return StateModifier(modifier.lower())
 
 # OUTPUT_REGEX = '^\[.+?\]$'
 #     INTERACTION_REGEX = '^.+?--.+?$'
@@ -84,17 +91,19 @@ STATE_DEFINITION = [
                     '$x--$y',
                     {'$x': spec.Specification,
                      '$y': spec.Specification},
+                    ['interaction-state']
                     ),
 
     StateDefinition('covalent-modification-state',
                     '$x-{$y}',
                     {'$x': spec.Specification,
-                      '$y': StateModifier},
-                    ),
+                     '$y': StateModifier},
+                    ['covalent-modification-state']),
 
     StateDefinition('component-state',
                     '$x',
-                    {'$x': spec.Specification}
+                    {'$x': spec.Specification},
+                    ['interaction-state', 'covalent-modification-state']
                     )
 
 ]
@@ -110,17 +119,76 @@ class State():
     def __str__(self):
         return self.definition.representation_from_variables(self.variables)
 
+    def __eq__(self, other):
+        return self.definition == other.definition and self.variables == other.variables
 
-def state_from_string(definitions: tp.List[StateDefinition], representation: str):
+    def components(self):
+        return [value for value in self.variables.values() if isinstance(value, spec.Specification)]
+
+    def modifier(self):
+        return [value for value in self.variables.values() if isinstance(value, StateModifier)]
+
+    def is_superspecification_of(self, other) -> bool:
+        superspec = False
+        if other.definition.name == self.definition.name or other.definition.name in self.definition.superspecification_of_def:
+            for self_component in self.components():
+                for other_component in other.components():
+                    if self_component.to_component_specification() == other_component.to_component_specification():
+                            if self_component.is_superspecification_of(other_component) \
+                                    and other_component.is_subspecification_of(self_component):
+                                if other.definition.name in self.definition.superspecification_of_def:
+                                    superspec = True
+                                elif self.modifier() == other.modifier():
+                                    superspec = True
+                                else:
+                                    return False
+                            else:
+                                return False
+        return superspec
+
+    def is_subspecification_of(self, other) -> bool:
+        subspec = False
+        if other.definition.name == self.definition.name or self.definition.name in other.definition.superspecification_of_def:
+            for self_component in self.components():
+                for other_component in other.components():
+                    if self_component.to_component_specification() == other_component.to_component_specification():
+                        if self_component.is_subspecification_of(other_component) \
+                                and other_component.is_superspecification_of(self_component):
+                            if self.definition.name in other.definition.superspecification_of_def:
+                                subspec = True
+                            elif self.modifier() == other.modifier():
+                                subspec = True
+                            else:
+                                return False
+                        else:
+                            return False
+        return subspec
+
+        #         if isinstance(other, CovalentModificationState):
+        #             return self.modifier == other.modifier and \
+        #                     self.substrate.is_subspecification_of(other.substrate)
+        #         elif isinstance(other, ComponentState):
+        #             return other.is_superspecification_of(self)
+        #         return False
+
+
+def definition_of_state(representation: str):
     the_definition = None
-    for definition in definitions:
+    for definition in STATE_DEFINITION:
         if definition.matches_representation(representation):
             assert not the_definition
             the_definition = definition
 
     assert the_definition
+    return the_definition
+
+
+def state_from_string(representation: str):
+    the_definition = definition_of_state(representation)
     variables = the_definition.variables_from_representation(representation)
+
     return State(the_definition, variables)
+
 
 
 # class State(metaclass=ABCMeta):
