@@ -7,7 +7,7 @@ import typing as tp
 from rxncon.util.utils import OrderedEnum
 import rxncon.core.specification as spec
 
-from rxncon.syntax.rxncon_from_string import specification_from_string
+from rxncon.syntax.specification_from_string import specification_from_string
 
 
 @unique

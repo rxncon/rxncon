@@ -4,7 +4,7 @@ import typecheck as tc
 from collections import namedtuple
 
 import rxncon.core.specification as com
-import rxncon.syntax.rxncon_from_string as cfs
+import rxncon.syntax.specification_from_string as cfs
 
 ComponentInitTestCase = namedtuple('ComponentInitTestCase', ['seeded', 'empty'])
 ComponentHierarchicalTestCase = namedtuple("ComponentHierarchicalTestCase", ['state', 'is_superspecification'])

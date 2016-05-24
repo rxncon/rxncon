@@ -80,16 +80,7 @@ class Specification(metaclass=ABCMeta):
 
     @property
     def resolution(self):
-        if self.name and not self.domain and not self.subdomain and not self.residue:
-            return SpecificationResolution.component
-        elif self.name and self.domain and not self.subdomain and not self.residue:
-            return SpecificationResolution.domain
-        elif self.name and self.domain and self.subdomain and not self.residue:
-            return SpecificationResolution.subdomain
-        elif self.residue is not None:
-            return SpecificationResolution.residue
-        else:
-            raise NotImplementedError
+        return self.spec_resolution.resolution
 
     def has_resolution(self, resolution: 'SpecificationResolution'):
         return self.resolution == resolution
@@ -148,6 +139,19 @@ class DomainResolution:
             return True
         else:
             return self == other
+
+    @property
+    def resolution(self):
+        if not self.domain and not self.subdomain and not self.residue:
+            return SpecificationResolution.component
+        elif self.domain and not self.subdomain and not self.residue:
+            return SpecificationResolution.domain
+        elif self.domain and self.subdomain and not self.residue:
+            return SpecificationResolution.subdomain
+        elif self.residue is not None:
+            return SpecificationResolution.residue
+        else:
+            raise NotImplementedError
 
 
 class ProteinSpecification(Specification):

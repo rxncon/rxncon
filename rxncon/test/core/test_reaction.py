@@ -190,13 +190,13 @@ def reaction_test_case(reaction_definitions):
                                            })
                              ),
 
-            ReactionTestCase('A_[b]_ppi_B_[d/s]',
-                             reaction_definitions['protein-protein-interaction'],
-                             rxn.Reaction(reaction_definitions['protein-protein-interaction'],
-                                          { '$x': rxn.specification_from_string('A_[b]'),
-                                            '$y': rxn.specification_from_string('B_[d/s]')
-                                            })
-                             ),
+            # ReactionTestCase('A_[b]_ppi_B_[d/s]',
+            #                  reaction_definitions['protein-protein-interaction'],
+            #                  rxn.Reaction(reaction_definitions['protein-protein-interaction'],
+            #                               { '$x': rxn.specification_from_string('A_[b]'),
+            #                                 '$y': rxn.specification_from_string('B_[d/s]')
+            #                                 })
+            #                  ),
 
             ReactionTestCase('A_trsc_B',
                              reaction_definitions['transcription'],

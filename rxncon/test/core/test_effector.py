@@ -1,12 +1,13 @@
 import rxncon.core.effector as eff
-import rxncon.syntax.rxncon_from_string as rfs
+import rxncon.core.state as sta
+
 
 
 def test_effector_states_property():
-    state_a1 = rfs.state_from_string('A--C')
-    state_a2 = rfs.state_from_string('A-{p}')
-    state_b1 = rfs.state_from_string('B-{ub}')
-    state_b2 = rfs.state_from_string('B--D')
+    state_a1 = sta.state_from_string('A--C')
+    state_a2 = sta.state_from_string('A-{p}')
+    state_b1 = sta.state_from_string('B-{ub}')
+    state_b2 = sta.state_from_string('B--D')
 
     effector = eff.OrEffector(eff.AndEffector(eff.StateEffector(state_a1),
                                               eff.StateEffector(state_a2)),
