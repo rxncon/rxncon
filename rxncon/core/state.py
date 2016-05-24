@@ -7,7 +7,7 @@ import typing as tp
 from rxncon.util.utils import OrderedEnum
 import rxncon.core.specification as spec
 
-from rxncon.syntax.specification_from_string import specification_from_string
+import rxncon.syntax.specification_from_string as sfs
 
 
 @unique
@@ -62,11 +62,11 @@ class StateDefinition():
             val_str = re.match(var_regex, representation).group(1)
             if self.variables_def[var] is StateModifier:
                 value = state_modifier_from_string(val_str)
-            elif self.variables_def[var] is spec.SpecificationResolution:
-                component_name = re.match(var_regex, representation).group(0).split('_')[0]
-                value = specification_from_string('{0}_[{1}]'.format(component_name, val_str))
+            elif self.variables_def[var] is spec.DomainResolution:
+                domain, subdomain, residue = sfs.domain_resolution_from_string(val_str)
+                value = spec.DomainResolution(domain, subdomain, residue)
             else:
-                value = specification_from_string(val_str)
+                value = sfs.specification_from_string(val_str)
 
             variables[var] = value
 
@@ -77,10 +77,6 @@ class StateDefinition():
         for var, val in variables.items():
             if val is StateModifier:
                 representation = representation.replace(var, str(val.value))
-            elif val is spec.SpecificationResolution:
-                val_str = str(val).split('_')[1]
-                val_str = re.sub('\[\]', "", val_str)
-                representation = representation.replace(var, val_str)
             else:
                 representation = representation.replace(var, str(val))
 
@@ -109,7 +105,12 @@ STATE_DEFINITION = [
     StateDefinition('self-interaction-state',
                     '$x-[$y]',
                     {'$x': spec.Specification,
-                     '$y': spec.SpecificationResolution},
+                     '$y': spec.DomainResolution},
+                    []),
+
+    StateDefinition('input-state',  # todo: this state matches for [$x] as well as $x
+                    '[$x]',
+                    {'$x': spec.Specification},
                     []),
 
     StateDefinition('covalent-modification-state',
@@ -184,7 +185,9 @@ class State():
 
 def definition_of_state(representation: str):
     the_definition = None
+
     for definition in STATE_DEFINITION:
+
         if definition.matches_representation(representation):
             assert not the_definition
             the_definition = definition
