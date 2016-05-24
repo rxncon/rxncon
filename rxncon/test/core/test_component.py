@@ -22,13 +22,13 @@ residue = cfs.specification_from_string('A_[(d)]')
 
 def test_component_without_name_raises():
     with pytest.raises(tc.InputParameterError):
-        com.ProteinSpecification(None, None, None, None)
+        com.ProteinSpecification(None, com.DomainResolution(None, None, None))
 
     with pytest.raises(tc.InputParameterError):
-        com.RnaSpecification(None, None, None, None)
+        com.RnaSpecification(None, com.DomainResolution(None, None, None))
 
     with pytest.raises(tc.InputParameterError):
-        com.DnaSpecification(None, None, None, None)
+        com.DnaSpecification(None, com.DomainResolution(None, None, None))
 
 
 def test_component_initialized(the_case_initialized):
@@ -54,13 +54,17 @@ def test_component_equivalence(the_case_is_equivalent_to):
 @pytest.fixture
 def the_case_initialized():
     return [
-        ComponentInitTestCase([no_domain.name], [no_domain.domain, no_domain.subdomain, no_domain.residue]),
-        ComponentInitTestCase([domain.name, domain.domain], [domain.subdomain, domain.residue]),
-        ComponentInitTestCase([domain_subdomain.name, domain_subdomain.domain, domain_subdomain.subdomain], [domain_subdomain.residue]),
-        ComponentInitTestCase([domain_subdomain_residue.name, domain_subdomain_residue.domain,
-                               domain_subdomain_residue.subdomain, domain_subdomain_residue.residue], []),
-        ComponentInitTestCase([domain_residue.name, domain_residue.domain, domain_residue.residue], [domain_residue.subdomain]),
-        ComponentInitTestCase([residue.name, residue.residue], [residue.domain, residue.subdomain])
+        ComponentInitTestCase([no_domain.name], [no_domain.spec_resolution.domain, no_domain.spec_resolution.subdomain,
+                                                 no_domain.spec_resolution.residue]),
+        ComponentInitTestCase([domain.name, domain.spec_resolution.domain], [domain.spec_resolution.subdomain,
+                                                                             domain.spec_resolution.residue]),
+        ComponentInitTestCase([domain_subdomain.name, domain_subdomain.spec_resolution.domain,
+                               domain_subdomain.spec_resolution.subdomain], [domain_subdomain.spec_resolution.residue]),
+        ComponentInitTestCase([domain_subdomain_residue.name, domain_subdomain_residue.spec_resolution.domain,
+                               domain_subdomain_residue.spec_resolution.subdomain, domain_subdomain_residue.spec_resolution.residue], []),
+        ComponentInitTestCase([domain_residue.name, domain_residue.spec_resolution.domain, domain_residue.spec_resolution.residue],
+                              [domain_residue.spec_resolution.subdomain]),
+        ComponentInitTestCase([residue.name, residue.spec_resolution.residue], [residue.spec_resolution.domain, residue.spec_resolution.subdomain])
 
     ]
 

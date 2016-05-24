@@ -27,7 +27,7 @@ class StateDefinition():
     def __init__(self, name, representation_def, variables_def, superspecification_def):
 
         self.name, self.representation_def, \
-        self.variables_def, self.superspecification_of_def  = name, representation_def, variables_def, superspecification_def
+        self.variables_def, self.superspecification_of_def = name, representation_def, variables_def, superspecification_def
 
     def __repr__(self):
         return str(self)
@@ -38,17 +38,23 @@ class StateDefinition():
     def matches_representation(self, representation):
         return re.match(self._to_matching_regex(), representation)
 
+    def _to_base_regex(self):
+        regex = '^{}$'.format(self.representation_def.replace('+', '\+'))
+        regex = regex.replace('[', '\[')
+        regex = regex.replace(']', '\]')
+        return regex
+
     def _to_matching_regex(self):
-        regex = '{}'.format(self.representation_def)
+        regex = self._to_base_regex()
         for var in self.variables_def.keys():
             regex = regex.replace(var, self.SPEC_REGEX_GROUPED)
-        return '^{}$'.format(regex)
+        return regex
 
     def variables_from_representation(self, representation):
         assert self.matches_representation(representation)
         variables = { }
         for var, var_def in self.variables_def.items():
-            var_regex = '^{}$'.format(self.representation_def.replace(var, self.SPEC_REGEX_GROUPED))
+            var_regex = self._to_base_regex().replace(var, self.SPEC_REGEX_GROUPED)
             for other_var in self.variables_def.keys():
                 if other_var != var:
                     var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)
@@ -56,6 +62,9 @@ class StateDefinition():
             val_str = re.match(var_regex, representation).group(1)
             if self.variables_def[var] is StateModifier:
                 value = state_modifier_from_string(val_str)
+            elif self.variables_def[var] is spec.SpecificationResolution:
+                component_name = re.match(var_regex, representation).group(0).split('_')[0]
+                value = specification_from_string('{0}_[{1}]'.format(component_name, val_str))
             else:
                 value = specification_from_string(val_str)
 
@@ -68,6 +77,10 @@ class StateDefinition():
         for var, val in variables.items():
             if val is StateModifier:
                 representation = representation.replace(var, str(val.value))
+            elif val is spec.SpecificationResolution:
+                val_str = str(val).split('_')[1]
+                val_str = re.sub('\[\]', "", val_str)
+                representation = representation.replace(var, val_str)
             else:
                 representation = representation.replace(var, str(val))
 
@@ -89,22 +102,27 @@ STATE_DEFINITION = [
     StateDefinition('interaction-state',
                     '$x--$y',
                     {'$x': spec.Specification,
-                     '$y': spec.Specification},
-                    ['interaction-state']
+                     '$y': spec.Specification,},
+                    []
                     ),
+
+    StateDefinition('self-interaction-state',
+                    '$x-[$y]',
+                    {'$x': spec.Specification,
+                     '$y': spec.SpecificationResolution},
+                    []),
 
     StateDefinition('covalent-modification-state',
                     '$x-{$y}',
                     {'$x': spec.Specification,
                      '$y': StateModifier},
-                    ['covalent-modification-state']),
+                    []),
 
     StateDefinition('component-state',
                     '$x',
                     {'$x': spec.Specification},
-                    ['interaction-state', 'covalent-modification-state']
+                    ['interaction-state','self-interaction-state', 'covalent-modification-state']
                     ),
-
 ]
 
 

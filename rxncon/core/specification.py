@@ -13,13 +13,6 @@ class Specification(metaclass=ABCMeta):
 
     def _validate(self):
         assert self.name is not None and re.match("\w+", self.name)
-        if self.domain:
-            assert re.match("\w+", self.domain)
-        if self.subdomain:
-            assert re.match("\w+", self.subdomain)
-            assert self.domain is not None
-        if self.residue:
-            assert re.match("\w+", self.residue)
 
     @abstractmethod
     def __hash__(self) -> int:
@@ -41,21 +34,8 @@ class Specification(metaclass=ABCMeta):
         if self.name < other.name:
             return True
         elif self.name == other.name:
-            if self.domain is None and other.domain is not None:
-                return True
-            if other.domain is not None and other.domain is not None \
-                    and self.domain < other.domain:
-                return True
-            if self.subdomain is None and other.subdomain is not None:
-                return True
-            if self.subdomain is not None and other.subdomain is not None \
-                    and self.subdomain < other.subdomain:
-                return True
-            if self.residue is None and other.residue is not None:
-                return True
-            if self.residue is not None and other.residue is not None \
-                    and self.residue < other.residue:
-                return True
+            return self.spec_resolution < other.spec_resolution
+
 
         return False
 
@@ -67,8 +47,8 @@ class Specification(metaclass=ABCMeta):
         if self.is_equivalent_to(other):
             return True
 
-        spec_pairs = zip([self.name, self.domain, self.subdomain, self.residue],
-                         [other.name, other.domain, other.subdomain, other.residue])
+        spec_pairs = zip([self.name, self.spec_resolution.domain, self.spec_resolution.subdomain, self.spec_resolution.residue],
+                         [other.name, other.spec_resolution.domain, other.spec_resolution.subdomain, other.spec_resolution.residue])
 
         for my_property, other_property in spec_pairs:
             if my_property and other_property and my_property != other_property:
@@ -90,13 +70,13 @@ class Specification(metaclass=ABCMeta):
         pass
 
     def to_dna_component_specification(self) -> 'DnaSpecification':
-        return DnaSpecification(self.name, None, None, None)
+        return DnaSpecification(self.name, DomainResolution(None, None, None))
 
     def to_rna_component_specification(self) -> 'RnaSpecification':
-        return RnaSpecification(self.name, None, None, None)
+        return RnaSpecification(self.name, DomainResolution(None, None, None))
 
     def to_protein_component_specification(self) -> 'ProteinSpecification':
-        return ProteinSpecification(self.name, None, None, None)
+        return ProteinSpecification(self.name, DomainResolution(None, None, None))
 
     @property
     def resolution(self):
@@ -115,13 +95,66 @@ class Specification(metaclass=ABCMeta):
         return self.resolution == resolution
 
 
-class ProteinSpecification(Specification):
+class DomainResolution:
     @tc.typecheck
-    def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
-        self.name = name
+    def __init__(self, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
         self.domain = domain
         self.subdomain = subdomain
         self.residue = residue
+        self._validate()
+
+    def _validate(self):
+        if self.domain:
+            assert re.match("\w+", self.domain)
+        if self.subdomain:
+            assert re.match("\w+", self.subdomain)
+            assert self.domain is not None
+        if self.residue:
+            assert re.match("\w+", self.residue)
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __str__(self) -> str:
+        return sfr.string_from_domain_resolution(self)
+
+    @tc.typecheck
+    def __eq__(self, other) -> bool:
+        return isinstance(other, DomainResolution) and self.domain == other.domain \
+               and self.subdomain == other.subdomain and self.residue == other.residue
+
+    @tc.typecheck
+    def __lt__(self, other: 'DomainResolution'):
+        if self.domain is None and other.domain is not None:
+            return True
+        if other.domain is not None and other.domain is not None \
+                and self.domain < other.domain:
+            return True
+        if self.subdomain is None and other.subdomain is not None:
+            return True
+        if self.subdomain is not None and other.subdomain is not None \
+                and self.subdomain < other.subdomain:
+            return True
+        if self.residue is None and other.residue is not None:
+            return True
+        if self.residue is not None and other.residue is not None \
+                and self.residue < other.residue:
+            return True
+        return False
+
+    @tc.typecheck
+    def is_equivalent_to(self, other):
+        if isinstance(other, DomainResolution) and self.residue and (self.residue == other.residue):
+            return True
+        else:
+            return self == other
+
+
+class ProteinSpecification(Specification):
+    @tc.typecheck
+    def __init__(self, name: str, spec_resolution: DomainResolution):
+        self.name = name
+        self.spec_resolution = spec_resolution
         self._validate()
 
     def __hash__(self):
@@ -133,8 +166,7 @@ class ProteinSpecification(Specification):
     @tc.typecheck
     def __eq__(self, other: Specification) -> bool:
         return isinstance(other, ProteinSpecification) and self.name == other.name \
-               and self.domain == other.domain and self.subdomain == other.subdomain \
-               and self.residue == other.residue
+               and self.spec_resolution == other.spec_resolution
 
     @tc.typecheck
     def __lt__(self, other: Specification):
@@ -150,22 +182,20 @@ class ProteinSpecification(Specification):
     @tc.typecheck
     def is_equivalent_to(self, other: Specification):
         if isinstance(other, ProteinSpecification) and (self.name == other.name) \
-                and self.residue and (self.residue == other.residue):
+                and self.spec_resolution.is_equivalent_to(other.spec_resolution):
             return True
         else:
             return self == other
 
     def to_component_specification(self) -> 'ProteinSpecification':
-        return ProteinSpecification(self.name, None, None, None)
+        return ProteinSpecification(self.name, DomainResolution(None, None, None))
 
 
 class RnaSpecification(Specification):
     @tc.typecheck
-    def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
+    def __init__(self, name: str, spec_resolution: DomainResolution):
         self.name = name
-        self.domain = domain
-        self.subdomain = subdomain
-        self.residue = residue
+        self.spec_resolution = spec_resolution
         self._validate()
 
     def __hash__(self):
@@ -177,8 +207,7 @@ class RnaSpecification(Specification):
     @tc.typecheck
     def __eq__(self, other: Specification) -> bool:
         return isinstance(other, RnaSpecification) and self.name == other.name \
-               and self.domain == other.domain and self.subdomain == other.subdomain \
-               and self.residue == other.residue
+               and self.spec_resolution == other.spec_resolution
 
     @tc.typecheck
     def __lt__(self, other: Specification):
@@ -196,22 +225,20 @@ class RnaSpecification(Specification):
     @tc.typecheck
     def is_equivalent_to(self, other: Specification):
         if isinstance(other, RnaSpecification) and (self.name == other.name) \
-                and self.residue and (self.residue == other.residue):
+                and self.spec_resolution.is_equivalent_to(other.spec_resolution):
             return True
         else:
             return self == other
 
     def to_component_specification(self) -> 'RnaSpecification':
-        return RnaSpecification(self.name, None, None, None)
+        return RnaSpecification(self.name, DomainResolution(None, None, None))
 
 
 class DnaSpecification(Specification):
     @tc.typecheck
-    def __init__(self, name: str, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
+    def __init__(self, name: str, spec_resolution: DomainResolution):
         self.name = name
-        self.domain = domain
-        self.subdomain = subdomain
-        self.residue = residue
+        self.spec_resolution = spec_resolution
         self._validate()
 
     def __hash__(self):
@@ -223,8 +250,7 @@ class DnaSpecification(Specification):
     @tc.typecheck
     def __eq__(self, other: Specification) -> bool:
         return isinstance(other, DnaSpecification) and self.name == other.name \
-               and self.domain == other.domain and self.subdomain == other.subdomain \
-               and self.residue == other.residue
+               and self.spec_resolution == other.spec_resolution
 
     @tc.typecheck
     def __lt__(self, other: Specification):
@@ -240,13 +266,13 @@ class DnaSpecification(Specification):
     @tc.typecheck
     def is_equivalent_to(self, other: Specification):
         if isinstance(other, DnaSpecification) and (self.name == other.name) \
-                and self.residue and (self.residue == other.residue):
+                and self.spec_resolution.is_equivalent_to(other.spec_resolution):
             return True
         else:
             return self == other
 
     def to_component_specification(self) -> 'DnaSpecification':
-        return DnaSpecification(self.name, None, None, None)
+        return DnaSpecification(self.name, DomainResolution(None, None, None))
 
 
 class SpecificationResolution(Enum):

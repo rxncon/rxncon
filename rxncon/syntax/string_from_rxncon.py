@@ -16,27 +16,34 @@ class SpecificationSuffix(OrderedEnum):
 
 @tc.typecheck
 def string_from_specification(specification, prefix: OrderedEnum) -> str:
-    if specification.domain and specification.subdomain and specification.residue:
-        return '{0}_[{1}/{2}({3})]'.format(create_name(specification, prefix), specification.domain, specification.subdomain, specification.residue)
-
-    elif specification.domain and not specification.subdomain and specification.residue:
-        return '{0}_[{1}({2})]'.format(create_name(specification, prefix), specification.domain, specification.residue)
-
-    elif specification.domain and specification.subdomain and not specification.residue:
-        return '{0}_[{1}/{2}]'.format(create_name(specification, prefix), specification.domain, specification.subdomain)
-
-    elif not specification.domain and not specification.subdomain and specification.residue:
-        return '{0}_[({1})]'.format(create_name(specification, prefix), specification.residue)
-
-    elif specification.domain and not specification.subdomain and not specification.residue:
-        return '{0}_[{1}]'.format(create_name(specification, prefix), specification.domain)
-
-    elif not specification.domain and not specification.subdomain and not specification.residue:
+    if str(specification.spec_resolution):
+        return '{0}_[{1}]'.format(create_name(specification, prefix), str(specification.spec_resolution))
+    else:
         return '{0}'.format(create_name(specification, prefix))
+
+
+def string_from_domain_resolution(domain_resolution):
+
+    if domain_resolution.domain and domain_resolution.subdomain and domain_resolution.residue:
+        return '{0}/{1}({2})'.format(domain_resolution.domain, domain_resolution.subdomain, domain_resolution.residue)
+
+    elif domain_resolution.domain and not domain_resolution.subdomain and domain_resolution.residue:
+        return '{0}({1})'.format(domain_resolution.domain, domain_resolution.residue)
+
+    elif domain_resolution.domain and domain_resolution.subdomain and not domain_resolution.residue:
+        return '{0}/{1}'.format(domain_resolution.domain, domain_resolution.subdomain)
+
+    elif not domain_resolution.domain and not domain_resolution.subdomain and domain_resolution.residue:
+        return '({0})'.format(domain_resolution, domain_resolution.residue)
+
+    elif domain_resolution.domain and not domain_resolution.subdomain and not domain_resolution.residue:
+        return '{0}'.format(domain_resolution.domain)
+
+    elif not domain_resolution.domain and not domain_resolution.subdomain and not domain_resolution.residue:
+        return ''
 
     else:
         raise AssertionError
-
 
 def string_from_rna_specification(specification):
     return string_from_specification(specification, SpecificationSuffix.mrna)

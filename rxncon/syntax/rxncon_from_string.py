@@ -26,7 +26,7 @@ mapping_suffix_to_specification = OrderedDict([(SpecificationSuffix.mrna, com.Rn
 def create_specification_from_name_suffix(name, domain, subdomain, residue):
     for suffix in mapping_suffix_to_specification:
         if name.endswith(suffix.value):
-            return mapping_suffix_to_specification[suffix](name, domain, subdomain, residue)
+            return mapping_suffix_to_specification[suffix](name, com.DomainResolution(domain, subdomain, residue))
 
 
 @tc.typecheck
