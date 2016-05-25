@@ -19,8 +19,7 @@ class StateModifier(OrderedEnum):
     truncated  = 'truncated'
 
 
-
-class StateDefinition():
+class StateDefinition:
     SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?)'
     SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
 
@@ -85,14 +84,10 @@ class StateDefinition():
     def superspec_from_definition(self):
         pass
 
+
 def state_modifier_from_string(modifier: str):
     return StateModifier(modifier.lower())
 
-# OUTPUT_REGEX = '^\[.+?\]$'
-#     INTERACTION_REGEX = '^.+?--.+?$'
-#     MODIFIER_REGEX = '.+?-{.+?}'
-#     MODIFIER_VALUE_REGEX = '{.+?}'
-#     COMPONENT_REGEX = '\w'
 
 STATE_DEFINITION = [
     StateDefinition('interaction-state',
