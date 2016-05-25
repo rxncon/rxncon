@@ -1,7 +1,8 @@
 import rxncon.core.state as sta
 
 def test_state():
-    state = sta.state_from_string('A_[m]-[n]')
+    sta.state_from_string('[INPUT]')
+    state = sta.state_from_string('A_[m]--[n]')
     str(state)
     sta.state_from_string('[INPUT]')
     sta.state_from_string('A--B_[m]')

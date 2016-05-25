@@ -21,8 +21,8 @@ class StateModifier(OrderedEnum):
 
 
 class StateDefinition():
-    SPEC_REGEX_GROUPED = '([a-zA-Z0-9\/\[\]\(\)_]+?)'
-    SPEC_REGEX_UNGROUPED = '[a-zA-Z0-9\/\[\]\(\)_]+?'
+    SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?)'
+    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
 
     def __init__(self, name, representation_def, variables_def, superspecification_def):
 
@@ -103,7 +103,7 @@ STATE_DEFINITION = [
                     ),
 
     StateDefinition('self-interaction-state',
-                    '$x-[$y]',
+                    '$x--[$y]',
                     {'$x': spec.Specification,
                      '$y': spec.DomainResolution},
                     []),
