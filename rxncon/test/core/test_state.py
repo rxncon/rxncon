@@ -50,6 +50,9 @@ def the_case_hierarchy():
                                sta.state_from_string('A--B'), sta.state_from_string('A--B_[d]'), sta.state_from_string('A--B_[d/s]'),
                                sta.state_from_string('A--B_[d/s(r)]')
                                ]),
+
+            HierarchyTestCase(sta.state_from_string('[INPUT]'),
+                              [sta.state_from_string('[INPUT]')])
     ]
 
 
@@ -93,5 +96,9 @@ def the_case_no_hierarchy():
                           [sta.state_from_string('A_[d/s(r2)]--B')]),
 
         HierarchyTestCase(sta.state_from_string('A'),
-                          [sta.state_from_string('B')])
+                          [sta.state_from_string('B')]),
+
+        HierarchyTestCase(sta.state_from_string('[INPUT]'),
+                          [sta.state_from_string('B'), sta.state_from_string('A--B'),
+                           sta.state_from_string('A-{P}')])
     ]
