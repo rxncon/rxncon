@@ -349,12 +349,12 @@ def is_reaction_correct(the_case):
 
 
 #
-# def test_simple():
-#     str(spec.ProteinSpecification('B', spec.DomainResolution(None, None, 'y')))
-#     reaction = rxn.reaction_from_string(rxn.REACTION_DEFINITIONS, 'A_[m]_ipi_A_[n]')
-#     print(reaction)
-#     print(reaction.reactants_pre)
-#     print(reaction.reactants_post)
+def test_simple():
+
+    reaction = rxn.reaction_from_string(rxn.REACTION_DEFINITIONS, 'A_[m]_bind_A_[n]')
+    print(reaction)
+    print(reaction.reactants_pre)
+    print(reaction.reactants_post)
 
 
 

@@ -1,4 +1,4 @@
-from rxncon.core.specification import Specification, RnaSpecification, ProteinSpecification, SpecificationResolution
+from rxncon.core.specification import Specification, RnaSpecification, ProteinSpecification, SpecificationResolution, DnaSpecification, DomainResolution
 from rxncon.core.state import state_from_string, State
 from rxncon.syntax.specification_from_string import specification_from_string
 
@@ -168,7 +168,7 @@ REACTION_DEFINITIONS = [
         '$x_trsc_$y',
         {
             '$x': (ProteinSpecification, SpecificationResolution.component),
-            '$y': (ProteinSpecification, SpecificationResolution.component)
+            '$y': (Specification, SpecificationResolution.component)
         },
         '$x# + $y.gene# -> $x# + $y.gene# + $y.mRNA#'
     ),
@@ -181,6 +181,7 @@ REACTION_DEFINITIONS = [
         },
         '$x# + $y.mRNA# -> $x# + $y.mRNA# + $y#'
     ),
+
     ReactionDefinition(
         'intra-protein-interaction',
         '$x_ipi_$y',
@@ -189,6 +190,16 @@ REACTION_DEFINITIONS = [
             '$y': (ProteinSpecification, SpecificationResolution.domain)
         },
         '$x#$x--0,$y--0 -> $x#$x--$y.domain'
+    ),
+
+    ReactionDefinition(
+        'gene-protein-interaction',
+        '$x_bind_$y',
+        {
+            '$x': (ProteinSpecification, SpecificationResolution.domain),
+            '$y': (ProteinSpecification, SpecificationResolution.domain)
+        },
+        '$x#$x--0 + $y.gene#$y.gene--0 -> $x#$x--$y.gene + $y.gene#$x--$y.gene'
     )
 ]
 
