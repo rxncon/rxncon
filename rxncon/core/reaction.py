@@ -18,6 +18,23 @@ class Reactant:
     def __repr__(self):
         return str(self)
 
+    def __eq__(self, other):
+        return self.component == other.component and self.states == other.states
+
+
+def __get_state(state_strs: List[str], variables):
+    states = []
+    for state_str in state_strs:
+        if state_str:
+            for var, val in variables.items():
+                var_resolution_str = '{0}.domain|{0}.subdomain|{0}.residue'.format(var.replace('$', '\$'))
+                if re.search(var_resolution_str, state_str):
+                    state_str = re.sub(var_resolution_str, '[{0}]'.format(str(val.spec_resolution)), state_str)
+                else:
+                    state_str = state_str.replace(var, str(val))
+
+            states.append(state_from_string(state_str))
+    return states
 
 def parse_reactant(definition: str, variables):
     component_str, states_str = definition.split('#')
@@ -32,15 +49,7 @@ def parse_reactant(definition: str, variables):
     else:
         raise NotImplementedError
 
-    state_strs = states_str.split(',')
-    states = []
-
-    for state_str in state_strs:
-        if state_str:
-            for var, val in variables.items():
-                state_str = state_str.replace(var, str(val))
-
-            states.append(state_from_string(state_str))
+    states = __get_state(states_str.split(','), variables)
 
     return Reactant(component, states)
 
@@ -59,6 +68,12 @@ class ReactionDefinition:
         assert isinstance(other, ReactionDefinition)
         return self.name == other.name and self.representation_def == other.representation_def \
                and self.variables_def == other.variables_def and self.reactants_defs == other.reactants_defs
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return 'name: {0}; representation_def: {1}; reactants_defs: {2} '.format(self.name, self.representation_def, self.reactants_defs)
 
     def _parse_reactants_def(self):
         if '<->' in self.reactants_defs:
@@ -166,15 +181,15 @@ REACTION_DEFINITIONS = [
         },
         '$x# + $y.mRNA# -> $x# + $y.mRNA# + $y#'
     ),
-    # ReactionDefinition(
-    #     'intra-protein-interaction',
-    #     '$x_ipi_$y',
-    #     {
-    #         '$x': (ProteinSpecification, SpecificationResolution.domain),
-    #         '$y': (ProteinSpecification, SpecificationResolution.domain)
-    #     },
-    #     '$x#$x--0,$y--0 -> $x#$x--$y.domain'
-    # )
+    ReactionDefinition(
+        'intra-protein-interaction',
+        '$x_ipi_$y',
+        {
+            '$x': (ProteinSpecification, SpecificationResolution.domain),
+            '$y': (ProteinSpecification, SpecificationResolution.domain)
+        },
+        '$x#$x--0,$y--0 -> $x#$x--$y.domain'
+    )
 ]
 
 

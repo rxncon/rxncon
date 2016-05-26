@@ -1,6 +1,8 @@
 import rxncon.core.state as sta
 
 def test_state():
+    state = sta.state_from_string('A_[d].gene')
+    str(state)
     sta.state_from_string('[INPUT]')
     state = sta.state_from_string('A_[m]--[n]')
     str(state)

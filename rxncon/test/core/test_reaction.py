@@ -3,6 +3,7 @@ from collections import namedtuple
 import pytest
 
 import rxncon.core.reaction as rxn
+import rxncon.core.state as sta
 import rxncon.core.specification as spec
 
 
@@ -38,6 +39,15 @@ def reaction_definitions():
                                                                   },
                                                                   '$x#$x--0 + $y#$y--0 <-> $x#$x--$y + $y#$x--$y'
                                                                  ),
+
+            'intra-protein-interaction': rxn.ReactionDefinition('intra-protein-interaction',
+                                                            '$x_ipi_$y',
+                                                            {
+                                                                '$x': (spec.ProteinSpecification, spec.SpecificationResolution.domain),
+                                                                '$y': (spec.ProteinSpecification, spec.SpecificationResolution.domain)
+                                                            },
+                                                            '$x#$x--0,$y--0 -> $x#$x--$y.domain'
+                                                            ),
 
             'transcription': rxn.ReactionDefinition('transcription',
                                                    '$x_trsc_$y',
@@ -161,74 +171,168 @@ def _is_definition_correct(the_case):
     assert the_case.definition.variables_def['$y'] == the_case.expected_variable_y
 
 #
-ReactionTestCase = namedtuple('ReactionTestCase' , ['reaction_str', 'definition', 'expected_reaction'])
+ReactionTestCase = namedtuple('ReactionTestCase' , ['reaction_str', 'definition', 'expected_reaction',
+                                                    'expected_reactants_pre', 'expected_reactants_post'])
 
 
 @pytest.fixture
 def reaction_test_case(reaction_definitions):
-    return [ReactionTestCase('A_p+_B_[(y)]',
-                             reaction_definitions['phosphorylation'],
-                             rxn.Reaction(reaction_definitions['phosphorylation'],
-                                          {'$x': rxn.specification_from_string('A'),
-                                           '$y': rxn.specification_from_string('B_[(y)]')
-                                           })
-                             ),
+    return [
+        ReactionTestCase('A_p+_B_[(y)]',
+                         reaction_definitions['phosphorylation'],
+                         rxn.Reaction(reaction_definitions['phosphorylation'],
+                                      {'$x': rxn.specification_from_string('A'),
+                                       '$y': rxn.specification_from_string('B_[(y)]')
+                                       }),
 
-            ReactionTestCase('A_[(x)]_pt_B_[(y)]',  # todo: residue has to be defined is this correct?
-                             reaction_definitions['phosphotransfer'],
-                             rxn.Reaction(reaction_definitions['phosphotransfer'],
-                                          {'$x': rxn.specification_from_string('A_[(x)]'),
-                                           '$y': rxn.specification_from_string('B_[(y)]')
-                                           })
-                             ),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       []),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                                       [sta.state_from_string('B_[(y)]-{0}')])],
 
-            ReactionTestCase('A_[b]_ppi_B_[a]',
-                             reaction_definitions['protein-protein-interaction'],
-                             rxn.Reaction(reaction_definitions['protein-protein-interaction'],
-                                          {'$x': rxn.specification_from_string('A_[b]'),
-                                           '$y': rxn.specification_from_string('B_[a]')
-                                           })
-                             ),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       []),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                                       [sta.state_from_string('B_[(y)]-{P}')])],
+
+                         ),
+
+        ReactionTestCase('A_[(x)]_pt_B_[(y)]',  # todo: residue has to be defined is this correct?
+                         reaction_definitions['phosphotransfer'],
+                         rxn.Reaction(reaction_definitions['phosphotransfer'],
+                                      {'$x': rxn.specification_from_string('A_[(x)]'),
+                                       '$y': rxn.specification_from_string('B_[(y)]')
+                                       }),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       [sta.state_from_string('A_[(x)]-{P}')]),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                                       [sta.state_from_string('B_[(y)]-{0}')])],
+
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       [sta.state_from_string('A_[(x)]-{0}')]),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                                       [sta.state_from_string('B_[(y)]-{P}')])],
+                         ),
+
+        ReactionTestCase('A_[b]_ppi_B_[a]',
+                         reaction_definitions['protein-protein-interaction'],
+                         rxn.Reaction(reaction_definitions['protein-protein-interaction'],
+                                      {'$x': rxn.specification_from_string('A_[b]'),
+                                       '$y': rxn.specification_from_string('B_[a]')
+                                       }),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       [sta.state_from_string('A_[b]--0')]),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                                       [sta.state_from_string('B_[a]--0')])],
+
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       [sta.state_from_string('A_[b]--B_[a]')]),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                                       [sta.state_from_string('A_[b]--B_[a]')])],
+
+                         ),
+        ReactionTestCase('A_[n]_ipi_A_[m]',
+                         reaction_definitions['intra-protein-interaction'],
+                         rxn.Reaction(reaction_definitions['intra-protein-interaction'],
+                                      {'$x': rxn.specification_from_string('A_[n]'),
+                                       '$y': rxn.specification_from_string('A_[m]')
+                                       }),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       [sta.state_from_string('A_[n]--0'), sta.state_from_string('A_[m]--0')])],
+
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       [sta.state_from_string('A_[n]--[m]')])],
+
+                         ),
 
             # ReactionTestCase('A_[b]_ppi_B_[d/s]',
             #                  reaction_definitions['protein-protein-interaction'],
             #                  rxn.Reaction(reaction_definitions['protein-protein-interaction'],
             #                               { '$x': rxn.specification_from_string('A_[b]'),
             #                                 '$y': rxn.specification_from_string('B_[d/s]')
-            #                                 })
+            #                                 }),
+            #                  [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+            #                                [sta.state_from_string('A_[b]--0')]),
+            #                   rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+            #                                [sta.state_from_string('B_[d/s]--0')])],
+            #
+            #                  [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+            #                                [sta.state_from_string('A_[b]--B_[a]')]),
+            #                   rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+            #                                [sta.state_from_string('A_[d/s]--B_[a]')])],
+            #
             #                  ),
 
-            ReactionTestCase('A_trsc_B',
-                             reaction_definitions['transcription'],
-                             rxn.Reaction(reaction_definitions['transcription'],
-                                          {'$x': rxn.specification_from_string('A'),
-                                           '$y': rxn.specification_from_string('B')
-                                           })
-                             ),
+        ReactionTestCase('A_trsc_B',
+                         reaction_definitions['transcription'],
+                         rxn.Reaction(reaction_definitions['transcription'],
+                                      {'$x': rxn.specification_from_string('A'),
+                                       '$y': rxn.specification_from_string('B')
+                                       }),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       []),
+                          rxn.Reactant(spec.DnaSpecification('B', spec.DomainResolution(None, None, None)),
+                                       [])],
 
-            ReactionTestCase('A_trsl_B',
-                             reaction_definitions['translation'],
-                             rxn.Reaction(reaction_definitions['translation'],
-                                          {'$x': rxn.specification_from_string('A'),
-                                           '$y': rxn.specification_from_string('B')
-                                           })
-                             ),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       []),
+                          rxn.Reactant(spec.DnaSpecification('B', spec.DomainResolution(None, None, None)),
+                                       []),
+                          rxn.Reactant(spec.RnaSpecification('B', spec.DomainResolution(None, None, None)),
+                                       [])],
 
-            ReactionTestCase('A_syn_B',
-                             reaction_definitions['synthesis'],
-                             rxn.Reaction(reaction_definitions['synthesis'],
-                                          {'$x': rxn.specification_from_string('A'),
-                                           '$y': rxn.specification_from_string('B')
-                                           })
-                             ),
+                         ),
 
-            ReactionTestCase('A_deg_B',
-                             reaction_definitions['degradation'],
-                             rxn.Reaction(reaction_definitions['degradation'],
-                                          {'$x': rxn.specification_from_string('A'),
-                                           '$y': rxn.specification_from_string('B')
-                                           })
-                             )
+        ReactionTestCase('A_trsl_B',
+                         reaction_definitions['translation'],
+                         rxn.Reaction(reaction_definitions['translation'],
+                                      {'$x': rxn.specification_from_string('A'),
+                                       '$y': rxn.specification_from_string('B')
+                                       }),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       []),
+                          rxn.Reactant(spec.RnaSpecification('B', spec.DomainResolution(None, None, None)),
+                                       [])],
+
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       []),
+                          rxn.Reactant(spec.RnaSpecification('B', spec.DomainResolution(None, None, None)),
+                                       []),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                                       [])]
+                         ),
+            #
+        ReactionTestCase('A_syn_B',
+                         reaction_definitions['synthesis'],
+                         rxn.Reaction(reaction_definitions['synthesis'],
+                                      {'$x': rxn.specification_from_string('A'),
+                                       '$y': rxn.specification_from_string('B')
+                                       }),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       [])],
+
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       []),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                                       []),
+                          ]
+                         ),
+        #
+        ReactionTestCase('A_deg_B',
+                         reaction_definitions['degradation'],
+                         rxn.Reaction(reaction_definitions['degradation'],
+                                      {'$x': rxn.specification_from_string('A'),
+                                       '$y': rxn.specification_from_string('B')
+                                       }),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       []),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                                       [])],
+
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                                       [])
+                          ]
+                         )
             ]
 
 
@@ -238,13 +342,19 @@ def test_reactions(reaction_test_case):
 
 
 def is_reaction_correct(the_case):
-    assert rxn.reaction_from_string([the_case.definition], the_case.reaction_str) == the_case.expected_reaction
+    actual_reaction = rxn.reaction_from_string([the_case.definition], the_case.reaction_str)
+    assert actual_reaction == the_case.expected_reaction
+    assert actual_reaction.reactants_pre == the_case.expected_reactants_pre
+    assert actual_reaction.reactants_post == the_case.expected_reactants_post
 
 
+#
 # def test_simple():
-#     reaction = rxn.reaction_from_string(rxn.REACTION_DEFINITIONS, 'A_p+_B_[(y)]')
+#     str(spec.ProteinSpecification('B', spec.DomainResolution(None, None, 'y')))
+#     reaction = rxn.reaction_from_string(rxn.REACTION_DEFINITIONS, 'A_[m]_ipi_A_[n]')
 #     print(reaction)
 #     print(reaction.reactants_pre)
 #     print(reaction.reactants_post)
-#
-#
+
+
+

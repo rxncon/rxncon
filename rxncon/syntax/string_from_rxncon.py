@@ -9,17 +9,17 @@ import typecheck as tc
 
 @unique
 class SpecificationSuffix(OrderedEnum):
-    mrna = "mRNA"
-    gene = "Gene"
+    mrna = ".mRNA"
+    gene = ".gene"
     protein = ""
 
 
 @tc.typecheck
 def string_from_specification(specification, prefix: OrderedEnum) -> str:
     if str(specification.spec_resolution):
-        return '{0}_[{1}]'.format(create_name(specification, prefix), str(specification.spec_resolution))
+        return '{0}_[{1}]{2}'.format(create_name(specification), str(specification.spec_resolution), prefix.value)
     else:
-        return '{0}'.format(create_name(specification, prefix))
+        return '{0}{1}'.format(create_name(specification), prefix.value)
 
 
 def string_from_domain_resolution(domain_resolution):
@@ -34,7 +34,7 @@ def string_from_domain_resolution(domain_resolution):
         return '{0}/{1}'.format(domain_resolution.domain, domain_resolution.subdomain)
 
     elif not domain_resolution.domain and not domain_resolution.subdomain and domain_resolution.residue:
-        return '({0})'.format(domain_resolution, domain_resolution.residue)
+        return '({0})'.format(domain_resolution.residue)
 
     elif domain_resolution.domain and not domain_resolution.subdomain and not domain_resolution.residue:
         return '{0}'.format(domain_resolution.domain)
@@ -58,8 +58,8 @@ def string_from_protein_specification(specification):
 
 
 @tc.typecheck
-def create_name(specification, prefix: tp.Optional[OrderedEnum]):
-    return "{0}{1}".format(specification.name, prefix.value)
+def create_name(specification):
+    return "{0}".format(specification.name)
 
 
 def string_from_reaction(reaction) -> str:

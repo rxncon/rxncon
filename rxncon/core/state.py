@@ -20,8 +20,8 @@ class StateModifier(OrderedEnum):
 
 
 class StateDefinition:
-    SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?)'
-    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
+    SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?\.[a-zA-Z]+?|[\\w]+?\.[a-zA-Z]+?)'  # we allow something like A.gene
+    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?\.[a-zA-Z]+?|[\\w]+?\.[a-zA-Z]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
 
     def __init__(self, name, representation_def, variables_def, superspecification_def):
 
@@ -103,7 +103,8 @@ STATE_DEFINITION = [
                      '$y': spec.DomainResolution},
                     []),
 
-    StateDefinition('input-state',  # todo: this state matches for [$x] as well as $x
+
+    StateDefinition('input-state',
                     '[$x]',
                     {'$x': spec.Specification},
                     []),
@@ -117,7 +118,7 @@ STATE_DEFINITION = [
     StateDefinition('component-state',
                     '$x',
                     {'$x': spec.Specification},
-                    ['interaction-state','self-interaction-state', 'covalent-modification-state']
+                    ['interaction-state','self-interaction-state', 'covalent-modification-state'],
                     ),
 ]
 
