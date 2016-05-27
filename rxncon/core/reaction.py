@@ -200,7 +200,16 @@ REACTION_DEFINITIONS = [
             '$y': (ProteinSpecification, SpecificationResolution.domain)
         },
         '$x#$x--0 + $y.gene#$y.gene--0 -> $x#$x--$y.gene + $y.gene#$x--$y.gene'
-    )
+    ),
+    #todo: output reaction definition
+    # ReactionDefinition(
+    #     'output',
+    #     '$x',
+    #         {
+    #             '$x': ()
+    #         },
+    #     '$x'
+    # )
 ]
 
 
