@@ -4,18 +4,18 @@ from rxncon.semantics.molecule import MoleculeDefinition, PropertyInstance, Asso
     create_partner_ass_prop_instance
 
 
-class Fact:
+class Elemental:
     pass
 
 
-class OneParticleFact(Fact):
+class OneParticleElemental(Elemental):
     def __init__(self, mol_defs: Dict[Specification, MoleculeDefinition], component: Specification,
                  prop_instance: PropertyInstance):
         self.mol_defs = mol_defs
         self.component, self.prop_instance = component, prop_instance
 
     def __str__(self):
-        return 'OneParticleFact:{0}#{1}'.format(str(self.component), str(self.prop_instance))
+        return 'OneParticleElemental:{0}#{1}'.format(str(self.component), str(self.prop_instance))
 
     def __repr__(self):
         return str(self)
@@ -24,7 +24,7 @@ class OneParticleFact(Fact):
         if isinstance(self.prop_instance, AssociationPropertyInstance):
             return self._ass_complements()
         else:
-            return [OneParticleFact(self.mol_defs, self.component, x)
+            return [OneParticleElemental(self.mol_defs, self.component, x)
                     for x in self.prop_instance.complementary_instances]
 
     def _ass_complements(self):
@@ -33,13 +33,13 @@ class OneParticleFact(Fact):
 
         for half_binding in half_bindings:
             partner = create_partner_ass_prop_instance(self.mol_defs, half_binding)
-            res.append(TwoParticleFact(self.mol_defs, self.component, half_binding,
-                                       half_binding.partner.to_component_specification(), partner))
+            res.append(TwoParticleElemental(self.mol_defs, self.component, half_binding,
+                                            half_binding.partner.to_component_specification(), partner))
 
         return res
 
 
-class TwoParticleFact(Fact):
+class TwoParticleElemental(Elemental):
     def __init__(self, mol_defs: Dict[Specification, MoleculeDefinition], first_component: Specification,
                  first_prop_instance: PropertyInstance, second_component: Specification,
                  second_prop_instance: PropertyInstance):
@@ -50,8 +50,8 @@ class TwoParticleFact(Fact):
         assert isinstance(self.second_prop_instance, AssociationPropertyInstance)
 
     def __str__(self):
-        return 'TwoParticleFact:{0}#{1},{2}:{3}'.format(str(self.first_component), str(self.first_prop_instance),
-                                                        str(self.second_component), str(self.second_prop_instance))
+        return 'TwoParticleElemental:{0}#{1},{2}:{3}'.format(str(self.first_component), str(self.first_prop_instance),
+                                                             str(self.second_component), str(self.second_prop_instance))
 
     def __repr__(self):
         return str(self)
@@ -64,10 +64,10 @@ class TwoParticleFact(Fact):
             for half_binding in instance.complementary_instances:
                 if half_binding.partner:
                     partner = create_partner_ass_prop_instance(self.mol_defs, half_binding)
-                    res.append(TwoParticleFact(self.mol_defs, component, half_binding,
-                                               half_binding.partner.to_component_specification(), partner))
+                    res.append(TwoParticleElemental(self.mol_defs, component, half_binding,
+                                                    half_binding.partner.to_component_specification(), partner))
                 else:
-                    res.append(OneParticleFact(self.mol_defs, component, half_binding))
+                    res.append(OneParticleElemental(self.mol_defs, component, half_binding))
 
         return res
 
