@@ -3,8 +3,7 @@ from enum import Enum
 
 import typecheck as tc
 
-from rxncon.semantics.molecule_definition import MoleculeDefinition
-from rxncon.semantics.molecule_instance import MoleculeInstance, Binding
+from rxncon.semantics.molecule import MoleculeDefinition, MoleculeInstance, Binding
 
 
 class RuleBasedModel:

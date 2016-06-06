@@ -3,7 +3,10 @@ import pytest
 from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_string, mol_instance_from_string, \
     mol_instances_and_bindings_from_string, rule_from_string
 from rxncon.semantics.molecule_definition import MoleculeDefinition, ModificationPropertyDefinition, \
-    AssociationPropertyDefinition, LocalizationPropertyDefinition, Compartment, Modifier, OccupationStatus
+    AssociationPropertyDefinition, LocalizationPropertyDefinition, Compartment, OccupationStatus
+from rxncon.semantics.molecule import Modifier, OccupationStatus, Compartment, MoleculeDefinition, \
+    ModificationPropertyDefinition, AssociationPropertyDefinition, LocalizationPropertyDefinition, MoleculeInstance, \
+    ModificationPropertyInstance, AssociationPropertyInstance
 from rxncon.semantics.molecule_instance import MoleculeInstance, AssociationPropertyInstance, ModificationPropertyInstance
 from rxncon.syntax.rxncon_from_string import specification_from_string
 

@@ -11,7 +11,9 @@ from rxncon.core.state import State, CovalentModificationState, InteractionState
     SelfInteractionState, TranslocationState, GlobalQuantityState, StateModifier
 from rxncon.core.contingency import ContingencyType
 from rxncon.core.effector import Effector, AndEffector, NotEffector, OrEffector, StateEffector
-from rxncon.semantics.molecule_definition import MoleculeDefinition, Modifier, OccupationStatus
+from rxncon.semantics.molecule_definition import MoleculeDefinition, OccupationStatus
+from rxncon.semantics.molecule import Modifier, OccupationStatus, MoleculeDefinition, MoleculeInstance, \
+    ModificationPropertyInstance, AssociationPropertyInstance, create_partner_mol_instance
 from rxncon.semantics.molecule_instance import MoleculeInstance, ModificationPropertyInstance, \
     AssociationPropertyInstance, create_partner_mol_instance
 from rxncon.simulation.rule_based.rule_based_model import Reactant, ComplexReactant, MoleculeReactant

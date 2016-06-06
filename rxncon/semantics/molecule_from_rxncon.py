@@ -3,25 +3,26 @@ from collections import defaultdict
 import copy
 
 import rxncon.core.rxncon_system as rxs
+import rxncon.semantics.molecule
 import rxncon.semantics.molecule_definition as mol
 import rxncon.core.state as sta
 import rxncon.core.reaction as rxn
 import rxncon.core.specification as spe
 
 
-def mol_defs_from_rxncon_sys(rxnconsys: rxs.RxnConSystem) -> tg.Dict[spe.Specification, mol.MoleculeDefinition]:
+def mol_defs_from_rxncon_sys(rxnconsys: rxs.RxnConSystem) -> tg.Dict[spe.Specification, rxncon.semantics.molecule.MoleculeDefinition]:
     return _MoleculeDefinitionSupervisor(rxnconsys).molecule_definitions
 
 
-def mol_modifier_from_state_modifier(state_mod: sta.StateModifier) -> mol.Modifier:
+def mol_modifier_from_state_modifier(state_mod: sta.StateModifier) -> rxncon.semantics.molecule.Modifier:
     if state_mod == sta.StateModifier.phosphor:
-        return mol.Modifier.phosphorylated
+        return rxncon.semantics.molecule.Modifier.phosphorylated
     elif state_mod == sta.StateModifier.ubiquitin:
-        return mol.Modifier.ubiquitinated
+        return rxncon.semantics.molecule.Modifier.ubiquitinated
     elif state_mod == sta.StateModifier.truncated:
-        return mol.Modifier.truncated
+        return rxncon.semantics.molecule.Modifier.truncated
     elif state_mod == sta.StateModifier.guanosintriphosphat:
-        return mol.Modifier.guanosintriphosphat
+        return rxncon.semantics.molecule.Modifier.guanosintriphosphat
     else:
         raise NotImplementedError
 
@@ -63,7 +64,7 @@ class _MoleculeDefinitionSupervisor:
         self.molecule_definitions = {}
         self._generate_molecule_definitions()
 
-    def mol_def_for_name(self, name: str) -> mol.MoleculeDefinition:
+    def mol_def_for_name(self, name: str) -> rxncon.semantics.molecule.MoleculeDefinition:
         return self.molecule_definitions[name]
 
     def _generate_molecule_definitions(self):
@@ -96,16 +97,16 @@ class _MoleculeDefinitionSupervisor:
                     raise NotImplementedError
 
         for spec in specs:
-            self.molecule_definitions[spec] = mol.MoleculeDefinition(spec,
-                                                                     spec_to_mod_defs[spec],
-                                                                     spec_to_assoc_defs[spec],
-                                                                     mol.LocalizationPropertyDefinition(spec_to_locs[spec]))
+            self.molecule_definitions[spec] = rxncon.semantics.molecule.MoleculeDefinition(spec,
+                                                                                           spec_to_mod_defs[spec],
+                                                                                           spec_to_assoc_defs[spec],
+                                                                                           rxncon.semantics.molecule.LocalizationPropertyDefinition(spec_to_locs[spec]))
 
 
 def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, reaction: rxn.Reaction):
     spec = mod_domain_spec_from_state_and_reaction(state, reaction)
-    mod_def = mol.ModificationPropertyDefinition(spec,
-                                                 {mol.Modifier.unmodified, mol_modifier_from_state_modifier(state.modifier)})
+    mod_def = rxncon.semantics.molecule.ModificationPropertyDefinition(spec,
+                                                                       {rxncon.semantics.molecule.Modifier.unmodified, mol_modifier_from_state_modifier(state.modifier)})
 
     return mod_def
 
@@ -113,14 +114,14 @@ def _mod_def_from_state_and_reaction(state: sta.CovalentModificationState, react
 def _assoc_defs_from_state(state: tg.Union[sta.InteractionState, sta.SelfInteractionState]):
     first_spec, second_spec = ass_domain_specs_from_state(state)
 
-    first_def = mol.AssociationPropertyDefinition(first_spec, {second_spec})
-    second_def = mol.AssociationPropertyDefinition(second_spec, {first_spec})
+    first_def = rxncon.semantics.molecule.AssociationPropertyDefinition(first_spec, {second_spec})
+    second_def = rxncon.semantics.molecule.AssociationPropertyDefinition(second_spec, {first_spec})
 
     return first_def, second_def
 
 
-def _update_defs(defs: tg.Set[mol.PropertyDefinition], new_def: mol.PropertyDefinition):
-    if isinstance(new_def, mol.AssociationPropertyDefinition):
+def _update_defs(defs: tg.Set[rxncon.semantics.molecule.PropertyDefinition], new_def: rxncon.semantics.molecule.PropertyDefinition):
+    if isinstance(new_def, rxncon.semantics.molecule.AssociationPropertyDefinition):
         matches = lambda x, y: x == y
         update = lambda old_def, new_def: old_def.valid_partners.update(new_def.valid_partners)
     else:

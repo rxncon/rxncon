@@ -1,5 +1,6 @@
-from rxncon.semantics.molecule_definition import MoleculeDefinition, AssociationPropertyDefinition, LocalizationPropertyDefinition, ModificationPropertyDefinition, Modifier, Compartment, OccupationStatus
-from rxncon.semantics.molecule_instance import MoleculeInstance, AssociationPropertyInstance, LocalizationPropertyInstance, ModificationPropertyInstance, Binding
+from rxncon.semantics.molecule import Modifier, OccupationStatus, Compartment, MoleculeDefinition, \
+    ModificationPropertyDefinition, AssociationPropertyDefinition, LocalizationPropertyDefinition, MoleculeInstance, \
+    ModificationPropertyInstance, AssociationPropertyInstance, LocalizationPropertyInstance, Binding
 
 from rxncon.syntax.rxncon_from_string import specification_from_string
 from rxncon.simulation.rule_based.rule_based_model import Rule, MoleculeReactant, ComplexReactant, Arrow, Parameter
@@ -88,66 +89,12 @@ def mol_def_from_string(mol_def_string: str) -> MoleculeDefinition:
 
 @typecheck
 def mol_instance_from_string(mol_def: tg.Union[str, MoleculeDefinition], mol_instance_string: str) -> MoleculeInstance:
-    def _property_ins_from_string(mol_def, prop_string):
-        def _ass_property_ins_from_string(mol_def, prop_string):
-            assert prop_string[0:4] == ID_ASS
-            prop_string = prop_string[4:]
-
-            assert len(prop_string.split(TOK_PROP_VAL)) == 2
-
-            ass_domain = specification_from_string(prop_string.split(TOK_PROP_VAL)[0])
-            ass_defs = [x for x in mol_def.association_defs if x.spec == ass_domain]
-            assert len(ass_defs) == 1
-            ass_def = ass_defs[0]
-
-            partner_domain_string = prop_string.split(TOK_PROP_VAL)[1]
-            if partner_domain_string:
-                return AssociationPropertyInstance(ass_def, OccupationStatus.occupied_known_partner,
-                                                   specification_from_string(partner_domain_string))
-            else:
-                return AssociationPropertyInstance(ass_def, OccupationStatus.not_occupied, None)
-
-        def _mod_property_ins_from_string(mol_def, prop_string):
-            assert prop_string[0:4] == ID_MOD
-            prop_string = prop_string[4:]
-
-            mod_domain = specification_from_string(prop_string.split(TOK_PROP_VAL)[0])
-            mod_defs = [x for x in mol_def.modification_defs if x.spec == mod_domain]
-            assert len(mod_defs) == 1
-            mod_def = mod_defs[0]
-
-            mod_string = prop_string.split(TOK_PROP_VAL)[1]
-            return ModificationPropertyInstance(mod_def, Modifier(mod_string))
-
-        def _loc_property_ins_from_string(mol_def, prop_string):
-            assert prop_string[0:4] == ID_LOC
-            prop_string = prop_string[4:]
-
-            return ModificationPropertyInstance(mol_def.localization_def, Modifier(prop_string))
-
-        identifier = prop_string[0:4]
-        if identifier == ID_ASS:
-            if len(prop_string.split('~')) == 2:
-                binding_num = prop_string.split('~')[1]
-                prop_string = prop_string.split('~')[0]
-                ass_prop_instance = _ass_property_ins_from_string(mol_def, prop_string)
-                ass_prop_instance.binding_num = binding_num
-                return ass_prop_instance
-            else:
-                return _ass_property_ins_from_string(mol_def, prop_string)
-        elif identifier == ID_MOD:
-            return _mod_property_ins_from_string(mol_def, prop_string)
-        elif identifier == ID_LOC:
-            return _loc_property_ins_from_string(mol_def, prop_string)
-        else:
-            raise NotImplementedError('Unknown property type identifier {0}'.format(identifier))
-
     if isinstance(mol_def, str):
         mol_def = mol_def_from_string(mol_def)
 
     assert isinstance(mol_def, MoleculeDefinition)
 
-    property_instances = [_property_ins_from_string(mol_def, prop_string) for prop_string in
+    property_instances = [property_ins_from_string(mol_def, prop_string) for prop_string in
                           mol_instance_string.split(TOK_MOL_SEP)[1].split(TOK_PROP_SEP) if prop_string]
 
     mod_props = {x for x in property_instances if isinstance(x, ModificationPropertyInstance)}
@@ -158,6 +105,61 @@ def mol_instance_from_string(mol_def: tg.Union[str, MoleculeDefinition], mol_ins
     loc_prop = list(loc_props)[0] if len(loc_props) == 1 else None
 
     return MoleculeInstance(mol_def, mod_props, ass_props, loc_prop)
+
+
+def property_ins_from_string(mol_def, prop_string):
+    def _ass_property_ins_from_string(mol_def, prop_string):
+        assert prop_string[0:4] == ID_ASS
+        prop_string = prop_string[4:]
+
+        assert len(prop_string.split(TOK_PROP_VAL)) == 2
+
+        ass_domain = specification_from_string(prop_string.split(TOK_PROP_VAL)[0])
+        ass_defs = [x for x in mol_def.association_defs if x.spec == ass_domain]
+        assert len(ass_defs) == 1
+        ass_def = ass_defs[0]
+
+        partner_domain_string = prop_string.split(TOK_PROP_VAL)[1]
+        if partner_domain_string:
+            return AssociationPropertyInstance(ass_def, OccupationStatus.occupied_known_partner,
+                                               specification_from_string(partner_domain_string))
+        else:
+            return AssociationPropertyInstance(ass_def, OccupationStatus.not_occupied, None)
+
+    def _mod_property_ins_from_string(mol_def, prop_string):
+        assert prop_string[0:4] == ID_MOD
+        prop_string = prop_string[4:]
+
+        mod_domain = specification_from_string(prop_string.split(TOK_PROP_VAL)[0])
+        mod_defs = [x for x in mol_def.modification_defs if x.spec == mod_domain]
+        assert len(mod_defs) == 1
+        mod_def = mod_defs[0]
+
+        mod_string = prop_string.split(TOK_PROP_VAL)[1]
+        return ModificationPropertyInstance(mod_def, Modifier(mod_string))
+
+    def _loc_property_ins_from_string(mol_def, prop_string):
+        assert prop_string[0:4] == ID_LOC
+        prop_string = prop_string[4:]
+
+        return ModificationPropertyInstance(mol_def.localization_def, Modifier(prop_string))
+
+    identifier = prop_string[0:4]
+    if identifier == ID_ASS:
+        if len(prop_string.split('~')) == 2:
+            binding_num = prop_string.split('~')[1]
+            prop_string = prop_string.split('~')[0]
+            ass_prop_instance = _ass_property_ins_from_string(mol_def, prop_string)
+            ass_prop_instance.binding_num = binding_num
+            return ass_prop_instance
+        else:
+            return _ass_property_ins_from_string(mol_def, prop_string)
+    elif identifier == ID_MOD:
+        return _mod_property_ins_from_string(mol_def, prop_string)
+    elif identifier == ID_LOC:
+        return _loc_property_ins_from_string(mol_def, prop_string)
+    else:
+        raise NotImplementedError('Unknown property type identifier {0}'.format(identifier))
 
 
 @typecheck
