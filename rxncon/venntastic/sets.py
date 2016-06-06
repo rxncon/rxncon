@@ -6,6 +6,7 @@ METHOD_COMPLEMENTS_EXPANDED = '_complements_expanded'
 METHOD_UNIONS_MOVED_TO_LEFT = '_unions_moved_to_left'
 METHOD_SIMPLIFY_EMPTY_UNIVERSAL = '_simplify_empty_universal'
 
+METHOD_NAME_COMPLEMENTS = 'complements'
 
 # @todo Make typechecking work in this module. Problem is the co/contravariance of function arguments and return types.
 class Set:
@@ -94,7 +95,7 @@ class UnarySet(Set):
 
 class PropertySet(UnarySet):
     def __init__(self, value):
-        assert hash(value)
+        assert isinstance(hash(value), int)
         self.value = value
 
     def __eq__(self, other: Set) -> bool:
@@ -142,14 +143,6 @@ class PropertySet(UnarySet):
             return 'UniversalSet'
 
     def _complements_expanded(self):
-        # try:
-        #     return nested_expression_from_list_and_binary_op(
-        #         [PropertySet(x) for x in self.value.complementary_instances()],
-        #         Union
-        #     )
-        #
-        # except AttributeError:
-        #     return self
         return self
 
 
@@ -221,6 +214,10 @@ class Complement(UnarySet):
 
         elif isinstance(self.expr, Intersection):
             return Union(Complement(self.expr.left_expr), Complement(self.expr.right_expr))._complements_expanded()
+
+        elif isinstance(self.expr, PropertySet) and hasattr(self.expr.value, METHOD_NAME_COMPLEMENTS):
+            complementary_property_sets = [PropertySet(x) for x in getattr(self.expr.value, METHOD_NAME_COMPLEMENTS)()]
+            return nested_expression_from_list_and_binary_op(complementary_property_sets, Union)
 
         else:
             return Complement(self.expr._complements_expanded())

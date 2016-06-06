@@ -70,6 +70,3 @@ class TwoParticleElemental(Elemental):
                     res.append(OneParticleElemental(self.mol_defs, component, half_binding))
 
         return res
-
-
-
