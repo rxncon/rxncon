@@ -1,7 +1,9 @@
 from typing import Dict
 from rxncon.core.specification import Specification
 from rxncon.semantics.molecule import MoleculeDefinition, PropertyInstance, AssociationPropertyInstance, \
-    create_partner_ass_prop_instance
+    create_partner_ass_prop_instance, ModificationPropertyInstance
+from rxncon.core.state import State, CovalentModificationState, InteractionState
+from rxncon.simulation.rule_based.molecule_from_string import property_ins_from_string
 
 
 class Elemental:
@@ -70,3 +72,26 @@ class TwoParticleElemental(Elemental):
                     res.append(OneParticleElemental(self.mol_defs, component, half_binding))
 
         return res
+
+
+def elemental_from_state(mol_defs: Dict[Specification, MoleculeDefinition], state: State) -> Elemental:
+    if isinstance(state, CovalentModificationState):
+        component = state.substrate.to_component_specification()
+        return OneParticleElemental(mol_defs, component,
+                                    property_ins_from_string(mol_defs[component],
+                                                             'mod/{0}:{1}'.format(str(state.substrate),
+                                                                                  state.modifier.value)))
+    elif isinstance(state, InteractionState):
+        first_component = state.first_component.to_component_specification()
+        second_component = state.second_component.to_component_specification()
+        return TwoParticleElemental(mol_defs, first_component,
+                                    property_ins_from_string(mol_defs[first_component],
+                                                             'ass/{0}:{1}'.format(str(state.first_component),
+                                                                                  str(state.second_component))),
+                                    second_component,
+                                    property_ins_from_string(mol_defs[second_component],
+                                                             'ass/{0}:{1}'.format(str(state.second_component),
+                                                                                  str(state.first_component))))
+
+    else:
+        raise AssertionError

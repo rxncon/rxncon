@@ -1,5 +1,6 @@
 from rxncon.simulation.rule_based.molecule_from_string import property_ins_from_string, mol_def_from_string,\
     specification_from_string
+from rxncon.syntax.rxncon_from_string import state_from_string
 
 from rxncon.semantics.elemental import *
 
@@ -31,3 +32,14 @@ def test_binding():
                                    property_ins_from_string(mol_defs[specification_from_string('B')], 'ass/B_[x]:A_[x]'))
 
     print(binding.complements())
+
+def test_elemental_from_state():
+    mol_defs = {
+        specification_from_string('A'): mol_def_from_string('A#ass/A_[x]:B_[x]~C_[a],mod/A_[(r)]:u~p'),
+        specification_from_string('B'): mol_def_from_string('B#ass/B_[x]:A_[x]~D_[b]'),
+        specification_from_string('C'): mol_def_from_string('C#ass/C_[a]:A_[x]'),
+        specification_from_string('D'): mol_def_from_string('D#ass/D_[b]:B_[x]')
+    }
+
+    print(elemental_from_state(mol_defs, state_from_string('A_[x]--B_[x]')))
+    print(elemental_from_state(mol_defs, state_from_string('A_[(r)]-{p}')))
