@@ -5,11 +5,11 @@ from rxncon.core.contingency import ContingencyType
 from rxncon.core.effector import Effector, StateEffector, AndEffector, OrEffector, NotEffector
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reactant as RxnConReactant, Reaction
-from rxncon.semantics.molecule import MoleculeDefinition
+from rxncon.semantics.molecule import MoleculeDefinition, MoleculeInstance, MutualExclusivityError
 from rxncon.semantics.molecule_from_rxncon import mol_defs_from_rxncon_sys
 from rxncon.semantics.elemental import elemental_from_state, OneParticleElemental, TwoParticleElemental, Elemental
 from rxncon.venntastic.sets import PropertySet, Intersection, Union, Complement, UniversalSet, gram_schmidt_disjunctify
-from rxncon.simulation.rule_based.rule_based_model import Rule, Reactant as RbmReactant, Arrow, Parameter
+from rxncon.simulation.rule_based.rule_based_model import Rule, Reactant as RbmReactant, Arrow, Parameter, Binding
 from rxncon.util.utils import transform_set_expression
 
 def state_set_from_effector(effector: Effector):
@@ -89,6 +89,34 @@ def rule_from_reaction_and_contingency_soln(mol_defs, reaction, soln) -> Optiona
 
 
 def rbm_reactants_from_elementals(mol_defs, reacting_elementals: List[Elemental], background_elementals: List[Elemental]):
+    class MoleculeDict(dict):
+        def __missing__(self, key):
+            self[key] = MoleculeInstance(mol_defs[key], set(), set(), None)
+            return self[key]
+
+    molecules = MoleculeDict()
+    bindings = []
+
+    for reacting_elemental in reacting_elementals:
+        if isinstance(reacting_elemental, OneParticleElemental):
+            molecules[reacting_elemental.component].add_property(reacting_elemental.prop_instance)
+        elif isinstance(reacting_elemental, TwoParticleElemental):
+            molecules[reacting_elemental.first_component].add_property(reacting_elemental.first_prop_instance)
+            molecules[reacting_elemental.second_component].add_property(reacting_elemental.second_prop_instance)
+
+    try:
+        for elem in [x for x in background_elementals if isinstance(x, TwoParticleElemental)]:  # type: TwoParticleElemental
+            molecules[elem.first_component].add_property(elem.first_prop_instance)
+            molecules[elem.second_component].add_property(elem.second_prop_instance)
+            bindings.append(Binding(elem.first_prop_instance.property_def.spec,
+                                    elem.second_prop_instance.property_def.spec))
+
+        for elem in [x for x in background_elementals if isinstance(x, OneParticleElemental)]:  # type: OneParticleElemental
+            molecules[elem.component].add_property(elem.prop_instance)
+
+    except MutualExclusivityError:
+        return None
+
 
     return []
 
