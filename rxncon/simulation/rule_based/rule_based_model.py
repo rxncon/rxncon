@@ -69,11 +69,7 @@ class Rule:
     def molecules(self):
         molecules = []
         for side in [self.left_hand_side, self.right_hand_side]:
-            if isinstance(side, MoleculeReactant) and side.molecule_specification.molecule_definition not in molecules:
-                molecules.append(side.molecule_specification.mol_def)
-
-            elif isinstance(side, ComplexReactant):
-                [molecules.append(x) for x in side.molecules if x not in molecules]
+            [molecules.append(x) for x in side.molecules if x not in molecules]
 
         return molecules
 
@@ -87,37 +83,7 @@ class Rule:
                              .format(str(self), len(self.rates)))
 
 
-class Reactant:
-    pass
-
-
-class MoleculeReactant(Reactant):
-    @tc.typecheck
-    def __init__(self, molecule_instance: MoleculeInstance):
-        self.molecule_specification = molecule_instance
-
-    @tc.typecheck
-    def __eq__(self, other: Reactant) -> bool:
-        return isinstance(other, MoleculeReactant) and self.molecule_specification == other.molecule_specification
-
-    def __hash__(self):
-        return hash(str(self))
-
-    def __lt__(self, other):
-        if isinstance(other, MoleculeReactant) and self.molecule_specification < other.molecule_specification:
-            return True
-        elif isinstance(other, ComplexReactant):
-            return False
-        return False
-
-    def __repr__(self):
-        return str(self)
-
-    def __str__(self) -> str:
-        return 'Mol<{0}>'.format(self.molecule_specification)
-
-
-class ComplexReactant(Reactant):
+class Complex:
     @tc.typecheck
     def __init__(self, molecules: tg.Set[MoleculeInstance], bindings: tg.Set['Binding']):
         self.molecules = molecules
@@ -125,16 +91,14 @@ class ComplexReactant(Reactant):
         self._validate()
 
     @tc.typecheck
-    def __eq__(self, other: Reactant):
-        return isinstance(other, ComplexReactant) and self.molecules == other.molecules and self.bindings == other.bindings
+    def __eq__(self, other: 'Complex'):
+        return isinstance(other, Complex) and self.molecules == other.molecules and self.bindings == other.bindings
 
     def __hash__(self):
         return hash(str(self))
 
     def __lt__(self, other):
-        if isinstance(other, ComplexReactant) and sorted(self.molecules) < sorted(other.molecules):
-            return True
-        elif isinstance(other, MoleculeReactant):
+        if isinstance(other, Complex) and sorted(self.molecules) < sorted(other.molecules):
             return True
         return False
 

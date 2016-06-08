@@ -9,8 +9,9 @@ from rxncon.semantics.molecule import MoleculeDefinition, MoleculeInstance, Mutu
 from rxncon.semantics.molecule_from_rxncon import mol_defs_from_rxncon_sys
 from rxncon.semantics.elemental import elemental_from_state, OneParticleElemental, TwoParticleElemental, Elemental
 from rxncon.venntastic.sets import PropertySet, Intersection, Union, Complement, UniversalSet, gram_schmidt_disjunctify
-from rxncon.simulation.rule_based.rule_based_model import Rule, Reactant as RbmReactant, Arrow, Parameter, Binding
+from rxncon.simulation.rule_based.rule_based_model import Rule, Complex, Arrow, Parameter, Binding
 from rxncon.util.utils import transform_set_expression
+
 
 def state_set_from_effector(effector: Effector):
     if isinstance(effector, StateEffector):
@@ -96,11 +97,14 @@ def rbm_reactants_from_elementals(mol_defs, reacting_elementals: List[Elemental]
 
     molecules = MoleculeDict()
     bindings = []
+    reacting_components = []
 
     for reacting_elemental in reacting_elementals:
         if isinstance(reacting_elemental, OneParticleElemental):
+            reacting_components.append(reacting_elemental.component)
             molecules[reacting_elemental.component].add_property(reacting_elemental.prop_instance)
         elif isinstance(reacting_elemental, TwoParticleElemental):
+            reacting_components += [reacting_elemental.first_component, reacting_elemental.second_component]
             molecules[reacting_elemental.first_component].add_property(reacting_elemental.first_prop_instance)
             molecules[reacting_elemental.second_component].add_property(reacting_elemental.second_prop_instance)
 
@@ -117,8 +121,36 @@ def rbm_reactants_from_elementals(mol_defs, reacting_elementals: List[Elemental]
     except MutualExclusivityError:
         return None
 
+    complexes = []
 
-    return []
+    for reacting_component in reacting_components:
+        if reacting_component not in molecules.keys():
+            continue
+
+        the_components = [reacting_component]
+        the_molecules = [molecules[reacting_component]]
+        the_bindings = []
+
+        for binding in bindings:  # type: Binding
+            if any(binding.left_partner.is_subspecification_of(x) for x in the_components):
+                the_bindings.append(binding)
+                bindings.remove(binding)
+                if not binding.right_partner.to_component_specification() in the_components:
+                    the_components.append(binding.right_partner.to_component_specification())
+                    the_molecules.append(molecules[binding.right_partner.to_component_specification()])
+                    molecules.pop(binding.right_partner.to_component_specification())
+
+            elif any(binding.right_partner.is_subspecification_of(x) for x in the_components):
+                the_bindings.append(binding)
+                bindings.remove(binding)
+                if not binding.left_partner.to_component_specification() in the_components:
+                    the_components.append(binding.left_partner.to_component_specification())
+                    the_molecules.append(molecules[binding.left_partner.to_component_specification()])
+                    molecules.pop(binding.left_partner.to_component_specification())
+
+        complexes.append(Complex(set(the_molecules), set(the_bindings)))
+
+    return complexes
 
 
 
