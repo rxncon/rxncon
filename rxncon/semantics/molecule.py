@@ -33,6 +33,10 @@ class Compartment(OrderedEnum):
     nucleus = 'nucleus'
 
 
+class MutualExclusivityError(Exception):
+    pass
+
+
 class MoleculeDefinition:
     @tc.typecheck
     def __init__(self, spec: spe.Specification,
@@ -214,6 +218,26 @@ class MoleculeInstance:
 
         return '{0}#{1}'\
             .format(self.mol_def.spec, ','.join(str(x) for x in props))
+
+    def add_property(self, property_instance: PropertyInstance):
+        if isinstance(property_instance, ModificationPropertyInstance):
+            occupied_residues = [x.property_def.spec for x in self.modification_properties]
+            if property_instance.property_def.spec in occupied_residues:
+                raise MutualExclusivityError
+            self.modification_properties.add(property_instance)
+        elif isinstance(property_instance, AssociationPropertyInstance):
+            occupied_domains = [x.property_def.spec for x in self.association_properties]
+            if property_instance.property_def.spec in occupied_domains:
+                raise MutualExclusivityError
+            self.association_properties.add(property_instance)
+        elif isinstance(property_instance, LocalizationPropertyInstance):
+            if self.localization_property:
+                raise MutualExclusivityError
+            self.localization_property = property_instance
+        else:
+            raise NotImplementedError
+
+        self._validate()
 
     @property
     def bindings(self) -> tg.Set['Binding']:

@@ -76,8 +76,8 @@ def rule_from_reaction_and_contingency_soln(mol_defs, reaction, soln) -> Optiona
     rhs_reacting_elementals = [elemental_from_state(mol_defs, state)
                                for reactant in reaction.reactants_post for state in reactant.states]
 
-    lhs_reactants = rbm_reactants_from_elementals(lhs_reacting_elementals, soln.to_nested_list_form()[0])
-    rhs_reactants = rbm_reactants_from_elementals(rhs_reacting_elementals, soln.to_nested_list_form()[0])
+    lhs_reactants = rbm_reactants_from_elementals(mol_defs, lhs_reacting_elementals, soln.to_nested_list_form()[0])
+    rhs_reactants = rbm_reactants_from_elementals(mol_defs, rhs_reacting_elementals, soln.to_nested_list_form()[0])
 
     arrow_type = Arrow.irreversible
     parameter = Parameter('x', None)
@@ -88,7 +88,7 @@ def rule_from_reaction_and_contingency_soln(mol_defs, reaction, soln) -> Optiona
         return None
 
 
-def rbm_reactants_from_elementals(reacting_elementals: List[Elemental], background_elementals: List[Elemental]):
+def rbm_reactants_from_elementals(mol_defs, reacting_elementals: List[Elemental], background_elementals: List[Elemental]):
 
     return []
 
