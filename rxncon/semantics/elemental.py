@@ -1,10 +1,13 @@
-from typing import Dict
+from typing import Dict, Optional, List
 from rxncon.core.specification import Specification
 from rxncon.semantics.molecule import MoleculeDefinition, PropertyInstance, AssociationPropertyInstance, \
     create_partner_ass_prop_instance, ModificationPropertyInstance
 from rxncon.core.state import State, CovalentModificationState, InteractionState
 from rxncon.simulation.rule_based.molecule_from_string import property_ins_from_string
+from rxncon.core.reaction import Reactant
 
+
+EMPTY = '0'
 
 class Elemental:
     pass
@@ -12,7 +15,7 @@ class Elemental:
 
 class OneParticleElemental(Elemental):
     def __init__(self, mol_defs: Dict[Specification, MoleculeDefinition], component: Specification,
-                 prop_instance: PropertyInstance):
+                 prop_instance: Optional[PropertyInstance]):
         self.mol_defs = mol_defs
         self.component, self.prop_instance = component, prop_instance
 
@@ -23,7 +26,9 @@ class OneParticleElemental(Elemental):
         return str(self)
 
     def complements(self):
-        if isinstance(self.prop_instance, AssociationPropertyInstance):
+        if not self.prop_instance:
+            return [self]
+        elif isinstance(self.prop_instance, AssociationPropertyInstance):
             return self._ass_complements()
         else:
             return [OneParticleElemental(self.mol_defs, self.component, x)
@@ -81,7 +86,8 @@ def elemental_from_state(mol_defs: Dict[Specification, MoleculeDefinition], stat
                                     property_ins_from_string(mol_defs[component],
                                                              'mod/{0}:{1}'.format(str(state.substrate),
                                                                                   state.modifier.value)))
-    elif isinstance(state, InteractionState):
+    elif isinstance(state, InteractionState) and \
+            not state.first_component.name == EMPTY and not state.second_component.name == EMPTY:
         first_component = state.first_component.to_component_specification()
         second_component = state.second_component.to_component_specification()
         return TwoParticleElemental(mol_defs, first_component,
@@ -92,6 +98,22 @@ def elemental_from_state(mol_defs: Dict[Specification, MoleculeDefinition], stat
                                     property_ins_from_string(mol_defs[second_component],
                                                              'ass/{0}:{1}'.format(str(state.second_component),
                                                                                   str(state.first_component))))
+    elif isinstance(state, InteractionState):
+        if state.first_component.name == EMPTY:
+            the_component = state.second_component
+        else:
+            the_component = state.first_component
+
+        return OneParticleElemental(mol_defs, the_component.to_component_specification(),
+                                    property_ins_from_string(mol_defs[the_component.to_component_specification()],
+                                                             'ass/{0}:'.format(str(the_component))))
+
 
     else:
         raise AssertionError
+
+def elementals_from_reactant(mol_defs: Dict[Specification, MoleculeDefinition], reactant: Reactant) -> List[Elemental]:
+    if reactant.states:
+        return [elemental_from_state(mol_defs, x) for x in reactant.states]
+    else:
+        return [OneParticleElemental(mol_defs, reactant.component, None)]

@@ -4,7 +4,6 @@ import copy
 
 import rxncon.core.rxncon_system as rxs
 import rxncon.semantics.molecule
-import rxncon.semantics.molecule_definition as mol
 import rxncon.core.state as sta
 import rxncon.core.reaction as rxn
 import rxncon.core.specification as spe

@@ -39,8 +39,7 @@ class RuleBasedModel:
 
 
 class Rule:
-    @tc.typecheck
-    def __init__(self, left_hand_side: tg.Set['Reactant'], right_hand_side: tg.Set['Reactant'], arrow_type: 'Arrow',
+    def __init__(self, left_hand_side: tg.Set['Complex'], right_hand_side: tg.Set['Complex'], arrow_type: 'Arrow',
                  rates: tg.Set['Parameter']):
         self.left_hand_side = left_hand_side
         self.right_hand_side = right_hand_side
@@ -48,7 +47,6 @@ class Rule:
         self.rates = rates
         self._validate()
 
-    @tc.typecheck
     def __eq__(self, other: 'Rule'):
         return self.left_hand_side == other.left_hand_side and self.right_hand_side == other.right_hand_side and \
             self.arrow_type == other.arrow_type and self.rates == other.rates
@@ -106,7 +104,8 @@ class Complex:
         return str(self)
 
     def __str__(self) -> str:
-        return 'Comp<{0}>'.format(', '.join(sorted([str(x) for x in self.molecules])))
+        return 'Comp<{0} | {1}>'.format(', '.join(sorted([str(x) for x in self.molecules])),
+                                        ', '.join(str(x) for x in self.bindings))
 
     def _validate(self):
         unique_localizations = {molecule.localization_property for molecule in self.molecules}

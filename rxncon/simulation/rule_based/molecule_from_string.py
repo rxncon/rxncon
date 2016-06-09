@@ -3,7 +3,7 @@ from rxncon.semantics.molecule import Modifier, OccupationStatus, Compartment, M
     ModificationPropertyInstance, AssociationPropertyInstance, LocalizationPropertyInstance, Binding
 
 from rxncon.syntax.rxncon_from_string import specification_from_string
-from rxncon.simulation.rule_based.rule_based_model import Rule, MoleculeReactant, ComplexReactant, Arrow, Parameter
+from rxncon.simulation.rule_based.rule_based_model import Rule, Complex, Arrow, Parameter
 
 from typecheck import typecheck
 import typing as tg
@@ -19,7 +19,7 @@ TOK_RATE_SEP = '@'
 TOK_IRREV    = '->'
 TOK_REV      = '<->'
 TOK_BIND     = '.'
-
+TOK_EMPTY    = '0'
 
 @typecheck
 def mol_def_from_string(mol_def_string: str) -> MoleculeDefinition:
@@ -120,7 +120,7 @@ def property_ins_from_string(mol_def, prop_string):
         ass_def = ass_defs[0]
 
         partner_domain_string = prop_string.split(TOK_PROP_VAL)[1]
-        if partner_domain_string:
+        if partner_domain_string and partner_domain_string != TOK_EMPTY:
             return AssociationPropertyInstance(ass_def, OccupationStatus.occupied_known_partner,
                                                specification_from_string(partner_domain_string))
         else:

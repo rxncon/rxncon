@@ -7,7 +7,8 @@ from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reactant as RxnConReactant, Reaction
 from rxncon.semantics.molecule import MoleculeDefinition, MoleculeInstance, MutualExclusivityError
 from rxncon.semantics.molecule_from_rxncon import mol_defs_from_rxncon_sys
-from rxncon.semantics.elemental import elemental_from_state, OneParticleElemental, TwoParticleElemental, Elemental
+from rxncon.semantics.elemental import elemental_from_state, OneParticleElemental, TwoParticleElemental, Elemental, \
+    elementals_from_reactant
 from rxncon.venntastic.sets import PropertySet, Intersection, Union, Complement, UniversalSet, gram_schmidt_disjunctify
 from rxncon.simulation.rule_based.rule_based_model import Rule, Complex, Arrow, Parameter, Binding
 from rxncon.util.utils import transform_set_expression
@@ -70,21 +71,26 @@ def rules_from_reaction(rxnconsys: RxnConSystem, reaction: Reaction) -> List[Rul
 
 def rule_from_reaction_and_contingency_soln(mol_defs, reaction, soln) -> Optional[Rule]:
     assert len(soln.to_nested_list_form()) == 1
+    assert all(isinstance(x, PropertySet) for x in soln.to_nested_list_form()[0])
 
-    lhs_reacting_elementals = [elemental_from_state(mol_defs, state)
-                               for reactant in reaction.reactants_pre for state in reactant.states]
+    lhs_reacting_elementals = []
+    for reactant in reaction.reactants_pre:
+        lhs_reacting_elementals += elementals_from_reactant(mol_defs, reactant)
 
-    rhs_reacting_elementals = [elemental_from_state(mol_defs, state)
-                               for reactant in reaction.reactants_post for state in reactant.states]
+    rhs_reacting_elementals = []
+    for reactant in reaction.reactants_post:
+        rhs_reacting_elementals += elementals_from_reactant(mol_defs, reactant)
 
-    lhs_reactants = complexes_from_elementals(mol_defs, lhs_reacting_elementals, soln.to_nested_list_form()[0])
-    rhs_reactants = complexes_from_elementals(mol_defs, rhs_reacting_elementals, soln.to_nested_list_form()[0])
+    contingencies = [x.value for x in soln.to_nested_list_form()[0]]
+
+    lhs_reactants = complexes_from_elementals(mol_defs, lhs_reacting_elementals, contingencies)
+    rhs_reactants = complexes_from_elementals(mol_defs, rhs_reacting_elementals, contingencies)
 
     arrow_type = Arrow.irreversible
     parameter = Parameter('x', None)
 
     if lhs_reactants and rhs_reactants:
-        return Rule(set(lhs_reactants), set(rhs_reactants), arrow_type, set(parameter))
+        return Rule(set(lhs_reactants), set(rhs_reactants), arrow_type, {parameter})
     else:
         return None
 
@@ -107,7 +113,8 @@ def complexes_from_elementals(mol_defs, reacting_elementals: List[Elemental], ba
             reacting_components += [reacting_elemental.first_component, reacting_elemental.second_component]
             molecules[reacting_elemental.first_component].add_property(reacting_elemental.first_prop_instance)
             molecules[reacting_elemental.second_component].add_property(reacting_elemental.second_prop_instance)
-
+            bindings.append(Binding(reacting_elemental.first_prop_instance.property_def.spec,
+                                    reacting_elemental.second_prop_instance.property_def.spec))
     try:
         for elem in [x for x in background_elementals if isinstance(x, TwoParticleElemental)]:  # type: TwoParticleElemental
             molecules[elem.first_component].add_property(elem.first_prop_instance)
