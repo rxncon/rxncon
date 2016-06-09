@@ -77,8 +77,8 @@ def rule_from_reaction_and_contingency_soln(mol_defs, reaction, soln) -> Optiona
     rhs_reacting_elementals = [elemental_from_state(mol_defs, state)
                                for reactant in reaction.reactants_post for state in reactant.states]
 
-    lhs_reactants = rbm_reactants_from_elementals(mol_defs, lhs_reacting_elementals, soln.to_nested_list_form()[0])
-    rhs_reactants = rbm_reactants_from_elementals(mol_defs, rhs_reacting_elementals, soln.to_nested_list_form()[0])
+    lhs_reactants = complexes_from_elementals(mol_defs, lhs_reacting_elementals, soln.to_nested_list_form()[0])
+    rhs_reactants = complexes_from_elementals(mol_defs, rhs_reacting_elementals, soln.to_nested_list_form()[0])
 
     arrow_type = Arrow.irreversible
     parameter = Parameter('x', None)
@@ -89,7 +89,7 @@ def rule_from_reaction_and_contingency_soln(mol_defs, reaction, soln) -> Optiona
         return None
 
 
-def rbm_reactants_from_elementals(mol_defs, reacting_elementals: List[Elemental], background_elementals: List[Elemental]):
+def complexes_from_elementals(mol_defs, reacting_elementals: List[Elemental], background_elementals: List[Elemental]):
     class MoleculeDict(dict):
         def __missing__(self, key):
             self[key] = MoleculeInstance(mol_defs[key], set(), set(), None)
@@ -125,28 +125,36 @@ def rbm_reactants_from_elementals(mol_defs, reacting_elementals: List[Elemental]
 
     for reacting_component in reacting_components:
         if reacting_component not in molecules.keys():
+            # This can only be the case if the reacting component has already been joined in a complex with
+            # another reacting component, such as in the reaction A + B --> A.B
             continue
 
         the_components = [reacting_component]
         the_molecules = [molecules[reacting_component]]
         the_bindings = []
 
-        for binding in bindings:  # type: Binding
-            if any(binding.left_partner.is_subspecification_of(x) for x in the_components):
-                the_bindings.append(binding)
-                bindings.remove(binding)
-                if not binding.right_partner.to_component_specification() in the_components:
-                    the_components.append(binding.right_partner.to_component_specification())
-                    the_molecules.append(molecules[binding.right_partner.to_component_specification()])
-                    molecules.pop(binding.right_partner.to_component_specification())
+        continue_trying = True
+        while continue_trying:
+            continue_trying = False
 
-            elif any(binding.right_partner.is_subspecification_of(x) for x in the_components):
-                the_bindings.append(binding)
-                bindings.remove(binding)
-                if not binding.left_partner.to_component_specification() in the_components:
-                    the_components.append(binding.left_partner.to_component_specification())
-                    the_molecules.append(molecules[binding.left_partner.to_component_specification()])
-                    molecules.pop(binding.left_partner.to_component_specification())
+            for binding in bindings:
+                if any(binding.left_partner.is_subspecification_of(x) for x in the_components):
+                    continue_trying = True
+                    the_bindings.append(binding)
+                    bindings.remove(binding)
+                    if not binding.right_partner.to_component_specification() in the_components:
+                        the_components.append(binding.right_partner.to_component_specification())
+                        the_molecules.append(molecules[binding.right_partner.to_component_specification()])
+                        molecules.pop(binding.right_partner.to_component_specification())
+
+                elif any(binding.right_partner.is_subspecification_of(x) for x in the_components):
+                    continue_trying = True
+                    the_bindings.append(binding)
+                    bindings.remove(binding)
+                    if not binding.left_partner.to_component_specification() in the_components:
+                        the_components.append(binding.left_partner.to_component_specification())
+                        the_molecules.append(molecules[binding.left_partner.to_component_specification()])
+                        molecules.pop(binding.left_partner.to_component_specification())
 
         complexes.append(Complex(set(the_molecules), set(the_bindings)))
 
