@@ -104,8 +104,11 @@ class Complex:
         return str(self)
 
     def __str__(self) -> str:
-        return 'Comp<{0} | {1}>'.format(', '.join(sorted([str(x) for x in self.molecules])),
-                                        ', '.join(str(x) for x in self.bindings))
+        if self.bindings:
+            return 'Comp<{0} | {1}>'.format(', '.join(sorted([str(x) for x in self.molecules])),
+                                            ', '.join(str(x) for x in self.bindings))
+        else:
+            return 'Comp<{0}>'.format(', '.join(sorted([str(x) for x in self.molecules])))
 
     def _validate(self):
         unique_localizations = {molecule.localization_property for molecule in self.molecules}

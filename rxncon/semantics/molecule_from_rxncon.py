@@ -74,7 +74,7 @@ class _MoleculeDefinitionSupervisor:
         spec_to_locs = defaultdict(set)
 
         for reaction in self.rxnconsys.reactions:
-            for state in [x for x in [reaction.source, reaction.product] if x]:
+            for state in [x for x in reaction.sources + reaction.products if x]:
                 if isinstance(state, sta.CovalentModificationState):
                     specs.add(state.substrate.to_component_specification())
                     specs.add(reaction.subject.to_component_specification())

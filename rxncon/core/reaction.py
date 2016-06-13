@@ -59,6 +59,7 @@ def parse_reactant(definition: str, variables):
 class ReactionDefinition:
     SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
     SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
+
     def __init__(self, name, representation_def, variables_def, reactants_def):
         self.name, self.representation_def, self.variables_def, self.reactants_defs = \
             name, representation_def, variables_def, reactants_def
@@ -255,19 +256,27 @@ class Reaction:
     def reactants_post(self):
         return self.definition.reactants_post_from_variables(self.variables)
 
-def definition_of_state(representation: str):
-    the_definition = None
+    @property
+    def sources(self):
+        sources = []
+        for reactant in self.reactants_pre:
+            sources += reactant.states
 
-    for definition in REACTION_DEFINITIONS:
+        return list(set(sources))
 
-        if definition.matches_representation(representation):
-            assert not the_definition
-            the_definition = definition
+    @property
+    def products(self):
+        products = []
+        for reactant in self.reactants_post:
+            products += reactant.states
 
-    assert the_definition
-    return the_definition
+        return list(set(products))
+
 
 def reaction_from_string(representation: str) -> Reaction:
+    def definition_of_state(x):
+        return x
+
     the_definition = definition_of_state(representation)
     variables = the_definition.variables_from_representation(representation)
 

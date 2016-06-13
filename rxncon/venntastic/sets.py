@@ -5,6 +5,7 @@ import typing as tg
 METHOD_COMPLEMENTS_EXPANDED = '_complements_expanded'
 METHOD_UNIONS_MOVED_TO_LEFT = '_unions_moved_to_left'
 METHOD_SIMPLIFY_EMPTY_UNIVERSAL = '_simplify_empty_universal'
+METHOD_SIMPLIFY_BINARY = '_simplify_binary'
 
 METHOD_NAME_COMPLEMENTS = 'complements'
 
@@ -14,7 +15,8 @@ class Set:
         simplification_methods = [
             METHOD_COMPLEMENTS_EXPANDED,
             METHOD_UNIONS_MOVED_TO_LEFT,
-            METHOD_SIMPLIFY_EMPTY_UNIVERSAL
+            METHOD_SIMPLIFY_EMPTY_UNIVERSAL,
+            METHOD_SIMPLIFY_BINARY
         ]
 
         return _call_method_list_until_stable(self, simplification_methods)
@@ -82,6 +84,9 @@ class Set:
         return self
 
     def _simplify_empty_universal(self):
+        return self
+
+    def _simplify_binary(self):
         return self
 
     def _to_nested_list(self) -> tg.List[tg.List['Set']]:
@@ -233,13 +238,17 @@ class BinarySet(Set):
 
         if isinstance(other, type(self)) and (self.left_expr == other.left_expr) and (self.right_expr == other.right_expr):
             return True
-
         else:
             return False
 
     def _complements_expanded(self) -> Set:
         return type(self)(self.left_expr._complements_expanded(), self.right_expr._complements_expanded())
 
+    def _simplify_binary(self):
+        if self.left_expr == self.right_expr:
+            return self.left_expr
+        else:
+            return type(self)(self.left_expr._simplify_binary(), self.right_expr._simplify_binary())
 
 class Intersection(BinarySet):
     def __lt__(self, other: Set) -> bool:
@@ -391,18 +400,25 @@ def set_from_nested_list_form(xss: tg.List[tg.List[Set]]) -> Set:
 def gram_schmidt_disjunctify(overlapping_sets: tg.List[Set]) -> tg.List[Set]:
     non_overlapping_sets = []
 
+    complements = []
+
     for x in overlapping_sets:
+        complement = Complement(x.simplified_form()).simplified_form()
+        if complement not in complements:
+            complements.append(complement)
+
+    for i, x in enumerate(overlapping_sets):
         assert len(x.to_union_list_form()) == 1
 
-        for y in non_overlapping_sets:
-            x = Intersection(x, Complement(y))
+        for y in complements[:i]:
+            x = Intersection(x, y)
 
         non_overlapping_sets.append(x)
 
     result = []
 
     for x in non_overlapping_sets:
-        result.append(x.to_union_list_form()[0])
+        result += x.to_union_list_form()
 
     return result
 

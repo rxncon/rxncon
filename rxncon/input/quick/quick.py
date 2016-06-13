@@ -8,7 +8,7 @@ import rxncon.core.state as sta
 import rxncon.core.reaction as rxn
 import rxncon.input.shared.contingency_list as cli
 import rxncon.syntax.rxncon_from_string as fst
-
+from rxncon.core.reaction import reaction_from_string, REACTION_DEFINITIONS
 
 class Quick(inp.RxnConInput):
     @tc.typecheck
@@ -40,7 +40,7 @@ class Quick(inp.RxnConInput):
 
     @tc.typecheck
     def _add_reaction_from_string(self, full_reaction_str: str):
-        reaction = rxn.reaction_from_string(full_reaction_str)
+        reaction = reaction_from_string(REACTION_DEFINITIONS, full_reaction_str)
         self._reactions.append(reaction)
 
     @tc.typecheck

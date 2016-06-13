@@ -51,14 +51,31 @@ class TwoParticleElemental(Elemental):
                  first_prop_instance: PropertyInstance, second_component: Specification,
                  second_prop_instance: PropertyInstance):
         self.mol_defs = mol_defs
-        self.first_component, self.first_prop_instance = first_component, first_prop_instance
-        self.second_component, self.second_prop_instance = second_component, second_prop_instance
+        if first_prop_instance < second_prop_instance:
+            self.first_component, self.first_prop_instance = first_component, first_prop_instance
+            self.second_component, self.second_prop_instance = second_component, second_prop_instance
+        else:
+            self.first_component, self.first_prop_instance = second_component, second_prop_instance
+            self.second_component, self.second_prop_instance = first_component, first_prop_instance
+
         assert isinstance(self.first_prop_instance, AssociationPropertyInstance)
         assert isinstance(self.second_prop_instance, AssociationPropertyInstance)
 
+    def __eq__(self, other):
+        if isinstance(other, OneParticleElemental):
+            return False
+
+        assert isinstance(other, TwoParticleElemental)
+
+        return self.first_component == other.first_component and self.first_prop_instance == other.first_prop_instance and \
+            self.second_component == other.second_component and self.second_prop_instance == other.second_prop_instance
+
     def __str__(self):
-        return 'TwoParticleElemental:{0}#{1},{2}:{3}'.format(str(self.first_component), str(self.first_prop_instance),
+        return 'TwoParticleElemental:{0}#{1},{2}#{3}'.format(str(self.first_component), str(self.first_prop_instance),
                                                              str(self.second_component), str(self.second_prop_instance))
+
+    def __hash__(self):
+        return hash(str(self))
 
     def __repr__(self):
         return str(self)

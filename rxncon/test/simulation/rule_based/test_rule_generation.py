@@ -419,7 +419,7 @@ def case_disjunction():
         #         'A#ass/A_[Bassoc]:,ass/A_[Cassoc]: + B#ass/B_[Aassoc]:,ass/B_[Eassoc]: <-> A#ass/A_[Bassoc]:B_[Aassoc],ass/A_[Cassoc]:.B#ass/B_[Aassoc]:A_[Bassoc],ass/B_[Eassoc]: @ kf_A_ppi_B, kr_A_ppi_B',
         #     ]
         # ),
-        RuleTestCase(
+        RuleTestCase(  # THIS ONE !!!!!!
             '''
             A_ppi_C
             C_ppi_D

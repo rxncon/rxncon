@@ -44,6 +44,10 @@ def rules_from_reaction(rxnconsys: RxnConSystem, reaction: Reaction) -> List[Rul
         else:
             raise NotImplementedError
 
+    return rules_from_mol_defs_and_reaction_and_bg_state_set(mol_defs, reaction, state_set)
+
+
+def rules_from_mol_defs_and_reaction_and_bg_state_set(mol_defs, reaction, state_set):
     # Convert to set of elementals
     elemental_set = elemental_set_from_state_set(mol_defs, state_set)
 
@@ -67,6 +71,8 @@ def rules_from_reaction(rxnconsys: RxnConSystem, reaction: Reaction) -> List[Rul
             rules.append(possible_rule)
 
     return rules
+
+
 
 
 def rule_from_reaction_and_contingency_soln(mol_defs, reaction, soln) -> Optional[Rule]:
@@ -128,6 +134,7 @@ def complexes_from_elementals(mol_defs, reacting_elementals: List[Elemental], ba
     except MutualExclusivityError:
         return None
 
+    reacting_components = set(reacting_components)
     complexes = []
 
     for reacting_component in reacting_components:
