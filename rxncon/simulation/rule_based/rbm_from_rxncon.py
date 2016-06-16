@@ -119,14 +119,18 @@ def complexes_from_elementals(mol_defs, reacting_elementals: List[Elemental], ba
             reacting_components += [reacting_elemental.first_component, reacting_elemental.second_component]
             molecules[reacting_elemental.first_component].add_property(reacting_elemental.first_prop_instance)
             molecules[reacting_elemental.second_component].add_property(reacting_elemental.second_prop_instance)
-            bindings.append(Binding(reacting_elemental.first_prop_instance.property_def.spec,
-                                    reacting_elemental.second_prop_instance.property_def.spec))
+
+            if reacting_elemental.is_bound_state:
+                bindings.append(Binding(reacting_elemental.first_prop_instance.property_def.spec,
+                                        reacting_elemental.second_prop_instance.property_def.spec))
     try:
         for elem in [x for x in background_elementals if isinstance(x, TwoParticleElemental)]:  # type: TwoParticleElemental
             molecules[elem.first_component].add_property(elem.first_prop_instance)
             molecules[elem.second_component].add_property(elem.second_prop_instance)
-            bindings.append(Binding(elem.first_prop_instance.property_def.spec,
-                                    elem.second_prop_instance.property_def.spec))
+
+            if elem.is_bound_state:
+                bindings.append(Binding(elem.first_prop_instance.property_def.spec,
+                                        elem.second_prop_instance.property_def.spec))
 
         for elem in [x for x in background_elementals if isinstance(x, OneParticleElemental)]:  # type: OneParticleElemental
             molecules[elem.component].add_property(elem.prop_instance)
@@ -171,6 +175,9 @@ def complexes_from_elementals(mol_defs, reacting_elementals: List[Elemental], ba
                         molecules.pop(binding.left_partner.to_component_specification())
 
         complexes.append(Complex(set(the_molecules), set(the_bindings)))
+
+    if bindings:
+        return None
 
     return complexes
 

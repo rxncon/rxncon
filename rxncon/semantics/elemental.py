@@ -1,4 +1,6 @@
 from typing import Dict, Optional, List
+from itertools import product
+
 from rxncon.core.specification import Specification
 from rxncon.semantics.molecule import MoleculeDefinition, PropertyInstance, AssociationPropertyInstance, \
     create_partner_ass_prop_instance, ModificationPropertyInstance
@@ -80,18 +82,18 @@ class TwoParticleElemental(Elemental):
     def __repr__(self):
         return str(self)
 
+    @property
+    def is_bound_state(self):
+        return self.first_prop_instance.partner and self.second_prop_instance.partner and \
+            self.first_prop_instance.partner == self.second_prop_instance.property_def.spec and \
+            self.second_prop_instance.partner == self.first_prop_instance.property_def.spec
+
     def complements(self):
         res = []
-
-        for component, instance in [(self.first_component, self.first_prop_instance),
-                                    (self.second_component, self.second_prop_instance)]:
-            for half_binding in instance.complementary_instances:
-                if half_binding.partner:
-                    partner = create_partner_ass_prop_instance(self.mol_defs, half_binding)
-                    res.append(TwoParticleElemental(self.mol_defs, component, half_binding,
-                                                    half_binding.partner.to_component_specification(), partner))
-                else:
-                    res.append(OneParticleElemental(self.mol_defs, component, half_binding))
+        for first, second in product(self.first_prop_instance.complementary_instances,
+                                     self.second_prop_instance.complementary_instances):
+            res.append(TwoParticleElemental(self.mol_defs, self.first_component, first,
+                                            self.second_component, second))
 
         return res
 

@@ -398,14 +398,19 @@ def set_from_nested_list_form(xss: tg.List[tg.List[Set]]) -> Set:
 
 
 def gram_schmidt_disjunctify(overlapping_sets: tg.List[Set]) -> tg.List[Set]:
+    simplified_overlapping_sets = []
+
+    for x in overlapping_sets:
+        simplified_set = x.simplified_form()
+        if simplified_set not in simplified_overlapping_sets:
+            simplified_overlapping_sets.append(simplified_set)
+
     non_overlapping_sets = []
 
     complements = []
 
-    for x in overlapping_sets:
-        complement = Complement(x.simplified_form()).simplified_form()
-        if complement not in complements:
-            complements.append(complement)
+    for x in simplified_overlapping_sets:
+        complements.append(Complement(x).simplified_form())
 
     for i, x in enumerate(overlapping_sets):
         assert len(x.to_union_list_form()) == 1
