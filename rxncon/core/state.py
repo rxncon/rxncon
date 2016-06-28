@@ -20,13 +20,11 @@ class StateModifier(OrderedEnum):
 class StateDefinition:
     SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
     SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
+
     def __init__(self, name, representation_def, variables_def, subset_def):
 
         self.name, self.representation_def, \
         self.variables_def, self.subset_of_def = name, representation_def, variables_def, subset_def
-
-    def __repr__(self):
-        return str(self)
 
     def __str__(self):
         return 'state-definition: name={0}, representation_def={1}'.format(self.name, self.representation_def)
@@ -113,8 +111,7 @@ STATE_DEFINITION = [
 ]
 
 
-
-class State():
+class State:
     def __init__(self, definition: StateDefinition, variables):
         self.definition, self.variables = definition, variables
 

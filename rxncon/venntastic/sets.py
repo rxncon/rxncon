@@ -375,6 +375,14 @@ def UniversalSet() -> Set:
     return PropertySet(None)
 
 
+def MultiUnion(*args):
+    return nested_expression_from_list_and_binary_op(list(args), Union)
+
+
+def MultiIntersection(*args):
+    return nested_expression_from_list_and_binary_op(list(args), Intersection)
+
+
 ### PUBLIC FUNCTIONS ###
 def nested_expression_from_list_and_binary_op(xs: tg.List[Set], binary_op) -> Set:
     if binary_op == Intersection:

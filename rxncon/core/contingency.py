@@ -1,9 +1,9 @@
 from enum import unique
-from rxncon.util.utils import OrderedEnum
-import typecheck as tc
+from typecheck import typecheck
 
-import rxncon.core.effector as eff
-import rxncon.core.reaction as rxn
+from rxncon.core.effector import Effector
+from rxncon.core.reaction import Reaction
+from rxncon.util.utils import OrderedEnum
 
 
 @unique
@@ -18,13 +18,13 @@ class ContingencyType(OrderedEnum):
 
 
 class Contingency:
-    @tc.typecheck
-    def __init__(self, target: rxn.Reaction, type: ContingencyType, effector: eff.Effector):
+    @typecheck
+    def __init__(self, target: Reaction, type: ContingencyType, effector: Effector):
         self.target = target
         self.type = type
         self.effector = effector
 
-    @tc.typecheck
+    @typecheck
     def __eq__(self, other: 'Contingency') -> bool:
         return self.target == other.target and self.type == other.type and self.effector == other.effector
 

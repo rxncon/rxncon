@@ -5,7 +5,6 @@ import os.path
 
 import xlrd
 
-import rxncon.core.error as err
 import rxncon.core.rxncon_system as rxs
 import rxncon.input.rxncon_input as inp
 import rxncon.input.shared.contingency_list as cli
@@ -24,7 +23,7 @@ class ExcelBook(inp.RxnConInput):
 
     def _open_file(self):
         if not os.path.isfile(self.filename):
-            raise err.RxnConInputError('Could not find file {}'.format(self.filename))
+            raise IOError('Could not find file {}'.format(self.filename))
 
         self._xlrd_book = xlrd.open_workbook(self.filename)
 
@@ -87,7 +86,7 @@ class ExcelBookWithoutReactionType(ExcelBook):
                            self.SHEET_CONTINGENCY_LIST, self.SHEET_REACTION_DEFINITION]
 
         if not all([sheet in self._xlrd_book.sheet_names() for sheet in expected_sheets]):
-            raise err.RxnConParseError('Excel book does not contain expected sheets')
+            raise SyntaxError('Excel book does not contain expected sheets')
 
     def _load_reaction_definition_list(self):
         pass
@@ -153,7 +152,7 @@ class ExcelBookWithReactionType(ExcelBook):
                            self.SHEET_REACTION_LIST, self.SHEET_CONTINGENCY_LIST]
 
         if not all([sheet in self._xlrd_book.sheet_names() for sheet in expected_sheets]):
-            raise err.RxnConParseError('Excel book does not contain expected sheets')
+            raise SyntaxError('Excel book does not contain expected sheets')
 
     def _load_reaction_definition_list(self):
         #todo: finish this

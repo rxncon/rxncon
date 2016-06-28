@@ -1,16 +1,14 @@
-import typing as tg
-from enum import Enum
+from typing import Set, Optional
+from typecheck import typecheck
 
-import typecheck as tc
-
-from rxncon.semantics.molecule import MoleculeDefinition, MoleculeInstance, Binding
-
+from rxncon.semantics.molecule import MoleculeDefinition, Molecule
+from rxncon.semantics.rule import Rule
 
 class RuleBasedModel:
-    @tc.typecheck
-    def __init__(self, molecule_defs: tg.Set[MoleculeDefinition], rules: tg.Set['Rule'],
-                 parameters: tg.Set['Parameter'], initial_conditions: tg.Set['InitialCondition']):
-        self.molecule_defs = molecule_defs
+    @typecheck
+    def __init__(self, molecule_defs: Set[MoleculeDefinition], rules: Set['Rule'],
+                 parameters: Set['Parameter'], initial_conditions: Set['InitialCondition']):
+        self.mol_defs = molecule_defs
         self.rules = rules
         self.parameters = parameters
         self.initial_conditions = initial_conditions
@@ -21,116 +19,31 @@ class RuleBasedModel:
         # @todo
         pass
 
-    def set_initial_condition(self, molecule_instance, value):
+    def set_initial_condition(self, molecule, value):
         # @todo
         pass
 
     def _validate(self):
         for initial_condition in self.initial_conditions:
-            if initial_condition.molecule_specification.mol_def not in self.molecule_defs:
+            if initial_condition.molecule.mol_def not in self.mol_defs:
                 raise ValueError('Initial condition {0} refers to unknown molecule def {1}.'
-                                 .format(initial_condition, initial_condition.molecule_specification.mol_def))
+                                 .format(initial_condition, initial_condition.molecule.mol_def))
 
         for rule in self.rules:
             for molecule in rule.molecules:
-                if molecule not in self.molecule_defs:
+                if molecule not in self.mol_defs:
                     raise ValueError('Rule {0} contains molecule def {1}, which is absent in the model'
                                      .format(rule, molecule))
 
 
-class Rule:
-    def __init__(self, left_hand_side: tg.Set['Complex'], right_hand_side: tg.Set['Complex'], arrow_type: 'Arrow',
-                 rates: tg.Set['Parameter']):
-        self.left_hand_side = left_hand_side
-        self.right_hand_side = right_hand_side
-        self.arrow_type = arrow_type
-        self.rates = rates
-        self._validate()
-
-    def __eq__(self, other: 'Rule'):
-        return self.left_hand_side == other.left_hand_side and self.right_hand_side == other.right_hand_side and \
-            self.arrow_type == other.arrow_type and self.rates == other.rates
-
-    def __hash__(self) -> int:
-        return hash(str(self))
-
-    def __repr__(self):
-        return str(self)
-
-    def __str__(self) -> str:
-        return 'Rule: {0} {1} {2}, {3}'.format('+'.join(str(x) for x in sorted(self.left_hand_side)),
-                                               self.arrow_type,
-                                               '+'.join(str(x) for x in sorted(self.right_hand_side)),
-                                               ', '.join(str(x) for x in sorted(self.rates)))
-
-    @property
-    def molecules(self):
-        molecules = []
-        for side in [self.left_hand_side, self.right_hand_side]:
-            [molecules.append(x) for x in side.molecules if x not in molecules]
-
-        return molecules
-
-    def _validate(self):
-        if self.arrow_type == Arrow.irreversible and len(self.rates) != 1:
-            raise ValueError('Rule {0} is irreversible and thus requires exactly one rate constant, {1} given'
-                             .format(str(self), len(self.rates)))
-
-        if self.arrow_type == Arrow.reversible and len(self.rates) != 2:
-            raise ValueError('Rule {0} is reversible and thus requires exactly two rate constants, {1} given'
-                             .format(str(self), len(self.rates)))
-
-
-class Complex:
-    @tc.typecheck
-    def __init__(self, molecules: tg.Set[MoleculeInstance], bindings: tg.Set['Binding']):
-        self.molecules = molecules
-        self.bindings = bindings
-        self._validate()
-
-    @tc.typecheck
-    def __eq__(self, other: 'Complex'):
-        return isinstance(other, Complex) and self.molecules == other.molecules and self.bindings == other.bindings
-
-    def __hash__(self):
-        return hash(str(self))
-
-    def __lt__(self, other):
-        if isinstance(other, Complex) and sorted(self.molecules) < sorted(other.molecules):
-            return True
-        return False
-
-    def __repr__(self):
-        return str(self)
-
-    def __str__(self) -> str:
-        if self.bindings:
-            return 'Comp<{0} | {1}>'.format(', '.join(sorted([str(x) for x in self.molecules])),
-                                            ', '.join(str(x) for x in self.bindings))
-        else:
-            return 'Comp<{0}>'.format(', '.join(sorted([str(x) for x in self.molecules])))
-
-    def _validate(self):
-        unique_localizations = {molecule.localization_property for molecule in self.molecules}
-        if len(unique_localizations) > 1:
-            raise ValueError('Molecules making up a ComplexReactant cannot be in different localizations: {0}.'
-                             .format(', '.join(str(x) for x in unique_localizations)))
-
-
-class Arrow(Enum):
-    irreversible = '->'
-    reversible   = '<->'
-
-
 class Parameter:
-    @tc.typecheck
-    def __init__(self, name: str, value: tg.Optional[str]):
+    @typecheck
+    def __init__(self, name: str, value: Optional[str]):
         self.name = name
         self.value = value
 
-    @tc.typecheck
+    @typecheck
     def __eq__(self, other: 'Parameter') -> bool:
-        assert isinstance(other, Parameter)
         return self.name == other.name and self.value == other.value
 
     def __hash__(self):
@@ -154,16 +67,15 @@ class Parameter:
 
 
 class InitialCondition:
-    def __init__(self, molecule_specification: MoleculeInstance, value):
-        self.molecule_specification = molecule_specification
+    def __init__(self, molecule: Molecule, value):
+        self.molecule = molecule
         self.value = value
 
-    def __eq__(self, other):
-        assert isinstance(other, InitialCondition)
-        return self.molecule_specification == other.molecule_specification and self.value == other.value
+    def __eq__(self, other: 'InitialCondition'):
+        return self.molecule == other.molecule and self.value == other.value
 
     def __repr__(self):
         return str(self)
 
     def __str__(self):
-        return 'InitialCondition: {0} = {1}'.format(self.molecule_specification, self.value)
+        return 'InitialCondition: {0} = {1}'.format(self.molecule, self.value)

@@ -109,17 +109,17 @@ def test_complicated_case():
     }
 
 
-    # cont_soln = Complement(Union(
-    #     Intersection(PropertySet(state_from_string('A_[c]--C_[a]')),
-    #                  PropertySet(state_from_string('C_[d]--D_[c]'))),
-    #     Intersection(PropertySet(state_from_string('A_[c]--C_[a]')),
-    #                  PropertySet(state_from_string('B_[e]--E_[b]')))))
-
     cont_soln = Complement(Union(
         Intersection(PropertySet(state_from_string('A_[c]--C_[a]')),
                      PropertySet(state_from_string('C_[d]--D_[c]'))),
         Intersection(PropertySet(state_from_string('A_[c]--C_[a]')),
                      PropertySet(state_from_string('B_[e]--E_[b]')))))
+
+    # cont_soln = Union(
+    #     Union(PropertySet(state_from_string('A_[c]--C_[a]')),
+    #           PropertySet(state_from_string('C_[d]--D_[c]'))),
+    #     Union(PropertySet(state_from_string('A_[c]--C_[a]')),
+    #           PropertySet(state_from_string('B_[e]--E_[b]'))))
 
     reaction = reaction_from_string(REACTION_DEFINITIONS, 'A_[b]_ppi_B_[a]')
 

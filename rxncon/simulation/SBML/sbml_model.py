@@ -14,7 +14,7 @@ class Species:
 
 
 class SingleSpecies(Species):
-    def __init__(self, molecules: List[mol.MoleculeInstance], inital_amount: Optional['InitialAmount'], id: 'SpeciesID'):
+    def __init__(self, molecules: List[mol.Molecule], inital_amount: Optional['InitialAmount'], id: 'SpeciesID'):
         self.list_of_molecules = molecules
         self.id = id
         self.inital_amount = inital_amount
@@ -27,7 +27,7 @@ class SingleSpecies(Species):
 
 
 class ComplexSpecies(Species):
-    def __init__(self, molecules: List[mol.MoleculeInstance], inital_amount: Optional['InitialAmount'], id: 'SpeciesID'):
+    def __init__(self, molecules: List[mol.Molecule], inital_amount: Optional['InitialAmount'], id: 'SpeciesID'):
         self.list_of_molecules = molecules
         self.id = id
         self.inital_amount = inital_amount

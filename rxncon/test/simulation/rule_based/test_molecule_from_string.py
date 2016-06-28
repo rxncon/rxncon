@@ -5,8 +5,8 @@ from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_strin
 from rxncon.semantics.molecule_definition import MoleculeDefinition, ModificationPropertyDefinition, \
     AssociationPropertyDefinition, LocalizationPropertyDefinition, Compartment, OccupationStatus
 from rxncon.semantics.molecule import Modifier, OccupationStatus, Compartment, MoleculeDefinition, \
-    ModificationPropertyDefinition, AssociationPropertyDefinition, LocalizationPropertyDefinition, MoleculeInstance, \
-    ModificationPropertyInstance, AssociationPropertyInstance
+    ModificationPropertyDefinition, AssociationPropertyDefinition, LocalizationPropertyDefinition, Molecule, \
+    ModificationProperty, AssociationProperty
 from rxncon.semantics.molecule_instance import MoleculeInstance, AssociationPropertyInstance, ModificationPropertyInstance
 from rxncon.syntax.rxncon_from_string import specification_from_string
 
@@ -91,27 +91,27 @@ def mol_instances():
 
     ass_def = list(mol_def_from_string('A#ass/A_[x]:B_[y]~C_[z]').association_defs)[0]
 
-    mol_instances[('A#ass/A_[x]:B_[y]~C_[z]', 'A#ass/A_[x]:')] = MoleculeInstance(
+    mol_instances[('A#ass/A_[x]:B_[y]~C_[z]', 'A#ass/A_[x]:')] = Molecule(
         mol_def_from_string('A#ass/A_[x]:B_[y]~C_[z]'),
         set(),
-        {AssociationPropertyInstance(ass_def, OccupationStatus.not_occupied, None)},
+        {AssociationProperty(ass_def, OccupationStatus.not_occupied, None)},
         None
     )
 
     ass_def = list(mol_def_from_string('A#ass/A_[x]:B_[y]~C_[z]').association_defs)[0]
 
-    mol_instances[('A#ass/A_[x]:B_[y]~C_[z]', 'A#ass/A_[x]:C_[z]')] = MoleculeInstance(
+    mol_instances[('A#ass/A_[x]:B_[y]~C_[z]', 'A#ass/A_[x]:C_[z]')] = Molecule(
         mol_def_from_string('A#ass/A_[x]:B_[y]~C_[z]'),
         set(),
-        {AssociationPropertyInstance(ass_def, OccupationStatus.occupied_known_partner, specification_from_string('C_[z]'))},
+        {AssociationProperty(ass_def, OccupationStatus.occupied_known_partner, specification_from_string('C_[z]'))},
         None
     )
 
     mod_def = list(mol_def_from_string('A#mod/A_[(r)]:u~p~ub').modification_defs)[0]
 
-    mol_instances[('A#mod/A_[(r)]:u~p~ub', 'A#mod/A_[(r)]:p')] = MoleculeInstance(
+    mol_instances[('A#mod/A_[(r)]:u~p~ub', 'A#mod/A_[(r)]:p')] = Molecule(
         mol_def_from_string('A#mod/A_[(r)]:u~p~ub'),
-        {ModificationPropertyInstance(mod_def, Modifier.phosphorylated)},
+        {ModificationProperty(mod_def, Modifier.phosphorylated)},
         set(),
         None
     )

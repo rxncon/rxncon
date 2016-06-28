@@ -1,15 +1,11 @@
 from abc import ABCMeta, abstractproperty
 from typing import List
-import typecheck as tc
+from typecheck import typecheck
 
-import rxncon.core.state as sta
+from rxncon.core.state import State
 
 
-class Effector:
-    """Effector is a tree data structure with as its leafs StateEffector objects, which hold State objects. The non-leaf
-    node types NotEffector, AndEffector and OrEffector represent boolean NOT, AND and OR."""
-    __metaclass__ = ABCMeta
-
+class Effector(metaclass=ABCMeta):
     @property
     def name(self):
         """The optional name of the Effector. When an Effector tree is constructed through the read-in and parsing of
@@ -26,13 +22,13 @@ class Effector:
         self._name = value
 
     @abstractproperty
-    def states(self) -> List[sta.State]:
+    def states(self) -> List[State]:
         pass
 
 
 class StateEffector(Effector):
-    @tc.typecheck
-    def __init__(self, expr: sta.State):
+    @typecheck
+    def __init__(self, expr: State):
         self.expr = expr
 
     def __hash__(self):
@@ -44,7 +40,7 @@ class StateEffector(Effector):
     def __str__(self) -> str:
         return 'StateEffector({})'.format(self.expr)
 
-    @tc.typecheck
+    @typecheck
     def __eq__(self, other: Effector) -> bool:
         return isinstance(other, StateEffector) and self.expr == other.expr and self.name == other.name
 
@@ -54,14 +50,14 @@ class StateEffector(Effector):
 
 
 class NotEffector(Effector):
-    @tc.typecheck
+    @typecheck
     def __init__(self, expr: Effector):
         self.expr = expr
 
     def __str__(self) -> str:
         return 'NotEffector({})'.format(self.expr)
 
-    @tc.typecheck
+    @typecheck
     def __eq__(self, other: Effector) -> bool:
         return isinstance(other, NotEffector) and self.expr == other.expr and self.name == other.name
 
@@ -73,12 +69,12 @@ class NotEffector(Effector):
 class BinaryEffector(Effector):
     __metaclass__ = ABCMeta
 
-    @tc.typecheck
+    @typecheck
     def __init__(self, left_expr: Effector, right_expr: Effector):
         self.left_expr = left_expr
         self.right_expr = right_expr
 
-    @tc.typecheck
+    @typecheck
     def __eq__(self, other: Effector) -> bool:
         return isinstance(other, BinaryEffector) and self.left_expr.__class__ == other.left_expr.__class__ and \
             self.right_expr.__class__ == other.right_expr.__class__ and self.name == other.name and \

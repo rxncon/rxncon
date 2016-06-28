@@ -3,6 +3,8 @@ import pytest
 import rxncon.semantics.molecule
 import rxncon.semantics.molecule_definition as mold
 import rxncon.semantics.molecule_instance
+
+import rxncon.semantics.rule
 import rxncon.simulation.rule_based.rule_based_model as rbm
 import rxncon.simulation.rule_based.bngl_export as bex
 import rxncon.core.specification as spec
@@ -14,63 +16,63 @@ def test_string_from_modification_definition():
     modification_definition = rxncon.semantics.molecule.ModificationPropertyDefinition(spec.ProteinSpecification('A', None, None, 'ModDomain')
                                                                                        , {
                                                                                        rxncon.semantics.molecule.Modifier.unmodified, rxncon.semantics.molecule.Modifier.phosphorylated})
-    mod_def_str = bex.string_from_modification_definition(modification_definition)
+    mod_def_str = bex.string_from_mod_prop_def(modification_definition)
     assert mod_def_str == 'ModDomain~U~P'
 
 
 def test_string_from_modification_specification():
     modification_definition = rxncon.semantics.molecule.ModificationPropertyDefinition('ModDomain', ['U', 'P'])
-    modification_specification = rxncon.semantics.molecule.ModificationPropertyInstance(modification_definition, 'P')
+    modification_specification = rxncon.semantics.molecule.ModificationProperty(modification_definition, 'P')
 
-    mod_spec_str = bex.string_from_modification_specification(modification_specification)
+    mod_spec_str = bex.string_from_mod_prop(modification_specification)
     assert mod_spec_str == 'ModDomain~P'
 
 
 def test_string_from_association_definition():
     association_definition = rxncon.semantics.molecule.AssociationPropertyDefinition('AssociationDomain')
-    assoc_def_str = bex.string_from_association_definition(association_definition)
+    assoc_def_str = bex.string_from_ass_prop_def(association_definition)
     assert assoc_def_str == 'AssociationDomain'
 
 
 def test_string_from_association_specification():
     ass_def = rxncon.semantics.molecule.AssociationPropertyDefinition('AssociationDomain')
 
-    assert bex.string_from_association_specification(rxncon.semantics.molecule.AssociationPropertyInstance(ass_def, rxncon.semantics.molecule.OccupationStatus.occupied_unknown_partner)) == \
+    assert bex.string_from_ass_prop(rxncon.semantics.molecule.AssociationProperty(ass_def, rxncon.semantics.molecule.OccupationStatus.occupied_unknown_partner)) == \
         'AssociationDomain!+'
 
-    assert bex.string_from_association_specification(rxncon.semantics.molecule.AssociationPropertyInstance(ass_def, rxncon.semantics.molecule.OccupationStatus.not_occupied)) == \
+    assert bex.string_from_ass_prop(rxncon.semantics.molecule.AssociationProperty(ass_def, rxncon.semantics.molecule.OccupationStatus.not_occupied)) == \
         'AssociationDomain'
 
-    assert bex.string_from_association_specification(rxncon.semantics.molecule.AssociationPropertyInstance(ass_def, rxncon.semantics.molecule.OccupationStatus.not_specified)) == \
+    assert bex.string_from_ass_prop(rxncon.semantics.molecule.AssociationProperty(ass_def, rxncon.semantics.molecule.OccupationStatus.not_specified)) == \
         'AssociationDomain!?'
 
     # This should not appear outside of a ComplexReactant.
     with pytest.raises(NotImplementedError):
-        bex.string_from_association_specification(rxncon.semantics.molecule.AssociationPropertyInstance(ass_def, rxncon.semantics.molecule.OccupationStatus.occupied_known_partner))
+        bex.string_from_ass_prop(rxncon.semantics.molecule.AssociationProperty(ass_def, rxncon.semantics.molecule.OccupationStatus.occupied_known_partner))
 
 
 def test_string_from_localization_definition():
     localization_definition = rxncon.semantics.molecule.LocalizationPropertyDefinition(['Cell', 'Nucleus'])
-    loc_str = bex.string_from_localization_definition(localization_definition)
+    loc_str = bex.string_from_loc_prop_def(localization_definition)
 
     assert loc_str == 'loc~Cell~Nucleus'
 
 
 def test_string_from_localization_specification():
     localization_definition = rxncon.semantics.molecule.LocalizationPropertyDefinition(['Cell'])
-    localization_specification = rxncon.semantics.molecule.LocalizationPropertyInstance(localization_definition, 'Cell')
-    loc_str = bex.string_from_localization_specification(localization_specification)
+    localization_specification = rxncon.semantics.molecule.LocalizationProperty(localization_definition, 'Cell')
+    loc_str = bex.string_from_loc_prop(localization_specification)
 
     assert loc_str == 'loc~Cell'
 
 
 def test_string_from_molecule_definition(simple_molecule_spec):
-    assert bex.string_from_molecule_definition(simple_molecule_spec.molecule_def) == \
+    assert bex.string_from_mol_def(simple_molecule_spec.molecule_def) == \
         'A(loc~Cytosole~Nucleus,ModDomain1~U~P,ModDomain2~U~GTP,AssociationDomain1,AssociationDomain2)'
 
 
 def test_string_from_molecule_specification(simple_molecule_spec):
-    assert bex.string_from_molecule_specification(simple_molecule_spec) == \
+    assert bex.string_from_molecule(simple_molecule_spec) == \
         'A(loc~Cytosole,ModDomain1~P,AssociationDomain1)'
 
 
@@ -83,20 +85,20 @@ def test_string_from_complex_reactant(simple_molecule_spec):
     simple_molecule_spec.association_specs[0].occupation_status = rxncon.semantics.molecule.OccupationStatus.occupied_known_partner
     bound_molecule_a = simple_molecule_spec
 
-    bound_molecule_b = rxncon.semantics.molecule.MoleculeInstance(
+    bound_molecule_b = rxncon.semantics.molecule.Molecule(
             rxncon.semantics.molecule.MoleculeDefinition(
                 'B', [], [rxncon.semantics.molecule.AssociationPropertyDefinition('AssociationDomain')], rxncon.semantics.molecule.LocalizationPropertyDefinition(['Cytosole', 'Nucleus'])
             ),
             [],
-            [rxncon.semantics.molecule.AssociationPropertyInstance(
+            [rxncon.semantics.molecule.AssociationProperty(
                 rxncon.semantics.molecule.AssociationPropertyDefinition('AssociationDomain'), rxncon.semantics.molecule.OccupationStatus.occupied_known_partner)],
-            rxncon.semantics.molecule.LocalizationPropertyInstance(
+            rxncon.semantics.molecule.LocalizationProperty(
                 rxncon.semantics.molecule.LocalizationPropertyDefinition(['Cytosole', 'Nucleus']), 'Cytosole')
     )
 
     complex_reactant = rbm.ComplexReactant(
             [bound_molecule_a, bound_molecule_b],
-            [rxncon.semantics.molecule.Binding(left_spec=(0, bound_molecule_a.association_specs[0]), right_spec=(1, bound_molecule_b.association_properties[0]))]
+            [rxncon.semantics.molecule.Bond(left_spec=(0, bound_molecule_a.association_specs[0]), right_spec=(1, bound_molecule_b.ass_props[0]))]
     )
 
     assert bex.string_from_complex_reactant(complex_reactant) == \
@@ -143,18 +145,18 @@ simulate({method=>"ode",t_end=>10,n_steps=>100})'''
 def simple_molecule_spec():
     mod_defs  = [rxncon.semantics.molecule.ModificationPropertyDefinition('ModDomain1', ['U', 'P']),
                  rxncon.semantics.molecule.ModificationPropertyDefinition('ModDomain2', ['U', 'GTP'])]
-    mod_specs = [rxncon.semantics.molecule.ModificationPropertyInstance(mod_defs[0], 'P')]
+    mod_specs = [rxncon.semantics.molecule.ModificationProperty(mod_defs[0], 'P')]
 
     ass_defs  = [rxncon.semantics.molecule.AssociationPropertyDefinition('AssociationDomain1'),
                  rxncon.semantics.molecule.AssociationPropertyDefinition('AssociationDomain2')]
-    ass_specs = [rxncon.semantics.molecule.AssociationPropertyInstance(ass_defs[0], rxncon.semantics.molecule.OccupationStatus.not_occupied)]
+    ass_specs = [rxncon.semantics.molecule.AssociationProperty(ass_defs[0], rxncon.semantics.molecule.OccupationStatus.not_occupied)]
 
     loc_def   = rxncon.semantics.molecule.LocalizationPropertyDefinition(['Cytosole', 'Nucleus'])
-    loc_spec  = rxncon.semantics.molecule.LocalizationPropertyInstance(loc_def, 'Cytosole')
+    loc_spec  = rxncon.semantics.molecule.LocalizationProperty(loc_def, 'Cytosole')
 
     molecule_definition = rxncon.semantics.molecule.MoleculeDefinition('A', mod_defs, ass_defs, loc_def)
 
-    molecule_specification = rxncon.semantics.molecule.MoleculeInstance(molecule_definition, mod_specs, ass_specs, loc_spec)
+    molecule_specification = rxncon.semantics.molecule.Molecule(molecule_definition, mod_specs, ass_specs, loc_spec)
 
     return molecule_specification
 
@@ -167,30 +169,30 @@ def simple_rule_based_model():
     mol_def_a = rxncon.semantics.molecule.MoleculeDefinition('A', [], [assoc_def_a], None)
     mol_def_b = rxncon.semantics.molecule.MoleculeDefinition('B', [], [assoc_def_b], None)
 
-    mol_spec_a_unbound = rxncon.semantics.molecule.MoleculeInstance(mol_def_a, [], [
-        rxncon.semantics.molecule.AssociationPropertyInstance(assoc_def_a, rxncon.semantics.molecule.OccupationStatus.not_occupied)],
-                                                                    None)
-    mol_spec_b_unbound = rxncon.semantics.molecule.MoleculeInstance(mol_def_b, [], [
-        rxncon.semantics.molecule.AssociationPropertyInstance(assoc_def_b, rxncon.semantics.molecule.OccupationStatus.not_occupied)],
-                                                                    None)
+    mol_spec_a_unbound = rxncon.semantics.molecule.Molecule(mol_def_a, [], [
+        rxncon.semantics.molecule.AssociationProperty(assoc_def_a, rxncon.semantics.molecule.OccupationStatus.not_occupied)],
+                                                            None)
+    mol_spec_b_unbound = rxncon.semantics.molecule.Molecule(mol_def_b, [], [
+        rxncon.semantics.molecule.AssociationProperty(assoc_def_b, rxncon.semantics.molecule.OccupationStatus.not_occupied)],
+                                                            None)
 
-    mol_spec_a_bound = rxncon.semantics.molecule.MoleculeInstance(mol_def_a, [], [
-        rxncon.semantics.molecule.AssociationPropertyInstance(assoc_def_a, rxncon.semantics.molecule.OccupationStatus.occupied_known_partner)],
-                                                                  None)
-    mol_spec_b_bound = rxncon.semantics.molecule.MoleculeInstance(mol_def_b, [], [
-        rxncon.semantics.molecule.AssociationPropertyInstance(assoc_def_b, rxncon.semantics.molecule.OccupationStatus.occupied_known_partner)],
-                                                                  None)
+    mol_spec_a_bound = rxncon.semantics.molecule.Molecule(mol_def_a, [], [
+        rxncon.semantics.molecule.AssociationProperty(assoc_def_a, rxncon.semantics.molecule.OccupationStatus.occupied_known_partner)],
+                                                          None)
+    mol_spec_b_bound = rxncon.semantics.molecule.Molecule(mol_def_b, [], [
+        rxncon.semantics.molecule.AssociationProperty(assoc_def_b, rxncon.semantics.molecule.OccupationStatus.occupied_known_partner)],
+                                                          None)
 
     reactant_a_unbound = rbm.MoleculeReactant(mol_spec_a_unbound)
     reactant_b_unbound = rbm.MoleculeReactant(mol_spec_b_unbound)
 
-    binding = rxncon.semantics.molecule.Binding((0, mol_spec_a_bound.association_properties[0]),
-                                                (1, mol_spec_b_bound.association_properties[0]))
+    binding = rxncon.semantics.molecule.Bond((0, mol_spec_a_bound.ass_props[0]),
+                                             (1, mol_spec_b_bound.ass_props[0]))
 
     reactant_ab = rbm.ComplexReactant([mol_spec_a_bound, mol_spec_b_bound], [binding])
 
     rates = [rbm.Parameter('kf', '1e6/(NA*V)'), rbm.Parameter('kr', '0.1')]
-    rule = rbm.Rule([reactant_a_unbound, reactant_b_unbound], [reactant_ab], rbm.Arrow.reversible, rates)
+    rule = rxncon.semantics.rule.Rule([reactant_a_unbound, reactant_b_unbound], [reactant_ab], rxncon.semantics.rule.Arrow.reversible, rates)
 
     parameters = [
         rbm.Parameter('A_total', '100'),

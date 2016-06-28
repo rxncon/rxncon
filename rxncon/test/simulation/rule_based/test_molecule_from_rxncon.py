@@ -4,7 +4,7 @@ from typing import List
 
 from rxncon.venntastic.sets import PropertySet, Intersection, Union, Complement, nested_expression_from_list_and_binary_op
 from rxncon.syntax.rxncon_from_string import state_from_string, specification_from_string, reaction_from_string
-from rxncon.semantics.molecule import MoleculeInstance
+from rxncon.semantics.molecule import Molecule
 from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_string, mol_instance_from_string
 from rxncon.simulation.rule_based.molecule_from_rxncon import mol_instance_set_pair_from_reaction
 from rxncon.simulation.rule_based.rbm_from_rxncon import mol_instance_set_from_state_set, \
@@ -133,6 +133,6 @@ def is_reaction_test_case_correct(test_case: MoleculeInstancesPairFromReactionTe
 
     return actual_lhs_set.is_equivalent_to(expected_lhs_set) and actual_rhs_set.is_equivalent_to(expected_rhs_set)
 
-def are_mol_instance_lists_equivalent(first_list: List[MoleculeInstance], second_list: List[MoleculeInstance]) -> bool:
+def are_mol_instance_lists_equivalent(first_list: List[Molecule], second_list: List[Molecule]) -> bool:
     return all(x in second_list for x in first_list) and all(x in first_list for x in second_list) and \
         len(first_list) == len(second_list)

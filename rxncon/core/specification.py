@@ -1,15 +1,12 @@
-import typecheck as tc
+from typecheck import typecheck
 import re
 from abc import ABCMeta, abstractmethod
 from typing import Optional
 from enum import Enum
 
-import rxncon.syntax.string_from_rxncon as sfr
-
 
 class Specification(metaclass=ABCMeta):
-
-    @tc.typecheck
+    @typecheck
     def __init__(self, name: str, structure_index: Optional[int], domain: 'Domain'):
         self.name = name
         self.domain = domain
@@ -19,20 +16,23 @@ class Specification(metaclass=ABCMeta):
     def _validate(self):
         assert self.name is not None and re.match("\w+", self.name)
 
-    @abstractmethod
-    def __hash__(self) -> int:
-        pass
+    def __hash__(self):
+        return hash(str(self))
 
     def __repr__(self) -> str:
         return str(self)
 
-    @abstractmethod
     def __str__(self) -> str:
-        pass
+        if self.structure_index:
+            return '{0}: {1}@{2}_[{3}/{4}({5})]'.format(str(type(self)), self.structure_index,
+                                                        self.name, self.domain, self.subdomain, self.resolution)
+        else:
+            return '{0}: {1}_[{2}/{3}({4})]'.format(str(type(self)),
+                                                    self.name, self.domain, self.subdomain, self.resolution)
 
-    @abstractmethod
     def __eq__(self, other: 'Specification') -> bool:
-        pass
+        return isinstance(other, type(self)) and self.name == other.name \
+            and self.domain == other.domain and self.subdomain == other.subdomain and self.residue == other.residue
 
     def __lt__(self, other: 'Specification') -> bool:
         # None is smaller than something
@@ -41,6 +41,16 @@ class Specification(metaclass=ABCMeta):
         elif self.name == other.name:
             return self.domain < other.domain
         return False
+
+    def _validate(self):
+        assert self.name is not None and re.match("\w+", self.name)
+        if self.domain:
+            assert re.match("\w+", self.domain)
+        if self.subdomain:
+            assert re.match("\w+", self.subdomain)
+            assert self.domain is not None
+        if self.residue:
+            assert re.match("\w+", self.residue)
 
     @abstractmethod
     def is_equivalent_to(self, other: 'Specification') -> bool:
@@ -225,8 +235,8 @@ class ProteinSpecification(Specification):
         else:
             raise NotImplementedError
 
-    @tc.typecheck
-    def is_equivalent_to(self, other: Specification) -> bool:
+    @typecheck
+    def is_equivalent_to(self, other: Specification):
         if isinstance(other, ProteinSpecification) and (self.name == other.name) \
                 and self.domain.is_equivalent_to(other.domain):
             return True
@@ -238,7 +248,6 @@ class ProteinSpecification(Specification):
 
 
 class RnaSpecification(Specification):
-
     def __hash__(self):
         return hash(str(self))
 
@@ -252,7 +261,6 @@ class RnaSpecification(Specification):
 
     @tc.typecheck
     def __lt__(self, other: Specification) -> bool:
-
         if isinstance(other, RnaSpecification):
             return super().__lt__(other)
         elif isinstance(other, DnaSpecification):
@@ -277,7 +285,6 @@ class RnaSpecification(Specification):
 
 
 class DnaSpecification(Specification):
-
     def __hash__(self):
         return hash(str(self))
 

@@ -1,11 +1,9 @@
-from rxncon.core.specification import Specification, RnaSpecification, ProteinSpecification, SpecificationResolution, DnaSpecification, Domain
-from rxncon.core.state import state_from_string, State
-from rxncon.syntax.specification_from_string import specification_from_string
-
-
 from typing import List, Set
-
 import re
+
+from rxncon.core.specification import Specification, RnaSpecification, ProteinSpecification, SpecificationResolution
+from rxncon.core.state import State
+from rxncon.syntax.rxncon_from_string import state_from_string, specification_from_string
 
 class Reactant:
     def __init__(self, component: Specification, states: List[State]):
@@ -36,7 +34,7 @@ def __get_state(state_strs: List[str], variables):
             states.append(state_from_string(state_str))
     return states
 
-def parse_reactant(definition: str, variables):
+def parse_reactant(definition: str, index, variables):
     component_str, states_str = definition.split('#')
     component_parts = component_str.split('.')
 
@@ -52,6 +50,7 @@ def parse_reactant(definition: str, variables):
         raise NotImplementedError
 
     states = __get_state(states_str.split(','), variables)
+    component.structure_index = index
 
     return Reactant(component, states)
 
@@ -121,10 +120,10 @@ class ReactionDefinition:
         return variables
 
     def reactants_pre_from_variables(self, variables):
-        return [parse_reactant(x, variables) for x in self.reactant_defs_pre]
+        return [parse_reactant(x, i, variables) for i, x in enumerate(self.reactant_defs_pre)]
 
     def reactants_post_from_variables(self, variables):
-        return [parse_reactant(x, variables) for x in self.reactant_defs_post]
+        return [parse_reactant(x, i, variables) for i, x in enumerate(self.reactant_defs_post)]
 
     def _to_base_regex(self):
         return '^{}$'.format(self.representation_def.replace('+', '\+'))
