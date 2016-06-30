@@ -17,8 +17,8 @@ def reaction_definitions():
     return {'phosphorylation': rxn.ReactionDefinition('phosphorylation',
                                                       '$x_p+_$y',
                                                       {
-                                                        '$x': (spec.ProteinSpecification, spec.SpecificationResolution.component),
-                                                        '$y': (spec.Specification, spec.SpecificationResolution.residue)
+                                                          '$x': (spec.ProteinSpecification, spec.SpecificationResolution.component),
+                                                          '$y': (spec.Specification, spec.SpecificationResolution.residue)
                                                       },
                                                       '$x# + $y#$y-{0} -> $x# + $y#$y-{p}'
                                                       ),
@@ -51,10 +51,10 @@ def reaction_definitions():
 
             'transcription': rxn.ReactionDefinition('transcription',
                                                    '$x_trsc_$y',
-                                                   {
-                                                       '$x': (spec.ProteinSpecification, spec.SpecificationResolution.component),
-                                                       '$y': (spec.ProteinSpecification, spec.SpecificationResolution.component)
-                                                   },
+                                                    {
+                                                        '$x': (spec.ProteinSpecification, spec.SpecificationResolution.component),
+                                                        '$y': (spec.Specification, spec.SpecificationResolution.component)
+                                                    },
                                                    '$x# + $y.gene# -> $x# + $y.gene# + $y.mRNA#'
                                                    ),
 
@@ -62,7 +62,7 @@ def reaction_definitions():
                                                   '$x_trsl_$y',
                                                   {
                                                     '$x': (spec.ProteinSpecification, spec.SpecificationResolution.component),
-                                                    '$y': (spec.ProteinSpecification, spec.SpecificationResolution.component)
+                                                    '$y': (spec.Specification, spec.SpecificationResolution.component)
                                                   },
                                                   '$x# + $y.mRNA# -> $x# + $y.mRNA# + $y#'
                                                  ),
@@ -123,7 +123,7 @@ def definition_test_case(reaction_definitions):
                         '$x# + $y.gene# -> $x# + $y.gene# + $y.mRNA#',
                         '$x_trsc_$y',
                        (spec.ProteinSpecification, spec.SpecificationResolution.component),
-                       (spec.ProteinSpecification, spec.SpecificationResolution.component)
+                       (spec.Specification, spec.SpecificationResolution.component)
                        ),
     DefinitionTestCase(reaction_definitions['translation'],
                         'translation',
@@ -132,7 +132,7 @@ def definition_test_case(reaction_definitions):
                         '$x# + $y.mRNA# -> $x# + $y.mRNA# + $y#',
                         '$x_trsl_$y',
                        (spec.ProteinSpecification, spec.SpecificationResolution.component),
-                       (spec.ProteinSpecification, spec.SpecificationResolution.component)
+                       (spec.Specification, spec.SpecificationResolution.component)
                        ),
         DefinitionTestCase(reaction_definitions['synthesis'],
                        'synthesis',
@@ -171,7 +171,7 @@ def _is_definition_correct(the_case):
     assert the_case.definition.variables_def['$y'] == the_case.expected_variable_y
 
 #
-ReactionTestCase = namedtuple('ReactionTestCase' , ['reaction_str', 'definition', 'expected_reaction',
+ReactionTestCase = namedtuple('ReactionTestCase' , ['reaction_str', 'expected_definition', 'expected_reaction',
                                                     'expected_reactants_pre', 'expected_reactants_post'])
 
 
@@ -342,8 +342,10 @@ def test_reactions(reaction_test_case):
 
 
 def is_reaction_correct(the_case):
-    actual_reaction = rxn.reaction_from_string([the_case.definition], the_case.reaction_str)
+    actual_reaction = rxn.reaction_from_string(the_case.reaction_str)
+
     assert actual_reaction == the_case.expected_reaction
+    assert actual_reaction.definition == the_case.expected_definition
     assert actual_reaction.reactants_pre == the_case.expected_reactants_pre
     assert actual_reaction.reactants_post == the_case.expected_reactants_post
 
@@ -351,7 +353,7 @@ def is_reaction_correct(the_case):
 #
 def test_simple():
 
-    reaction = rxn.reaction_from_string(rxn.REACTION_DEFINITIONS, 'A_[m]_bind_A_[n]')
+    reaction = rxn.reaction_from_string('A_[m]_bind_A_[n]')
     print(reaction)
     print(reaction.reactants_pre)
     print(reaction.reactants_post)

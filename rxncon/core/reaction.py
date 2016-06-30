@@ -177,7 +177,7 @@ REACTION_DEFINITIONS = [
         '$x_trsl_$y',
         {
             '$x': (ProteinSpecification, SpecificationResolution.component),
-            '$y': (ProteinSpecification, SpecificationResolution.component)
+            '$y': (Specification, SpecificationResolution.component)
         },
         '$x# + $y.mRNA# -> $x# + $y.mRNA# + $y#'
     ),
@@ -200,6 +200,27 @@ REACTION_DEFINITIONS = [
             '$y': (ProteinSpecification, SpecificationResolution.domain)
         },
         '$x#$x--0 + $y.gene#$y.gene--0 -> $x#$x--$y.gene + $y.gene#$x--$y.gene'
+    ),
+
+    ReactionDefinition(
+        'synthesis',
+        '$x_syn_$y',
+        {
+            '$x': (ProteinSpecification, SpecificationResolution.component),
+            '$y': (ProteinSpecification, SpecificationResolution.component)
+        },
+        '$x# -> $x# + $y#'
+
+    ),
+    ReactionDefinition(
+        'degradation',
+        '$x_deg_$y',
+        {
+            '$x': (ProteinSpecification, SpecificationResolution.component),
+            '$y': (ProteinSpecification, SpecificationResolution.component)
+        },
+        '$x# + $y# -> $x#'
+
     ),
     #todo: output reaction definition
     # ReactionDefinition(
@@ -232,15 +253,20 @@ class Reaction:
     def reactants_post(self):
         return self.definition.reactants_post_from_variables(self.variables)
 
-
-def reaction_from_string(definitions: List[ReactionDefinition], representation: str) -> Reaction:
+def definition_of_state(representation: str):
     the_definition = None
-    for definition in definitions:
+
+    for definition in REACTION_DEFINITIONS:
+
         if definition.matches_representation(representation):
             assert not the_definition
             the_definition = definition
 
     assert the_definition
+    return the_definition
+
+def reaction_from_string(representation: str) -> Reaction:
+    the_definition = definition_of_state(representation)
     variables = the_definition.variables_from_representation(representation)
 
     return Reaction(the_definition, variables)
