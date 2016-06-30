@@ -20,10 +20,29 @@ def test_graph_writing(the_cases):
 
 
 @pytest.fixture
-def the_cases(case_and_expected_graph):
-    return case_and_expected_graph
+def the_cases(small_case_and_expected_graph):
+    return small_case_and_expected_graph
 
+@pytest.fixture
+def small_case_and_expected_graph():
+    return [RuleTestCase('''A_[b]_ppi_B_[a]; ! A_[(r)]-{p}
+                        C_p+_A_[(r)]''',
+                     '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                        <graph directed="1"  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.cs.rpi.edu/XGMML">
+                        <att name="selected" value="1" type="boolean" />
+                        <att name="name" value="test_graph" type="string"/>
+                        <att name="shared name" value="test_graph" type="string"/>
 
+                        <node id="A_[b]--B_[a]" label="A_[b]--B_[a]"><att name="type" value="state" /></node>
+                        <node id="C_p+_A_[(r)]" label="C_p+_A_[(r)]"><att name="type" value="reaction" /></node>
+                        <node id="A_[b]_ppi_B_[a]" label="A_[b]_ppi_B_[a]"><att name="type" value="reaction" /></node>
+                        <node id="A_[(r)]-{p}" label="A_[(r)]-{p}"><att name="type" value="state" /></node>
+                        <edge source="C_p+_A_[(r)]" target="A_[(r)]-{p}"><att name="interaction" value="produce"/></edge>
+                        <edge source="A_[b]_ppi_B_[a]" target="A_[b]--B_[a]"><att name="interaction" value="produce"/></edge>
+                        <edge source="A_[(r)]-{p}" target="A_[b]_ppi_B_[a]"><att name="interaction" value="!"/></edge>
+                        </graph>'''),
+
+    ]
 @pytest.fixture
 def case_and_expected_graph():
     return [

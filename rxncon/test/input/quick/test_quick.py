@@ -2,23 +2,25 @@ import pytest
 from collections import namedtuple
 
 import rxncon.input.quick.quick as qui
+
 import rxncon.syntax.rxncon_from_string as rfs
 import rxncon.core.contingency as con
 import rxncon.core.effector as eff
-
+import rxncon.core.reaction as rxn
+import rxncon.core.state as sta
 QuickTestCase = namedtuple('QuickTestCase', ["string", "reactions", "contingencies"])
 
-expected_effector1 = eff.AndEffector(eff.AndEffector(eff.StateEffector(rfs.state_from_string('A--C')),
-                                                     eff.StateEffector(rfs.state_from_string('A--D'))),
-                                     eff.StateEffector(rfs.state_from_string('B--C')))
+expected_effector1 = eff.AndEffector(eff.AndEffector(eff.StateEffector(sta.state_from_string('A--C')),
+                                                     eff.StateEffector(sta.state_from_string('A--D'))),
+                                     eff.StateEffector(sta.state_from_string('B--C')))
 
 expected_effector1.name = '<bool>'
 
-expected_effector2 = eff.AndEffector(eff.StateEffector(rfs.state_from_string('B--E')),
-                                     eff.StateEffector(rfs.state_from_string('B--F')))
+expected_effector2 = eff.AndEffector(eff.StateEffector(sta.state_from_string('B--E')),
+                                     eff.StateEffector(sta.state_from_string('B--F')))
 expected_effector2.name = '<bool1>'
 
-expected_effector3 = eff.OrEffector(eff.StateEffector(rfs.state_from_string('B--D')), expected_effector2)
+expected_effector3 = eff.OrEffector(eff.StateEffector(sta.state_from_string('B--D')), expected_effector2)
 expected_effector3.name = '<bool>'
 
 
@@ -40,31 +42,31 @@ def is_quick_output_correct(the_case):
 def the_case_quick():
     return [
         QuickTestCase('A_ppi_B',
-                      [rfs.reaction_from_string('A_ppi_B')],
+                      [rxn.reaction_from_string('A_ppi_B')],
                       []),
 
         QuickTestCase("""A_ppi_C
                       A_ppi_B; ! A--C""",
-                      [rfs.reaction_from_string('A_ppi_B'), rfs.reaction_from_string('A_ppi_C')],
-                      [con.Contingency(rfs.reaction_from_string('A_ppi_B'),con.ContingencyType.requirement,
-                                       eff.StateEffector(rfs.state_from_string('A--C')))]),
+                      [rxn.reaction_from_string('A_ppi_B'), rxn.reaction_from_string('A_ppi_C')],
+                      [con.Contingency(rxn.reaction_from_string('A_ppi_B'),con.ContingencyType.requirement,
+                                       eff.StateEffector(sta.state_from_string('A--C')))]),
 
         QuickTestCase("""C_p+_A
                         C_ppi_A
                         A_ppi_B; ! A-{P}; ! A--C""",
-                      [rfs.reaction_from_string('C_p+_A'), rfs.reaction_from_string('C_ppi_A'),
-                       rfs.reaction_from_string('A_ppi_B')],
-                      [con.Contingency(rfs.reaction_from_string('A_ppi_B'), con.ContingencyType.requirement,
-                                       eff.StateEffector(rfs.state_from_string('A--C'))),
-                       con.Contingency(rfs.reaction_from_string('A_ppi_B'), con.ContingencyType.requirement,
-                                       eff.StateEffector(rfs.state_from_string('A-{p}')))]),
+                      [rxn.reaction_from_string('C_p+_A'), rxn.reaction_from_string('C_ppi_A'),
+                       rxn.reaction_from_string('A_ppi_B')],
+                      [con.Contingency(rxn.reaction_from_string('A_ppi_B'), con.ContingencyType.requirement,
+                                       eff.StateEffector(sta.state_from_string('A--C'))),
+                       con.Contingency(rxn.reaction_from_string('A_ppi_B'), con.ContingencyType.requirement,
+                                       eff.StateEffector(sta.state_from_string('A-{p}')))]),
 
         QuickTestCase("""A_ppi_B; ! <bool>
                         <bool>; AND A--C
                         <bool>; AND A--D
                         <bool>; AND B--C""",
-                      [rfs.reaction_from_string('A_ppi_B')],
-                      [con.Contingency(rfs.reaction_from_string('A_ppi_B'), con.ContingencyType.requirement, expected_effector1)]),
+                      [rxn.reaction_from_string('A_ppi_B')],
+                      [con.Contingency(rxn.reaction_from_string('A_ppi_B'), con.ContingencyType.requirement, expected_effector1)]),
 
         QuickTestCase("""A_ppi_B; ! A_[n]--[m]
                          B_p+_C; ! <bool>
@@ -73,20 +75,20 @@ def the_case_quick():
                          <bool1>; AND B--E
                          <bool1>; AND B--F
                         """,
-                      [rfs.reaction_from_string('A_ppi_B'), rfs.reaction_from_string('B_p+_C')],
-                      [con.Contingency(rfs.reaction_from_string('A_ppi_B'), con.ContingencyType.requirement,
-                                       eff.StateEffector(rfs.state_from_string('A_[n]--[m]'))),
-                       con.Contingency(rfs.reaction_from_string('B_p+_C'), con.ContingencyType.requirement,
+                      [rxn.reaction_from_string('A_ppi_B'), rxn.reaction_from_string('B_p+_C')],
+                      [con.Contingency(rxn.reaction_from_string('A_ppi_B'), con.ContingencyType.requirement,
+                                       eff.StateEffector(sta.state_from_string('A_[n]--[m]'))),
+                       con.Contingency(rxn.reaction_from_string('B_p+_C'), con.ContingencyType.requirement,
                                        expected_effector3)]),
 
         QuickTestCase("""A_ppi_B; ! A-{P}; ! [Input]
                         C_p+_A
                         [Output]; ! A--B""",
-                      [rfs.reaction_from_string('A_ppi_B'), rfs.reaction_from_string('C_p+_A')],
-                      [con.Contingency(rfs.reaction_from_string('A_ppi_B'), con.ContingencyType.requirement,
-                                       eff.StateEffector(rfs.state_from_string('A-{p}'))),
-                       con.Contingency(rfs.reaction_from_string('A_ppi_B'), con.ContingencyType.requirement,
-                                       eff.StateEffector(rfs.state_from_string('[Input]'))),
-                       con.Contingency(rfs.reaction_from_string('[Output]'), con.ContingencyType.requirement,
-                                       eff.StateEffector(rfs.state_from_string('A--B')))])
+                      [rxn.reaction_from_string('A_ppi_B'), rxn.reaction_from_string('C_p+_A')],
+                      [con.Contingency(rxn.reaction_from_string('A_ppi_B'), con.ContingencyType.requirement,
+                                       eff.StateEffector(sta.state_from_string('A-{p}'))),
+                       con.Contingency(rxn.reaction_from_string('A_ppi_B'), con.ContingencyType.requirement,
+                                       eff.StateEffector(sta.state_from_string('[Input]'))),
+                       con.Contingency(rxn.reaction_from_string('[Output]'), con.ContingencyType.requirement,
+                                       eff.StateEffector(sta.state_from_string('A--B')))])
     ]
