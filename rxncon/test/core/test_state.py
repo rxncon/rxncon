@@ -1,6 +1,7 @@
 import pytest
 import rxncon.syntax.rxncon_from_string as rfs
 import rxncon.core.state as sta
+import rxncon.core.specification as spec
 from collections import namedtuple
 
 
@@ -102,3 +103,38 @@ def the_case_no_hierarchy():
                           [sta.state_from_string('B'), sta.state_from_string('A--B'),
                            sta.state_from_string('A-{P}')])
     ]
+
+StateTestCase = namedtuple('StateTestCase', ['state', 'expected_specifications', 'expected_string'])
+
+@pytest.fixture
+def the_case_state():
+    return [
+        StateTestCase(sta.state_from_string('Agene'),
+                      [spec.DnaSpecification('A', spec.DomainResolution(None, None, None))],
+                      'Agene'),
+        StateTestCase(sta.state_from_string('Agene_[d/s(r)]'),
+                      [spec.DnaSpecification('A', spec.DomainResolution('d', 's', 'r'))],
+                      'Agene_[d/s(r)]'),
+        StateTestCase(sta.state_from_string('AmRNA'),
+                      [spec.RnaSpecification('A', spec.DomainResolution(None, None, None))],
+                      'AmRNA'),
+        StateTestCase(sta.state_from_string('AmRNA_[d/s(r)]'),
+                      [spec.RnaSpecification('A', spec.DomainResolution('d', 's', 'r'))],
+                      'AmRNA_[d/s(r)]'),
+        StateTestCase(sta.state_from_string('A'),
+                      [spec.ProteinSpecification('A', spec.DomainResolution(None, None, None))],
+                      'A'),
+        StateTestCase(sta.state_from_string('A_[d/s(r)]'),
+                      [spec.ProteinSpecification('A', spec.DomainResolution('d', 's', 'r'))],
+                      'A_[d/s(r)]')
+    ]
+
+def test_state_building(the_case_state):
+    for the_case in the_case_state:
+        is_state_correct(the_case)
+
+def is_state_correct(the_case):
+    assert all(the_case.state.variables[variable] in the_case.expected_specifications for variable in the_case.state.variables)
+    assert str(the_case.state) == the_case.expected_string
+
+

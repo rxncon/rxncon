@@ -9,15 +9,15 @@ import typecheck as tc
 
 @unique
 class SpecificationSuffix(OrderedEnum):
-    mrna = ".mRNA"
-    gene = ".gene"
+    mrna = "mRNA"
+    gene = "gene"
     protein = ""
 
 
 @tc.typecheck
 def string_from_specification(specification, prefix: OrderedEnum) -> str:
     if str(specification.spec_resolution):
-        return '{0}_[{1}]{2}'.format(create_name(specification), str(specification.spec_resolution), prefix.value)
+        return '{0}{1}_[{2}]'.format(create_name(specification),prefix.value, str(specification.spec_resolution), )
     else:
         return '{0}{1}'.format(create_name(specification), prefix.value)
 
