@@ -7,9 +7,13 @@ from enum import Enum
 import rxncon.syntax.string_from_rxncon as sfr
 
 
-class Specification(metaclass=ABCMeta):
-    def __init__(self):
-        raise AssertionError
+class Specification():
+    def __init__(self, name: str, structure_index, spec_resolution: DomainResolution):
+        self.name = name
+        self.spec_resolution = spec_resolution
+        #todo: equal has to be adapted
+        self.structure_index = structure_index
+        self._validate()
 
     def _validate(self):
         assert self.name is not None and re.match("\w+", self.name)
@@ -77,6 +81,9 @@ class Specification(metaclass=ABCMeta):
 
     def to_protein_component_specification(self) -> 'ProteinSpecification':
         return ProteinSpecification(self.name, DomainResolution(None, None, None))
+
+    def to_domain_resolution(self) -> 'DomainResolution':
+        return self.spec_resolution
 
     @property
     def resolution(self):
@@ -158,11 +165,6 @@ class DomainResolution:
 
 
 class ProteinSpecification(Specification):
-    @tc.typecheck
-    def __init__(self, name: str, spec_resolution: DomainResolution):
-        self.name = name
-        self.spec_resolution = spec_resolution
-        self._validate()
 
     def __hash__(self):
         return hash(str(self))
@@ -199,11 +201,6 @@ class ProteinSpecification(Specification):
 
 
 class RnaSpecification(Specification):
-    @tc.typecheck
-    def __init__(self, name: str, spec_resolution: DomainResolution):
-        self.name = name
-        self.spec_resolution = spec_resolution
-        self._validate()
 
     def __hash__(self):
         return hash(str(self))
@@ -242,11 +239,6 @@ class RnaSpecification(Specification):
 
 
 class DnaSpecification(Specification):
-    @tc.typecheck
-    def __init__(self, name: str, spec_resolution: DomainResolution):
-        self.name = name
-        self.spec_resolution = spec_resolution
-        self._validate()
 
     def __hash__(self):
         return hash(str(self))

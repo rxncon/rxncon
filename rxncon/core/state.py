@@ -143,6 +143,9 @@ class State():
         return [value for value in self.variables.values() if isinstance(value, StateModifier)]
 
     def is_superspecification_of(self, other) -> bool:
+        # A -> B -> C is C subset of A? True subsets of subsets
+        # todo: multi-step inheritance
+        # todo: neutral modifier
         superspec = False
         if other.definition.name == self.definition.name or other.definition.name in self.definition.superspecification_of_def:
             for self_component in self.components():
