@@ -7,7 +7,7 @@ from enum import Enum
 import rxncon.syntax.string_from_rxncon as sfr
 
 
-class Specification():
+class Specification(metaclass=ABCMeta):
     def __init__(self, name: str, structure_index, spec_resolution: DomainResolution):
         self.name = name
         self.spec_resolution = spec_resolution
@@ -117,7 +117,7 @@ class DomainResolution:
         return str(self)
 
     def __str__(self) -> str:
-        return sfr.string_from_domain_resolution(self)
+        return sfr.string_from_domain_information(self)
 
     @tc.typecheck
     def __eq__(self, other) -> bool:
