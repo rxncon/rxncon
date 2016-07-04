@@ -17,9 +17,9 @@ class SpecificationSuffix(OrderedEnum):
 @tc.typecheck
 def string_from_specification(specification, prefix: OrderedEnum) -> str:
     if str(specification.spec_resolution):
-        return '{0}: {1}{2}_[{3}]'.format(type(specification).__name__, create_structured_name(specification), prefix.value, str(specification.spec_resolution), )
+        return '{0}: {1}_[{2}]'.format(type(specification).__name__, create_structured_name(specification, prefix.value), str(specification.spec_resolution), )
     else:
-        return '{0}: {1}{2}'.format(type(specification).__name__, create_structured_name(specification), prefix.value)
+        return '{0}: {1}'.format(type(specification).__name__, create_structured_name(specification, prefix.value))
 
 
 def string_from_domain_information(domain_resolution):
@@ -59,8 +59,8 @@ def string_from_protein_specification(specification):
 
 
 @tc.typecheck
-def create_structured_name(specification):
+def create_structured_name(specification, prefix):
     if specification.structure_index is not None:
-        return "{0}@{1}".format(specification.name, specification.structure_index)
+        return "{0}{1}@{2}".format(specification.name, prefix, specification.structure_index)
     else:
-        return "{0}".format(specification.name)
+        return "{0}".format(specification.name, prefix)

@@ -18,11 +18,11 @@ mapping_suffix_to_specification = OrderedDict([(SpecificationSuffix.mrna, com.Rn
                                                (SpecificationSuffix.protein, com.ProteinSpecification),])
 
 
-def create_specification_from_name_suffix(name, domain, subdomain, residue):
+def create_specification_from_name_suffix(name, structured_index, domain, subdomain, residue):
     for suffix in mapping_suffix_to_specification:
         if name.endswith(suffix.value):
             name = name[:len(name)-len(suffix.value)]
-            return mapping_suffix_to_specification[suffix](name, com.DomainResolution(domain, subdomain, residue))
+            return mapping_suffix_to_specification[suffix](name, structured_index, com.DomainResolution(domain, subdomain, residue))
 
 
 def domain_resolution_from_string(full_domain_string):
@@ -71,15 +71,15 @@ def specification_from_string(specification_string: str) -> com.Specification:
     #assert len(specification_items) <= 2
 
     items = specification_string.split(DOMAIN_DELIMITER, maxsplit=1)
+    name, structured_index = items[0].split('@')
 
     if len(items) == 1:
-        return create_specification_from_name_suffix(items[0], None, None, None)
+        return create_specification_from_name_suffix(name, structured_index, None, None, None)
 
     elif len(items) == 2:
-        name = items[0]
         full_domain_string = items[1].strip('[]')
         domain, subdomain, residue = domain_resolution_from_string(full_domain_string)
-        return create_specification_from_name_suffix(name, domain, subdomain, residue)
+        return create_specification_from_name_suffix(name, structured_index, domain, subdomain, residue)
 
     else:
         raise SyntaxError('Could not parse specification string {}'.format(specification_string))

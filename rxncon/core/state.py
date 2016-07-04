@@ -20,13 +20,14 @@ class StateModifier(OrderedEnum):
 
 
 class StateDefinition:
-    SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?\.[a-zA-Z]+?|[\\w]+?\.[a-zA-Z]+?)'  # we allow something like A.gene
-    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?\.[a-zA-Z]+?|[\\w]+?\.[a-zA-Z]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
-
-    def __init__(self, name, representation_def, variables_def, superspecification_def):
+    #SPEC_REGEX_GROUPED = '([\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?\.[a-zA-Z]+?|[\\w]+?@[0-9]+?\.[a-zA-Z]+?)'  # we allow something like A.gene
+    #SPEC_REGEX_UNGROUPED = '(?:[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?\.[a-zA-Z]+?|[\\w]+?@[0-9]+?\.[a-zA-Z]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
+    SPEC_REGEX_GROUPED = '([\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
+    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
+    def __init__(self, name, representation_def, variables_def, subspecification_def):
 
         self.name, self.representation_def, \
-        self.variables_def, self.superspecification_of_def = name, representation_def, variables_def, superspecification_def
+        self.variables_def, self.subspecification_of_def = name, representation_def, variables_def, subspecification_def
 
     def __repr__(self):
         return str(self)
@@ -94,14 +95,14 @@ STATE_DEFINITION = [
                     '$x--$y',
                     {'$x': spec.Specification,
                      '$y': spec.Specification,},
-                    []
+                    ['component-state']
                     ),
 
     StateDefinition('self-interaction-state',
                     '$x--[$y]',
                     {'$x': spec.Specification,
                      '$y': spec.DomainResolution},
-                    []),
+                    ['component-state']),
 
 
     StateDefinition('input-state',
@@ -113,12 +114,12 @@ STATE_DEFINITION = [
                     '$x-{$y}',
                     {'$x': spec.Specification,
                      '$y': StateModifier},
-                    []),
+                    ['component-state']),
 
     StateDefinition('component-state',
                     '$x',
                     {'$x': spec.Specification},
-                    ['interaction-state','self-interaction-state', 'covalent-modification-state'],
+                    [],
                     ),
 ]
 
@@ -142,49 +143,31 @@ class State():
     def modifier(self):
         return [value for value in self.variables.values() if isinstance(value, StateModifier)]
 
-    def is_superspecification_of(self, other) -> bool:
+    def is_superset_of(self, other) -> bool:
         # A -> B -> C is C subset of A? True subsets of subsets
         # todo: multi-step inheritance
         # todo: neutral modifier
-        superspec = False
-        if other.definition.name == self.definition.name or other.definition.name in self.definition.superspecification_of_def:
-            for self_component in self.components():
-                for other_component in other.components():
-                    if self_component.to_component_specification() == other_component.to_component_specification():
-                            if self_component.is_superspecification_of(other_component) \
-                                    and other_component.is_subspecification_of(self_component):
-                                if other.definition.name in self.definition.superspecification_of_def:
-                                    superspec = True
-                                elif self.modifier() == other.modifier():
-                                    superspec = True
-                                else:
-                                    return False
-                            else:
-                                return False
-        return superspec
+        return other.is_subset_of(self)
 
-    def is_subspecification_of(self, other) -> bool:
+    def is_subset_of(self, other) -> bool:
+
         subspec = False
-        if other.definition.name == self.definition.name or self.definition.name in other.definition.superspecification_of_def:
-            for self_component in self.components():
-                for other_component in other.components():
-                    if self_component.to_component_specification() == other_component.to_component_specification():
-                        if self_component.is_subspecification_of(other_component) \
-                                and other_component.is_superspecification_of(self_component):
-                            if self.definition.name in other.definition.superspecification_of_def:
-                                subspec = True
-                            elif self.modifier() == other.modifier():
-                                subspec = True
-                            else:
-                                return False
+        if self.definition.name == other.definition.name or other.definition.name in self.definition.subspecification_of_def:
+                for self_component in self.components():
+                    for other_component in other.components():
+                        if self_component.is_subspecification_of(other_component) and other_component.is_superspecification_of(self_component):
+                            subspec = True
+                        elif self.modifier() == other.modifier():
+                            subspec = True
                         else:
                             return False
         return subspec
 
+def representation_to_general_template(representation):
+    return re.sub('@[0-9]+?', '', representation)
 
 def definition_of_state(representation: str):
     the_definition = None
-
     for definition in STATE_DEFINITION:
 
         if definition.matches_representation(representation):
