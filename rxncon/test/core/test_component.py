@@ -22,13 +22,13 @@ residue = cfs.specification_from_string('A_[(d)]')
 
 def test_component_without_name_raises():
     with pytest.raises(tc.InputParameterError):
-        com.ProteinSpecification(None, com.DomainResolution(None, None, None))
+        com.ProteinSpecification(None, com.DomainDefinition(None, None, None))
 
     with pytest.raises(tc.InputParameterError):
-        com.RnaSpecification(None, com.DomainResolution(None, None, None))
+        com.RnaSpecification(None, com.DomainDefinition(None, None, None))
 
     with pytest.raises(tc.InputParameterError):
-        com.DnaSpecification(None, com.DomainResolution(None, None, None))
+        com.DnaSpecification(None, com.DomainDefinition(None, None, None))
 
 
 def test_component_initialized(the_case_initialized):

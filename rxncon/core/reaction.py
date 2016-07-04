@@ -1,4 +1,4 @@
-from rxncon.core.specification import Specification, RnaSpecification, ProteinSpecification, SpecificationResolution, DnaSpecification, DomainResolution
+from rxncon.core.specification import Specification, RnaSpecification, ProteinSpecification, SpecificationResolution, DnaSpecification, DomainDefinition
 from rxncon.core.state import state_from_string, State
 from rxncon.syntax.specification_from_string import specification_from_string
 

@@ -185,14 +185,14 @@ def reaction_test_case(reaction_definitions):
                                        '$y': rxn.specification_from_string('B_[(y)]')
                                        }),
 
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        []),
-                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainDefinition(None, None, None)),
                                        [sta.state_from_string('B_[(y)]-{0}')])],
 
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        []),
-                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainDefinition(None, None, None)),
                                        [sta.state_from_string('B_[(y)]-{P}')])],
 
                          ),
@@ -203,14 +203,14 @@ def reaction_test_case(reaction_definitions):
                                       {'$x': rxn.specification_from_string('A_[(x)]'),
                                        '$y': rxn.specification_from_string('B_[(y)]')
                                        }),
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        [sta.state_from_string('A_[(x)]-{P}')]),
-                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainDefinition(None, None, None)),
                                        [sta.state_from_string('B_[(y)]-{0}')])],
 
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        [sta.state_from_string('A_[(x)]-{0}')]),
-                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainDefinition(None, None, None)),
                                        [sta.state_from_string('B_[(y)]-{P}')])],
                          ),
 
@@ -220,14 +220,14 @@ def reaction_test_case(reaction_definitions):
                                       {'$x': rxn.specification_from_string('A_[b]'),
                                        '$y': rxn.specification_from_string('B_[a]')
                                        }),
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        [sta.state_from_string('A_[b]--0')]),
-                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainDefinition(None, None, None)),
                                        [sta.state_from_string('B_[a]--0')])],
 
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        [sta.state_from_string('A_[b]--B_[a]')]),
-                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainDefinition(None, None, None)),
                                        [sta.state_from_string('A_[b]--B_[a]')])],
 
                          ),
@@ -237,10 +237,10 @@ def reaction_test_case(reaction_definitions):
                                       {'$x': rxn.specification_from_string('A_[n]'),
                                        '$y': rxn.specification_from_string('A_[m]')
                                        }),
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        [sta.state_from_string('A_[n]--0'), sta.state_from_string('A_[m]--0')])],
 
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        [sta.state_from_string('A_[n]--[m]')])],
 
                          ),
@@ -269,16 +269,16 @@ def reaction_test_case(reaction_definitions):
                                       {'$x': rxn.specification_from_string('A'),
                                        '$y': rxn.specification_from_string('B')
                                        }),
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        []),
-                          rxn.Reactant(spec.DnaSpecification('B', spec.DomainResolution(None, None, None)),
+                          rxn.Reactant(spec.DnaSpecification('B', spec.DomainDefinition(None, None, None)),
                                        [])],
 
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        []),
-                          rxn.Reactant(spec.DnaSpecification('B', spec.DomainResolution(None, None, None)),
+                          rxn.Reactant(spec.DnaSpecification('B', spec.DomainDefinition(None, None, None)),
                                        []),
-                          rxn.Reactant(spec.RnaSpecification('B', spec.DomainResolution(None, None, None)),
+                          rxn.Reactant(spec.RnaSpecification('B', spec.DomainDefinition(None, None, None)),
                                        [])],
 
                          ),
@@ -289,16 +289,16 @@ def reaction_test_case(reaction_definitions):
                                       {'$x': rxn.specification_from_string('A'),
                                        '$y': rxn.specification_from_string('B')
                                        }),
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        []),
-                          rxn.Reactant(spec.RnaSpecification('B', spec.DomainResolution(None, None, None)),
+                          rxn.Reactant(spec.RnaSpecification('B', spec.DomainDefinition(None, None, None)),
                                        [])],
 
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        []),
-                          rxn.Reactant(spec.RnaSpecification('B', spec.DomainResolution(None, None, None)),
+                          rxn.Reactant(spec.RnaSpecification('B', spec.DomainDefinition(None, None, None)),
                                        []),
-                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainDefinition(None, None, None)),
                                        [])]
                          ),
             #
@@ -308,12 +308,12 @@ def reaction_test_case(reaction_definitions):
                                       {'$x': rxn.specification_from_string('A'),
                                        '$y': rxn.specification_from_string('B')
                                        }),
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        [])],
 
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        []),
-                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainDefinition(None, None, None)),
                                        []),
                           ]
                          ),
@@ -324,12 +324,12 @@ def reaction_test_case(reaction_definitions):
                                       {'$x': rxn.specification_from_string('A'),
                                        '$y': rxn.specification_from_string('B')
                                        }),
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        []),
-                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainResolution(None, None, None)),
+                          rxn.Reactant(spec.ProteinSpecification('B', spec.DomainDefinition(None, None, None)),
                                        [])],
 
-                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainResolution(None, None, None)),
+                         [rxn.Reactant(spec.ProteinSpecification('A', spec.DomainDefinition(None, None, None)),
                                        [])
                           ]
                          )

@@ -8,7 +8,7 @@ import rxncon.syntax.string_from_rxncon as sfr
 
 
 class Specification(metaclass=ABCMeta):
-    def __init__(self, name: str, structure_index, spec_resolution: 'DomainResolution'):
+    def __init__(self, name: str, structure_index, spec_resolution: 'DomainDefinition'):
         self.name = name
         self.spec_resolution = spec_resolution
         #todo: equal has to be adapted
@@ -74,15 +74,15 @@ class Specification(metaclass=ABCMeta):
         pass
 
     def to_dna_component_specification(self) -> 'DnaSpecification':
-        return DnaSpecification(self.name, self.structure_index, DomainResolution(None, None, None))
+        return DnaSpecification(self.name, self.structure_index, DomainDefinition(None, None, None))
 
     def to_rna_component_specification(self) -> 'RnaSpecification':
-        return RnaSpecification(self.name, self.structure_index, DomainResolution(None, None, None))
+        return RnaSpecification(self.name, self.structure_index, DomainDefinition(None, None, None))
 
     def to_protein_component_specification(self) -> 'ProteinSpecification':
-        return ProteinSpecification(self.name, self.structure_index, DomainResolution(None, None, None))
+        return ProteinSpecification(self.name, self.structure_index, DomainDefinition(None, None, None))
 
-    def to_domain_resolution(self) -> 'DomainResolution':
+    def to_domain_resolution(self) -> 'DomainDefinition':
         return self.spec_resolution
 
     @property
@@ -93,7 +93,7 @@ class Specification(metaclass=ABCMeta):
         return self.resolution == resolution
 
 
-class DomainResolution:
+class DomainDefinition:
     @tc.typecheck
     def __init__(self, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
         self.domain = domain
@@ -121,11 +121,11 @@ class DomainResolution:
 
     @tc.typecheck
     def __eq__(self, other) -> bool:
-        return isinstance(other, DomainResolution) and self.domain == other.domain \
+        return isinstance(other, DomainDefinition) and self.domain == other.domain \
                and self.subdomain == other.subdomain and self.residue == other.residue
 
     @tc.typecheck
-    def __lt__(self, other: 'DomainResolution'):
+    def __lt__(self, other: 'DomainDefinition'):
         if self.domain is None and other.domain is not None:
             return True
         if other.domain is not None and other.domain is not None \
@@ -145,7 +145,7 @@ class DomainResolution:
 
     @tc.typecheck
     def is_equivalent_to(self, other):
-        if isinstance(other, DomainResolution) and self.residue and (self.residue == other.residue):
+        if isinstance(other, DomainDefinition) and self.residue and (self.residue == other.residue):
             return True
         else:
             return self == other
@@ -197,7 +197,7 @@ class ProteinSpecification(Specification):
             return self == other
 
     def to_component_specification(self) -> 'ProteinSpecification':
-        return ProteinSpecification(self.name, self.structure_index, DomainResolution(None, None, None))
+        return ProteinSpecification(self.name, self.structure_index, DomainDefinition(None, None, None))
 
 
 class RnaSpecification(Specification):
@@ -235,7 +235,7 @@ class RnaSpecification(Specification):
             return self == other
 
     def to_component_specification(self) -> 'RnaSpecification':
-        return RnaSpecification(self.name, self.structure_index, DomainResolution(None, None, None))
+        return RnaSpecification(self.name, self.structure_index, DomainDefinition(None, None, None))
 
 
 class DnaSpecification(Specification):
@@ -271,7 +271,7 @@ class DnaSpecification(Specification):
             return self == other
 
     def to_component_specification(self) -> 'DnaSpecification':
-        return DnaSpecification(self.name, self.structure_index, DomainResolution(None, None, None))
+        return DnaSpecification(self.name, self.structure_index, DomainDefinition(None, None, None))
 
 
 class SpecificationResolution(Enum):

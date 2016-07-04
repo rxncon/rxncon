@@ -6,169 +6,169 @@ OrderTestCase = namedtuple('OrderTestCase', ['to_sort', 'expected_order'])
 @pytest.fixture
 def the_case_specifications_ordering():
     return [
-            OrderTestCase([spec.ProteinSpecification("C", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("B", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None))],
-                          [spec.ProteinSpecification("A", 0,  spec.DomainResolution(None, None, None)), spec.ProteinSpecification("B", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("C", 0, spec.DomainResolution(None, None, None))]),
+            OrderTestCase([spec.ProteinSpecification("C", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("B", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None))],
+                          [spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("B", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("C", 0, spec.DomainDefinition(None, None, None))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution("dC", None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("dB", None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("dA", None, None))],
-                          [spec.ProteinSpecification("A", 0, spec.DomainResolution("dA", None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("dB", None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("dC", None, None))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition("dC", None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("dB", None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("dA", None, None))],
+                          [spec.ProteinSpecification("A", 0, spec.DomainDefinition("dA", None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("dB", None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("dC", None, None))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution("d", "sC", None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("d", "sB", None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("d", "sA", None))],
-                          [spec.ProteinSpecification("A", 0, spec.DomainResolution("d", "sA", None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("d", "sB", None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("d", "sC", None))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition("d", "sC", None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("d", "sB", None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("d", "sA", None))],
+                          [spec.ProteinSpecification("A", 0, spec.DomainDefinition("d", "sA", None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("d", "sB", None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("d", "sC", None))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, "rC")), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, "rB")), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, "rA"))],
-                          [spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, "rA")), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, "rB")), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, "rC"))]),
-
-
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution("dC", None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("dA", None, None))],
-                          [spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("dA", None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("dC", None, None))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, "rC")), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, "rB")), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, "rA"))],
+                          [spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, "rA")), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, "rB")), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, "rC"))]),
 
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution("d", "sC", None)), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("d", "sA", None))],
-                          [spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("d", "sA", None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("d", "sC", None))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition("dC", None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("dA", None, None))],
+                          [spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("dA", None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("dC", None, None))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, "rC")), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, "rA"))],
-                          [spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, "rA")), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, "rC"))]),
 
-            OrderTestCase([spec.ProteinSpecification("C", 0, spec.DomainResolution("dC", "sC", "rC")), spec.ProteinSpecification("B", 0, spec.DomainResolution("dB", "sB", "rB")), spec.ProteinSpecification("A", 0, spec.DomainResolution("dA", "sA", "rA"))],
-                          [spec.ProteinSpecification("A", 0, spec.DomainResolution("dA", "sA", "rA")), spec.ProteinSpecification("B", 0, spec.DomainResolution("dB", "sB", "rB")), spec.ProteinSpecification("C", 0, spec.DomainResolution("dC", "sC", "rC"))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition("d", "sC", None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("d", "sA", None))],
+                          [spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("d", "sA", None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("d", "sC", None))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, "rC")), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None))],
-                          [spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, "rC"))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, "rC")), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, "rA"))],
+                          [spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, "rA")), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, "rC"))]),
 
-            OrderTestCase([spec.RnaSpecification("C", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("B", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("B", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("C", 0, spec.DomainResolution(None, None, None))]),
+            OrderTestCase([spec.ProteinSpecification("C", 0, spec.DomainDefinition("dC", "sC", "rC")), spec.ProteinSpecification("B", 0, spec.DomainDefinition("dB", "sB", "rB")), spec.ProteinSpecification("A", 0, spec.DomainDefinition("dA", "sA", "rA"))],
+                          [spec.ProteinSpecification("A", 0, spec.DomainDefinition("dA", "sA", "rA")), spec.ProteinSpecification("B", 0, spec.DomainDefinition("dB", "sB", "rB")), spec.ProteinSpecification("C", 0, spec.DomainDefinition("dC", "sC", "rC"))]),
 
-            OrderTestCase([spec.RnaSpecification("A", 0, spec.DomainResolution("dC", None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution("dB", None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution("dA", None, None))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution("dA", None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution("dB", None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution("dC", None, None))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, "rC")), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None))],
+                          [spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, "rC"))]),
 
-            OrderTestCase([spec.RnaSpecification("A", 0, spec.DomainResolution("d", "sC", None)), spec.RnaSpecification("A", 0, spec.DomainResolution("d", "sB", None)), spec.RnaSpecification("A", 0, spec.DomainResolution("d", "sA", None))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution("d", "sA", None)), spec.RnaSpecification("A", 0, spec.DomainResolution("d", "sB", None)), spec.RnaSpecification("A", 0, spec.DomainResolution("d", "sC", None))]),
+            OrderTestCase([spec.RnaSpecification("C", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("B", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("B", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("C", 0, spec.DomainDefinition(None, None, None))]),
 
-            OrderTestCase([spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rC")), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rB")), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rA"))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rA")), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rB")), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rC"))]),
+            OrderTestCase([spec.RnaSpecification("A", 0, spec.DomainDefinition("dC", None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("dB", None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("dA", None, None))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition("dA", None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("dB", None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("dC", None, None))]),
 
-            OrderTestCase([spec.RnaSpecification("A", 0, spec.DomainResolution("dC", None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution("dA", None, None))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution("dA", None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution("dC", None, None))]),
+            OrderTestCase([spec.RnaSpecification("A", 0, spec.DomainDefinition("d", "sC", None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("d", "sB", None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("d", "sA", None))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition("d", "sA", None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("d", "sB", None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("d", "sC", None))]),
 
-            OrderTestCase([spec.RnaSpecification("A", 0, spec.DomainResolution("d", "sC", None)), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution("d", "sA", None))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution("d", "sA", None)), spec.RnaSpecification("A", 0, spec.DomainResolution("d", "sC", None))]),
+            OrderTestCase([spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rC")), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rB")), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rA"))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rA")), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rB")), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rC"))]),
 
-            OrderTestCase([spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rC")), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rA"))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rA")), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rC"))]),
+            OrderTestCase([spec.RnaSpecification("A", 0, spec.DomainDefinition("dC", None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("dA", None, None))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("dA", None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("dC", None, None))]),
 
-            OrderTestCase([spec.RnaSpecification("C", 0, spec.DomainResolution("dC", "sC", "rC")), spec.RnaSpecification("B", 0, spec.DomainResolution("dB", "sB", "rB")), spec.RnaSpecification("A", 0, spec.DomainResolution("dA", "sA", "rA"))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution("dA", "sA", "rA")), spec.RnaSpecification("B", 0, spec.DomainResolution("dB", "sB", "rB")), spec.RnaSpecification("C", 0, spec.DomainResolution("dC", "sC", "rC"))]),
+            OrderTestCase([spec.RnaSpecification("A", 0, spec.DomainDefinition("d", "sC", None)), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("d", "sA", None))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("d", "sA", None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("d", "sC", None))]),
 
-            OrderTestCase([spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rC")), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rC"))]),
+            OrderTestCase([spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rC")), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rA"))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rA")), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rC"))]),
 
-            OrderTestCase([spec.DnaSpecification("C", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("B", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None))],
-                          [spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("B", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("C", 0, spec.DomainResolution(None, None, None))]),
+            OrderTestCase([spec.RnaSpecification("C", 0, spec.DomainDefinition("dC", "sC", "rC")), spec.RnaSpecification("B", 0, spec.DomainDefinition("dB", "sB", "rB")), spec.RnaSpecification("A", 0, spec.DomainDefinition("dA", "sA", "rA"))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition("dA", "sA", "rA")), spec.RnaSpecification("B", 0, spec.DomainDefinition("dB", "sB", "rB")), spec.RnaSpecification("C", 0, spec.DomainDefinition("dC", "sC", "rC"))]),
 
-            OrderTestCase([spec.DnaSpecification("A", 0, spec.DomainResolution("dC", None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution("dB", None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution("dA", None, None))],
-                          [spec.DnaSpecification("A", 0, spec.DomainResolution("dA", None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution("dB", None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution("dC", None, None))]),
+            OrderTestCase([spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rC")), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rC"))]),
 
-            OrderTestCase([spec.DnaSpecification("A", 0, spec.DomainResolution("d", "sC", None)), spec.DnaSpecification("A", 0, spec.DomainResolution("d", "sB", None)), spec.DnaSpecification("A", 0, spec.DomainResolution("d", "sA", None))],
-                          [spec.DnaSpecification("A", 0, spec.DomainResolution("d", "sA", None)), spec.DnaSpecification("A", 0, spec.DomainResolution("d", "sB", None)), spec.DnaSpecification("A", 0, spec.DomainResolution("d", "sC", None))]),
+            OrderTestCase([spec.DnaSpecification("C", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("B", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None))],
+                          [spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("B", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("C", 0, spec.DomainDefinition(None, None, None))]),
 
-            OrderTestCase([spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, "rC")), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, "rB")), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, "rA"))],
-                          [spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, "rA")), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, "rB")), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, "rC"))]),
+            OrderTestCase([spec.DnaSpecification("A", 0, spec.DomainDefinition("dC", None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition("dB", None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition("dA", None, None))],
+                          [spec.DnaSpecification("A", 0, spec.DomainDefinition("dA", None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition("dB", None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition("dC", None, None))]),
 
-            OrderTestCase([spec.DnaSpecification("A", 0, spec.DomainResolution("dC", None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution("dA", None, None))],
-                          [spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution("dA", None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution("dC", None, None))]),
+            OrderTestCase([spec.DnaSpecification("A", 0, spec.DomainDefinition("d", "sC", None)), spec.DnaSpecification("A", 0, spec.DomainDefinition("d", "sB", None)), spec.DnaSpecification("A", 0, spec.DomainDefinition("d", "sA", None))],
+                          [spec.DnaSpecification("A", 0, spec.DomainDefinition("d", "sA", None)), spec.DnaSpecification("A", 0, spec.DomainDefinition("d", "sB", None)), spec.DnaSpecification("A", 0, spec.DomainDefinition("d", "sC", None))]),
 
-            OrderTestCase([spec.DnaSpecification("A", 0, spec.DomainResolution("d", "sC", None)), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution("d", "sA", None))],
-                          [spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution("d", "sA", None)), spec.DnaSpecification("A", 0, spec.DomainResolution("d", "sC", None))]),
+            OrderTestCase([spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, "rC")), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, "rB")), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, "rA"))],
+                          [spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, "rA")), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, "rB")), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, "rC"))]),
 
-            OrderTestCase([spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, "rC")), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, "rA"))],
-                          [spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, "rA")), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, "rC"))]),
+            OrderTestCase([spec.DnaSpecification("A", 0, spec.DomainDefinition("dC", None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition("dA", None, None))],
+                          [spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition("dA", None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition("dC", None, None))]),
 
-            OrderTestCase([spec.DnaSpecification("C", 0, spec.DomainResolution("dC", "sC", "rC")), spec.DnaSpecification("B", 0, spec.DomainResolution("dB", "sB", "rB")), spec.DnaSpecification("A", 0, spec.DomainResolution("dA", "sA", "rA"))],
-                          [spec.DnaSpecification("A", 0, spec.DomainResolution("dA", "sA", "rA")), spec.DnaSpecification("B", 0, spec.DomainResolution("dB", "sB", "rB")), spec.DnaSpecification("C", 0, spec.DomainResolution("dC", "sC", "rC"))]),
+            OrderTestCase([spec.DnaSpecification("A", 0, spec.DomainDefinition("d", "sC", None)), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition("d", "sA", None))],
+                          [spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition("d", "sA", None)), spec.DnaSpecification("A", 0, spec.DomainDefinition("d", "sC", None))]),
 
-            OrderTestCase([spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, "rC")), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None))],
-                          [spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, "rC"))])
+            OrderTestCase([spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, "rC")), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, "rA"))],
+                          [spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, "rA")), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, "rC"))]),
+
+            OrderTestCase([spec.DnaSpecification("C", 0, spec.DomainDefinition("dC", "sC", "rC")), spec.DnaSpecification("B", 0, spec.DomainDefinition("dB", "sB", "rB")), spec.DnaSpecification("A", 0, spec.DomainDefinition("dA", "sA", "rA"))],
+                          [spec.DnaSpecification("A", 0, spec.DomainDefinition("dA", "sA", "rA")), spec.DnaSpecification("B", 0, spec.DomainDefinition("dB", "sB", "rB")), spec.DnaSpecification("C", 0, spec.DomainDefinition("dC", "sC", "rC"))]),
+
+            OrderTestCase([spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, "rC")), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None))],
+                          [spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, "rC"))])
             ]
 
 
 @pytest.fixture
 def the_case_class_ordering():
     return [
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None))],
-                          [spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None))],
+                          [spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution("dA", None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution("dB", None, None))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution("dB", None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("dA", None, None))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition("dA", None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("dB", None, None))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition("dB", None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("dA", None, None))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution("d", "sA", None)), spec.RnaSpecification("A", 0, spec.DomainResolution("d", "sB", None))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution("d", "sB", None)), spec.ProteinSpecification("A", 0, spec.DomainResolution("d", "sA", None))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition("d", "sA", None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("d", "sB", None))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition("d", "sB", None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("d", "sA", None))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, "rA")), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rB"))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rB")), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, "rA"))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, "rA")), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rB"))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rB")), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, "rA"))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution("dA", None, None))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution("dA", None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("dA", None, None))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition("dA", None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution("d", "sA", None))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution("d", "sA", None)), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition("d", "sA", None))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition("d", "sA", None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rA"))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, "rA")), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rA"))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, "rA")), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution("dA", "sA", "rA")), spec.RnaSpecification("B", 0, spec.DomainResolution("dB", "sB", "rB"))],
-                          [spec.RnaSpecification("B", 0, spec.DomainResolution("dB", "sB", "rB")), spec.ProteinSpecification("A", 0, spec.DomainResolution("dA", "sA", "rA"))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition("dA", "sA", "rA")), spec.RnaSpecification("B", 0, spec.DomainDefinition("dB", "sB", "rB"))],
+                          [spec.RnaSpecification("B", 0, spec.DomainDefinition("dB", "sB", "rB")), spec.ProteinSpecification("A", 0, spec.DomainDefinition("dA", "sA", "rA"))]),
 
-            OrderTestCase([spec.RnaSpecification("B", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("B", 0, spec.DomainResolution(None, None, None))],
-                          [spec.RnaSpecification("B", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("B", 0, spec.DomainResolution(None, None, None))]),
+            OrderTestCase([spec.RnaSpecification("B", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("B", 0, spec.DomainDefinition(None, None, None))],
+                          [spec.RnaSpecification("B", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("B", 0, spec.DomainDefinition(None, None, None))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution("dA", "sA", "rA")), spec.RnaSpecification("B", 0, spec.DomainResolution("dB", "sB", "rB")), spec.RnaSpecification("A", 0, spec.DomainResolution("dB", "sB", None))],
-                          [spec.RnaSpecification("A", 0, spec.DomainResolution("dB", "sB", None)), spec.RnaSpecification("B", 0, spec.DomainResolution("dB", "sB", "rB")), spec.ProteinSpecification("A", 0, spec.DomainResolution("dA", "sA", "rA"))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition("dA", "sA", "rA")), spec.RnaSpecification("B", 0, spec.DomainDefinition("dB", "sB", "rB")), spec.RnaSpecification("A", 0, spec.DomainDefinition("dB", "sB", None))],
+                          [spec.RnaSpecification("A", 0, spec.DomainDefinition("dB", "sB", None)), spec.RnaSpecification("B", 0, spec.DomainDefinition("dB", "sB", "rB")), spec.ProteinSpecification("A", 0, spec.DomainDefinition("dA", "sA", "rA"))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution("dA", "sA", "rA")), spec.DnaSpecification("B", 0, spec.DomainResolution("dB", "sB", "rB")), spec.RnaSpecification("A", 0, spec.DomainResolution("dB", "sB", None))],
-                          [spec.DnaSpecification("B", 0, spec.DomainResolution("dB", "sB", "rB")), spec.RnaSpecification("A", 0, spec.DomainResolution("dB", "sB", None)),  spec.ProteinSpecification("A", 0, spec.DomainResolution("dA", "sA", "rA"))]),
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition("dA", "sA", "rA")), spec.DnaSpecification("B", 0, spec.DomainDefinition("dB", "sB", "rB")), spec.RnaSpecification("A", 0, spec.DomainDefinition("dB", "sB", None))],
+                          [spec.DnaSpecification("B", 0, spec.DomainDefinition("dB", "sB", "rB")), spec.RnaSpecification("A", 0, spec.DomainDefinition("dB", "sB", None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition("dA", "sA", "rA"))]),
 
-            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None))],
-                          [spec.DnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainResolution(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainResolution(None, None, None))])
+            OrderTestCase([spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None))],
+                          [spec.DnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.RnaSpecification("A", 0, spec.DomainDefinition(None, None, None)), spec.ProteinSpecification("A", 0, spec.DomainDefinition(None, None, None))])
     ]
 
 StringTestCase = namedtuple('StringTestCase', ['specification', 'expected_string'])
 
 @pytest.fixture
 def the_case_string_generation():
-    return [StringTestCase(spec.ProteinSpecification("C", 0, spec.DomainResolution(None, None, None)),
+    return [StringTestCase(spec.ProteinSpecification("C", 0, spec.DomainDefinition(None, None, None)),
                            'ProteinSpecification: C@0'),
-            StringTestCase(spec.ProteinSpecification("C", 0, spec.DomainResolution('d', 's', None)),
+            StringTestCase(spec.ProteinSpecification("C", 0, spec.DomainDefinition('d', 's', None)),
                           'ProteinSpecification: C@0_[d/s]'),
-            StringTestCase(spec.ProteinSpecification("C", 0, spec.DomainResolution(None, None, 'r')),
+            StringTestCase(spec.ProteinSpecification("C", 0, spec.DomainDefinition(None, None, 'r')),
                           'ProteinSpecification: C@0_[(r)]'),
-            StringTestCase(spec.ProteinSpecification("C", 0, spec.DomainResolution('d', None, 'r')),
+            StringTestCase(spec.ProteinSpecification("C", 0, spec.DomainDefinition('d', None, 'r')),
                            'ProteinSpecification: C@0_[d(r)]'),
-            StringTestCase(spec.ProteinSpecification("C", 0, spec.DomainResolution('d', 's', 'r')),
+            StringTestCase(spec.ProteinSpecification("C", 0, spec.DomainDefinition('d', 's', 'r')),
                            'ProteinSpecification: C@0_[d/s(r)]'),
 
-            StringTestCase(spec.DnaSpecification("C", 0, spec.DomainResolution(None, None, None)),
+            StringTestCase(spec.DnaSpecification("C", 0, spec.DomainDefinition(None, None, None)),
                            'DnaSpecification: Cgene@0'),
-            StringTestCase(spec.DnaSpecification("C", 0, spec.DomainResolution('d', 's', None)),
+            StringTestCase(spec.DnaSpecification("C", 0, spec.DomainDefinition('d', 's', None)),
                            'DnaSpecification: Cgene@0_[d/s]'),
-            StringTestCase(spec.DnaSpecification("C", 0, spec.DomainResolution(None, None, 'r')),
+            StringTestCase(spec.DnaSpecification("C", 0, spec.DomainDefinition(None, None, 'r')),
                            'DnaSpecification: Cgene@0_[(r)]'),
-            StringTestCase(spec.DnaSpecification("C", 0, spec.DomainResolution('d', None, 'r')),
+            StringTestCase(spec.DnaSpecification("C", 0, spec.DomainDefinition('d', None, 'r')),
                            'DnaSpecification: Cgene@0_[d(r)]'),
-            StringTestCase(spec.DnaSpecification("C", 0, spec.DomainResolution('d', 's', 'r')),
+            StringTestCase(spec.DnaSpecification("C", 0, spec.DomainDefinition('d', 's', 'r')),
                            'DnaSpecification: Cgene@0_[d/s(r)]'),
 
-            StringTestCase(spec.RnaSpecification("C", 0, spec.DomainResolution(None, None, None)),
+            StringTestCase(spec.RnaSpecification("C", 0, spec.DomainDefinition(None, None, None)),
                            'RnaSpecification: CmRNA@0'),
-            StringTestCase(spec.RnaSpecification("C", 0, spec.DomainResolution('d', 's', None)),
+            StringTestCase(spec.RnaSpecification("C", 0, spec.DomainDefinition('d', 's', None)),
                            'RnaSpecification: CmRNA@0_[d/s]'),
-            StringTestCase(spec.RnaSpecification("C", 0, spec.DomainResolution(None, None, 'r')),
+            StringTestCase(spec.RnaSpecification("C", 0, spec.DomainDefinition(None, None, 'r')),
                            'RnaSpecification: CmRNA@0_[(r)]'),
-            StringTestCase(spec.RnaSpecification("C", 0, spec.DomainResolution('d', None, 'r')),
+            StringTestCase(spec.RnaSpecification("C", 0, spec.DomainDefinition('d', None, 'r')),
                            'RnaSpecification: CmRNA@0_[d(r)]'),
-            StringTestCase(spec.RnaSpecification("C", 0, spec.DomainResolution('d', 's', 'r')),
+            StringTestCase(spec.RnaSpecification("C", 0, spec.DomainDefinition('d', 's', 'r')),
                            'RnaSpecification: CmRNA@0_[d/s(r)]'),
 
             ]

@@ -60,9 +60,9 @@ class StateDefinition:
             val_str = re.match(var_regex, representation).group(1)
             if self.variables_def[var][0] is StateModifier:
                 value = state_modifier_from_string(val_str)
-            elif self.variables_def[var][0] is spec.DomainResolution:
+            elif self.variables_def[var][0] is spec.DomainDefinition:
                 domain, subdomain, residue = sfs.domain_resolution_from_string(val_str)
-                value = spec.DomainResolution(domain, subdomain, residue)
+                value = spec.DomainDefinition(domain, subdomain, residue)
             else:
                 value = sfs.specification_from_string(val_str)
 
@@ -99,7 +99,7 @@ STATE_DEFINITION = [
     StateDefinition('self-interaction-state',
                     '$x--[$y]',
                     {'$x': (spec.Specification, spec.SpecificationResolution.domain),
-                     '$y': (spec.DomainResolution, spec.SpecificationResolution.domain)},
+                     '$y': (spec.DomainDefinition, spec.SpecificationResolution.domain) },
                     ['component-state']),
 
 
@@ -153,12 +153,16 @@ class State():
         if result:
             return result[0]
 
-    def resolution(self, specification_to_find: spec.Specification):
+    def elemental_resolution(self, specification_to_find: spec.Specification):
         result = [self.definition.variables_def[var][1] for var, value in self.variables.items()
                   if isinstance(value, spec.Specification) and specification_to_find == value]
         assert len(result) <= 1
         if result:
             return result[0]
+
+    @property
+    def is_elemental(self):
+        return all(component.resolution == self.elemental_resolution(component) for component in self.components())
 
     def is_superset_of(self, other) -> bool:
         # A -> B -> C is C subset of A? True subsets of subsets
