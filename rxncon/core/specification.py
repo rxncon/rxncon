@@ -8,7 +8,7 @@ import rxncon.syntax.string_from_rxncon as sfr
 
 
 class Specification(metaclass=ABCMeta):
-    def __init__(self, name: str, structure_index, spec_resolution: DomainResolution):
+    def __init__(self, name: str, structure_index, spec_resolution: 'DomainResolution'):
         self.name = name
         self.spec_resolution = spec_resolution
         #todo: equal has to be adapted
