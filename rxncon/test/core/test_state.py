@@ -140,6 +140,46 @@ def is_state_correct(the_case):
     assert all(the_case.state.variables[variable] in the_case.expected_specifications for variable in the_case.state.variables)
     assert str(the_case.state) == the_case.expected_string
 
+ResolutionTestCase = namedtuple('ResolutionTestCase', ['state', 'expected_resolution', 'expected_neutral_modifier'])
+
+
+@pytest.fixture
+def test_case_resolution_and_neutral_modifier():
+    return [
+        ResolutionTestCase(sta.state_from_string('A@0'),
+                           [(spec.ProteinSpecification('A', 0, spec.DomainResolution(None, None, None)),
+                            spec.SpecificationResolution.component)],
+                           None),
+        ResolutionTestCase(sta.state_from_string('A@0--B@1'),
+                           [(spec.ProteinSpecification('A', 0, spec.DomainResolution(None, None, None)),
+                             spec.SpecificationResolution.domain),
+                            (spec.ProteinSpecification('B', 1, spec.DomainResolution(None, None, None)),
+                             spec.SpecificationResolution.domain)
+                            ],
+                           None),
+
+        #todo: discuss this
+        ResolutionTestCase(sta.state_from_string('A@0_[m]--[n]'),
+                           [(spec.ProteinSpecification('A', 0, spec.DomainResolution('m', None, None)),
+                             spec.SpecificationResolution.domain)],
+                           None),
+        ResolutionTestCase(sta.state_from_string('A@0_[n]-{p}'),
+                           [(spec.ProteinSpecification('A', 0, spec.DomainResolution('n', None, None)),
+                             spec.SpecificationResolution.residue)],
+                           sta.StateModifier.neutral)
+
+    ]
+
+def test_resolution_and_default_modifier(test_case_resolution_and_neutral_modifier):
+    for the_case in test_case_resolution_and_neutral_modifier:
+        is_resolution_neutral_modifier_correct(the_case)
+
+def is_resolution_neutral_modifier_correct(the_case):
+    for component in the_case.state.components():
+        assert (component, the_case.state.resolution(component)) in the_case.expected_resolution
+    assert the_case.state.neutral_modifier == the_case.expected_neutral_modifier
+
+
 
 @pytest.fixture
 def test_case_indirect_subset():
@@ -147,28 +187,31 @@ def test_case_indirect_subset():
                       [sta.state_from_string('A@0_[m]--[n]')]),
     ]
 
-
+# the STATE_DEFINITION gets changed here!!!
 def test_indirect_subset(test_case_indirect_subset):
     sta.STATE_DEFINITION = [
+
         sta.StateDefinition('interaction-state',
                             '$x--$y',
-                            { '$x': spec.Specification,
-                              '$y': spec.Specification, },
+                            { '$x': (spec.Specification, spec.SpecificationResolution.domain),
+                              '$y': (spec.Specification, spec.SpecificationResolution.domain) },
                             ['component-state']
                             ),
 
         sta.StateDefinition('self-interaction-state',
                             '$x--[$y]',
-                            { '$x': spec.Specification,
-                              '$y': spec.DomainResolution },
+                            { '$x': (spec.Specification, spec.SpecificationResolution.domain),
+                              '$y': (spec.DomainResolution, spec.SpecificationResolution.domain) },
                             ['interaction-state']),
 
         sta.StateDefinition('component-state',
                             '$x',
-                            { '$x': spec.Specification },
+                            { '$x': (spec.Specification, spec.SpecificationResolution.component) },
                             [],
                             ),
     ]
 
     for the_case in test_case_indirect_subset:
         is_hierarchy_correct(the_case)
+
+

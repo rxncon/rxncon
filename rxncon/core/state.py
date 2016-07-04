@@ -12,7 +12,7 @@ import rxncon.syntax.specification_from_string as sfs
 
 @unique
 class StateModifier(OrderedEnum):
-    unmodified = '0'
+    neutral = '0'
     phosphor   = 'p'
     ubiquitin  = 'ub'
     guanosintriphosphat = 'gtp'
@@ -20,8 +20,6 @@ class StateModifier(OrderedEnum):
 
 
 class StateDefinition:
-    #SPEC_REGEX_GROUPED = '([\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?\.[a-zA-Z]+?|[\\w]+?@[0-9]+?\.[a-zA-Z]+?)'  # we allow something like A.gene
-    #SPEC_REGEX_UNGROUPED = '(?:[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?\.[a-zA-Z]+?|[\\w]+?@[0-9]+?\.[a-zA-Z]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
     SPEC_REGEX_GROUPED = '([\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
     SPEC_REGEX_UNGROUPED = '(?:[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
     def __init__(self, name, representation_def, variables_def, subset_def):
@@ -60,9 +58,9 @@ class StateDefinition:
                     var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)
 
             val_str = re.match(var_regex, representation).group(1)
-            if self.variables_def[var] is StateModifier:
+            if self.variables_def[var][0] is StateModifier:
                 value = state_modifier_from_string(val_str)
-            elif self.variables_def[var] is spec.DomainResolution:
+            elif self.variables_def[var][0] is spec.DomainResolution:
                 domain, subdomain, residue = sfs.domain_resolution_from_string(val_str)
                 value = spec.DomainResolution(domain, subdomain, residue)
             else:
@@ -93,32 +91,32 @@ def state_modifier_from_string(modifier: str):
 STATE_DEFINITION = [
     StateDefinition('interaction-state',
                     '$x--$y',
-                    {'$x': spec.Specification,
-                     '$y': spec.Specification,},
+                    {'$x': (spec.Specification, spec.SpecificationResolution.domain),
+                     '$y': (spec.Specification, spec.SpecificationResolution.domain)},
                     ['component-state']
                     ),
 
     StateDefinition('self-interaction-state',
                     '$x--[$y]',
-                    {'$x': spec.Specification,
-                     '$y': spec.DomainResolution},
+                    {'$x': (spec.Specification, spec.SpecificationResolution.domain),
+                     '$y': (spec.DomainResolution, spec.SpecificationResolution.domain)},
                     ['component-state']),
 
 
     StateDefinition('input-state',
                     '[$x]',
-                    {'$x': spec.Specification},
+                    {'$x': (spec.Specification, spec.SpecificationResolution.component)},
                     []),
 
     StateDefinition('covalent-modification-state',
                     '$x-{$y}',
-                    {'$x': spec.Specification,
-                     '$y': StateModifier},
+                    {'$x': (spec.Specification, spec.SpecificationResolution.residue),
+                     '$y': (StateModifier, StateModifier.neutral)},
                     ['component-state']),
 
     StateDefinition('component-state',
                     '$x',
-                    {'$x': spec.Specification},
+                    {'$x': (spec.Specification, spec.SpecificationResolution.component)},
                     [],
                     ),
 ]
@@ -146,6 +144,21 @@ class State():
 
     def modifier(self):
         return [value for value in self.variables.values() if isinstance(value, StateModifier)]
+
+    @property
+    def neutral_modifier(self):
+        result = [self.definition.variables_def[var][1] for var, value in self.variables.items()
+                  if isinstance(value, StateModifier)]
+        assert len(result) <= 1
+        if result:
+            return result[0]
+
+    def resolution(self, specification_to_find: spec.Specification):
+        result = [self.definition.variables_def[var][1] for var, value in self.variables.items()
+                  if isinstance(value, spec.Specification) and specification_to_find == value]
+        assert len(result) <= 1
+        if result:
+            return result[0]
 
     def is_superset_of(self, other) -> bool:
         # A -> B -> C is C subset of A? True subsets of subsets

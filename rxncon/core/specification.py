@@ -172,7 +172,7 @@ class ProteinSpecification(Specification):
     def __str__(self) -> str:
         return sfr.string_from_protein_specification(self)
 
-    @tc.typecheck
+    #@tc.typecheck
     def __eq__(self, other: Specification) -> bool:
         return isinstance(other, ProteinSpecification) and self.name == other.name \
                and self.spec_resolution == other.spec_resolution
@@ -208,7 +208,7 @@ class RnaSpecification(Specification):
     def __str__(self) -> str:
         return sfr.string_from_rna_specification(self)
 
-    @tc.typecheck
+    #@tc.typecheck
     def __eq__(self, other: Specification) -> bool:
         return isinstance(other, RnaSpecification) and self.name == other.name \
                and self.spec_resolution == other.spec_resolution
@@ -246,7 +246,7 @@ class DnaSpecification(Specification):
     def __str__(self) -> str:
         return sfr.string_from_gene_specification(self)
 
-    @tc.typecheck
+    #@tc.typecheck
     def __eq__(self, other: Specification) -> bool:
         return isinstance(other, DnaSpecification) and self.name == other.name \
                and self.spec_resolution == other.spec_resolution
