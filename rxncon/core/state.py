@@ -160,7 +160,7 @@ class State():
         if result:
             return result[0]
 
-    @property
+
     def is_elemental(self):
         return all(component.resolution == self.elemental_resolution(component) for component in self.components())
 
