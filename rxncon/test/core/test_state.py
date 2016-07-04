@@ -1,5 +1,4 @@
 import pytest
-import rxncon.syntax.rxncon_from_string as rfs
 import rxncon.core.state as sta
 import rxncon.core.specification as spec
 from collections import namedtuple
@@ -15,18 +14,18 @@ def test_hierarchy(the_case_hierarchy):
 
 def is_hierarchy_correct(test_case):
     assert test_case.superset_of
-    for super_state in test_case.superset_of:
-        assert test_case.state.is_superset_of(super_state)
-        if test_case.state != super_state:
-            assert not test_case.state.is_subset_of(super_state)
-        assert super_state.is_subspecification_of(test_case.state)
+    for state in test_case.superset_of:
+        assert test_case.state.is_superset_of(state)
+        if test_case.state != state:
+            assert not test_case.state.is_subset_of(state) and test_case.state.is_subset_of(state) is not None
+        assert state.is_subset_of(test_case.state)
 
 
 @pytest.fixture
 def the_case_hierarchy():
     return [
             HierarchyTestCase(sta.state_from_string('A@0-{p}'),
-                              [sta.state_from_string('A@0_[n]-{p}')]),
+                             [sta.state_from_string('A@0_[n]-{p}')]),
 
             HierarchyTestCase(sta.state_from_string('A@0--B@1'),
                               [sta.state_from_string('A@0_[n]--B@1'), sta.state_from_string('A@0--B@1_[m]'), sta.state_from_string('A@0_[n]--B@1_[m]')],
@@ -59,11 +58,11 @@ def the_case_hierarchy():
 
 def test_not_super_or_subspecification(the_case_no_hierarchy):
     for test_case in the_case_no_hierarchy:
-        for spec in test_case.superspecification_of:
-            assert not test_case.state.is_superset_of(spec)
-            assert not test_case.state.is_subset_of(spec)
-            assert not spec.is_superspecification_of(test_case.state)
-            assert not spec.is_subspecification_of(test_case.state)
+        for state in test_case.superset_of:
+            assert not test_case.state.is_superset_of(state)
+            assert not test_case.state.is_subset_of(state)
+            assert not state.is_superset_of(test_case.state)
+            assert not state.is_subset_of(test_case.state)
 
 
 @pytest.fixture
@@ -99,12 +98,14 @@ def the_case_no_hierarchy():
         HierarchyTestCase(sta.state_from_string('A@0'),
                           [sta.state_from_string('B@1')]),
 
-        HierarchyTestCase(sta.state_from_string('[INPUT]'),
-                          [sta.state_from_string('B@1'), sta.state_from_string('A@0--B@1'),
-                           sta.state_from_string('A@0-{P}')])
+        #HierarchyTestCase(sta.state_from_string('[INPUT]'),
+        #                  [sta.state_from_string('B@1'), sta.state_from_string('A@0--B@1'),
+        #                   sta.state_from_string('A@0-{P}')])
     ]
 
+
 StateTestCase = namedtuple('StateTestCase', ['state', 'expected_specifications', 'expected_string'])
+
 
 @pytest.fixture
 def the_case_state():
@@ -129,12 +130,45 @@ def the_case_state():
                       'ProteinSpecification: A@0_[d/s(r)]')
     ]
 
+
 def test_state_building(the_case_state):
     for the_case in the_case_state:
         is_state_correct(the_case)
+
 
 def is_state_correct(the_case):
     assert all(the_case.state.variables[variable] in the_case.expected_specifications for variable in the_case.state.variables)
     assert str(the_case.state) == the_case.expected_string
 
 
+@pytest.fixture
+def test_case_indirect_subset():
+    return [HierarchyTestCase(sta.state_from_string('A@0'),
+                      [sta.state_from_string('A@0_[m]--[n]')]),
+    ]
+
+
+def test_indirect_subset(test_case_indirect_subset):
+    sta.STATE_DEFINITION = [
+        sta.StateDefinition('interaction-state',
+                            '$x--$y',
+                            { '$x': spec.Specification,
+                              '$y': spec.Specification, },
+                            ['component-state']
+                            ),
+
+        sta.StateDefinition('self-interaction-state',
+                            '$x--[$y]',
+                            { '$x': spec.Specification,
+                              '$y': spec.DomainResolution },
+                            ['interaction-state']),
+
+        sta.StateDefinition('component-state',
+                            '$x',
+                            { '$x': spec.Specification },
+                            [],
+                            ),
+    ]
+
+    for the_case in test_case_indirect_subset:
+        is_hierarchy_correct(the_case)

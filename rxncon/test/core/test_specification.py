@@ -150,28 +150,30 @@ def the_case_string_generation():
                            'ProteinSpecification: C@0_[d/s(r)]'),
 
             StringTestCase(spec.DnaSpecification("C", 0, spec.DomainResolution(None, None, None)),
-                           'DnaSpecification: C@0gene'),
+                           'DnaSpecification: Cgene@0'),
             StringTestCase(spec.DnaSpecification("C", 0, spec.DomainResolution('d', 's', None)),
-                           'DnaSpecification: C@0gene_[d/s]'),
+                           'DnaSpecification: Cgene@0_[d/s]'),
             StringTestCase(spec.DnaSpecification("C", 0, spec.DomainResolution(None, None, 'r')),
-                           'DnaSpecification: C@0gene_[(r)]'),
+                           'DnaSpecification: Cgene@0_[(r)]'),
             StringTestCase(spec.DnaSpecification("C", 0, spec.DomainResolution('d', None, 'r')),
-                           'DnaSpecification: C@0gene_[d(r)]'),
+                           'DnaSpecification: Cgene@0_[d(r)]'),
             StringTestCase(spec.DnaSpecification("C", 0, spec.DomainResolution('d', 's', 'r')),
-                           'DnaSpecification: C@0gene_[d/s(r)]'),
+                           'DnaSpecification: Cgene@0_[d/s(r)]'),
 
             StringTestCase(spec.RnaSpecification("C", 0, spec.DomainResolution(None, None, None)),
-                           'RnaSpecification: C@0mRNA'),
+                           'RnaSpecification: CmRNA@0'),
             StringTestCase(spec.RnaSpecification("C", 0, spec.DomainResolution('d', 's', None)),
-                           'RnaSpecification: C@0mRNA_[d/s]'),
+                           'RnaSpecification: CmRNA@0_[d/s]'),
             StringTestCase(spec.RnaSpecification("C", 0, spec.DomainResolution(None, None, 'r')),
-                           'RnaSpecification: C@0mRNA_[(r)]'),
+                           'RnaSpecification: CmRNA@0_[(r)]'),
             StringTestCase(spec.RnaSpecification("C", 0, spec.DomainResolution('d', None, 'r')),
-                           'RnaSpecification: C@0mRNA_[d(r)]'),
+                           'RnaSpecification: CmRNA@0_[d(r)]'),
             StringTestCase(spec.RnaSpecification("C", 0, spec.DomainResolution('d', 's', 'r')),
-                           'RnaSpecification: C@0mRNA_[d/s(r)]'),
+                           'RnaSpecification: CmRNA@0_[d/s(r)]'),
 
             ]
+
+
 def test_specification_internal_sorting(the_case_specifications_ordering):
     for the_case in the_case_specifications_ordering:
         assert sorted(the_case.to_sort) == the_case.expected_order

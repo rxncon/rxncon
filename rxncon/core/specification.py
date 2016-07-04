@@ -74,13 +74,13 @@ class Specification(metaclass=ABCMeta):
         pass
 
     def to_dna_component_specification(self) -> 'DnaSpecification':
-        return DnaSpecification(self.name, DomainResolution(None, None, None))
+        return DnaSpecification(self.name, self.structure_index, DomainResolution(None, None, None))
 
     def to_rna_component_specification(self) -> 'RnaSpecification':
-        return RnaSpecification(self.name, DomainResolution(None, None, None))
+        return RnaSpecification(self.name, self.structure_index, DomainResolution(None, None, None))
 
     def to_protein_component_specification(self) -> 'ProteinSpecification':
-        return ProteinSpecification(self.name, DomainResolution(None, None, None))
+        return ProteinSpecification(self.name, self.structure_index, DomainResolution(None, None, None))
 
     def to_domain_resolution(self) -> 'DomainResolution':
         return self.spec_resolution
@@ -197,7 +197,7 @@ class ProteinSpecification(Specification):
             return self == other
 
     def to_component_specification(self) -> 'ProteinSpecification':
-        return ProteinSpecification(self.name, DomainResolution(None, None, None))
+        return ProteinSpecification(self.name, self.structure_index, DomainResolution(None, None, None))
 
 
 class RnaSpecification(Specification):
@@ -235,7 +235,7 @@ class RnaSpecification(Specification):
             return self == other
 
     def to_component_specification(self) -> 'RnaSpecification':
-        return RnaSpecification(self.name, DomainResolution(None, None, None))
+        return RnaSpecification(self.name, self.structure_index, DomainResolution(None, None, None))
 
 
 class DnaSpecification(Specification):
@@ -271,7 +271,7 @@ class DnaSpecification(Specification):
             return self == other
 
     def to_component_specification(self) -> 'DnaSpecification':
-        return DnaSpecification(self.name, DomainResolution(None, None, None))
+        return DnaSpecification(self.name, self.structure_index, DomainResolution(None, None, None))
 
 
 class SpecificationResolution(Enum):
