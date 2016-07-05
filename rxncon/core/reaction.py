@@ -1,4 +1,4 @@
-from rxncon.core.specification import Specification, RnaSpecification, ProteinSpecification, SpecificationResolution, DnaSpecification, DomainDefinition
+from rxncon.core.specification import Specification, RnaSpecification, ProteinSpecification, SpecificationResolution, DnaSpecification, Domain
 from rxncon.core.state import state_from_string, State
 from rxncon.syntax.specification_from_string import specification_from_string
 
@@ -27,9 +27,9 @@ def __get_state(state_strs: List[str], variables):
     for state_str in state_strs:
         if state_str:
             for var, val in variables.items():
-                var_resolution_str = '{0}.domain|{0}.subdomain|{0}.residue'.format(var.replace('$', '\$'))
-                if re.search(var_resolution_str, state_str):
-                    state_str = re.sub(var_resolution_str, '[{0}]'.format(str(val.spec_resolution)), state_str)
+                var_resolution_str_domain = '{0}.domain'.format(var.replace('$', '\$'))
+                if re.search(var_resolution_str_domain, state_str):
+                    state_str = re.sub(var_resolution_str_domain, '[{0}]'.format(str(val.spec_resolution)), state_str)
                 else:
                     state_str = state_str.replace(var, str(val))
 
@@ -55,8 +55,8 @@ def parse_reactant(definition: str, variables):
 
 
 class ReactionDefinition:
-    SPEC_REGEX_GROUPED = '([\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
-    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
+    SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
+    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
     def __init__(self, name, representation_def, variables_def, reactants_def):
         self.name, self.representation_def, self.variables_def, self.reactants_defs = \
             name, representation_def, variables_def, reactants_def
@@ -140,7 +140,7 @@ REACTION_DEFINITIONS = [
         '$x_p+_$y',
         {
             '$x': (ProteinSpecification, SpecificationResolution.component),
-            '$y': (Specification, SpecificationResolution.residue)
+            '$y': (ProteinSpecification, SpecificationResolution.residue)
         },
         '$x# + $y#$y-{0} -> $x# + $y#$y-{p}'
     ),
@@ -148,8 +148,8 @@ REACTION_DEFINITIONS = [
         'phosphotransfer',
         '$x_pt_$y',
         {
-            '$x': (Specification, SpecificationResolution.residue),
-            '$y': (Specification, SpecificationResolution.residue)
+            '$x': (ProteinSpecification, SpecificationResolution.residue),
+            '$y': (ProteinSpecification, SpecificationResolution.residue)
         },
         '$x#$x-{p} + $y#$y-{0} -> $x#$x-{0} + $y#$y-{p}'
     ),
@@ -168,18 +168,18 @@ REACTION_DEFINITIONS = [
         '$x_trsc_$y',
         {
             '$x': (ProteinSpecification, SpecificationResolution.component),
-            '$y': (Specification, SpecificationResolution.component)
+            '$y': (DnaSpecification, SpecificationResolution.component)
         },
-        '$x# + $y.gene# -> $x# + $y.gene# + $y.mRNA#'
+        '$x# + $y# -> $x# + $y# + $y.mRNA#'
     ),
     ReactionDefinition(
         'translation',
         '$x_trsl_$y',
         {
             '$x': (ProteinSpecification, SpecificationResolution.component),
-            '$y': (Specification, SpecificationResolution.component)
+            '$y': (RnaSpecification, SpecificationResolution.component)
         },
-        '$x# + $y.mRNA# -> $x# + $y.mRNA# + $y#'
+        '$x# + $y# -> $x# + $y# + $y#'
     ),
 
     ReactionDefinition(
@@ -199,29 +199,29 @@ REACTION_DEFINITIONS = [
             '$x': (ProteinSpecification, SpecificationResolution.domain),
             '$y': (DnaSpecification, SpecificationResolution.domain)
         },
-        '$x#$x--0 + $y.gene#$y.gene--0 -> $x#$x--$y.gene + $y.gene#$x--$y.gene'
+        '$x#$x--0 + $y#$y--0 -> $x#$x--$y + $y#$x--$y'
     ),
 
-    ReactionDefinition(
-        'synthesis',
-        '$x_syn_$y',
-        {
-            '$x': (ProteinSpecification, SpecificationResolution.component),
-            '$y': (ProteinSpecification, SpecificationResolution.component)
-        },
-        '$x# -> $x# + $y#'
-
-    ),
-    ReactionDefinition(
-        'degradation',
-        '$x_deg_$y',
-        {
-            '$x': (ProteinSpecification, SpecificationResolution.component),
-            '$y': (ProteinSpecification, SpecificationResolution.component)
-        },
-        '$x# + $y# -> $x#'
-
-    ),
+    # ReactionDefinition(
+    #     'synthesis',
+    #     '$x_syn_$y',
+    #     {
+    #         '$x': (ProteinSpecification, SpecificationResolution.component),
+    #         '$y': (ProteinSpecification, SpecificationResolution.component)
+    #     },
+    #     '$x# -> $x# + $y#'
+    #
+    # ),
+    # ReactionDefinition(
+    #     'degradation',
+    #     '$x_deg_$y',
+    #     {
+    #         '$x': (ProteinSpecification, SpecificationResolution.component),
+    #         '$y': (ProteinSpecification, SpecificationResolution.component)
+    #     },
+    #     '$x# + $y# -> $x#'
+    #
+    # ),
     #todo: output reaction definition
     # ReactionDefinition(
     #     'output',

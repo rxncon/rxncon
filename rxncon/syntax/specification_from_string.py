@@ -22,7 +22,7 @@ def create_specification_from_name_suffix(name, structured_index, domain, subdom
     for suffix in mapping_suffix_to_specification:
         if name.endswith(suffix.value):
             name = name[:len(name)-len(suffix.value)]
-            return mapping_suffix_to_specification[suffix](name, structured_index, com.DomainDefinition(domain, subdomain, residue))
+            return mapping_suffix_to_specification[suffix](name, structured_index, com.Domain(domain, subdomain, residue))
 
 
 def domain_resolution_from_string(full_domain_string):

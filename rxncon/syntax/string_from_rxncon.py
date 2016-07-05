@@ -16,8 +16,8 @@ class SpecificationSuffix(OrderedEnum):
 
 @tc.typecheck
 def string_from_specification(specification, prefix: OrderedEnum) -> str:
-    if str(specification.spec_resolution):
-        return '{0}_[{1}]'.format(create_structured_name(specification, prefix.value), str(specification.spec_resolution), )
+    if str(specification.domain):
+        return '{0}_[{1}]'.format(create_structured_name(specification, prefix.value), str(specification.domain), )
     else:
         return '{0}'.format(create_structured_name(specification, prefix.value))
 

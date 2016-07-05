@@ -58,9 +58,9 @@ class StateDefinition:
             val_str = re.match(var_regex, representation).group(1)
             if self.variables_def[var][0] is StateModifier:
                 value = state_modifier_from_string(val_str)
-            elif self.variables_def[var][0] is spec.DomainDefinition:
+            elif self.variables_def[var][0] is spec.Domain:
                 domain, subdomain, residue = sfs.domain_resolution_from_string(val_str)
-                value = spec.DomainDefinition(domain, subdomain, residue)
+                value = spec.Domain(domain, subdomain, residue)
             else:
                 value = sfs.specification_from_string(val_str)
 
@@ -91,7 +91,7 @@ STATE_DEFINITION = [
     StateDefinition('self-interaction-state',
                     '$x--[$y]',
                     {'$x': (spec.Specification, spec.SpecificationResolution.domain),
-                     '$y': (spec.DomainDefinition, spec.SpecificationResolution.domain) },
+                     '$y': (spec.Domain, spec.SpecificationResolution.domain) },
                     ['component-state']),
 
     StateDefinition('input-state',
