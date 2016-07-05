@@ -55,9 +55,8 @@ def parse_reactant(definition: str, variables):
 
 
 class ReactionDefinition:
-    SPEC_REGEX_GROUPED = '([a-zA-Z0-9\/\[\]\(\)_]+?)'
-    SPEC_REGEX_UNGROUPED = '[a-zA-Z0-9\/\[\]\(\)_]+?'
-
+    SPEC_REGEX_GROUPED = '([\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
+    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
     def __init__(self, name, representation_def, variables_def, reactants_def):
         self.name, self.representation_def, self.variables_def, self.reactants_defs = \
             name, representation_def, variables_def, reactants_def
@@ -163,6 +162,7 @@ REACTION_DEFINITIONS = [
         },
         '$x#$x--0 + $y#$y--0 <-> $x#$x--$y + $y#$x--$y'
     ),
+
     ReactionDefinition(
         'transcription',
         '$x_trsc_$y',
@@ -197,7 +197,7 @@ REACTION_DEFINITIONS = [
         '$x_bind_$y',
         {
             '$x': (ProteinSpecification, SpecificationResolution.domain),
-            '$y': (ProteinSpecification, SpecificationResolution.domain)
+            '$y': (DnaSpecification, SpecificationResolution.domain)
         },
         '$x#$x--0 + $y.gene#$y.gene--0 -> $x#$x--$y.gene + $y.gene#$x--$y.gene'
     ),

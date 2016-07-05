@@ -112,22 +112,22 @@ def the_case_state():
     return [
         StateTestCase(sta.state_from_string('Agene@0'),
                       [spec.DnaSpecification('A', 0, spec.DomainDefinition(None, None, None))],
-                      'DnaSpecification: Agene@0'),
+                      'Agene@0'),
         StateTestCase(sta.state_from_string('Agene@0_[d/s(r)]'),
                       [spec.DnaSpecification('A', 0, spec.DomainDefinition('d', 's', 'r'))],
-                      'DnaSpecification: Agene@0_[d/s(r)]'),
+                      'Agene@0_[d/s(r)]'),
         StateTestCase(sta.state_from_string('AmRNA@0'),
                       [spec.RnaSpecification('A', 0, spec.DomainDefinition(None, None, None))],
-                      'RnaSpecification: AmRNA@0'),
+                      'AmRNA@0'),
         StateTestCase(sta.state_from_string('AmRNA@0_[d/s(r)]'),
                       [spec.RnaSpecification('A', 0, spec.DomainDefinition('d', 's', 'r'))],
-                      'RnaSpecification: AmRNA@0_[d/s(r)]'),
+                      'AmRNA@0_[d/s(r)]'),
         StateTestCase(sta.state_from_string('A@0'),
                       [spec.ProteinSpecification('A', 0, spec.DomainDefinition(None, None, None))],
-                      'ProteinSpecification: A@0'),
+                      'A@0'),
         StateTestCase(sta.state_from_string('A@0_[d/s(r)]'),
                       [spec.ProteinSpecification('A', 0, spec.DomainDefinition('d', 's', 'r'))],
-                      'ProteinSpecification: A@0_[d/s(r)]')
+                      'A@0_[d/s(r)]')
     ]
 
 
@@ -152,6 +152,18 @@ def test_case_resolution_and_neutral_modifier():
                            None,
                            True),
 
+        ResolutionTestCase(sta.state_from_string('Agene@0'),
+                           [(spec.DnaSpecification('A', 0, spec.DomainDefinition(None, None, None)),
+                             spec.SpecificationResolution.component)],
+                           None,
+                           True),
+
+        ResolutionTestCase(sta.state_from_string('AmRNA@0'),
+                           [(spec.RnaSpecification('A', 0, spec.DomainDefinition(None, None, None)),
+                             spec.SpecificationResolution.component)],
+                           None,
+                           True),
+
         #todo: discuss this What is with the DomainResolution ?
         ResolutionTestCase(sta.state_from_string('A@0_[m]--[n]'),
                            [(spec.ProteinSpecification('A', 0, spec.DomainDefinition('m', None, None)),
@@ -172,6 +184,18 @@ def test_case_resolution_and_neutral_modifier():
 
         ResolutionTestCase(sta.state_from_string('A@0_[d/s(r)]-{p}'),
                            [(spec.ProteinSpecification('A', 0, spec.DomainDefinition('d', 's', 'r')),
+                             spec.SpecificationResolution.residue)],
+                           sta.StateModifier.neutral,
+                           True),
+
+        ResolutionTestCase(sta.state_from_string('Agene@0_[d/s(r)]-{p}'),
+                           [(spec.DnaSpecification('A', 0, spec.DomainDefinition('d', 's', 'r')),
+                             spec.SpecificationResolution.residue)],
+                           sta.StateModifier.neutral,
+                           True),
+
+        ResolutionTestCase(sta.state_from_string('AmRNA@0_[d/s(r)]-{p}'),
+                           [(spec.RnaSpecification('A', 0, spec.DomainDefinition('d', 's', 'r')),
                              spec.SpecificationResolution.residue)],
                            sta.StateModifier.neutral,
                            True),
@@ -218,10 +242,10 @@ def is_resolution_and_neutral_modifier_correct(the_case):
     for component in the_case.state.components():
         assert (component, the_case.state.elemental_resolution(component)) in the_case.expected_resolution
     assert the_case.state.neutral_modifier == the_case.expected_neutral_modifier
-    assert the_case.state.is_elemental == the_case.expected_is_elemental
+    assert the_case.state.is_elemental() == the_case.expected_is_elemental
 
-
-
+def test_unboundstate():
+    sta.state_from_string('A@0_[m]--0')
 @pytest.fixture
 def test_case_indirect_subset():
     return [HierarchyTestCase(sta.state_from_string('A@0'),

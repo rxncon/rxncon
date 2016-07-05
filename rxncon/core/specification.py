@@ -10,7 +10,7 @@ import rxncon.syntax.string_from_rxncon as sfr
 class Specification(metaclass=ABCMeta):
 
     @tc.typecheck
-    def __init__(self, name: str, structure_index, spec_resolution: 'DomainDefinition'):
+    def __init__(self, name: str, structure_index: Optional[int], spec_resolution: 'DomainDefinition'):
         self.name = name
         self.spec_resolution = spec_resolution
         self.structure_index = structure_index
