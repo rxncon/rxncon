@@ -154,6 +154,9 @@ def the_case_string_generation():
             StringTestCase(spec.ProteinSpecification("C", 0, spec.DomainDefinition('d', 's', 'r')),
                            'C@0_[d/s(r)]'),
 
+            StringTestCase(spec.EmptySpecification("0", None, spec.DomainDefinition(None, None, None)),
+                           '0'),
+
             StringTestCase(spec.DnaSpecification("C", None, spec.DomainDefinition(None, None, None)),
                            'Cgene'),
             StringTestCase(spec.DnaSpecification("C", None, spec.DomainDefinition('d', 's', None)),

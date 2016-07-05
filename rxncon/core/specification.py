@@ -173,7 +173,7 @@ class EmptySpecification(Specification):
         return hash(str(self))
 
     def __str__(self) -> str:
-        sfr.string_from_protein_specification(self)
+        return sfr.string_from_protein_specification(self)
 
     def __eq__(self, other: 'Specification') -> bool:
         return isinstance(other, EmptySpecification) and self.name == other.name
