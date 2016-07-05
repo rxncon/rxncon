@@ -7,8 +7,8 @@ from collections import namedtuple
 HierarchyTestCase = namedtuple('HierarchyTestCase', ['state', 'superset_of'])
 
 
-def test_hierarchy(the_case_hierarchy):
-    for test_case in the_case_hierarchy:
+def test_hierarchy(the_case_hierarchy, the_case_hierarchy_structured):
+    for test_case in the_case_hierarchy +the_case_hierarchy_structured:
         is_hierarchy_correct(test_case)
 
 
@@ -20,9 +20,50 @@ def is_hierarchy_correct(test_case):
             assert not test_case.state.is_subset_of(state) and test_case.state.is_subset_of(state) is not None
         assert state.is_subset_of(test_case.state)
 
-
 @pytest.fixture
 def the_case_hierarchy():
+    return [
+        HierarchyTestCase(sta.state_from_string('B'),
+                          [sta.state_from_string('B'),
+                           sta.state_from_string('A--B'), sta.state_from_string('A--B_[d]'),
+                           sta.state_from_string('A--B_[d/s]'),
+                           sta.state_from_string('A--B_[d/s(r)]')
+                           ]),
+        HierarchyTestCase(sta.state_from_string('A-{p}'),
+                          [sta.state_from_string('A_[n]-{p}')]),
+
+        HierarchyTestCase(sta.state_from_string('A--B'),
+                          [sta.state_from_string('A_[n]--B'), sta.state_from_string('A--B_[m]'),
+                           sta.state_from_string('A_[n]--B_[m]')],
+                          ),
+
+        HierarchyTestCase(sta.state_from_string('A_[n]--B'),
+                          [sta.state_from_string('A_[n]--B_[m]')]),
+
+        HierarchyTestCase(sta.state_from_string('A--B_[m]'),
+                          [sta.state_from_string('A_[n]--B_[m]')]),
+
+        HierarchyTestCase(sta.state_from_string('A'),
+                          [sta.state_from_string('A'),
+                           sta.state_from_string('A--B'), sta.state_from_string('A_[d]--B'),
+                           sta.state_from_string('A_[d/s]--B'),
+                           sta.state_from_string('A_[d/s(r)]--B'),
+                           sta.state_from_string('A-{p}'), sta.state_from_string('A_[d]-{p}'),
+                           sta.state_from_string('A_[d/s]-{p}'),
+                           sta.state_from_string('A_[d/s(r)]-{p}'), sta.state_from_string('A_[(r)]-{p}')
+                           ]),
+
+        HierarchyTestCase(sta.state_from_string('B'),
+                          [sta.state_from_string('B'),
+                           sta.state_from_string('A--B'), sta.state_from_string('A--B_[d]'),
+                           sta.state_from_string('A--B_[d/s]'),
+                           sta.state_from_string('A--B_[d/s(r)]')
+                           ]),
+    ]
+
+
+@pytest.fixture
+def the_case_hierarchy_structured():
     return [
             HierarchyTestCase(sta.state_from_string('A@0-{p}'),
                              [sta.state_from_string('A@0_[n]-{p}')]),
@@ -43,12 +84,6 @@ def the_case_hierarchy():
                                sta.state_from_string('A@0_[d/s(r)]--B@1'),
                                sta.state_from_string('A@0-{p}'), sta.state_from_string('A@0_[d]-{p}'), sta.state_from_string('A@0_[d/s]-{p}'),
                                sta.state_from_string('A@0_[d/s(r)]-{p}'), sta.state_from_string('A@0_[(r)]-{p}')
-                               ]),
-
-            HierarchyTestCase(sta.state_from_string('B@1'),
-                              [sta.state_from_string('B@1'),
-                               sta.state_from_string('A@0--B@1'), sta.state_from_string('A@0--B@1_[d]'), sta.state_from_string('A@0--B@1_[d/s]'),
-                               sta.state_from_string('A@0--B@1_[d/s(r)]')
                                ]),
             #todo: how do we handle Input states with @
             #HierarchyTestCase(sta.state_from_string('[INPUT]'),
@@ -106,9 +141,33 @@ def the_case_no_hierarchy():
 
 StateTestCase = namedtuple('StateTestCase', ['state', 'expected_specifications', 'expected_string'])
 
-
 @pytest.fixture
 def the_case_state():
+    return [
+
+        StateTestCase(sta.state_from_string('Agene'),
+                      [spec.DnaSpecification('A', None, spec.DomainDefinition(None, None, None))],
+                      'Agene'),
+        StateTestCase(sta.state_from_string('Agene_[d/s(r)]'),
+                      [spec.DnaSpecification('A', None, spec.DomainDefinition('d', 's', 'r'))],
+                      'Agene_[d/s(r)]'),
+        StateTestCase(sta.state_from_string('AmRNA'),
+                      [spec.RnaSpecification('A', None, spec.DomainDefinition(None, None, None))],
+                      'AmRNA'),
+        StateTestCase(sta.state_from_string('AmRNA_[d/s(r)]'),
+                      [spec.RnaSpecification('A', None, spec.DomainDefinition('d', 's', 'r'))],
+                      'AmRNA_[d/s(r)]'),
+        StateTestCase(sta.state_from_string('A'),
+                      [spec.ProteinSpecification('A', None, spec.DomainDefinition(None, None, None))],
+                      'A'),
+        StateTestCase(sta.state_from_string('A_[d/s(r)]'),
+                      [spec.ProteinSpecification('A', None, spec.DomainDefinition('d', 's', 'r'))],
+                      'A_[d/s(r)]')
+    ]
+
+
+@pytest.fixture
+def the_case_state_structured():
     return [
         StateTestCase(sta.state_from_string('Agene@0'),
                       [spec.DnaSpecification('A', 0, spec.DomainDefinition(None, None, None))],
@@ -127,12 +186,13 @@ def the_case_state():
                       'A@0'),
         StateTestCase(sta.state_from_string('A@0_[d/s(r)]'),
                       [spec.ProteinSpecification('A', 0, spec.DomainDefinition('d', 's', 'r'))],
-                      'A@0_[d/s(r)]')
+                      'A@0_[d/s(r)]'),
+
     ]
 
 
-def test_state_building(the_case_state):
-    for the_case in the_case_state:
+def test_state_building(the_case_state, the_case_state_structured):
+    for the_case in the_case_state + the_case_state_structured:
         is_state_correct(the_case)
 
 
@@ -142,10 +202,37 @@ def is_state_correct(the_case):
 
 ResolutionTestCase = namedtuple('ResolutionTestCase', ['state', 'expected_resolution', 'expected_neutral_modifier', 'expected_is_elemental'])
 
-
 @pytest.fixture
 def test_case_resolution_and_neutral_modifier():
     return [
+        ResolutionTestCase(sta.state_from_string('A'),
+                           [(spec.ProteinSpecification('A', None, spec.DomainDefinition(None, None, None)),
+                             spec.SpecificationResolution.component)],
+                           None,
+                           True),
+        ResolutionTestCase(sta.state_from_string('A_[m]--[n]'),
+                           [(spec.ProteinSpecification('A', None, spec.DomainDefinition('m', None, None)),
+                             spec.SpecificationResolution.domain)],
+                           None,
+                           True),
+
+        ResolutionTestCase(sta.state_from_string('A_[(r)]-{p}'),
+                           [(spec.ProteinSpecification('A', None, spec.DomainDefinition(None, None, 'r')),
+                             spec.SpecificationResolution.residue)],
+                           sta.StateModifier.neutral,
+                           True),
+
+        ResolutionTestCase(sta.state_from_string('A_[n]-{p}'),
+                           [(spec.ProteinSpecification('A', None, spec.DomainDefinition('n', None, None)),
+                             spec.SpecificationResolution.residue)],
+                           sta.StateModifier.neutral,
+                           False),
+    ]
+@pytest.fixture
+def test_case_resolution_and_neutral_modifier_structured():
+    return [
+
+
         ResolutionTestCase(sta.state_from_string('A@0'),
                            [(spec.ProteinSpecification('A', 0, spec.DomainDefinition(None, None, None)),
                             spec.SpecificationResolution.component)],
@@ -170,6 +257,7 @@ def test_case_resolution_and_neutral_modifier():
                              spec.SpecificationResolution.domain)],
                            None,
                            True),
+
         ResolutionTestCase(sta.state_from_string('A@0_[(r)]-{p}'),
                            [(spec.ProteinSpecification('A', 0, spec.DomainDefinition(None, None, 'r')),
                              spec.SpecificationResolution.residue)],
@@ -234,8 +322,8 @@ def test_case_resolution_and_neutral_modifier():
                            False)
     ]
 
-def test_resolution_and_default_modifier(test_case_resolution_and_neutral_modifier):
-    for the_case in test_case_resolution_and_neutral_modifier:
+def test_resolution_and_default_modifier(test_case_resolution_and_neutral_modifier, test_case_resolution_and_neutral_modifier_structured):
+    for the_case in test_case_resolution_and_neutral_modifier + test_case_resolution_and_neutral_modifier_structured:
         is_resolution_and_neutral_modifier_correct(the_case)
 
 def is_resolution_and_neutral_modifier_correct(the_case):

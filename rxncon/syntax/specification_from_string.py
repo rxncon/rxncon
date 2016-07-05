@@ -72,7 +72,7 @@ def specification_from_string(specification_string: str) -> com.Specification:
     items = specification_string.split(DOMAIN_DELIMITER, maxsplit=1)
     if re.match('0', items[0]):
         return create_specification_from_name_suffix('0', structured_index, None, None, None)
-    elif re.match('@', items[0]):
+    elif '@' in items[0]:
         name, structured_index = items[0].split('@')
         structured_index = int(structured_index)
     else:

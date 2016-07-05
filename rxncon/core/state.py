@@ -18,8 +18,8 @@ class StateModifier(OrderedEnum):
 
 
 class StateDefinition:
-    SPEC_REGEX_GROUPED = '([\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?|)'
-    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
+    SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
+    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
     def __init__(self, name, representation_def, variables_def, subset_def):
 
         self.name, self.representation_def, \
