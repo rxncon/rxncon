@@ -29,7 +29,7 @@ def __get_state(state_strs: List[str], variables):
             for var, val in variables.items():
                 var_resolution_str_domain = '{0}.domain'.format(var.replace('$', '\$'))
                 if re.search(var_resolution_str_domain, state_str):
-                    state_str = re.sub(var_resolution_str_domain, '[{0}]'.format(str(val.spec_resolution)), state_str)
+                    state_str = re.sub(var_resolution_str_domain, '[{0}]'.format(str(val.domain)), state_str)
                 else:
                     state_str = state_str.replace(var, str(val))
 
@@ -46,6 +46,8 @@ def parse_reactant(definition: str, variables):
         component = variables[component_parts[0]].to_rna_component_specification()
     elif len(component_parts) == 2 and component_parts[1] == 'gene':
         component = variables[component_parts[0]].to_dna_component_specification()
+    elif len(component_parts) == 2 and component_parts[1] == 'protein':
+        component = variables[component_parts[0]].to_protein_component_specification()
     else:
         raise NotImplementedError
 
@@ -179,7 +181,7 @@ REACTION_DEFINITIONS = [
             '$x': (ProteinSpecification, SpecificationResolution.component),
             '$y': (RnaSpecification, SpecificationResolution.component)
         },
-        '$x# + $y# -> $x# + $y# + $y#'
+        '$x# + $y# -> $x# + $y# + $y.protein#'
     ),
 
     ReactionDefinition(
