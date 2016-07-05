@@ -1,6 +1,4 @@
-from abc import ABCMeta, abstractmethod, abstractproperty
 from enum import unique
-import typecheck as tc
 import re
 import typing as tp
 
@@ -50,7 +48,7 @@ class StateDefinition:
 
     def variables_from_representation(self, representation):
         assert self.matches_representation(representation)
-        variables = { }
+        variables = {}
         for var, var_def in self.variables_def.items():
             var_regex = self._to_base_regex().replace(var, self.SPEC_REGEX_GROUPED)
             for other_var in self.variables_def.keys():
@@ -80,12 +78,6 @@ class StateDefinition:
 
         return representation
 
-    def superspec_from_definition(self):
-        pass
-
-
-def state_modifier_from_string(modifier: str):
-    return StateModifier(modifier.lower())
 
 
 STATE_DEFINITION = [
@@ -101,7 +93,6 @@ STATE_DEFINITION = [
                     {'$x': (spec.Specification, spec.SpecificationResolution.domain),
                      '$y': (spec.DomainDefinition, spec.SpecificationResolution.domain) },
                     ['component-state']),
-
 
     StateDefinition('input-state',
                     '[$x]',
@@ -121,10 +112,7 @@ STATE_DEFINITION = [
                     ),
 ]
 
-def _get_STATE_DEFINITION(superset_name):
-    for definition in STATE_DEFINITION:
-        if superset_name == definition.name:
-            return definition
+
 
 class State():
     def __init__(self, definition: StateDefinition, variables):
@@ -139,40 +127,34 @@ class State():
     def __eq__(self, other):
         return self.definition == other.definition and self.variables == other.variables
 
-    def components(self):
+    def components(self) -> tp.List[spec.Specification]:
         return [value for value in self.variables.values() if isinstance(value, spec.Specification)]
 
-    def modifier(self):
+    def modifier(self) -> tp.List[StateModifier]:
         return [value for value in self.variables.values() if isinstance(value, StateModifier)]
 
     @property
-    def neutral_modifier(self):
+    def neutral_modifier(self) -> StateModifier:
         result = [self.definition.variables_def[var][1] for var, value in self.variables.items()
                   if isinstance(value, StateModifier)]
         assert len(result) <= 1
         if result:
             return result[0]
 
-    def elemental_resolution(self, specification_to_find: spec.Specification):
+    def elemental_resolution(self, specification_to_find: spec.Specification) -> spec.SpecificationResolution:
         result = [self.definition.variables_def[var][1] for var, value in self.variables.items()
                   if isinstance(value, spec.Specification) and specification_to_find == value]
         assert len(result) <= 1
         if result:
             return result[0]
 
-
-    def is_elemental(self):
+    def is_elemental(self) -> bool:
         return all(component.resolution == self.elemental_resolution(component) for component in self.components())
 
-    def is_superset_of(self, other) -> bool:
-        # A -> B -> C is C subset of A? True subsets of subsets
-        # todo: multi-step inheritance
-        # todo: neutral modifier
+    def is_superset_of(self, other: 'State') -> bool:
         return other.is_subset_of(self)
 
-
-    def is_subset_of(self, other) -> bool:
-
+    def is_subset_of(self, other: 'State') -> bool:
         subspec = False
         if self.definition.name == other.definition.name or other.definition.name in self.definition.subset_of_def:
             return self._component_subspecification_validation(other, subspec)
@@ -182,9 +164,10 @@ class State():
                    return self._component_subspecification_validation(other, subspec)
             else:
                 return False
+        else:
+            assert NotImplementedError
 
-
-    def _component_subspecification_validation(self, other, subspec):
+    def _component_subspecification_validation(self, other: 'State', subspec: bool):
         for self_component in self.components():
             for other_component in other.components():
                 #check whether the to components are equal
@@ -204,8 +187,16 @@ class State():
 
         return subspec
 
+def state_modifier_from_string(modifier: str) -> StateModifier:
+    return StateModifier(modifier.lower())
 
-def definition_of_state(representation: str):
+
+def _get_STATE_DEFINITION(superset_name: str) -> StateDefinition:
+    for definition in STATE_DEFINITION:
+        if superset_name == definition.name:
+            return definition
+
+def definition_of_state(representation: str) -> StateDefinition:
     the_definition = None
     for definition in STATE_DEFINITION:
 
@@ -217,7 +208,7 @@ def definition_of_state(representation: str):
     return the_definition
 
 
-def state_from_string(representation: str):
+def state_from_string(representation: str) -> State:
     the_definition = definition_of_state(representation)
     variables = the_definition.variables_from_representation(representation)
 

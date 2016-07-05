@@ -1,6 +1,6 @@
 import typecheck as tc
 import re
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
 from typing import Optional
 from enum import Enum
 
@@ -8,10 +8,11 @@ import rxncon.syntax.string_from_rxncon as sfr
 
 
 class Specification(metaclass=ABCMeta):
+
+    @tc.typecheck
     def __init__(self, name: str, structure_index, spec_resolution: 'DomainDefinition'):
         self.name = name
         self.spec_resolution = spec_resolution
-        #todo: equal has to be adapted
         self.structure_index = structure_index
         self._validate()
 
@@ -33,14 +34,12 @@ class Specification(metaclass=ABCMeta):
     def __eq__(self, other: 'Specification') -> bool:
         pass
 
-    def __lt__(self, other: 'Specification'):
+    def __lt__(self, other: 'Specification') -> bool:
         # None is smaller than something
         if self.name < other.name:
             return True
         elif self.name == other.name:
             return self.spec_resolution < other.spec_resolution
-
-
         return False
 
     @abstractmethod
@@ -86,10 +85,10 @@ class Specification(metaclass=ABCMeta):
         return self.spec_resolution
 
     @property
-    def resolution(self):
+    def resolution(self) -> 'SpecificationResolution':
         return self.spec_resolution.resolution
 
-    def has_resolution(self, resolution: 'SpecificationResolution'):
+    def has_resolution(self, resolution: 'SpecificationResolution') -> bool:
         return self.resolution == resolution
 
 
@@ -125,7 +124,7 @@ class DomainDefinition:
                and self.subdomain == other.subdomain and self.residue == other.residue
 
     @tc.typecheck
-    def __lt__(self, other: 'DomainDefinition'):
+    def __lt__(self, other: 'DomainDefinition') -> bool:
         if self.domain is None and other.domain is not None:
             return True
         if other.domain is not None and other.domain is not None \
@@ -144,14 +143,14 @@ class DomainDefinition:
         return False
 
     @tc.typecheck
-    def is_equivalent_to(self, other):
+    def is_equivalent_to(self, other) -> bool:
         if isinstance(other, DomainDefinition) and self.residue and (self.residue == other.residue):
             return True
         else:
             return self == other
 
     @property
-    def resolution(self):
+    def resolution(self) -> 'SpecificationResolution':
         if not self.domain and not self.subdomain and not self.residue:
             return SpecificationResolution.component
         elif self.domain and not self.subdomain and not self.residue:
@@ -175,10 +174,10 @@ class ProteinSpecification(Specification):
     #@tc.typecheck
     def __eq__(self, other: Specification) -> bool:
         return isinstance(other, ProteinSpecification) and self.name == other.name \
-               and self.spec_resolution == other.spec_resolution
+               and self.spec_resolution == other.spec_resolution and self.structure_index == other.structure_index
 
     @tc.typecheck
-    def __lt__(self, other: Specification):
+    def __lt__(self, other: Specification) -> bool:
         if isinstance(other, ProteinSpecification):
             return super().__lt__(other)
         elif isinstance(other, RnaSpecification):
@@ -189,7 +188,7 @@ class ProteinSpecification(Specification):
             raise NotImplementedError
 
     @tc.typecheck
-    def is_equivalent_to(self, other: Specification):
+    def is_equivalent_to(self, other: Specification) -> bool:
         if isinstance(other, ProteinSpecification) and (self.name == other.name) \
                 and self.spec_resolution.is_equivalent_to(other.spec_resolution):
             return True
@@ -211,10 +210,10 @@ class RnaSpecification(Specification):
     #@tc.typecheck
     def __eq__(self, other: Specification) -> bool:
         return isinstance(other, RnaSpecification) and self.name == other.name \
-               and self.spec_resolution == other.spec_resolution
+               and self.spec_resolution == other.spec_resolution and self.structure_index == other.structure_index
 
     @tc.typecheck
-    def __lt__(self, other: Specification):
+    def __lt__(self, other: Specification) -> bool:
 
         if isinstance(other, RnaSpecification):
             return super().__lt__(other)
@@ -227,7 +226,7 @@ class RnaSpecification(Specification):
             raise NotImplementedError
 
     @tc.typecheck
-    def is_equivalent_to(self, other: Specification):
+    def is_equivalent_to(self, other: Specification) -> bool:
         if isinstance(other, RnaSpecification) and (self.name == other.name) \
                 and self.spec_resolution.is_equivalent_to(other.spec_resolution):
             return True
@@ -249,7 +248,7 @@ class DnaSpecification(Specification):
     #@tc.typecheck
     def __eq__(self, other: Specification) -> bool:
         return isinstance(other, DnaSpecification) and self.name == other.name \
-               and self.spec_resolution == other.spec_resolution
+               and self.spec_resolution == other.spec_resolution and self.structure_index == other.structure_index
 
     @tc.typecheck
     def __lt__(self, other: Specification):
@@ -263,7 +262,7 @@ class DnaSpecification(Specification):
             raise NotImplementedError
 
     @tc.typecheck
-    def is_equivalent_to(self, other: Specification):
+    def is_equivalent_to(self, other: Specification) -> bool:
         if isinstance(other, DnaSpecification) and (self.name == other.name) \
                 and self.spec_resolution.is_equivalent_to(other.spec_resolution):
             return True
