@@ -92,6 +92,7 @@ class Specification(metaclass=ABCMeta):
         return self.resolution == resolution
 
 
+
 class DomainDefinition:
     @tc.typecheck
     def __init__(self, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
@@ -163,6 +164,41 @@ class DomainDefinition:
             raise NotImplementedError
 
 
+class EmptySpecification(Specification):
+
+    def _validate(self):
+        assert self.name is not None and re.match("0", self.name)
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
+    def __str__(self) -> str:
+        sfr.string_from_protein_specification(self)
+
+    def __eq__(self, other: 'Specification') -> bool:
+        return isinstance(other, EmptySpecification) and self.name == other.name
+
+    @tc.typecheck
+    def __lt__(self, other: Specification) -> bool:
+        if isinstance(other, EmptySpecification):
+            return super().__lt__(other)
+        elif isinstance(other, ProteinSpecification):
+            return True
+        elif isinstance(other, RnaSpecification):
+            return True
+        elif isinstance(other, DnaSpecification):
+            return True
+        else:
+            raise NotImplementedError
+
+    @tc.typecheck
+    def is_equivalent_to(self, other: Specification) -> bool:
+        return self == other
+
+    def to_component_specification(self) -> 'EmptySpecification':
+        return EmptySpecification(self.name, self.structure_index, DomainDefinition(None, None, None))
+
+
 class ProteinSpecification(Specification):
 
     def __hash__(self):
@@ -183,6 +219,8 @@ class ProteinSpecification(Specification):
         elif isinstance(other, RnaSpecification):
             return False
         elif isinstance(other, DnaSpecification):
+            return False
+        elif isinstance(other, EmptySpecification):
             return False
         else:
             raise NotImplementedError
@@ -221,7 +259,8 @@ class RnaSpecification(Specification):
             return False
         elif isinstance(other, ProteinSpecification):
             return True
-
+        elif isinstance(other, EmptySpecification):
+            return False
         else:
             raise NotImplementedError
 
@@ -258,6 +297,8 @@ class DnaSpecification(Specification):
             return True
         elif isinstance(other, ProteinSpecification):
             return True
+        elif isinstance(other, EmptySpecification):
+            return False
         else:
             raise NotImplementedError
 

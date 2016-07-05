@@ -63,4 +63,4 @@ def create_structured_name(specification, prefix):
     if specification.structure_index is not None:
         return "{0}{1}@{2}".format(specification.name, prefix, specification.structure_index)
     else:
-        return "{0}".format(specification.name, prefix)
+        return "{0}{1}".format(specification.name, prefix)

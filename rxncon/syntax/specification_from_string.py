@@ -66,26 +66,25 @@ def domain_resolution_from_string(full_domain_string):
 @tc.typecheck
 def specification_from_string(specification_string: str) -> com.Specification:
     DOMAIN_DELIMITER = '_'
-    SPECIFICATION_DELEMITER = '.'
-    #specification_items = specification_string.split('_')
-    #assert len(specification_items) <= 2
+
+    structured_index = None
 
     items = specification_string.split(DOMAIN_DELIMITER, maxsplit=1)
     if re.match('0', items[0]):
-        name = 0
-    else:
+        return create_specification_from_name_suffix('0', structured_index, None, None, None)
+    elif re.match('@', items[0]):
         name, structured_index = items[0].split('@')
-
+        structured_index = int(structured_index)
+    else:
+        name = items[0]
 
     if len(items) == 1:
-        if not name:
-            return create_specification_from_name_suffix(str(name), None, None, None, None)
-        return create_specification_from_name_suffix(name, int(structured_index), None, None, None)
+        return create_specification_from_name_suffix(name, structured_index, None, None, None)
 
     elif len(items) == 2:
         full_domain_string = items[1].strip('[]')
         domain, subdomain, residue = domain_resolution_from_string(full_domain_string)
-        return create_specification_from_name_suffix(name, int(structured_index), domain, subdomain, residue)
+        return create_specification_from_name_suffix(name, structured_index, domain, subdomain, residue)
 
     else:
         raise SyntaxError('Could not parse specification string {}'.format(specification_string))
