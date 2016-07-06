@@ -1,20 +1,19 @@
 from typecheck import typecheck
-import re
 from abc import ABCMeta, abstractmethod
 from typing import Optional
 from enum import Enum
+import re
 
+from rxncon.syntax.string_from_rxncon import string_from_domain_information, string_from_protein_specification, \
+    string_from_gene_specification, string_from_rna_specification
+
+EMPTY_SPEC = '0'
 
 class Specification(metaclass=ABCMeta):
     @typecheck
     def __init__(self, name: str, structure_index: Optional[int], domain: 'Domain'):
-        self.name = name
-        self.domain = domain
-        self.structure_index = structure_index
+        self.name, self.structure_index, self.domain = name, structure_index, domain
         self._validate()
-
-    def _validate(self):
-        assert self.name is not None and re.match("\w+", self.name)
 
     def __hash__(self):
         return hash(str(self))
@@ -24,18 +23,14 @@ class Specification(metaclass=ABCMeta):
 
     def __str__(self) -> str:
         if self.structure_index:
-            return '{0}: {1}@{2}_[{3}/{4}({5})]'.format(str(type(self)), self.structure_index,
-                                                        self.name, self.domain, self.subdomain, self.resolution)
+            return '{0}: {1}@{2}_[{3}]'.format(str(type(self)), self.name, self.structure_index, str(self.domain))
         else:
-            return '{0}: {1}_[{2}/{3}({4})]'.format(str(type(self)),
-                                                    self.name, self.domain, self.subdomain, self.resolution)
+            return '{0}: {1}_[{2}]'.format(str(type(self)), self.name, str(self.domain))
 
     def __eq__(self, other: 'Specification') -> bool:
-        return isinstance(other, type(self)) and self.name == other.name \
-            and self.domain == other.domain and self.subdomain == other.subdomain and self.residue == other.residue
+        return isinstance(other, type(self)) and self.name == other.name and self.domain == other.domain
 
     def __lt__(self, other: 'Specification') -> bool:
-        # None is smaller than something
         if self.name < other.name:
             return True
         elif self.name == other.name:
@@ -44,17 +39,6 @@ class Specification(metaclass=ABCMeta):
 
     def _validate(self):
         assert self.name is not None and re.match("\w+", self.name)
-        if self.domain:
-            assert re.match("\w+", self.domain)
-        if self.subdomain:
-            assert re.match("\w+", self.subdomain)
-            assert self.domain is not None
-        if self.residue:
-            assert re.match("\w+", self.residue)
-
-    @abstractmethod
-    def is_equivalent_to(self, other: 'Specification') -> bool:
-        pass
 
     def is_subspecification_of(self, other: 'Specification') -> bool:
         if self.is_equivalent_to(other):
@@ -91,9 +75,6 @@ class Specification(metaclass=ABCMeta):
     def to_protein_component_specification(self) -> 'ProteinSpecification':
         return ProteinSpecification(self.name, self.structure_index, Domain(None, None, None))
 
-    def to_domain_resolution(self) -> 'Domain':
-        return self.domain
-
     @property
     def resolution(self) -> 'SpecificationResolution':
         return self.domain.resolution
@@ -102,23 +83,11 @@ class Specification(metaclass=ABCMeta):
         return self.resolution == resolution
 
 
-
 class Domain:
-    @tc.typecheck
+    @typecheck
     def __init__(self, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
-        self.domain = domain
-        self.subdomain = subdomain
-        self.residue = residue
+        self.domain, self.subdomain, self.residue = domain, subdomain, residue
         self._validate()
-
-    def _validate(self):
-        if self.domain:
-            assert re.match("\w+", self.domain)
-        if self.subdomain:
-            assert re.match("\w+", self.subdomain)
-            assert self.domain is not None
-        if self.residue:
-            assert re.match("\w+", self.residue)
 
     def __hash__(self):
         return hash(str(self))
@@ -127,14 +96,14 @@ class Domain:
         return str(self)
 
     def __str__(self) -> str:
-        return sfr.string_from_domain_information(self)
+        return string_from_domain_information(self)
 
-    @tc.typecheck
+    @typecheck
     def __eq__(self, other) -> bool:
         return isinstance(other, Domain) and self.domain == other.domain \
-               and self.subdomain == other.subdomain and self.residue == other.residue
+            and self.subdomain == other.subdomain and self.residue == other.residue
 
-    @tc.typecheck
+    @typecheck
     def __lt__(self, other: 'Domain') -> bool:
         if self.domain is None and other.domain is not None:
             return True
@@ -153,12 +122,14 @@ class Domain:
             return True
         return False
 
-    @tc.typecheck
-    def is_equivalent_to(self, other) -> bool:
-        if isinstance(other, Domain) and self.residue and (self.residue == other.residue):
-            return True
-        else:
-            return self == other
+    def _validate(self):
+        if self.domain:
+            assert re.match("\w+", self.domain)
+        if self.subdomain:
+            assert re.match("\w+", self.subdomain)
+            assert self.domain is not None
+        if self.residue:
+            assert re.match("\w+", self.residue)
 
     @property
     def resolution(self) -> 'SpecificationResolution':
@@ -175,20 +146,19 @@ class Domain:
 
 
 class EmptySpecification(Specification):
-
     def _validate(self):
-        assert self.name is not None and re.match("0", self.name)
+        assert self.name == EMPTY_SPEC
 
     def __hash__(self) -> int:
         return hash(str(self))
 
     def __str__(self) -> str:
-        return sfr.string_from_protein_specification(self)
+        return EMPTY_SPEC
 
     def __eq__(self, other: 'Specification') -> bool:
-        return isinstance(other, EmptySpecification) and self.name == other.name
+        return isinstance(other, EmptySpecification)
 
-    @tc.typecheck
+    @typecheck
     def __lt__(self, other: Specification) -> bool:
         if isinstance(other, EmptySpecification):
             return super().__lt__(other)
@@ -201,28 +171,23 @@ class EmptySpecification(Specification):
         else:
             raise NotImplementedError
 
-    @tc.typecheck
-    def is_equivalent_to(self, other: Specification) -> bool:
-        return self == other
-
-    def to_component_specification(self) -> 'EmptySpecification':
-        return EmptySpecification(self.name, self.structure_index, Domain(None, None, None))
+    def to_component_specification(self):
+        raise NotImplementedError
 
 
 class ProteinSpecification(Specification):
-
     def __hash__(self):
         return hash(str(self))
 
     def __str__(self) -> str:
-        return sfr.string_from_protein_specification(self)
+        return string_from_protein_specification(self)
 
-    #@tc.typecheck
+    @typecheck
     def __eq__(self, other: Specification) -> bool:
         return isinstance(other, ProteinSpecification) and self.name == other.name \
-               and self.domain == other.domain and self.structure_index == other.structure_index
+            and self.domain == other.domain and self.structure_index == other.structure_index
 
-    @tc.typecheck
+    @typecheck
     def __lt__(self, other: Specification) -> bool:
         if isinstance(other, ProteinSpecification):
             return super().__lt__(other)
@@ -235,14 +200,6 @@ class ProteinSpecification(Specification):
         else:
             raise NotImplementedError
 
-    @typecheck
-    def is_equivalent_to(self, other: Specification):
-        if isinstance(other, ProteinSpecification) and (self.name == other.name) \
-                and self.domain.is_equivalent_to(other.domain):
-            return True
-        else:
-            return self == other
-
     def to_component_specification(self) -> 'ProteinSpecification':
         return ProteinSpecification(self.name, self.structure_index, Domain(None, None, None))
 
@@ -252,14 +209,14 @@ class RnaSpecification(Specification):
         return hash(str(self))
 
     def __str__(self) -> str:
-        return sfr.string_from_rna_specification(self)
+        return string_from_rna_specification(self)
 
-    #@tc.typecheck
+    @typecheck
     def __eq__(self, other: Specification) -> bool:
         return isinstance(other, RnaSpecification) and self.name == other.name \
-               and self.domain == other.domain and self.structure_index == other.structure_index
+            and self.domain == other.domain and self.structure_index == other.structure_index
 
-    @tc.typecheck
+    @typecheck
     def __lt__(self, other: Specification) -> bool:
         if isinstance(other, RnaSpecification):
             return super().__lt__(other)
@@ -272,14 +229,6 @@ class RnaSpecification(Specification):
         else:
             raise NotImplementedError
 
-    @tc.typecheck
-    def is_equivalent_to(self, other: Specification) -> bool:
-        if isinstance(other, RnaSpecification) and (self.name == other.name) \
-                and self.domain.is_equivalent_to(other.domain):
-            return True
-        else:
-            return self == other
-
     def to_component_specification(self) -> 'RnaSpecification':
         return RnaSpecification(self.name, self.structure_index, Domain(None, None, None))
 
@@ -289,14 +238,14 @@ class DnaSpecification(Specification):
         return hash(str(self))
 
     def __str__(self) -> str:
-        return sfr.string_from_gene_specification(self)
+        return string_from_gene_specification(self)
 
-    #@tc.typecheck
+    @typecheck
     def __eq__(self, other: Specification) -> bool:
         return isinstance(other, DnaSpecification) and self.name == other.name \
                and self.domain == other.domain and self.structure_index == other.structure_index
 
-    @tc.typecheck
+    @typecheck
     def __lt__(self, other: Specification):
         if isinstance(other, DnaSpecification):
             return super().__lt__(other)
@@ -308,14 +257,6 @@ class DnaSpecification(Specification):
             return False
         else:
             raise NotImplementedError
-
-    @tc.typecheck
-    def is_equivalent_to(self, other: Specification) -> bool:
-        if isinstance(other, DnaSpecification) and (self.name == other.name) \
-                and self.domain.is_equivalent_to(other.domain):
-            return True
-        else:
-            return self == other
 
     def to_component_specification(self) -> 'DnaSpecification':
         return DnaSpecification(self.name, self.structure_index, Domain(None, None, None))
