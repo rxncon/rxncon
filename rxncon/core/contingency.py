@@ -20,9 +20,7 @@ class ContingencyType(OrderedEnum):
 class Contingency:
     @typecheck
     def __init__(self, target: Reaction, type: ContingencyType, effector: Effector):
-        self.target = target
-        self.type = type
-        self.effector = effector
+        self.target, self.type, self.effector = target, type, effector
 
     @typecheck
     def __eq__(self, other: 'Contingency') -> bool:

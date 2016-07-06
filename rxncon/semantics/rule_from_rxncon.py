@@ -87,7 +87,7 @@ def complexify_molecules_reactants(molecule_defs: Dict[Specification, MoleculeDe
                                    reactants: List[Reactant]):
     def reactant_to_molecule(reactant: Reactant, structure_index: int) -> Molecule:
         molecule = Molecule(molecule_defs[reactant.component], structure_index)
-        [molecule.set_state(state) for state in reactant.states]
+        [molecule.set_state(state) for state in reactant.state]
         return molecule
 
     complexes = [Complex(set(reactant_to_molecule(reactant, index))) for index, reactant in enumerate(reactants)]

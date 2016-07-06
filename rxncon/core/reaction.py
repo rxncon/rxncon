@@ -1,66 +1,69 @@
-from typing import List, Set
+from typing import Dict, Tuple
 import re
+from typecheck import typecheck
 
-from rxncon.core.specification import Specification, RnaSpecification, ProteinSpecification, SpecificationResolution
+from rxncon.core.specification import Specification, RnaSpecification, ProteinSpecification, SpecificationResolution, \
+    DnaSpecification
 from rxncon.core.state import State
 from rxncon.syntax.rxncon_from_string import state_from_string, specification_from_string
 
 class Reactant:
-    # @todo List of states -> single state
-    def __init__(self, component: Specification, states: List[State]):
-        self.component, self.states = component, states
+    def __init__(self, component: Specification, state: State):
+        self.component, self.state = component, state
 
-    def __str__(self):
-        return 'Reactant<{0}>:{1}'.format(str(self.component),
-                                          ','.join(str(x) for x in self.states))
+    def __str__(self) -> str:
+        return 'Reactant<{0}>:{1}'.format(str(self.component), str(self.state))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __eq__(self, other):
-        return self.component == other.component and self.states == other.states
+    @typecheck
+    def __eq__(self, other: 'Reactant'):
+        return self.component == other.component and self.state == other.state
 
-
-def __get_state(state_strs: List[str], variables):
-    states = []
-    for state_str in state_strs:
-        if state_str:
-            for var, val in variables.items():
-                var_resolution_str_domain = '{0}.domain'.format(var.replace('$', '\$'))
-                if re.search(var_resolution_str_domain, state_str):
-                    state_str = re.sub(var_resolution_str_domain, '[{0}]'.format(str(val.domain)), state_str)
-                else:
-                    state_str = state_str.replace(var, str(val))
-
-            states.append(state_from_string(state_str))
-    return states
 
 def parse_reactant(definition: str, index, variables):
-    component_str, states_str = definition.split('#')
-    component_parts = component_str.split('.')
+    def parse_state(state_str: str, variables):
+        for var, val in variables.items():
+            var_resolution_str_domain = '{0}.domain'.format(var.replace('$', '\$'))
+            if re.search(var_resolution_str_domain, state_str):
+                state_str = re.sub(var_resolution_str_domain, '[{0}]'.format(str(val.domain)), state_str)
+            else:
+                state_str = state_str.replace(var, str(val))
 
-    if len(component_parts) == 1:
-        component = variables[component_parts[0]].to_component_specification()
-    elif len(component_parts) == 2 and component_parts[1] == 'mRNA':
-        component = variables[component_parts[0]].to_rna_component_specification()
-    elif len(component_parts) == 2 and component_parts[1] == 'gene':
-        component = variables[component_parts[0]].to_dna_component_specification()
-    elif len(component_parts) == 2 and component_parts[1] == 'protein':
-        component = variables[component_parts[0]].to_protein_component_specification()
-    else:
-        raise NotImplementedError
+        return state_from_string(state_str)
 
-    states = __get_state(states_str.split(','), variables)
+    def parse_component(component_str: str, variables):
+        component_parts = component_str.split('.')
+
+        base_component = variables[component_parts[0]].to_component_specification()
+
+        if len(component_parts) == 1:
+            component = base_component
+        elif len(component_parts) == 2 and component_parts[1] == 'mRNA':
+            component = base_component.to_rna_component_specification()
+        elif len(component_parts) == 2 and component_parts[1] == 'gene':
+            component = base_component.to_dna_component_specification()
+        elif len(component_parts) == 2 and component_parts[1] == 'protein':
+            component = base_component.to_protein_component_specification()
+        else:
+            raise NotImplementedError
+
+        return component
+
+    component_str, state_str = definition.split('#')
+
+    component, state = parse_component(component_str, variables), parse_state(state_str, variables)
     component.structure_index = index
 
-    return Reactant(component, states)
+    return Reactant(component, state)
 
 
 class ReactionDefinition:
     SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
     SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
 
-    def __init__(self, name, representation_def, variables_def, reactants_def):
+    def __init__(self, name: str, representation_def: str, variables_def: Dict[str, Tuple], reactants_def: str):
         self.name, self.representation_def, self.variables_def, self.reactants_defs = \
             name, representation_def, variables_def, reactants_def
 
@@ -203,37 +206,7 @@ REACTION_DEFINITIONS = [
             '$y': (DnaSpecification, SpecificationResolution.domain)
         },
         '$x#$x--0 + $y#$y--0 -> $x#$x--$y + $y#$x--$y'
-    ),
-
-    # ReactionDefinition(
-    #     'synthesis',
-    #     '$x_syn_$y',
-    #     {
-    #         '$x': (ProteinSpecification, SpecificationResolution.component),
-    #         '$y': (ProteinSpecification, SpecificationResolution.component)
-    #     },
-    #     '$x# -> $x# + $y#'
-    #
-    # ),
-    # ReactionDefinition(
-    #     'degradation',
-    #     '$x_deg_$y',
-    #     {
-    #         '$x': (ProteinSpecification, SpecificationResolution.component),
-    #         '$y': (ProteinSpecification, SpecificationResolution.component)
-    #     },
-    #     '$x# + $y# -> $x#'
-    #
-    # ),
-    #todo: output reaction definition
-    # ReactionDefinition(
-    #     'output',
-    #     '$x',
-    #         {
-    #             '$x': ()
-    #         },
-    #     '$x'
-    # )
+    )
 ]
 
 
@@ -260,7 +233,7 @@ class Reaction:
     def sources(self):
         sources = []
         for reactant in self.reactants_pre:
-            sources += reactant.states
+            sources += reactant.state
 
         return list(set(sources))
 
@@ -268,7 +241,7 @@ class Reaction:
     def products(self):
         products = []
         for reactant in self.reactants_post:
-            products += reactant.states
+            products += reactant.state
 
         return list(set(products))
 
