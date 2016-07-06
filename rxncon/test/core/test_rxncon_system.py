@@ -1,6 +1,7 @@
 import pytest
 
 import rxncon.syntax.rxncon_from_string as rfs
+import rxncon.core.reaction as rxn
 import rxncon.core.contingency as con
 import rxncon.core.effector as eff
 import rxncon.core.rxncon_system as rxs
@@ -13,10 +14,10 @@ def test_simple_rxncon_system(simple_system):
 
 @pytest.fixture
 def simple_system():
-    phosphorylation_reaction = rfs.reaction_from_string('A_p+_B')
-    binding_reaction = rfs.reaction_from_string('B_ppi_C')
+    phosphorylation_reaction = rxn.reaction_from_string('A_p+_B_[(r)]')
+    binding_reaction = rxn.reaction_from_string('B_[c]_ppi_C_[b]')
 
-    phosphorylated_state = rfs.state_from_string('B-{p}')
+    phosphorylated_state = rxn.state_from_string('B_[(r)]-{p}')
 
     binding_contingency = con.Contingency(binding_reaction,
                                           con.ContingencyType.requirement,

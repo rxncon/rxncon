@@ -1,307 +1,215 @@
-from abc import ABCMeta, abstractmethod, abstractproperty
 from enum import unique
-import typecheck as tc
 import re
-from typing import List
+import typing as tp
 
 from rxncon.util.utils import OrderedEnum
-import rxncon.core.specification as com
-import rxncon.syntax.string_from_rxncon as sfr
+import rxncon.core.specification as spec
+
+import rxncon.syntax.specification_from_string as sfs
 
 
 @unique
 class StateModifier(OrderedEnum):
-    unmodified = '0'
+    neutral = '0'
     phosphor   = 'p'
     ubiquitin  = 'ub'
     guanosintriphosphat = 'gtp'
     truncated  = 'truncated'
 
 
-class State(metaclass=ABCMeta):
-    def __repr__(self) -> str:
-        return str(self)
+class StateDefinition:
+    SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
+    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
+    def __init__(self, name, representation_def, variables_def, subset_def):
 
-    @abstractmethod
-    def __hash__(self):
-        pass
-
-    @abstractmethod
-    def __str__(self):
-        pass
-
-    @abstractmethod
-    def is_superspecification_of(self, other) -> bool:
-        pass
-
-    @abstractmethod
-    def is_subspecification_of(self, other) -> bool:
-        pass
-
-    @abstractproperty
-    def components(self) -> List[com.Specification]:
-        pass
-
-
-class ComponentState(State):
-    @tc.typecheck
-    def __init__(self, component: com.Specification):
-        self.component = component
-        self._validate()
-
-    def _validate(self):
-        assert self.component.name is not None
-        assert self.component.domain is None
-        assert self.component.subdomain is None
-        assert self.component.residue is None
-
-    @tc.typecheck
-    def __eq__(self, other: State):
-        return isinstance(other, ComponentState) and self.component == other.component
-
-    def __hash__(self) -> int:
-        return hash("*comp-state-{}".format(self.component))
+        self.name, self.representation_def, \
+        self.variables_def, self.subset_of_def = name, representation_def, variables_def, subset_def
 
     def __repr__(self):
         return str(self)
 
     def __str__(self):
-        return sfr.string_from_component_state(self)
+        return 'state-definition: name={0}, representation_def={1}'.format(self.name, self.representation_def)
 
-    @tc.typecheck
-    def is_superspecification_of(self, other: State) -> bool:
-        if isinstance(other, ComponentState):
-            return self.component == other.component
-        elif isinstance(other, InteractionState) or isinstance(other, SelfInteractionState):
-            return self.component.is_superspecification_of(other.first_component) or self.component.is_superspecification_of(other.second_component)
-        elif isinstance(other, CovalentModificationState):
-            return self.component.is_superspecification_of(other.substrate)
-        elif isinstance(other, TranslocationState):
-            return self.component.is_superspecification_of(other.substrate)
-        else:
-            raise NotImplementedError
+    def matches_representation(self, representation):
+        return re.match(self._to_matching_regex(), representation)
 
-    @tc.typecheck
-    def is_subspecification_of(self, other: State) -> bool:
-        return isinstance(other, ComponentState) and self.component == other.component
+    def _to_base_regex(self):
+        regex = '^{}$'.format(self.representation_def.replace('+', '\+'))
+        regex = regex.replace('[', '\[')
+        regex = regex.replace(']', '\]')
+        return regex
 
-    @property
-    @tc.typecheck
-    def components(self) -> List[com.Specification]:
-        return [self.component]
+    def _to_matching_regex(self):
+        regex = self._to_base_regex()
+        for var in self.variables_def.keys():
+            regex = regex.replace(var, self.SPEC_REGEX_GROUPED)
+        return regex
 
+    def variables_from_representation(self, representation):
+        assert self.matches_representation(representation)
+        variables = {}
+        for var, var_def in self.variables_def.items():
+            var_regex = self._to_base_regex().replace(var, self.SPEC_REGEX_GROUPED)
+            for other_var in self.variables_def.keys():
+                if other_var != var:
+                    var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)
 
-class CovalentModificationState(State):
-    @tc.typecheck
-    def __init__(self, substrate: com.Specification, modifier: StateModifier):
-        self.substrate = substrate
-        self.modifier = modifier
-        self._validate()
+            val_str = re.match(var_regex, representation).group(1)
+            if self.variables_def[var][0] is StateModifier:
+                value = state_modifier_from_string(val_str)
+            elif self.variables_def[var][0] is spec.Domain:
+                domain, subdomain, residue = sfs.domain_resolution_from_string(val_str)
+                value = spec.Domain(domain, subdomain, residue)
+            else:
+                value = sfs.specification_from_string(val_str)
 
-    def _validate(self):
-        assert self.substrate.name is not None
-#        assert self.substrate.residue is not None  # the residue has to be defined by the user
-        assert self.modifier.value is not None
+            variables[var] = value
 
-    @tc.typecheck
-    def __eq__(self, other: State) -> bool:
-        return isinstance(other, CovalentModificationState) and self.substrate == other.substrate and self.modifier == other.modifier
+        return variables
 
-    def __hash__(self) -> int:
-        return hash('*cov-mod-state-{}-{}*'.format(self.substrate, self.modifier))
+    def representation_from_variables(self, variables):
+        representation = self.representation_def
+        for var, val in variables.items():
+            if val is StateModifier:
+                representation = representation.replace(var, str(val.value))
+            else:
+                representation = representation.replace(var, str(val))
 
-    def __str__(self) -> str:
-        return sfr.string_from_covalent_modification_state(self)
-
-    @tc.typecheck
-    def is_superspecification_of(self, other: State) -> bool:
-        assert isinstance(other, State)
-        return isinstance(other, CovalentModificationState) and self.modifier == other.modifier and \
-            self.substrate.is_superspecification_of(other.substrate)
-
-    @tc.typecheck
-    def is_subspecification_of(self, other: State) -> bool:
-        assert isinstance(other, State)
-        if isinstance(other, CovalentModificationState):
-            return self.modifier == other.modifier and \
-                    self.substrate.is_subspecification_of(other.substrate)
-        elif isinstance(other, ComponentState):
-            return other.is_superspecification_of(self)
-        return False
-
-    @property
-    @tc.typecheck
-    def components(self) -> List[com.Specification]:
-        return [self.substrate]
+        return representation
 
 
-class InteractionState(State):
-    @tc.typecheck
-    def __init__(self, first_component: com.Specification, second_component: com.Specification):
-        self.first_component = first_component
-        self.second_component = second_component
-        self._validate()
 
-    def _validate(self):
-        assert self.first_component is not None
-        assert self.second_component is not None
+STATE_DEFINITION = [
+    StateDefinition('interaction-state',
+                    '$x--$y',
+                    {'$x': (spec.Specification, spec.SpecificationResolution.domain),
+                     '$y': (spec.Specification, spec.SpecificationResolution.domain)},
+                    ['component-state']
+                    ),
 
-    @tc.typecheck
-    def __eq__(self, other: State) -> bool:
-        assert isinstance(other, State)
-        return isinstance(other, InteractionState) and self.first_component == other.first_component and \
-            self.second_component == other.second_component
+    StateDefinition('self-interaction-state',
+                    '$x--[$y]',
+                    {'$x': (spec.Specification, spec.SpecificationResolution.domain),
+                     '$y': (spec.Domain, spec.SpecificationResolution.domain) },
+                    ['component-state']),
 
-    def __hash__(self) -> int:
-        return hash('*interaction-state-{}-{}*'.format(self.first_component, self.second_component))
+    StateDefinition('input-state',
+                    '[$x]',
+                    {'$x': (spec.Specification, spec.SpecificationResolution.component)},
+                    []),
 
-    def __str__(self) -> str:
-        return sfr.string_from_inter_protein_interaction_state(self)
+    StateDefinition('covalent-modification-state',
+                    '$x-{$y}',
+                    {'$x': (spec.Specification, spec.SpecificationResolution.residue),
+                     '$y': (StateModifier, StateModifier.neutral)},
+                    ['component-state']),
 
-    @tc.typecheck
-    def is_superspecification_of(self, other: State) -> bool:
-        assert isinstance(other, State)
-        return isinstance(other, InteractionState) and self.first_component.is_superspecification_of(other.first_component) \
-            and self.second_component.is_superspecification_of(other.second_component)
-
-    @tc.typecheck
-    def is_subspecification_of(self, other: State) -> bool:
-        assert isinstance(other, State)
-        if isinstance(other, InteractionState):
-            return self.first_component.is_subspecification_of(other.first_component) \
-            and self.second_component.is_subspecification_of(other.second_component)
-        elif isinstance(other, ComponentState):
-            return other.is_superspecification_of(self) or other.is_superspecification_of(self)
-        return False
-
-    @property
-    @tc.typecheck
-    def components(self) -> List[com.Specification]:
-        return [self.first_component, self.second_component]
+    StateDefinition('component-state',
+                    '$x',
+                    {'$x': (spec.Specification, spec.SpecificationResolution.component)},
+                    [],
+                    ),
+]
 
 
-class SelfInteractionState(State):
-    @tc.typecheck
-    def __init__(self, first_component: com.Specification, second_component: com.Specification):
-        self.first_component = first_component
-        self.second_component = second_component
-        self._validate()
 
-    def _validate(self):
-        assert self.first_component is not None
-        assert self.second_component is not None
-        assert self.first_component.name == self.second_component.name
+class State():
+    def __init__(self, definition: StateDefinition, variables):
+        self.definition, self.variables = definition, variables
 
-    @tc.typecheck
-    def __eq__(self, other: State) -> bool:
-        assert isinstance(other, State)
-        return isinstance(other, SelfInteractionState) and self.first_component == other.first_component and \
-            self.second_component == other.second_component
+    def __repr__(self):
+        return str(self)
 
-    def __hash__(self) -> int:
-        return hash('*self-interaction-state-{}-{}*'.format(self.first_component, self.second_component))
-
-    def __str__(self) -> str:
-        return sfr.string_from_intra_protein_interaction_state(self)
-
-    @tc.typecheck
-    def is_superspecification_of(self, other: State) -> bool:
-        assert isinstance(other, State)
-        return isinstance(other, SelfInteractionState) and self.first_component.is_superspecification_of(other.first_component) \
-            and self.second_component.is_superspecification_of(other.second_component)
-
-    @tc.typecheck
-    def is_subspecification_of(self, other: State) -> bool:
-        assert isinstance(other, State)
-        if isinstance(other, SelfInteractionState):
-            return self.first_component.is_subspecification_of(other.first_component) \
-                    and self.second_component.is_subspecification_of(other.second_component)
-        elif isinstance(other, ComponentState):
-            return other.is_superspecification_of(self)
-        return False
-
-    @property
-    @tc.typecheck
-    def components(self) -> List[com.Specification]:
-        return [self.first_component, self.second_component]
-
-
-class TranslocationState(State):
-    @tc.typecheck
-    def __init__(self, substrate: com.Specification, compartment: str):
-        self.substrate = substrate
-        self.compartment = compartment
-        self._validate()
-
-    def _validate(self):
-        assert self.compartment is not None and not ""
-
-    @tc.typecheck
-    def __eq__(self, other: State) -> bool:
-        assert isinstance(other, State)
-        return isinstance(other, TranslocationState) and self.substrate == other.substrate and \
-            self.compartment == other.compartment
-
-    def __hash__(self) -> int:
-        return hash('*transloc-state-{}-{}*'.format(self.substrate, self.compartment))
-
-    def __str__(self) -> str:
-        return sfr.string_from_translocation_state(self)
-
-    @tc.typecheck
-    def is_superspecification_of(self, other: State) -> bool:
-        assert isinstance(other, State)
-        return isinstance(other, TranslocationState) and self.compartment == other.compartment and \
-            self.substrate.is_superspecification_of(other.substrate)
-
-    @tc.typecheck
-    def is_subspecification_of(self, other: State) -> bool:
-        assert isinstance(other, State)
-        if isinstance(other, TranslocationState):
-            return self.compartment == other.compartment and \
-                    self.substrate.is_subspecification_of(other.substrate)
-        elif isinstance(other, ComponentState):
-            return other.is_superspecification_of(self)
-        return False
-
-    @property
-    @tc.typecheck
-    def components(self) -> List[com.Specification]:
-        return [self.substrate]
-
-
-class GlobalQuantityState(State):
-    @tc.typecheck
-    def __init__(self, name: str):
-        self.name = name
-        self._validate()
-
-    def _validate(self):
-        assert re.match('^\[.+?\]$', self.name)
-
-    def __hash__(self) -> int:
-        return hash('*global-quantity-state-{}*'.format(self.name))
-
-    def __str__(self) -> str:
-        return sfr.string_from_input_state(self)
+    def __str__(self):
+        return self.definition.representation_from_variables(self.variables)
 
     def __eq__(self, other):
-        assert isinstance(other, State)
-        return isinstance(other, GlobalQuantityState) and self.components == other.components and self.name == other.name
+        return self.definition == other.definition and self.variables == other.variables
 
-    def is_produced_by(self, other):
-        """check if a GLobalQuantityState is produced by a certain GlobalQuantityReaction"""
-        pass
+    def components(self) -> tp.List[spec.Specification]:
+        return [value for value in self.variables.values() if isinstance(value, spec.Specification)]
 
-    @tc.typecheck
-    def is_superspecification_of(self, other: State) -> bool:
-        return isinstance(other, GlobalQuantityState) and self == other
-
-    @tc.typecheck
-    def is_subspecification_of(self, other: State) -> bool:
-        return isinstance(other, GlobalQuantityState) and self == other
+    def modifier(self) -> tp.List[StateModifier]:
+        return [value for value in self.variables.values() if isinstance(value, StateModifier)]
 
     @property
-    @tc.typecheck
-    def components(self) -> List[com.Specification]:
-        return []
+    def neutral_modifier(self) -> StateModifier:
+        result = [self.definition.variables_def[var][1] for var, value in self.variables.items()
+                  if isinstance(value, StateModifier)]
+        assert len(result) <= 1
+        if result:
+            return result[0]
+
+    def elemental_resolution(self, specification_to_find: spec.Specification) -> spec.SpecificationResolution:
+        result = [self.definition.variables_def[var][1] for var, value in self.variables.items()
+                  if isinstance(value, spec.Specification) and specification_to_find == value]
+        assert len(result) <= 1
+        if result:
+            return result[0]
+
+    def is_elemental(self) -> bool:
+        return all(component.resolution == self.elemental_resolution(component) for component in self.components())
+
+    def is_superset_of(self, other: 'State') -> bool:
+        return other.is_subset_of(self)
+
+    def is_subset_of(self, other: 'State') -> bool:
+        subspec = False
+        if self.definition.name == other.definition.name or other.definition.name in self.definition.subset_of_def:
+            return self._component_subspecification_validation(other, subspec)
+        elif self.definition.name != other.definition.name and other.definition.name not in self.definition.subset_of_def:
+            for name_of_superset_state in self.definition.subset_of_def:
+                if other.definition.name in _get_STATE_DEFINITION(name_of_superset_state).subset_of_def:
+                   return self._component_subspecification_validation(other, subspec)
+            else:
+                return False
+        else:
+            assert NotImplementedError
+
+    def _component_subspecification_validation(self, other: 'State', subspec: bool):
+        for self_component in self.components():
+            for other_component in other.components():
+                #check whether the to components are equal
+                if self_component.to_component_specification() == other_component.to_component_specification():
+                    #check if one is the subspecification and the othter the superspecification
+                    if self_component.is_subspecification_of(other_component) and other_component.is_superspecification_of(self_component):
+                        #if both definition are different this is sufficient
+                        if self.definition.name != other.definition.name:
+                            subspec = True
+                        # otherwise we have to check if the modifier are equal like A_[(r)]-{p} != A_[(r)]-{ub}
+                        elif self.modifier() == other.modifier():
+                            subspec = True
+                        else:
+                            return False
+                    else:
+                        return False
+
+        return subspec
+
+def state_modifier_from_string(modifier: str) -> StateModifier:
+    return StateModifier(modifier.lower())
+
+
+def _get_STATE_DEFINITION(superset_name: str) -> StateDefinition:
+    for definition in STATE_DEFINITION:
+        if superset_name == definition.name:
+            return definition
+
+def definition_of_state(representation: str) -> StateDefinition:
+    the_definition = None
+    for definition in STATE_DEFINITION:
+
+        if definition.matches_representation(representation):
+            assert not the_definition
+            the_definition = definition
+
+    assert the_definition
+    return the_definition
+
+
+def state_from_string(representation: str) -> State:
+    the_definition = definition_of_state(representation)
+    variables = the_definition.variables_from_representation(representation)
+
+    return State(the_definition, variables)

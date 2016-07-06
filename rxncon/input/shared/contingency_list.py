@@ -69,14 +69,14 @@ def contingency_list_entry_from_subject_predicate_agent_strings(subject_string, 
         predicate = BooleanOperator(predicate_string)
 
     else:
-        subject = fst.reaction_from_string(subject_string)
+        subject = rxn.reaction_from_string(subject_string)
         predicate = con.ContingencyType(predicate_string)
 
     if re.match(BOOLEAN_CONTINGENCY_REGEX, agent_string):
         agent = BooleanContingencyName(agent_string)
 
     else:
-        agent = fst.state_from_string(agent_string)
+        agent = sta.state_from_string(agent_string)
 
     return ContingencyListEntry(subject, predicate, agent)
 

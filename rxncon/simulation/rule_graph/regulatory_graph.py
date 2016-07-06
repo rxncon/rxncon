@@ -100,9 +100,9 @@ class RegulatoryGraph():
     def get_subspecifications_of_state(self, state: sta.State) -> tp.List[eff.StateEffector]:
         state_subspecification_effectors = set()
         for react in self.rxncon_system.reactions:
-            if react.product is not None and state.is_superspecification_of(react.product):
+            if react.product is not None and state.is_superset_of(react.product):
                 state_subspecification_effectors.add(eff.StateEffector(react.product))
-            elif react.source is not None and state.is_superspecification_of(react.source):
+            elif react.source is not None and state.is_superset_of(react.source):
                 state_subspecification_effectors.add(eff.StateEffector(react.source))
         return state_subspecification_effectors
 
