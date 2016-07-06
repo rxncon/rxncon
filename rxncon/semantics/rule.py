@@ -66,6 +66,9 @@ class Complex:
     def __str__(self) -> str:
         return 'Comp<{0}>'.format(', '.join(sorted([str(x) for x in self.molecules])))
 
+    def can_bind_molecule(self, molecule: Molecule):
+        return any(bond in self.open_bonds for bond in molecule.bonds)
+
     def add_molecule(self, molecule: Molecule):
         for bond in molecule.bonds:
             if bond in self.open_bonds:

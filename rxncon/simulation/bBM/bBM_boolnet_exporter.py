@@ -62,7 +62,7 @@ class BoolNetSystem:
         return self._generate_name(target)
 
     def _factor_to_string(self, factor: bbm.Factor):
-        if isinstance(factor, venn.PropertySet):
+        if isinstance(factor, venn.ValueSet):
             # smallest element, leaf of vennSet
             return self._generate_name(factor.value)
         elif isinstance(factor, venn.Complement):

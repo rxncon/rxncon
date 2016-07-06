@@ -6,6 +6,7 @@ from rxncon.core.state import State
 from rxncon.syntax.rxncon_from_string import state_from_string, specification_from_string
 
 class Reactant:
+    # @todo List of states -> single state
     def __init__(self, component: Specification, states: List[State]):
         self.component, self.states = component, states
 

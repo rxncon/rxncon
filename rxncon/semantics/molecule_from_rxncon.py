@@ -20,12 +20,3 @@ def molecule_defs_from_rxncon(rxnconsys: RxnConSystem):
 
 
 
-
-
-
-
-
-
-
-
-

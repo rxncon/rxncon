@@ -15,6 +15,7 @@ class MoleculeDef:
         self.props_def = defaultdict(set)
 
     def add_state(self, state: State):
+        assert state.is_elemental
         for spec in state.specs:
             if spec.to_component_specification() == self.spec:
                 self.props_def[spec].add(state)
@@ -75,8 +76,3 @@ class Bond:
 
     def __eq__(self, other: 'Bond'):
         return self.left_spec == other.left_spec and self.right_spec == other.right_spec
-
-
-
-
-

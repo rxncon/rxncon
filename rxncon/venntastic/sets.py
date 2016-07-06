@@ -21,25 +21,25 @@ class Set:
 
         return _call_method_list_until_stable(self, simplification_methods)
 
-    def to_nested_list_form(self) -> tg.List[tg.List['Set']]:
+    def to_nested_lists(self) -> tg.List[tg.List['Set']]:
         return _cleaned_nested_list_form(self.simplified_form()._to_nested_list())
 
     def to_boolean_function(self) -> 'BooleanFunction':
-        return boolean_function_from_nested_list_form(self.to_nested_list_form())
+        return boolean_function_from_nested_list_form(self.to_nested_lists())
 
-    def to_union_list_form(self) -> tg.List['Set']:
+    def to_intersection_terms(self) -> tg.List['Set']:
         union_terms = []
-        for term in self.to_nested_list_form():
+        for term in self.to_nested_lists():
             union_terms.append(nested_expression_from_list_and_binary_op(term, Intersection))
 
         return union_terms
 
     def to_full_simplified_form(self) -> 'Set':
-        return nested_expression_from_list_and_binary_op(self.to_union_list_form(), Union)
+        return nested_expression_from_list_and_binary_op(self.to_intersection_terms(), Union)
 
     @property
     def cardinality(self):
-        list_of_intersections = self.to_nested_list_form()
+        list_of_intersections = self.to_nested_lists()
 
         cardinality = {}
 
@@ -77,6 +77,13 @@ class Set:
     def is_subset_of(self, other: 'Set') -> bool:
         return self.to_boolean_function().implies(other.to_boolean_function())
 
+    def is_single_intersection(self) -> bool:
+        return len(self.to_intersection_terms()) == 1
+
+    @property
+    def values(self):
+        return [[x.value for x in term] for term in self.to_nested_lists()]
+
     def _complements_expanded(self) -> 'Set':
         return self
 
@@ -98,7 +105,7 @@ class UnarySet(Set):
         return [[self]]
 
 
-class PropertySet(UnarySet):
+class ValueSet(UnarySet):
     def __init__(self, value):
         assert isinstance(hash(value), int)
         self.value = value
@@ -106,7 +113,7 @@ class PropertySet(UnarySet):
     def __eq__(self, other: Set) -> bool:
         assert isinstance(other, Set)
 
-        if isinstance(other, PropertySet):
+        if isinstance(other, ValueSet):
             if self.value is None and other.value is None:
                 return True
 
@@ -122,7 +129,7 @@ class PropertySet(UnarySet):
         return hash('*property-set-{}*'.format(hash(self.value)))
 
     def __lt__(self, other: Set) -> bool:
-        if isinstance(other, PropertySet):
+        if isinstance(other, ValueSet):
             if self.value is None:
                 return True
 
@@ -192,7 +199,7 @@ class Complement(UnarySet):
         if isinstance(other, Complement):
             return self.expr < other.expr
 
-        elif isinstance(other, EmptySet) or isinstance(other, PropertySet):
+        elif isinstance(other, EmptySet) or isinstance(other, ValueSet):
             return False
 
         else:
@@ -220,8 +227,8 @@ class Complement(UnarySet):
         elif isinstance(self.expr, Intersection):
             return Union(Complement(self.expr.left_expr), Complement(self.expr.right_expr))._complements_expanded()
 
-        elif isinstance(self.expr, PropertySet) and hasattr(self.expr.value, METHOD_NAME_COMPLEMENTS):
-            complementary_property_sets = [PropertySet(x) for x in getattr(self.expr.value, METHOD_NAME_COMPLEMENTS)()]
+        elif isinstance(self.expr, ValueSet) and hasattr(self.expr.value, METHOD_NAME_COMPLEMENTS):
+            complementary_property_sets = [ValueSet(x) for x in getattr(self.expr.value, METHOD_NAME_COMPLEMENTS)()]
             return nested_expression_from_list_and_binary_op(complementary_property_sets, Union)
 
         else:
@@ -252,7 +259,7 @@ class BinarySet(Set):
 
 class Intersection(BinarySet):
     def __lt__(self, other: Set) -> bool:
-        if isinstance(other, EmptySet) or isinstance(other, PropertySet) or isinstance(other, Complement):
+        if isinstance(other, EmptySet) or isinstance(other, ValueSet) or isinstance(other, Complement):
             return False
 
         elif isinstance(other, Intersection):
@@ -314,7 +321,7 @@ class Union(BinarySet):
         return hash('*union-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
 
     def __lt__(self, other: Set) -> bool:
-        if isinstance(other, EmptySet) or isinstance(other, PropertySet) or \
+        if isinstance(other, EmptySet) or isinstance(other, ValueSet) or \
                 isinstance(other, Complement) or isinstance(other, Intersection):
             return False
 
@@ -372,7 +379,7 @@ class Difference(Set):
 
 
 def UniversalSet() -> Set:
-    return PropertySet(None)
+    return ValueSet(None)
 
 
 def MultiUnion(*args):
@@ -421,7 +428,7 @@ def gram_schmidt_disjunctify(overlapping_sets: tg.List[Set]) -> tg.List[Set]:
         complements.append(Complement(x).simplified_form())
 
     for i, x in enumerate(overlapping_sets):
-        assert len(x.to_union_list_form()) == 1
+        assert len(x.to_intersection_terms()) == 1
 
         for y in complements[:i]:
             x = Intersection(x, y)
@@ -431,7 +438,7 @@ def gram_schmidt_disjunctify(overlapping_sets: tg.List[Set]) -> tg.List[Set]:
     result = []
 
     for x in non_overlapping_sets:
-        result += x.to_union_list_form()
+        result += x.to_intersection_terms()
 
     return result
 
@@ -462,7 +469,7 @@ def boolean_function_from_nested_list_form(nested_list: tg.List[tg.List[Set]]) -
             if item == UniversalSet():
                 continue
 
-            elif isinstance(item, PropertySet):
+            elif isinstance(item, ValueSet):
                 required_true.append(item)
 
             elif isinstance(item, Complement):
@@ -657,7 +664,7 @@ def _remove_partial_complements_from_union_terms(union_terms: tg.List[tg.List[Se
             for s in list(set(possible_counter_term).union(set(term))):
                 if isinstance(s, Complement) and s.expr in possible_simplified_term:
                     possible_simplified_term.remove(s.expr)
-                elif isinstance(s, PropertySet) and Complement(s) in possible_simplified_term:
+                elif isinstance(s, ValueSet) and Complement(s) in possible_simplified_term:
                     possible_simplified_term.remove(Complement(s))
                 else:
                     possible_simplified_term.append(s)
@@ -688,7 +695,7 @@ def _cardinality_of_intersection_term(term: tg.List[Set]) -> tg.Dict:
             return _add_dicts(_cardinality_of_intersection_term(rest_of_list),
                               _negate_dict(_cardinality_of_intersection_term(rest_of_list + [x.expr])))
 
-        elif isinstance(x, PropertySet):
+        elif isinstance(x, ValueSet):
             head_of_list.append(x)
 
         else:

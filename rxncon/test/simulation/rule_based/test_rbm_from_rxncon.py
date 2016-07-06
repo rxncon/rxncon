@@ -71,7 +71,7 @@ def test_rule_from_rxn_and_contingency_soln_single_contingency():
         specification_from_string('B'): mol_def_from_string('B#mod/B_[(r)]:0~p,ass/B_[y]:A_[x]')
     }
 
-    contingency_soln = PropertySet(elemental_from_state(mol_defs, state_from_string('B_[(r)]-{p}')))
+    contingency_soln = ValueSet(elemental_from_state(mol_defs, state_from_string('B_[(r)]-{p}')))
     reaction = reaction_from_string(REACTION_DEFINITIONS, 'A_[x]_ppi_B_[y]')
 
     rule = rule_from_reaction_and_contingency_soln(mol_defs, reaction, contingency_soln)
@@ -87,8 +87,8 @@ def test_rule_from_rxn_and_contingency_soln_or_contingency():
     }
 
     contingency_soln = Union(
-        PropertySet(state_from_string('A_[c]--C_[a]')),
-        PropertySet(state_from_string('B_[(r)]-{p}'))
+        ValueSet(state_from_string('A_[c]--C_[a]')),
+        ValueSet(state_from_string('B_[(r)]-{p}'))
     )
     reaction = reaction_from_string(REACTION_DEFINITIONS, 'A_[x]_ppi_B_[y]')
 
@@ -110,10 +110,10 @@ def test_complicated_case():
 
 
     cont_soln = Complement(Union(
-        Intersection(PropertySet(state_from_string('A_[c]--C_[a]')),
-                     PropertySet(state_from_string('C_[d]--D_[c]'))),
-        Intersection(PropertySet(state_from_string('A_[c]--C_[a]')),
-                     PropertySet(state_from_string('B_[e]--E_[b]')))))
+        Intersection(ValueSet(state_from_string('A_[c]--C_[a]')),
+                     ValueSet(state_from_string('C_[d]--D_[c]'))),
+        Intersection(ValueSet(state_from_string('A_[c]--C_[a]')),
+                     ValueSet(state_from_string('B_[e]--E_[b]')))))
 
     # cont_soln = Union(
     #     Union(PropertySet(state_from_string('A_[c]--C_[a]')),

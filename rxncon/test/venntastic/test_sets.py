@@ -7,48 +7,48 @@ from rxncon.venntastic.sets import *
 
 # Test the basic properties of the Set data structure
 def test_property_set_construction():
-    assert PropertySet('a')
-    assert PropertySet(1)
-    assert PropertySet(1.45)
+    assert ValueSet('a')
+    assert ValueSet(1)
+    assert ValueSet(1.45)
 
     with pytest.raises(TypeError):
-        PropertySet([1, 2, 3])
+        ValueSet([1, 2, 3])
 
 
 def test_property_set_comparison():
-    assert PropertySet(1) == PropertySet(1)
-    assert not PropertySet('a') == PropertySet('b')
+    assert ValueSet(1) == ValueSet(1)
+    assert not ValueSet('a') == ValueSet('b')
 
 
 def test_property_set_dictionary_keys():
-    x = PropertySet(1)
-    y = PropertySet(2)
+    x = ValueSet(1)
+    y = ValueSet(2)
 
     dictionary = {x: 'bla', y: 'diebla'}
 
-    assert dictionary[PropertySet(1)] == 'bla'
+    assert dictionary[ValueSet(1)] == 'bla'
     assert dictionary[x] == 'bla'
-    assert dictionary[PropertySet(2)] == 'diebla'
+    assert dictionary[ValueSet(2)] == 'diebla'
     assert dictionary[y] == 'diebla'
 
 
 def test_nested_list_simplifies_mutual_complements():
-    x1 = Intersection(PropertySet(1), PropertySet(2))
-    x2 = Intersection(PropertySet(1), Complement(PropertySet(2)))
+    x1 = Intersection(ValueSet(1), ValueSet(2))
+    x2 = Intersection(ValueSet(1), Complement(ValueSet(2)))
 
     z = Union(x1, x2)
 
-    assert z.to_nested_list_form() == [[PropertySet(1)]]
+    assert z.to_nested_lists() == [[ValueSet(1)]]
 
 
 def test_nested_list_universal_empty():
-    assert EmptySet().to_nested_list_form() == [[EmptySet()]]
-    assert UniversalSet().to_nested_list_form() == [[UniversalSet()]]
+    assert EmptySet().to_nested_lists() == [[EmptySet()]]
+    assert UniversalSet().to_nested_lists() == [[UniversalSet()]]
 
 
 def test_union_list_universal_empty():
-    assert EmptySet().to_union_list_form() == [EmptySet()]
-    assert UniversalSet().to_union_list_form() == [UniversalSet()]
+    assert EmptySet().to_intersection_terms() == [EmptySet()]
+    assert UniversalSet().to_intersection_terms() == [UniversalSet()]
 
 
 def test_complementary_expansion():
@@ -72,15 +72,15 @@ def test_complementary_expansion():
         def complements(self):
             return [Z3Integer(x) for x in range(3) if x != self.value]
 
-    p = Complement(PropertySet(Z3Integer(1)))
+    p = Complement(ValueSet(Z3Integer(1)))
 
-    assert p.simplified_form().is_equivalent_to(Union(PropertySet(Z3Integer(2)), PropertySet(Z3Integer(0))))
+    assert p.simplified_form().is_equivalent_to(Union(ValueSet(Z3Integer(2)), ValueSet(Z3Integer(0))))
 
 
 # Test the superset / subset relationships
 def test_superset_subset_for_unary_sets():
-    assert UniversalSet() == PropertySet(None)
-    assert PropertySet(None).is_superset_of(PropertySet(None))
+    assert UniversalSet() == ValueSet(None)
+    assert ValueSet(None).is_superset_of(ValueSet(None))
 
     # UniversalSet == UniversalSet
     assert UniversalSet().is_superset_of(UniversalSet())
@@ -88,47 +88,47 @@ def test_superset_subset_for_unary_sets():
 
     # UniversalSet contains all other sets
     assert UniversalSet().is_superset_of(EmptySet())
-    assert UniversalSet().is_superset_of(PropertySet(1))
+    assert UniversalSet().is_superset_of(ValueSet(1))
 
     # EmptySet is contained in all sets
     assert EmptySet().is_subset_of(EmptySet())
     assert EmptySet().is_superset_of(EmptySet())
-    assert EmptySet().is_subset_of(PropertySet(2))
+    assert EmptySet().is_subset_of(ValueSet(2))
 
     # PropertySets <-> PropertySets
-    assert PropertySet(2).is_superset_of(PropertySet(2))
-    assert PropertySet(2).is_subset_of(PropertySet(2))
-    assert not PropertySet(2).is_subset_of(PropertySet(3))
-    assert not PropertySet(2).is_superset_of(PropertySet(3))
+    assert ValueSet(2).is_superset_of(ValueSet(2))
+    assert ValueSet(2).is_subset_of(ValueSet(2))
+    assert not ValueSet(2).is_subset_of(ValueSet(3))
+    assert not ValueSet(2).is_superset_of(ValueSet(3))
 
     # PropertySet <-> UniversalSet
-    assert PropertySet(1).is_subset_of(UniversalSet())
-    assert not UniversalSet().is_subset_of(PropertySet(1))
-    assert UniversalSet().is_superset_of(PropertySet(1))
-    assert not PropertySet(1).is_superset_of(UniversalSet())
+    assert ValueSet(1).is_subset_of(UniversalSet())
+    assert not UniversalSet().is_subset_of(ValueSet(1))
+    assert UniversalSet().is_superset_of(ValueSet(1))
+    assert not ValueSet(1).is_superset_of(UniversalSet())
 
     # PropertySet <-> EmptySet
-    assert PropertySet(2).is_superset_of(EmptySet())
-    assert not EmptySet().is_superset_of(PropertySet(2))
-    assert EmptySet().is_subset_of(PropertySet(1))
-    assert not PropertySet(1).is_subset_of(EmptySet())
+    assert ValueSet(2).is_superset_of(EmptySet())
+    assert not EmptySet().is_superset_of(ValueSet(2))
+    assert EmptySet().is_subset_of(ValueSet(1))
+    assert not ValueSet(1).is_subset_of(EmptySet())
 
 
 def test_superset_subset_for_flat_intersections():
-    assert Intersection(PropertySet(1), PropertySet(2)).is_subset_of(PropertySet(1))
-    assert Intersection(PropertySet(1), PropertySet(2)).is_subset_of(PropertySet(2))
+    assert Intersection(ValueSet(1), ValueSet(2)).is_subset_of(ValueSet(1))
+    assert Intersection(ValueSet(1), ValueSet(2)).is_subset_of(ValueSet(2))
 
-    assert not Intersection(PropertySet(1), PropertySet(2)).is_equivalent_to(PropertySet(1))
-    assert not Intersection(PropertySet(1), PropertySet(2)).is_equivalent_to(PropertySet(2))
+    assert not Intersection(ValueSet(1), ValueSet(2)).is_equivalent_to(ValueSet(1))
+    assert not Intersection(ValueSet(1), ValueSet(2)).is_equivalent_to(ValueSet(2))
 
-    assert PropertySet(1).is_superset_of(Intersection(PropertySet(1), PropertySet(2)))
-    assert PropertySet(2).is_superset_of(Intersection(PropertySet(1), PropertySet(2)))
+    assert ValueSet(1).is_superset_of(Intersection(ValueSet(1), ValueSet(2)))
+    assert ValueSet(2).is_superset_of(Intersection(ValueSet(1), ValueSet(2)))
 
 
 def test_superset_subset_for_nested_intersections():
-    x = PropertySet(1)
-    y = PropertySet(2)
-    z = PropertySet(3)
+    x = ValueSet(1)
+    y = ValueSet(2)
+    z = ValueSet(3)
     xy = Intersection(x, y)
     yz = Intersection(y, z)
     xz = Intersection(x, z)
@@ -150,20 +150,20 @@ def test_superset_subset_for_nested_intersections():
 
 
 def test_superset_subset_for_flat_unions():
-    assert Union(PropertySet(1), PropertySet(2)).is_superset_of(PropertySet(1))
-    assert Union(PropertySet(1), PropertySet(2)).is_superset_of(PropertySet(2))
+    assert Union(ValueSet(1), ValueSet(2)).is_superset_of(ValueSet(1))
+    assert Union(ValueSet(1), ValueSet(2)).is_superset_of(ValueSet(2))
 
-    assert not Union(PropertySet(1), PropertySet(2)).is_equivalent_to(PropertySet(1))
-    assert not Union(PropertySet(1), PropertySet(2)).is_equivalent_to(PropertySet(2))
+    assert not Union(ValueSet(1), ValueSet(2)).is_equivalent_to(ValueSet(1))
+    assert not Union(ValueSet(1), ValueSet(2)).is_equivalent_to(ValueSet(2))
 
-    assert PropertySet(1).is_subset_of(Union(PropertySet(1), PropertySet(2)))
-    assert PropertySet(2).is_subset_of(Union(PropertySet(1), PropertySet(2)))
+    assert ValueSet(1).is_subset_of(Union(ValueSet(1), ValueSet(2)))
+    assert ValueSet(2).is_subset_of(Union(ValueSet(1), ValueSet(2)))
 
 
 def test_superset_subset_for_nested_unions():
-    x = PropertySet(1)
-    y = PropertySet(2)
-    z = PropertySet(3)
+    x = ValueSet(1)
+    y = ValueSet(2)
+    z = ValueSet(3)
     xy = Union(x, y)
     yz = Union(y, z)
     xz = Union(x, z)
@@ -246,10 +246,10 @@ def test_is_equivalent_to():
     assert UniversalSet().is_equivalent_to(UniversalSet())
     assert EmptySet().is_equivalent_to(EmptySet())
 
-    assert not UniversalSet().is_equivalent_to(PropertySet(1))
-    assert not PropertySet(1).is_equivalent_to(UniversalSet())
+    assert not UniversalSet().is_equivalent_to(ValueSet(1))
+    assert not ValueSet(1).is_equivalent_to(UniversalSet())
 
-    assert UniversalSet().is_equivalent_to(Union(PropertySet(1), Complement(PropertySet(1))))
+    assert UniversalSet().is_equivalent_to(Union(ValueSet(1), Complement(ValueSet(1))))
 
 
 # Test the cardinality calculator
@@ -267,45 +267,45 @@ def test_cardinality_respects_complement_properties(sets):
 def test_cardinality_property_sets():
     # Test the standard examples of the inclusion-exclusion principle:
     # |A u (B u C)| = |A| + |B| + |C| - |A^B| - |A^C| - |B^C| + |A^B^C|
-    assert Union(PropertySet(1), Union(PropertySet(2), PropertySet(3))).cardinality == \
-        {(PropertySet(1),): 1, (PropertySet(2),): 1, (PropertySet(3),): 1, (PropertySet(1), PropertySet(2)): -1, (PropertySet(1), PropertySet(3)): -1,
-         (PropertySet(2), PropertySet(3)): -1, (PropertySet(1), PropertySet(2), PropertySet(3)): 1}
+    assert Union(ValueSet(1), Union(ValueSet(2), ValueSet(3))).cardinality == \
+           {(ValueSet(1),): 1, (ValueSet(2),): 1, (ValueSet(3),): 1, (ValueSet(1), ValueSet(2)): -1, (ValueSet(1), ValueSet(3)): -1,
+            (ValueSet(2), ValueSet(3)): -1, (ValueSet(1), ValueSet(2), ValueSet(3)): 1}
 
     # |(A u B) u C| = same
-    assert Union(Union(PropertySet(1), PropertySet(2)), PropertySet(3)).cardinality == \
-        {(PropertySet(1),): 1, (PropertySet(2),): 1, (PropertySet(3),): 1, (PropertySet(1), PropertySet(2)): -1, (PropertySet(1), PropertySet(3)): -1,
-         (PropertySet(2), PropertySet(3)): -1, (PropertySet(1), PropertySet(2), PropertySet(3)): 1}
+    assert Union(Union(ValueSet(1), ValueSet(2)), ValueSet(3)).cardinality == \
+           {(ValueSet(1),): 1, (ValueSet(2),): 1, (ValueSet(3),): 1, (ValueSet(1), ValueSet(2)): -1, (ValueSet(1), ValueSet(3)): -1,
+            (ValueSet(2), ValueSet(3)): -1, (ValueSet(1), ValueSet(2), ValueSet(3)): 1}
 
     # |A u (B u (C u D))| = |A| + |B| + |C| + |D| - |A^B| - |A^C| - |A^D| - |B^C| - |B^D| -|C^D| + |A^B^C| +
     #                       |B^C^D| + |A^C^D| + |A^B^D| - |A^B^C^D|
-    assert Union(PropertySet(1), Union(PropertySet(2), Union(PropertySet(3), PropertySet(4)))).cardinality == \
-        {(PropertySet(1),): 1, (PropertySet(2),): 1, (PropertySet(3),): 1, (PropertySet(4),): 1,
-         (PropertySet(1), PropertySet(2)): -1, (PropertySet(1), PropertySet(3)): -1, (PropertySet(1), PropertySet(4)): -1,
-         (PropertySet(2), PropertySet(3)): -1, (PropertySet(2), PropertySet(4)): -1, (PropertySet(3), PropertySet(4)): -1,
-         (PropertySet(1), PropertySet(2), PropertySet(3)): 1, (PropertySet(2), PropertySet(3), PropertySet(4)): 1,
-         (PropertySet(1), PropertySet(3), PropertySet(4)): 1, (PropertySet(1), PropertySet(2), PropertySet(4)): 1,
-         (PropertySet(1), PropertySet(2), PropertySet(3), PropertySet(4)): -1}
+    assert Union(ValueSet(1), Union(ValueSet(2), Union(ValueSet(3), ValueSet(4)))).cardinality == \
+           {(ValueSet(1),): 1, (ValueSet(2),): 1, (ValueSet(3),): 1, (ValueSet(4),): 1,
+            (ValueSet(1), ValueSet(2)): -1, (ValueSet(1), ValueSet(3)): -1, (ValueSet(1), ValueSet(4)): -1,
+            (ValueSet(2), ValueSet(3)): -1, (ValueSet(2), ValueSet(4)): -1, (ValueSet(3), ValueSet(4)): -1,
+            (ValueSet(1), ValueSet(2), ValueSet(3)): 1, (ValueSet(2), ValueSet(3), ValueSet(4)): 1,
+            (ValueSet(1), ValueSet(3), ValueSet(4)): 1, (ValueSet(1), ValueSet(2), ValueSet(4)): 1,
+            (ValueSet(1), ValueSet(2), ValueSet(3), ValueSet(4)): -1}
 
     # |(A u B) u (C u D)| = same
-    assert Union(Union(PropertySet(1), PropertySet(2)), Union(PropertySet(3), PropertySet(4))).cardinality == \
-        {(PropertySet(1),): 1, (PropertySet(2),): 1, (PropertySet(3),): 1, (PropertySet(4),): 1,
-         (PropertySet(1), PropertySet(2)): -1, (PropertySet(1), PropertySet(3)): -1, (PropertySet(1), PropertySet(4)): -1,
-         (PropertySet(2), PropertySet(3)): -1, (PropertySet(2), PropertySet(4)): -1, (PropertySet(3), PropertySet(4)): -1,
-         (PropertySet(1), PropertySet(2), PropertySet(3)): 1, (PropertySet(2), PropertySet(3), PropertySet(4)): 1,
-         (PropertySet(1), PropertySet(3), PropertySet(4)): 1, (PropertySet(1), PropertySet(2), PropertySet(4)): 1,
-         (PropertySet(1), PropertySet(2), PropertySet(3), PropertySet(4)): -1}
+    assert Union(Union(ValueSet(1), ValueSet(2)), Union(ValueSet(3), ValueSet(4))).cardinality == \
+           {(ValueSet(1),): 1, (ValueSet(2),): 1, (ValueSet(3),): 1, (ValueSet(4),): 1,
+            (ValueSet(1), ValueSet(2)): -1, (ValueSet(1), ValueSet(3)): -1, (ValueSet(1), ValueSet(4)): -1,
+            (ValueSet(2), ValueSet(3)): -1, (ValueSet(2), ValueSet(4)): -1, (ValueSet(3), ValueSet(4)): -1,
+            (ValueSet(1), ValueSet(2), ValueSet(3)): 1, (ValueSet(2), ValueSet(3), ValueSet(4)): 1,
+            (ValueSet(1), ValueSet(3), ValueSet(4)): 1, (ValueSet(1), ValueSet(2), ValueSet(4)): 1,
+            (ValueSet(1), ValueSet(2), ValueSet(3), ValueSet(4)): -1}
 
 
 def test_cardinality_property_sets_and_complements():
-    assert Union(Complement(PropertySet(1)), PropertySet(2)).cardinality == \
-        {(UniversalSet(),): 1, (PropertySet(1),): -1, (PropertySet(1), PropertySet(2)): 1}
+    assert Union(Complement(ValueSet(1)), ValueSet(2)).cardinality == \
+           {(UniversalSet(),): 1, (ValueSet(1),): -1, (ValueSet(1), ValueSet(2)): 1}
 
-    assert Union(Complement(PropertySet(1)), Union(PropertySet(2), Complement(PropertySet(3)))).cardinality == \
-        {(UniversalSet(),): 1, (PropertySet(1), PropertySet(3)): -1, (PropertySet(1), PropertySet(2), PropertySet(3)): 1}
+    assert Union(Complement(ValueSet(1)), Union(ValueSet(2), Complement(ValueSet(3)))).cardinality == \
+           {(UniversalSet(),): 1, (ValueSet(1), ValueSet(3)): -1, (ValueSet(1), ValueSet(2), ValueSet(3)): 1}
 
-    assert Intersection(Complement(PropertySet(1)), Intersection(PropertySet(2), Complement(PropertySet(3)))).cardinality == \
-        {(PropertySet(2),): 1, (PropertySet(1), PropertySet(2)): -1, (PropertySet(2), PropertySet(3)): -1,
-         (PropertySet(1), PropertySet(2), PropertySet(3)): 1}
+    assert Intersection(Complement(ValueSet(1)), Intersection(ValueSet(2), Complement(ValueSet(3)))).cardinality == \
+           {(ValueSet(2),): 1, (ValueSet(1), ValueSet(2)): -1, (ValueSet(2), ValueSet(3)): -1,
+            (ValueSet(1), ValueSet(2), ValueSet(3)): 1}
 
 
 # Test the boolean functions that are used to determine super/subset relations
@@ -369,23 +369,23 @@ def test_boolean_function_called_with_wrong_arguments():
 
 
 def test_boolean_function_from_nested_list_form():
-    bool_func = boolean_function_from_nested_list_form([[PropertySet(1), Complement(PropertySet(2))],
-                                                        [PropertySet(2), Complement(PropertySet(1))]])
+    bool_func = boolean_function_from_nested_list_form([[ValueSet(1), Complement(ValueSet(2))],
+                                                        [ValueSet(2), Complement(ValueSet(1))]])
 
-    assert bool_func(true=[PropertySet(1)], false=[PropertySet(2)])
-    assert bool_func(true=[PropertySet(2)], false=[PropertySet(1)])
+    assert bool_func(true=[ValueSet(1)], false=[ValueSet(2)])
+    assert bool_func(true=[ValueSet(2)], false=[ValueSet(1)])
 
-    assert not bool_func(true=[PropertySet(1), PropertySet(2)])
-    assert not bool_func(false=[PropertySet(1), PropertySet(2)])
+    assert not bool_func(true=[ValueSet(1), ValueSet(2)])
+    assert not bool_func(false=[ValueSet(1), ValueSet(2)])
 
-    assert not bool_func(true=[PropertySet(1)])
-    assert not bool_func(true=[PropertySet(2)])
-    assert not bool_func(false=[PropertySet(1)])
-    assert not bool_func(false=[PropertySet(2)])
+    assert not bool_func(true=[ValueSet(1)])
+    assert not bool_func(true=[ValueSet(2)])
+    assert not bool_func(false=[ValueSet(1)])
+    assert not bool_func(false=[ValueSet(2)])
 
 
 def test_boolean_function_from_nested_list_form_corner_cases():
-    assert isinstance(boolean_function_from_nested_list_form([[PropertySet(1), Complement(PropertySet(1))]]),
+    assert isinstance(boolean_function_from_nested_list_form([[ValueSet(1), Complement(ValueSet(1))]]),
                       BooleanFunctionAlwaysFalse)
 
     with pytest.raises(Exception):
@@ -439,10 +439,10 @@ def test_boolean_function_implies_subset():
 
 # Test the "Gram-Schmidt" algorithm
 def test_manual_gram_schmidt_overlaps_simplify_correctly():
-    ab = PropertySet('ab')
-    ac = PropertySet('ac')
-    be = PropertySet('be')
-    bf = PropertySet('bf')
+    ab = ValueSet('ab')
+    ac = ValueSet('ac')
+    be = ValueSet('be')
+    bf = ValueSet('bf')
 
     set1 = Intersection(ab, be)
     set2 = Intersection(Intersection(ab, bf), Complement(set1))
@@ -453,17 +453,17 @@ def test_manual_gram_schmidt_overlaps_simplify_correctly():
     assert set3.is_equivalent_to(Intersection(Intersection(ac, be), Complement(ab)))
     assert set4.is_equivalent_to(Intersection(Intersection(Intersection(ac, bf), Complement(be)), Complement(ab)))
 
-    assert len(set1.to_nested_list_form()) == 1
-    assert len(set2.to_nested_list_form()) == 1
-    assert len(set3.to_nested_list_form()) == 1
-    assert len(set4.to_nested_list_form()) == 1
+    assert len(set1.to_nested_lists()) == 1
+    assert len(set2.to_nested_lists()) == 1
+    assert len(set3.to_nested_lists()) == 1
+    assert len(set4.to_nested_lists()) == 1
 
 
 def test_gram_schmidt():
-    ab = PropertySet('ab')
-    ac = PropertySet('ac')
-    be = PropertySet('be')
-    bf = PropertySet('bf')
+    ab = ValueSet('ab')
+    ac = ValueSet('ac')
+    be = ValueSet('be')
+    bf = ValueSet('bf')
 
     ab_be = Intersection(ab, be)
     ab_bf = Intersection(ab, bf)
@@ -482,12 +482,12 @@ def test_gram_schmidt():
 def sets():
     return [
         EmptySet(),
-        PropertySet(1),
+        ValueSet(1),
         UniversalSet(),
-        Union(PropertySet(1), PropertySet(2)),
-        Intersection(PropertySet(1), PropertySet(2)),
-        Intersection(PropertySet(1), Complement(PropertySet(2))),
-        Union(Intersection(PropertySet(1), PropertySet(2)), PropertySet(3)),
-        Union(Intersection(PropertySet(1), PropertySet(2)), Intersection(PropertySet(3), PropertySet(4))),
-        Union(Complement(Union(PropertySet(1), Complement(PropertySet(2)))), Intersection(PropertySet(3), PropertySet(4)))
+        Union(ValueSet(1), ValueSet(2)),
+        Intersection(ValueSet(1), ValueSet(2)),
+        Intersection(ValueSet(1), Complement(ValueSet(2))),
+        Union(Intersection(ValueSet(1), ValueSet(2)), ValueSet(3)),
+        Union(Intersection(ValueSet(1), ValueSet(2)), Intersection(ValueSet(3), ValueSet(4))),
+        Union(Complement(Union(ValueSet(1), Complement(ValueSet(2)))), Intersection(ValueSet(3), ValueSet(4)))
     ]

@@ -1,6 +1,6 @@
 import functools
 from enum import Enum
-from rxncon.venntastic.sets import PropertySet, EmptySet, Union, Intersection, Complement
+from rxncon.venntastic.sets import ValueSet, EmptySet, Union, Intersection, Complement
 
 def compose(*functions):
     return functools.reduce(lambda f, g: lambda x: f(g(x)), functions, lambda x: x)
@@ -25,8 +25,8 @@ class OrderedEnum(Enum):
 
 
 def transform_set_expression(set_expression, leaf_transformer):
-    if isinstance(set_expression, PropertySet):
-        return PropertySet(leaf_transformer(set_expression.value))
+    if isinstance(set_expression, ValueSet):
+        return ValueSet(leaf_transformer(set_expression.value))
     elif isinstance(set_expression, Complement):
         return Complement(transform_set_expression(set_expression.expr, leaf_transformer))
     elif isinstance(set_expression, EmptySet):

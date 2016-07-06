@@ -2,7 +2,7 @@ import pytest
 from collections import namedtuple
 from typing import List
 
-from rxncon.venntastic.sets import PropertySet, Intersection, Union, Complement, nested_expression_from_list_and_binary_op
+from rxncon.venntastic.sets import ValueSet, Intersection, Union, Complement, nested_expression_from_list_and_binary_op
 from rxncon.syntax.rxncon_from_string import state_from_string, specification_from_string, reaction_from_string
 from rxncon.semantics.molecule import Molecule
 from rxncon.simulation.rule_based.molecule_from_string import mol_def_from_string, mol_instance_from_string
@@ -41,14 +41,14 @@ def state_set_test_cases(molecule_definitions):
     return [
         MoleculeInstancesFromStateSetTestCase(
             molecule_definitions,
-            PropertySet(state_from_string('A--B')),
+            ValueSet(state_from_string('A--B')),
             [
                 {'A': 'A#ass/A_[Bassoc]:B_[Aassoc]', 'B': 'B#ass/B_[Aassoc]:A_[Bassoc]'}
             ]
         ),
         MoleculeInstancesFromStateSetTestCase(
             molecule_definitions,
-            Complement(PropertySet(state_from_string('A-{p}'))),
+            Complement(ValueSet(state_from_string('A-{p}'))),
             [
                 {'A': 'A#mod/A_[(r)]:u'},
                 {'A': 'A#mod/A_[(r)]:ub'}
@@ -56,7 +56,7 @@ def state_set_test_cases(molecule_definitions):
         ),
         MoleculeInstancesFromStateSetTestCase(
             molecule_definitions,
-            PropertySet(state_from_string('C-{p}')),
+            ValueSet(state_from_string('C-{p}')),
             [
                 {'C': 'C#mod/C_[(r1)]:p'},
                 {'C': 'C#mod/C_[(r2)]:p,mod/C_[(r1)]:u'}
@@ -64,7 +64,7 @@ def state_set_test_cases(molecule_definitions):
         ),
         MoleculeInstancesFromStateSetTestCase(
             molecule_definitions,
-            Complement(PropertySet(state_from_string('C-{p}'))),
+            Complement(ValueSet(state_from_string('C-{p}'))),
             [
                 {'C': 'C#mod/C_[(r1)]:u,mod/C_[(r2)]:u'}
             ]
@@ -95,11 +95,11 @@ def reaction_test_cases(molecule_definitions):
 
 
 def is_state_set_test_case_correct(test_case: MoleculeInstancesFromStateSetTestCase) -> bool:
-    actual_wrapped_mol_instance_lists = mol_instance_set_from_state_set(test_case.mol_defs, test_case.state_set).to_nested_list_form()
+    actual_wrapped_mol_instance_lists = mol_instance_set_from_state_set(test_case.mol_defs, test_case.state_set).to_nested_lists()
     actual_mol_instance_lists = []
 
     for wrapped_list in actual_wrapped_mol_instance_lists:
-        assert all(isinstance(x, PropertySet) for x in wrapped_list)
+        assert all(isinstance(x, ValueSet) for x in wrapped_list)
         actual_mol_instance_lists.append([x.value for x in wrapped_list])
 
     expected_mol_instance_lists = [[mol_instance_from_string(test_case.mol_defs[specification_from_string(k)], v)
@@ -120,13 +120,13 @@ def is_reaction_test_case_correct(test_case: MoleculeInstancesPairFromReactionTe
     actual_lhs_set, actual_rhs_set = mol_instance_set_pair_from_reaction(test_case.mol_defs, test_case.reaction)
 
     expected_lhs_set = nested_expression_from_list_and_binary_op(
-        [PropertySet(mol_instance_from_string(test_case.mol_defs[specification_from_string(k)], v))
+        [ValueSet(mol_instance_from_string(test_case.mol_defs[specification_from_string(k)], v))
          for k, v in test_case.expected_mol_instances_pair[0].items()],
         Intersection
     )
 
     expected_rhs_set = nested_expression_from_list_and_binary_op(
-        [PropertySet(mol_instance_from_string(test_case.mol_defs[specification_from_string(k)], v))
+        [ValueSet(mol_instance_from_string(test_case.mol_defs[specification_from_string(k)], v))
          for k, v in test_case.expected_mol_instances_pair[1].items()],
         Intersection
     )

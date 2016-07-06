@@ -20,7 +20,7 @@ class BipartiteBooleanModel:
         for rule in self.rules:
             assert self.rules.count(rule) == 1
             assert rule.factor.value is not None
-            for list in rule.factor.value.to_nested_list_form():
+            for list in rule.factor.value.to_nested_lists():
                 for property in list:
                     if hasattr(property, "expr"):
                         assert (property.expr.value in targets)
