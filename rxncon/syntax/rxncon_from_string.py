@@ -3,7 +3,7 @@ from typing import Union
 from collections import OrderedDict
 from typecheck import typecheck
 
-from rxncon.core.specification import DnaSpecification, Specification, RnaSpecification, ProteinSpecification
+from rxncon.core.specification import DnaSpec, Spec, RnaSpec, ProteinSpec
 from rxncon.core.state import State, InteractionState, TranslocationState, StateModifier, CovalentModificationState, \
     GlobalQuantityState, SelfInteractionState, ComponentState
 from enum import unique
@@ -17,9 +17,9 @@ class SpecificationSuffix(OrderedEnum):
     protein = ""
 
 
-mapping_suffix_to_specification = OrderedDict([(SpecificationSuffix.mrna, RnaSpecification),
-                                               (SpecificationSuffix.protein, ProteinSpecification),
-                                               (SpecificationSuffix.gene, DnaSpecification)])
+mapping_suffix_to_specification = OrderedDict([(SpecificationSuffix.mrna, RnaSpec),
+                                               (SpecificationSuffix.protein, ProteinSpec),
+                                               (SpecificationSuffix.gene, DnaSpec)])
 
 
 def create_specification_from_name_suffix(name, domain, subdomain, residue, struct_index=None):
@@ -29,7 +29,7 @@ def create_specification_from_name_suffix(name, domain, subdomain, residue, stru
 
 
 @typecheck
-def specification_from_string(specification_string: str) -> Specification:
+def specification_from_string(specification_string: str) -> Spec:
     DOMAIN_DELIMITER = '_'
     INDEX_DELIMITER = '@'
 

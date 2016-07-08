@@ -14,7 +14,7 @@ def molecule_defs_from_rxncon(rxnconsys: RxnConSystem):
 
     for state in rxnconsys.product_states + rxnconsys.source_states:
         for spec in state.specs:
-            molecule_defs[spec.to_component_specification()].add_state(state)
+            molecule_defs[spec.to_component_spec()].add_state(state)
 
     return molecule_defs
 

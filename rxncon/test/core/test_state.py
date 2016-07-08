@@ -146,22 +146,22 @@ def the_case_state():
     return [
 
         StateTestCase(sta.state_from_string('Agene'),
-                      [spec.DnaSpecification('A', None, spec.Domain(None, None, None))],
+                      [spec.DnaSpec('A', None, spec.Domain(None, None, None))],
                       'Agene'),
         StateTestCase(sta.state_from_string('Agene_[d/s(r)]'),
-                      [spec.DnaSpecification('A', None, spec.Domain('d', 's', 'r'))],
+                      [spec.DnaSpec('A', None, spec.Domain('d', 's', 'r'))],
                       'Agene_[d/s(r)]'),
         StateTestCase(sta.state_from_string('AmRNA'),
-                      [spec.RnaSpecification('A', None, spec.Domain(None, None, None))],
+                      [spec.RnaSpec('A', None, spec.Domain(None, None, None))],
                       'AmRNA'),
         StateTestCase(sta.state_from_string('AmRNA_[d/s(r)]'),
-                      [spec.RnaSpecification('A', None, spec.Domain('d', 's', 'r'))],
+                      [spec.RnaSpec('A', None, spec.Domain('d', 's', 'r'))],
                       'AmRNA_[d/s(r)]'),
         StateTestCase(sta.state_from_string('A'),
-                      [spec.ProteinSpecification('A', None, spec.Domain(None, None, None))],
+                      [spec.ProteinSpec('A', None, spec.Domain(None, None, None))],
                       'A'),
         StateTestCase(sta.state_from_string('A_[d/s(r)]'),
-                      [spec.ProteinSpecification('A', None, spec.Domain('d', 's', 'r'))],
+                      [spec.ProteinSpec('A', None, spec.Domain('d', 's', 'r'))],
                       'A_[d/s(r)]')
     ]
 
@@ -170,22 +170,22 @@ def the_case_state():
 def the_case_state_structured():
     return [
         StateTestCase(sta.state_from_string('Agene@0'),
-                      [spec.DnaSpecification('A', 0, spec.Domain(None, None, None))],
+                      [spec.DnaSpec('A', 0, spec.Domain(None, None, None))],
                       'Agene@0'),
         StateTestCase(sta.state_from_string('Agene@0_[d/s(r)]'),
-                      [spec.DnaSpecification('A', 0, spec.Domain('d', 's', 'r'))],
+                      [spec.DnaSpec('A', 0, spec.Domain('d', 's', 'r'))],
                       'Agene@0_[d/s(r)]'),
         StateTestCase(sta.state_from_string('AmRNA@0'),
-                      [spec.RnaSpecification('A', 0, spec.Domain(None, None, None))],
+                      [spec.RnaSpec('A', 0, spec.Domain(None, None, None))],
                       'AmRNA@0'),
         StateTestCase(sta.state_from_string('AmRNA@0_[d/s(r)]'),
-                      [spec.RnaSpecification('A', 0, spec.Domain('d', 's', 'r'))],
+                      [spec.RnaSpec('A', 0, spec.Domain('d', 's', 'r'))],
                       'AmRNA@0_[d/s(r)]'),
         StateTestCase(sta.state_from_string('A@0'),
-                      [spec.ProteinSpecification('A', 0, spec.Domain(None, None, None))],
+                      [spec.ProteinSpec('A', 0, spec.Domain(None, None, None))],
                       'A@0'),
         StateTestCase(sta.state_from_string('A@0_[d/s(r)]'),
-                      [spec.ProteinSpecification('A', 0, spec.Domain('d', 's', 'r'))],
+                      [spec.ProteinSpec('A', 0, spec.Domain('d', 's', 'r'))],
                       'A@0_[d/s(r)]'),
 
     ]
@@ -206,24 +206,24 @@ ResolutionTestCase = namedtuple('ResolutionTestCase', ['state', 'expected_resolu
 def test_case_resolution_and_neutral_modifier():
     return [
         ResolutionTestCase(sta.state_from_string('A'),
-                           [(spec.ProteinSpecification('A', None, spec.Domain(None, None, None)),
+                           [(spec.ProteinSpec('A', None, spec.Domain(None, None, None)),
                              spec.SpecificationResolution.component)],
                            None,
                            True),
         ResolutionTestCase(sta.state_from_string('A_[m]--[n]'),
-                           [(spec.ProteinSpecification('A', None, spec.Domain('m', None, None)),
+                           [(spec.ProteinSpec('A', None, spec.Domain('m', None, None)),
                              spec.SpecificationResolution.domain)],
                            None,
                            True),
 
         ResolutionTestCase(sta.state_from_string('A_[(r)]-{p}'),
-                           [(spec.ProteinSpecification('A', None, spec.Domain(None, None, 'r')),
+                           [(spec.ProteinSpec('A', None, spec.Domain(None, None, 'r')),
                              spec.SpecificationResolution.residue)],
                            sta.StateModifier.neutral,
                            True),
 
         ResolutionTestCase(sta.state_from_string('A_[n]-{p}'),
-                           [(spec.ProteinSpecification('A', None, spec.Domain('n', None, None)),
+                           [(spec.ProteinSpec('A', None, spec.Domain('n', None, None)),
                              spec.SpecificationResolution.residue)],
                            sta.StateModifier.neutral,
                            False),
@@ -234,88 +234,88 @@ def test_case_resolution_and_neutral_modifier_structured():
 
 
         ResolutionTestCase(sta.state_from_string('A@0'),
-                           [(spec.ProteinSpecification('A', 0, spec.Domain(None, None, None)),
+                           [(spec.ProteinSpec('A', 0, spec.Domain(None, None, None)),
                             spec.SpecificationResolution.component)],
                            None,
                            True),
 
         ResolutionTestCase(sta.state_from_string('Agene@0'),
-                           [(spec.DnaSpecification('A', 0, spec.Domain(None, None, None)),
+                           [(spec.DnaSpec('A', 0, spec.Domain(None, None, None)),
                              spec.SpecificationResolution.component)],
                            None,
                            True),
 
         ResolutionTestCase(sta.state_from_string('AmRNA@0'),
-                           [(spec.RnaSpecification('A', 0, spec.Domain(None, None, None)),
+                           [(spec.RnaSpec('A', 0, spec.Domain(None, None, None)),
                              spec.SpecificationResolution.component)],
                            None,
                            True),
 
         #todo: discuss this What is with the DomainResolution ?
         ResolutionTestCase(sta.state_from_string('A@0_[m]--[n]'),
-                           [(spec.ProteinSpecification('A', 0, spec.Domain('m', None, None)),
+                           [(spec.ProteinSpec('A', 0, spec.Domain('m', None, None)),
                              spec.SpecificationResolution.domain)],
                            None,
                            True),
 
         ResolutionTestCase(sta.state_from_string('A@0_[(r)]-{p}'),
-                           [(spec.ProteinSpecification('A', 0, spec.Domain(None, None, 'r')),
+                           [(spec.ProteinSpec('A', 0, spec.Domain(None, None, 'r')),
                              spec.SpecificationResolution.residue)],
                            sta.StateModifier.neutral,
                            True),
 
         ResolutionTestCase(sta.state_from_string('A@0_[d(r)]-{p}'),
-                           [(spec.ProteinSpecification('A', 0, spec.Domain('d', None, 'r')),
+                           [(spec.ProteinSpec('A', 0, spec.Domain('d', None, 'r')),
                              spec.SpecificationResolution.residue)],
                            sta.StateModifier.neutral,
                            True),
 
         ResolutionTestCase(sta.state_from_string('A@0_[d/s(r)]-{p}'),
-                           [(spec.ProteinSpecification('A', 0, spec.Domain('d', 's', 'r')),
+                           [(spec.ProteinSpec('A', 0, spec.Domain('d', 's', 'r')),
                              spec.SpecificationResolution.residue)],
                            sta.StateModifier.neutral,
                            True),
 
         ResolutionTestCase(sta.state_from_string('Agene@0_[d/s(r)]-{p}'),
-                           [(spec.DnaSpecification('A', 0, spec.Domain('d', 's', 'r')),
+                           [(spec.DnaSpec('A', 0, spec.Domain('d', 's', 'r')),
                              spec.SpecificationResolution.residue)],
                            sta.StateModifier.neutral,
                            True),
 
         ResolutionTestCase(sta.state_from_string('AmRNA@0_[d/s(r)]-{p}'),
-                           [(spec.RnaSpecification('A', 0, spec.Domain('d', 's', 'r')),
+                           [(spec.RnaSpec('A', 0, spec.Domain('d', 's', 'r')),
                              spec.SpecificationResolution.residue)],
                            sta.StateModifier.neutral,
                            True),
 
         ResolutionTestCase(sta.state_from_string('A@0_[n]-{p}'),
-                           [(spec.ProteinSpecification('A', 0, spec.Domain('n', None, None)),
+                           [(spec.ProteinSpec('A', 0, spec.Domain('n', None, None)),
                              spec.SpecificationResolution.residue)],
                            sta.StateModifier.neutral,
                            False),
 
         ResolutionTestCase(sta.state_from_string('A@0_[d]--B@1_[d]'),
-                           [(spec.ProteinSpecification('A', 0, spec.Domain('d', None, None)),
+                           [(spec.ProteinSpec('A', 0, spec.Domain('d', None, None)),
                              spec.SpecificationResolution.domain),
-                            (spec.ProteinSpecification('B', 1, spec.Domain('d', None, None)),
+                            (spec.ProteinSpec('B', 1, spec.Domain('d', None, None)),
                              spec.SpecificationResolution.domain)
                             ],
                            None,
                            True),
 
         ResolutionTestCase(sta.state_from_string('A@0_[d/s]--B@1_[d/s]'),
-                           [(spec.ProteinSpecification('A', 0, spec.Domain('d', 's', None)),
+                           [(spec.ProteinSpec('A', 0, spec.Domain('d', 's', None)),
                              spec.SpecificationResolution.domain),
-                            (spec.ProteinSpecification('B', 1, spec.Domain('d', 's', None)),
+                            (spec.ProteinSpec('B', 1, spec.Domain('d', 's', None)),
                              spec.SpecificationResolution.domain)
                             ],
                            None,
                            False),
 
         ResolutionTestCase(sta.state_from_string('A@0--B@1'),
-                           [(spec.ProteinSpecification('A', 0, spec.Domain(None, None, None)),
+                           [(spec.ProteinSpec('A', 0, spec.Domain(None, None, None)),
                              spec.SpecificationResolution.domain),
-                            (spec.ProteinSpecification('B', 1, spec.Domain(None, None, None)),
+                            (spec.ProteinSpec('B', 1, spec.Domain(None, None, None)),
                              spec.SpecificationResolution.domain)
                             ],
                            None,
@@ -328,7 +328,7 @@ def test_resolution_and_default_modifier(test_case_resolution_and_neutral_modifi
 
 def is_resolution_and_neutral_modifier_correct(the_case):
     for component in the_case.state.components():
-        assert (component, the_case.state.elemental_resolution(component)) in the_case.expected_resolution
+        assert (component, the_case.state.elemental_resolutions(component)) in the_case.expected_resolution
     assert the_case.state.neutral_modifier == the_case.expected_neutral_modifier
     assert the_case.state.is_elemental() == the_case.expected_is_elemental
 
@@ -342,24 +342,24 @@ def test_case_indirect_subset():
 
 # the STATE_DEFINITION gets changed here!!!
 def test_indirect_subset(test_case_indirect_subset):
-    sta.STATE_DEFINITION = [
+    sta.STATE_DEFINITIONS = [
 
         sta.StateDefinition('interaction-state',
                             '$x--$y',
-                            { '$x': (spec.Specification, spec.SpecificationResolution.domain),
-                              '$y': (spec.Specification, spec.SpecificationResolution.domain) },
+                            { '$x': (spec.Spec, spec.SpecificationResolution.domain),
+                              '$y': (spec.Spec, spec.SpecificationResolution.domain)},
                             ['component-state']
                             ),
 
         sta.StateDefinition('self-interaction-state',
                             '$x--[$y]',
-                            { '$x': (spec.Specification, spec.SpecificationResolution.domain),
+                            { '$x': (spec.Spec, spec.SpecificationResolution.domain),
                               '$y': (spec.Domain, spec.SpecificationResolution.domain) },
                             ['interaction-state']),
 
         sta.StateDefinition('component-state',
                             '$x',
-                            { '$x': (spec.Specification, spec.SpecificationResolution.component) },
+                            { '$x': (spec.Spec, spec.SpecificationResolution.component)},
                             [],
                             ),
     ]

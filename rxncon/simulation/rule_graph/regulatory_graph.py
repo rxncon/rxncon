@@ -190,17 +190,17 @@ class BooleanReagulatoryGraph(RegulatoryGraph):
     def add_component_states_to_graph(self, reaction: rxn.Reaction, graph: nex.DiGraph):
         #todo: check if a component is produced. As soon as it gets produced change the node type
         #todo: from componentstate to state
-        if str(sta.ComponentState(reaction.subject.to_component_specification())) not in graph.nodes():
-            graph.add_node(str(sta.ComponentState(reaction.subject.to_component_specification())),
+        if str(sta.ComponentState(reaction.subject.to_component_spec())) not in graph.nodes():
+            graph.add_node(str(sta.ComponentState(reaction.subject.to_component_spec())),
                            dict(type=NodeType.componentstate.value))
 
-        if str(sta.ComponentState(reaction.object.to_component_specification())) not in graph.nodes():
-            graph.add_node(str(sta.ComponentState(reaction.object.to_component_specification())),
+        if str(sta.ComponentState(reaction.object.to_component_spec())) not in graph.nodes():
+            graph.add_node(str(sta.ComponentState(reaction.object.to_component_spec())),
                            dict(type=NodeType.componentstate.value))
-        graph.add_edge(str(sta.ComponentState(reaction.subject.to_component_specification())),
-                           str(reaction), interaction=EdgeInteractionType.component.value)
-        graph.add_edge(str(sta.ComponentState(reaction.object.to_component_specification())),
-                           str(reaction), interaction=EdgeInteractionType.component.value)
+        graph.add_edge(str(sta.ComponentState(reaction.subject.to_component_spec())),
+                       str(reaction), interaction=EdgeInteractionType.component.value)
+        graph.add_edge(str(sta.ComponentState(reaction.object.to_component_spec())),
+                       str(reaction), interaction=EdgeInteractionType.component.value)
 
         return graph
 

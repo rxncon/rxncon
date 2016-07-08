@@ -1,15 +1,16 @@
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Optional
 import re
 from typecheck import typecheck
 
-from rxncon.core.specification import Specification, RnaSpecification, ProteinSpecification, SpecificationResolution, \
-    DnaSpecification
+from rxncon.core.specification import Spec, RnaSpec, ProteinSpec, SpecificationResolution, \
+    DnaSpec
 from rxncon.core.state import State
 from rxncon.syntax.rxncon_from_string import state_from_string, specification_from_string
 
 
 class Reactant:
-    def __init__(self, component: Specification, state: State):
+    def __init__(self, component: Spec, state: Optional[State]):
+
         self.component, self.state = component, state
 
     def __str__(self) -> str:
@@ -71,19 +72,19 @@ class ReactionDefinition:
 
             return state_from_string(state_str)
 
-        def parse_component(component_str: str, variables: Dict) -> Specification:
+        def parse_component(component_str: str, variables: Dict) -> Spec:
             component_parts = component_str.split('.')
 
-            base_component = variables[component_parts[0]].to_component_specification()
+            base_component = variables[component_parts[0]].to_component_spec()
 
             if len(component_parts) == 1:
                 component = base_component
             elif len(component_parts) == 2 and component_parts[1] == 'mRNA':
-                component = base_component.to_rna_component_specification()
+                component = base_component.to_rna_component_spec()
             elif len(component_parts) == 2 and component_parts[1] == 'gene':
-                component = base_component.to_dna_component_specification()
+                component = base_component.to_dna_component_spec()
             elif len(component_parts) == 2 and component_parts[1] == 'protein':
-                component = base_component.to_protein_component_specification()
+                component = base_component.to_protein_component_spec()
             else:
                 raise NotImplementedError
 
@@ -156,8 +157,8 @@ REACTION_DEFINITIONS = [
         'phosphorylation',
         '$x_p+_$y',
         {
-            '$x': (ProteinSpecification, SpecificationResolution.component),
-            '$y': (ProteinSpecification, SpecificationResolution.residue)
+            '$x': (ProteinSpec, SpecificationResolution.component),
+            '$y': (ProteinSpec, SpecificationResolution.residue)
         },
         '$x# + $y#$y-{0} -> $x# + $y#$y-{p}'
     ),
@@ -165,8 +166,8 @@ REACTION_DEFINITIONS = [
         'phosphotransfer',
         '$x_pt_$y',
         {
-            '$x': (ProteinSpecification, SpecificationResolution.residue),
-            '$y': (ProteinSpecification, SpecificationResolution.residue)
+            '$x': (ProteinSpec, SpecificationResolution.residue),
+            '$y': (ProteinSpec, SpecificationResolution.residue)
         },
         '$x#$x-{p} + $y#$y-{0} -> $x#$x-{0} + $y#$y-{p}'
     ),
@@ -174,8 +175,8 @@ REACTION_DEFINITIONS = [
         'protein-protein-interaction',
         '$x_ppi_$y',
         {
-            '$x': (ProteinSpecification, SpecificationResolution.domain),
-            '$y': (ProteinSpecification, SpecificationResolution.domain)
+            '$x': (ProteinSpec, SpecificationResolution.domain),
+            '$y': (ProteinSpec, SpecificationResolution.domain)
         },
         '$x#$x--0 + $y#$y--0 <-> $x#$x--$y + $y#$x--$y'
     ),
@@ -184,8 +185,8 @@ REACTION_DEFINITIONS = [
         'transcription',
         '$x_trsc_$y',
         {
-            '$x': (ProteinSpecification, SpecificationResolution.component),
-            '$y': (DnaSpecification, SpecificationResolution.component)
+            '$x': (ProteinSpec, SpecificationResolution.component),
+            '$y': (DnaSpec, SpecificationResolution.component)
         },
         '$x# + $y# -> $x# + $y# + $y.mRNA#'
     ),
@@ -193,8 +194,8 @@ REACTION_DEFINITIONS = [
         'translation',
         '$x_trsl_$y',
         {
-            '$x': (ProteinSpecification, SpecificationResolution.component),
-            '$y': (RnaSpecification, SpecificationResolution.component)
+            '$x': (ProteinSpec, SpecificationResolution.component),
+            '$y': (RnaSpec, SpecificationResolution.component)
         },
         '$x# + $y# -> $x# + $y# + $y.protein#'
     ),
@@ -203,8 +204,8 @@ REACTION_DEFINITIONS = [
         'intra-protein-interaction',
         '$x_ipi_$y',
         {
-            '$x': (ProteinSpecification, SpecificationResolution.domain),
-            '$y': (ProteinSpecification, SpecificationResolution.domain)
+            '$x': (ProteinSpec, SpecificationResolution.domain),
+            '$y': (ProteinSpec, SpecificationResolution.domain)
         },
         '$x#$x--0,$y--0 -> $x#$x--$y.domain'
     ),
@@ -213,8 +214,8 @@ REACTION_DEFINITIONS = [
         'gene-protein-interaction',
         '$x_bind_$y',
         {
-            '$x': (ProteinSpecification, SpecificationResolution.domain),
-            '$y': (DnaSpecification, SpecificationResolution.domain)
+            '$x': (ProteinSpec, SpecificationResolution.domain),
+            '$y': (DnaSpec, SpecificationResolution.domain)
         },
         '$x#$x--0 + $y#$y--0 -> $x#$x--$y + $y#$x--$y'
     )
@@ -222,7 +223,7 @@ REACTION_DEFINITIONS = [
 
 
 class Reaction:
-    def __init__(self, definition: ReactionDefinition, variables):
+    def __init__(self, definition: ReactionDefinition, variables: Dict):
         self.definition, self.variables = definition, variables
 
     def __str__(self):

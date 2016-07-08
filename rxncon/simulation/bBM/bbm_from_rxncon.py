@@ -34,11 +34,11 @@ def rules_from_rxncon(rxconsys: rxs.RxnConSystem):
 def initial_states_from_rxncon(rxconsys: rxs.RxnConSystem):
     initial_states = []
     for reaction in rxconsys.reactions:
-        if bbm.InitCondition(bbm.Node(sta.ComponentState(reaction.subject.to_component_specification())), None) not in initial_states:
-            initial_states.append(bbm.InitCondition(bbm.Node(sta.ComponentState(reaction.subject.to_component_specification())),
-                                                                                None))
-        if bbm.InitCondition(bbm.Node(sta.ComponentState(reaction.object.to_component_specification())), None) not in initial_states:
-            initial_states.append(bbm.InitCondition(bbm.Node(sta.ComponentState(reaction.object.to_component_specification())), None))
+        if bbm.InitCondition(bbm.Node(sta.ComponentState(reaction.subject.to_component_spec())), None) not in initial_states:
+            initial_states.append(bbm.InitCondition(bbm.Node(sta.ComponentState(reaction.subject.to_component_spec())),
+                                                    None))
+        if bbm.InitCondition(bbm.Node(sta.ComponentState(reaction.object.to_component_spec())), None) not in initial_states:
+            initial_states.append(bbm.InitCondition(bbm.Node(sta.ComponentState(reaction.object.to_component_spec())), None))
 
     for contingency in rxconsys.contingencies:
         for effector_state in contingency.effector.states:
@@ -69,8 +69,8 @@ def _get_vennset_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reacti
                              venn.ValueSet(reaction))
     else:
         vennset = venn.Intersection(strict_contingency_state_set.to_full_simplified_form(),
-                                    venn.Intersection(venn.ValueSet(sta.ComponentState(reaction.subject.to_component_specification())),
-                                                      venn.ValueSet(sta.ComponentState(reaction.object.to_component_specification()))))
+                                    venn.Intersection(venn.ValueSet(sta.ComponentState(reaction.subject.to_component_spec())),
+                                                      venn.ValueSet(sta.ComponentState(reaction.object.to_component_spec()))))
         if reaction.source:
             vennset = venn.Intersection(vennset, venn.ValueSet(reaction.source))
     additional_strict_cont = convert_quantitative_contingencies_into_strict_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))

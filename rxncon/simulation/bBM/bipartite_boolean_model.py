@@ -54,7 +54,7 @@ class Node:
             return True
         elif isinstance(self.value, sta.State) and isinstance(other.value, sta.State) and self.value == other.value:
             return True
-        elif isinstance(self.value, spec.Specification) and isinstance(other.value, spec.Specification) and self.value == other.value:
+        elif isinstance(self.value, spec.Spec) and isinstance(other.value, spec.Spec) and self.value == other.value:
             return True
         else:
             return False

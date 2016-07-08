@@ -25,7 +25,7 @@ class SBMLBuilder:
             rid="r"
             ["_".join([rid, reactant])for reactant in reaction.reactants]
             rid += "_"
-            ["_".join([rid, modifier])for modifier in reaction.modifiers]
+            ["_".join([rid, modifier]) for modifier in reaction.modifier]
             rid += "_"
             ["_".join([rid, product])for product in reaction.products]
             sbml_reaction.setId(rid)
@@ -42,7 +42,7 @@ class SBMLBuilder:
                 reactRef = sbml_reaction.createReactant()
                 reactRef.setSpecies(reactant)
 
-            for modifier in reaction.modifiers:
+            for modifier in reaction.modifier:
                 modRef = sbml_reaction.createModifier()
                 modRef.setSpecies(modifier)
 
@@ -52,7 +52,7 @@ class SBMLBuilder:
 
             law = ""
             if reaction.rates[0] is not None:
-                law = reaction.rates[0] +" * " + " * ".join(reaction.reactants) + " * " + " * ".join(reaction.modifiers)
+                law = reaction.rates[0] +" * " + " * ".join(reaction.reactants) + " * " + " * ".join(reaction.modifier)
                 par = self.model.createParameter()
                 par.setId(reaction.rates[0])
             if reaction.rates[1] is not None:

@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from rxncon.core.specification import Specification, SpecificationResolution
+from rxncon.core.specification import Spec, SpecificationResolution
 from rxncon.core.state import State
 
 
@@ -9,7 +9,7 @@ class MutualExclusivityError(Exception):
 
 
 class MoleculeDef:
-    def __init__(self, spec: Specification):
+    def __init__(self, spec: Spec):
         assert spec.has_resolution(SpecificationResolution.component)
         self.spec = spec
         self.props_def = defaultdict(set)
@@ -17,10 +17,10 @@ class MoleculeDef:
     def add_state(self, state: State):
         assert state.is_elemental
         for spec in state.specs:
-            if spec.to_component_specification() == self.spec:
+            if spec.to_component_spec() == self.spec:
                 self.props_def[spec].add(state)
 
-    def states_for_spec(self, spec: Specification):
+    def states_for_spec(self, spec: Spec):
         return self.props_def[spec]
 
     @property
@@ -64,14 +64,14 @@ class Molecule:
 
     def set_state(self, state: State):
         for spec in state.specs:
-            if spec.to_component_specification() == self.molecule_def.spec:
+            if spec.to_component_spec() == self.molecule_def.spec:
                 if spec in self.props and self.props[spec] != state:
                     raise MutualExclusivityError
                 self.props[spec] = state
 
 
 class Bond:
-    def __init__(self, left_spec: Specification, right_spec: Specification):
+    def __init__(self, left_spec: Spec, right_spec: Spec):
         self.left_spec, self.right_spec = sorted([left_spec, right_spec])
 
     def __eq__(self, other: 'Bond'):

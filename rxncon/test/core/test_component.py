@@ -4,6 +4,8 @@ import typecheck as tc
 from collections import namedtuple
 
 import rxncon.core.specification as com
+
+import rxncon.core.spec
 import rxncon.syntax.specification_from_string as cfs
 
 ComponentInitTestCase = namedtuple('ComponentInitTestCase', ['seeded', 'empty'])
@@ -12,23 +14,23 @@ SpecificationEquivalenceTestCase = namedtuple('SpecificationEquivalenceTestCase'
 
 ### SPECIFICATION, SUBSPECIFICATION TESTS ###
 # All of these components describe the same protein at different specification resolutions.
-no_domain = cfs.specification_from_string('A@0')
-domain = cfs.specification_from_string('A@0_[b]')
-domain_subdomain = cfs.specification_from_string('A@0_[b/c]')
-domain_residue = cfs.specification_from_string('A@0_[b(d)]')
-domain_subdomain_residue = cfs.specification_from_string('A@0_[b/c(d)]')
-residue = cfs.specification_from_string('A@0_[(d)]')
+no_domain = rxncon.core.spec.spec_from_string('A@0')
+domain = rxncon.core.spec.spec_from_string('A@0_[b]')
+domain_subdomain = rxncon.core.spec.spec_from_string('A@0_[b/c]')
+domain_residue = rxncon.core.spec.spec_from_string('A@0_[b(d)]')
+domain_subdomain_residue = rxncon.core.spec.spec_from_string('A@0_[b/c(d)]')
+residue = rxncon.core.spec.spec_from_string('A@0_[(d)]')
 
 
 def test_component_without_name_raises():
     with pytest.raises(tc.InputParameterError):
-        com.ProteinSpecification(None, 0, com.Domain(None, None, None))
+        com.ProteinSpec(None, 0, com.Domain(None, None, None))
 
     with pytest.raises(tc.InputParameterError):
-        com.RnaSpecification(None, 0, com.Domain(None, None, None))
+        com.RnaSpec(None, 0, com.Domain(None, None, None))
 
     with pytest.raises(tc.InputParameterError):
-        com.DnaSpecification(None, 0, com.Domain(None, None, None))
+        com.DnaSpec(None, 0, com.Domain(None, None, None))
 
 
 def test_component_initialized(the_case_initialized):
@@ -78,20 +80,20 @@ def is_correct_initialized(the_case):
 
 def is_hierarchy_correct(the_case):
     for spec in the_case.is_superspecification:
-        assert the_case.state.is_superspecification_of(spec)
-        assert spec.is_subspecification_of(the_case.state)
+        assert the_case.state.is_superspec_of(spec)
+        assert spec.is_subspec_of(the_case.state)
         if spec != the_case.state:
-            assert not spec.is_superspecification_of(the_case.state)
+            assert not spec.is_superspec_of(the_case.state)
         else:
-            assert spec.is_superspecification_of(the_case.state)
+            assert spec.is_superspec_of(the_case.state)
 
 
 def is_both_sub_and_superspecification(the_case):
     for spec in the_case.is_superspecification:
-        assert the_case.state.is_superspecification_of(spec)
-        assert spec.is_superspecification_of(the_case.state)
-        assert the_case.state.is_subspecification_of(spec)
-        assert spec.is_subspecification_of(the_case.state)
+        assert the_case.state.is_superspec_of(spec)
+        assert spec.is_superspec_of(the_case.state)
+        assert the_case.state.is_subspec_of(spec)
+        assert spec.is_subspec_of(the_case.state)
 
 
 def is_equivalent(the_case):
@@ -127,42 +129,48 @@ def the_case_is_equivalent_to():
         SpecificationEquivalenceTestCase(domain, [domain], [domain_subdomain, domain_residue, domain_subdomain_residue, residue]),
         SpecificationEquivalenceTestCase(domain_subdomain, [domain_subdomain], [domain_residue, domain_subdomain_residue, residue]),
         SpecificationEquivalenceTestCase(domain_residue, [domain_residue, domain_subdomain_residue, residue], []),
-        SpecificationEquivalenceTestCase(cfs.specification_from_string('A@0'), [], [cfs.specification_from_string('B@1'),
-                                                                                    cfs.specification_from_string('B@1_[d]'),
-                                                                                    cfs.specification_from_string('B@1_[d/s]'),
-                                                                                    cfs.specification_from_string('B@1_[d/s(r)]'),
-                                                                                    cfs.specification_from_string('B@1_[d(r)]'),
-                                                                                    cfs.specification_from_string('B@1_[(r)]')]),
-        SpecificationEquivalenceTestCase(cfs.specification_from_string('A@0_[d]'), [], [cfs.specification_from_string('B@1'),
-                                                                                        cfs.specification_from_string('B@1_[d]'),
-                                                                                        cfs.specification_from_string('B@1_[d/s]'),
-                                                                                        cfs.specification_from_string('B@1_[d/s(r)]'),
-                                                                                        cfs.specification_from_string('B@1_[d(r)]'),
-                                                                                        cfs.specification_from_string('B@1_[(r)]')]),
-        SpecificationEquivalenceTestCase(cfs.specification_from_string('A@0_[d/s]'), [], [cfs.specification_from_string('B@1'),
-                                                                                          cfs.specification_from_string('B@1_[d]'),
-                                                                                          cfs.specification_from_string('B@1_[d/s]'),
-                                                                                          cfs.specification_from_string('B@1_[d/s(r)]'),
-                                                                                          cfs.specification_from_string('B@1_[d(r)]'),
-                                                                                          cfs.specification_from_string('B@1_[(r)]')]),
-        SpecificationEquivalenceTestCase(cfs.specification_from_string('A@0_[d/s(r)]'), [], [cfs.specification_from_string('B@1'),
-                                                                                             cfs.specification_from_string('B@1_[d]'),
-                                                                                             cfs.specification_from_string('B@1_[d/s]'),
-                                                                                             cfs.specification_from_string('B@1_[d/s(r)]'),
-                                                                                             cfs.specification_from_string('B@1_[d(r)]'),
-                                                                                             cfs.specification_from_string('B@1_[(r)]')]),
-        SpecificationEquivalenceTestCase(cfs.specification_from_string('A@0_[d(r)]'), [], [cfs.specification_from_string('B@1'),
-                                                                                           cfs.specification_from_string('B@1_[d]'),
-                                                                                           cfs.specification_from_string('B@1_[d/s]'),
-                                                                                           cfs.specification_from_string('B@1_[d/s(r)]'),
-                                                                                           cfs.specification_from_string('B@1_[d(r)]'),
-                                                                                           cfs.specification_from_string('B@1_[(r)]')]),
-        SpecificationEquivalenceTestCase(cfs.specification_from_string('A@0_[(r)]'), [], [cfs.specification_from_string('B@1'),
-                                                                                          cfs.specification_from_string('B@1_[d]'),
-                                                                                          cfs.specification_from_string('B@1_[d/s]'),
-                                                                                          cfs.specification_from_string('B@1_[d/s(r)]'),
-                                                                                          cfs.specification_from_string('B@1_[d(r)]'),
-                                                                                          cfs.specification_from_string('B@1_[(r)]')])
+        SpecificationEquivalenceTestCase(rxncon.core.spec.spec_from_string('A@0'), [], [
+            rxncon.core.spec.spec_from_string('B@1'),
+            rxncon.core.spec.spec_from_string('B@1_[d]'),
+            rxncon.core.spec.spec_from_string('B@1_[d/s]'),
+            rxncon.core.spec.spec_from_string('B@1_[d/s(r)]'),
+            rxncon.core.spec.spec_from_string('B@1_[d(r)]'),
+            rxncon.core.spec.spec_from_string('B@1_[(r)]')]),
+        SpecificationEquivalenceTestCase(rxncon.core.spec.spec_from_string('A@0_[d]'), [], [
+            rxncon.core.spec.spec_from_string('B@1'),
+            rxncon.core.spec.spec_from_string('B@1_[d]'),
+            rxncon.core.spec.spec_from_string('B@1_[d/s]'),
+            rxncon.core.spec.spec_from_string('B@1_[d/s(r)]'),
+            rxncon.core.spec.spec_from_string('B@1_[d(r)]'),
+            rxncon.core.spec.spec_from_string('B@1_[(r)]')]),
+        SpecificationEquivalenceTestCase(rxncon.core.spec.spec_from_string('A@0_[d/s]'), [], [
+            rxncon.core.spec.spec_from_string('B@1'),
+            rxncon.core.spec.spec_from_string('B@1_[d]'),
+            rxncon.core.spec.spec_from_string('B@1_[d/s]'),
+            rxncon.core.spec.spec_from_string('B@1_[d/s(r)]'),
+            rxncon.core.spec.spec_from_string('B@1_[d(r)]'),
+            rxncon.core.spec.spec_from_string('B@1_[(r)]')]),
+        SpecificationEquivalenceTestCase(rxncon.core.spec.spec_from_string('A@0_[d/s(r)]'), [], [
+            rxncon.core.spec.spec_from_string('B@1'),
+            rxncon.core.spec.spec_from_string('B@1_[d]'),
+            rxncon.core.spec.spec_from_string('B@1_[d/s]'),
+            rxncon.core.spec.spec_from_string('B@1_[d/s(r)]'),
+            rxncon.core.spec.spec_from_string('B@1_[d(r)]'),
+            rxncon.core.spec.spec_from_string('B@1_[(r)]')]),
+        SpecificationEquivalenceTestCase(rxncon.core.spec.spec_from_string('A@0_[d(r)]'), [], [
+            rxncon.core.spec.spec_from_string('B@1'),
+            rxncon.core.spec.spec_from_string('B@1_[d]'),
+            rxncon.core.spec.spec_from_string('B@1_[d/s]'),
+            rxncon.core.spec.spec_from_string('B@1_[d/s(r)]'),
+            rxncon.core.spec.spec_from_string('B@1_[d(r)]'),
+            rxncon.core.spec.spec_from_string('B@1_[(r)]')]),
+        SpecificationEquivalenceTestCase(rxncon.core.spec.spec_from_string('A@0_[(r)]'), [], [
+            rxncon.core.spec.spec_from_string('B@1'),
+            rxncon.core.spec.spec_from_string('B@1_[d]'),
+            rxncon.core.spec.spec_from_string('B@1_[d/s]'),
+            rxncon.core.spec.spec_from_string('B@1_[d/s(r)]'),
+            rxncon.core.spec.spec_from_string('B@1_[d(r)]'),
+            rxncon.core.spec.spec_from_string('B@1_[(r)]')])
     ]
 
 

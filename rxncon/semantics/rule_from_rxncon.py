@@ -3,7 +3,7 @@ from typing import Dict, List
 from rxncon.core.contingency import ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, StateEffector, NotEffector
 from rxncon.core.reaction import Reaction, Reactant
-from rxncon.core.specification import Specification
+from rxncon.core.specification import Spec
 from rxncon.core.state import State
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.semantics.molecule import MoleculeDef, Molecule
@@ -83,7 +83,7 @@ def rules_from_solution(rxnconsys: RxnConSystem, reaction: Reaction, solution: S
     return rules
 
 
-def complexify_molecules_reactants(molecule_defs: Dict[Specification, MoleculeDef], molecules: List[Molecule],
+def complexify_molecules_reactants(molecule_defs: Dict[Spec, MoleculeDef], molecules: List[Molecule],
                                    reactants: List[Reactant]):
     def reactant_to_molecule(reactant: Reactant, structure_index: int) -> Molecule:
         molecule = Molecule(molecule_defs[reactant.component], structure_index)
@@ -128,10 +128,10 @@ def state_set_from_effector(effector: Effector):
         raise NotImplementedError
 
 
-def molecule_set_from_state(molecule_defs: Dict[Specification, MoleculeDef], state: State):
+def molecule_set_from_state(molecule_defs: Dict[Spec, MoleculeDef], state: State):
     molecule_set = UniversalSet()
     for spec in state.specs:
-        molecule_def = molecule_defs[spec.to_component_specification()]
+        molecule_def = molecule_defs[spec.to_component_spec()]
 
         matching_molecules = []
 
@@ -145,11 +145,11 @@ def molecule_set_from_state(molecule_defs: Dict[Specification, MoleculeDef], sta
     return molecule_set.simplified_form()
 
 
-def molecule_set_from_state_complement(molecule_defs: Dict[Specification, MoleculeDef], state: State):
+def molecule_set_from_state_complement(molecule_defs: Dict[Spec, MoleculeDef], state: State):
     molecule_set = UniversalSet()
 
     for state_spec in state.specs:
-        molecule_def = molecule_defs[state_spec.to_component_specification()]
+        molecule_def = molecule_defs[state_spec.to_component_spec()]
 
         for molecule_spec in [x for x in molecule_def.specs if state_spec.is_superset_of(x)
                               and any(state.is_superset_of(y) for y in molecule_def.states_for_spec(x))]:

@@ -13,7 +13,7 @@ import rxncon.core.specification as spec
 
 
 def test_string_from_modification_definition():
-    modification_definition = rxncon.semantics.molecule.ModificationPropertyDefinition(spec.ProteinSpecification('A', None, None, 'ModDomain')
+    modification_definition = rxncon.semantics.molecule.ModificationPropertyDefinition(spec.ProteinSpec('A', None, None, 'ModDomain')
                                                                                        , {
                                                                                        rxncon.semantics.molecule.Modifier.unmodified, rxncon.semantics.molecule.Modifier.phosphorylated})
     mod_def_str = bex.string_from_mod_prop_def(modification_definition)
