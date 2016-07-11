@@ -1,10 +1,10 @@
 import re
 from enum import unique
-from typing import List, Dict
+from typing import List, Dict, Optional
 from typecheck import typecheck
 
 from rxncon.util.utils import OrderedEnum
-
+from rxncon.core.spec import Spec, Locus, LocusResolution, locus_from_string, spec_from_string
 
 @unique
 class StateModifier(OrderedEnum):
@@ -26,9 +26,11 @@ class StateDef:
     def __str__(self) -> str:
         return 'StateDef: name={0}, representation_def={1}'.format(self.name, self.representation_def)
 
+    @typecheck
     def matches_representation(self, representation: str) -> bool:
         return True if re.match(self._to_matching_regex(), representation) else False
 
+    @typecheck
     def variables_from_representation(self, representation: str) -> Dict:
         assert self.matches_representation(representation)
 
@@ -43,16 +45,18 @@ class StateDef:
 
             if self.variables_def[var][0] is StateModifier:
                 value = state_modifier_from_string(val_str)
-            elif self.variables_def[var][0] is Domain:
-                domain, subdomain, residue = _locus_items_from_string(val_str)
-                value = Domain(domain, subdomain, residue)
-            else:
+            elif self.variables_def[var][0] is Locus:
+                value = locus_from_string(val_str)
+            elif self.variables_def[0] is Spec:
                 value = spec_from_string(val_str)
+            else:
+                raise AssertionError
 
             variables[var] = value
 
         return variables
 
+    @typecheck
     def representation_from_variables(self, variables: Dict) -> str:
         representation = self.representation_def
         for var, val in variables.items():
@@ -81,30 +85,30 @@ STATE_DEFS = [
         'interaction-state',
         '$x--$y',
         {
-            '$x': (Spec, SpecificationResolution.domain),
-            '$y': (Spec, SpecificationResolution.domain)
+            '$x': (Spec, LocusResolution.domain),
+            '$y': (Spec, LocusResolution.domain)
         }
     ),
     StateDef(
         'self-interaction-state',
         '$x--[$y]',
         {
-            '$x': (Spec, SpecificationResolution.domain),
-            '$y': (Domain, SpecificationResolution.domain)
+            '$x': (Spec, LocusResolution.domain),
+            '$y': (Locus, LocusResolution.domain)
         }
     ),
     StateDef(
         'input-state',
         '[$x]',
         {
-            '$x': (Spec, SpecificationResolution.component)
+            '$x': (Spec, LocusResolution.component)
         }
     ),
     StateDef(
         'covalent-modification-state',
         '$x-{$y}',
         {
-            '$x': (Spec, SpecificationResolution.residue),
+            '$x': (Spec, LocusResolution.residue),
             '$y': (StateModifier, StateModifier.neutral)
         }
     ),
@@ -112,23 +116,25 @@ STATE_DEFS = [
         'component-state',
         '$x',
         {
-            '$x': (Spec, SpecificationResolution.component)
+            '$x': (Spec, LocusResolution.component)
         }
     ),
 ]
 
 
 class State:
+    @typecheck
     def __init__(self, state_defs: List[StateDef], definition: StateDef, variables: Dict):
         self.state_defs, self.definition, self.variables = state_defs, definition, variables
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.definition.representation_from_variables(self.variables)
 
-    def __eq__(self, other):
+    @typecheck
+    def __eq__(self, other: 'State') -> bool:
         return self.definition == other.definition and self.variables == other.variables
 
     @property
@@ -136,21 +142,24 @@ class State:
         return [value for value in self.variables.values() if isinstance(value, Spec)]
 
     @property
-    def modifier(self) -> StateModifier:
+    def modifier(self) -> Optional[StateModifier]:
         return next((value for value in self.variables.values() if isinstance(value, StateModifier)), None)
 
     @property
-    def elemental_resolutions(self) -> List[SpecificationResolution]:
+    def elemental_resolutions(self) -> List[LocusResolution]:
         return [self.definition.variables_def[var][1] for var, value in self.variables.items()
                 if isinstance(value, Spec)]
 
+    @typecheck
     def is_elemental(self) -> bool:
         return all(component.has_resolution(elemental_resolution) for component, elemental_resolution
                    in zip(self.components, self.elemental_resolutions))
 
+    @typecheck
     def is_superset_of(self, other: 'State') -> bool:
         return other.is_subset_of(self)
 
+    @typecheck
     def is_subset_of(self, other: 'State') -> bool:
         if self.definition == other.definition:
             return all(x.is_subspec_of(y) for x, y in zip(self.variables.values(), other.variables.values())
@@ -158,10 +167,11 @@ class State:
         else:
             return False
 
+@typecheck
 def state_modifier_from_string(modifier: str) -> StateModifier:
     return StateModifier(modifier.lower())
 
-
+@typecheck
 def state_from_string(state_defs: List[StateDef], representation: str) -> State:
     the_definition = next((state_def for state_def in state_defs
                            if state_def.matches_representation(representation)), None)
