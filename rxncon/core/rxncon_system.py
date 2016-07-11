@@ -1,28 +1,32 @@
 from typing import List
-import typecheck as tc
+from typecheck import typecheck
 
 from rxncon.core.contingency import ContingencyType, Contingency
 from rxncon.core.reaction import Reaction
+from rxncon.core.state import State
 
 
 class RxnConSystem:
-    @tc.typecheck
+    @typecheck
     def __init__(self, reactions: List[Reaction], contingencies: List[Contingency]):
         self.reactions = reactions
         self.contingencies = contingencies
 
         self._assert_consistency()
 
+    @typecheck
     def quantitative_contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
         return [x for x in self.contingencies if x.target == reaction and x.type
                 in [ContingencyType.positive, ContingencyType.negative]]
 
+    @typecheck
     def strict_contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
         return [x for x in self.contingencies if x.target == reaction and x.type
                 in [ContingencyType.requirement, ContingencyType.inhibition]]
 
     @property
-    def product_states(self):
+    @typecheck
+    def product_states(self) -> List[State]:
         states = []
         for reaction in self.reactions:
             states += reaction.products
@@ -30,7 +34,8 @@ class RxnConSystem:
         return list(set(states))
 
     @property
-    def source_states(self):
+    @typecheck
+    def source_states(self) -> List[State]:
         states = []
         for reaction in self.reactions:
             states += reaction.sources
