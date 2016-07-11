@@ -342,26 +342,26 @@ def test_case_indirect_subset():
 
 # the STATE_DEFINITION gets changed here!!!
 def test_indirect_subset(test_case_indirect_subset):
-    sta.STATE_DEFINITIONS = [
+    sta.STATE_DEFS = [
 
-        sta.StateDefinition('interaction-state',
+        sta.StateDef('interaction-state',
                             '$x--$y',
-                            { '$x': (spec.Spec, spec.SpecificationResolution.domain),
+                     { '$x': (spec.Spec, spec.SpecificationResolution.domain),
                               '$y': (spec.Spec, spec.SpecificationResolution.domain)},
-                            ['component-state']
-                            ),
+                     ['component-state']
+                     ),
 
-        sta.StateDefinition('self-interaction-state',
+        sta.StateDef('self-interaction-state',
                             '$x--[$y]',
-                            { '$x': (spec.Spec, spec.SpecificationResolution.domain),
+                     { '$x': (spec.Spec, spec.SpecificationResolution.domain),
                               '$y': (spec.Domain, spec.SpecificationResolution.domain) },
-                            ['interaction-state']),
+                     ['interaction-state']),
 
-        sta.StateDefinition('component-state',
+        sta.StateDef('component-state',
                             '$x',
-                            { '$x': (spec.Spec, spec.SpecificationResolution.component)},
-                            [],
-                            ),
+                     { '$x': (spec.Spec, spec.SpecificationResolution.component)},
+                     [],
+                     ),
     ]
 
     for the_case in test_case_indirect_subset:

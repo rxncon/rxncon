@@ -14,58 +14,58 @@ DefinitionTestCase = namedtuple('DefinitionTestCase', ['definition', 'expected_n
 
 @pytest.fixture
 def reaction_definitions():
-    return {'phosphorylation': rxn.ReactionDefinition('phosphorylation',
+    return {'phosphorylation': rxn.ReactionDef('phosphorylation',
                                                       '$x_p+_$y',
-                                                      {
+                                               {
                                                           '$x': (spec.ProteinSpec, spec.SpecificationResolution.component),
                                                           '$y': (spec.ProteinSpec, spec.SpecificationResolution.residue)
                                                       },
                                                       '$x# + $y#$y-{0} -> $x# + $y#$y-{p}'
-                                                      ),
+                                               ),
 
-            'phosphotransfer': rxn.ReactionDefinition('phosphotransfer',
+            'phosphotransfer': rxn.ReactionDef('phosphotransfer',
                                                       '$x_pt_$y',
-                                                      {
+                                               {
                                                         '$x': (spec.ProteinSpec, spec.SpecificationResolution.residue),
                                                         '$y': (spec.ProteinSpec, spec.SpecificationResolution.residue)
                                                       },
                                                       '$x#$x-{p} + $y#$y-{0} -> $x#$x-{0} + $y#$y-{p}'
-                                                      ),
-            'protein-protein-interaction': rxn.ReactionDefinition('protein-protein-interaction',
+                                               ),
+            'protein-protein-interaction': rxn.ReactionDef('protein-protein-interaction',
                                                                   '$x_ppi_$y',
-                                                                  {
+                                                           {
                                                                     '$x': (spec.ProteinSpec, spec.SpecificationResolution.domain),
                                                                    '$y': (spec.ProteinSpec, spec.SpecificationResolution.domain)
                                                                   },
                                                                   '$x#$x--0 + $y#$y--0 <-> $x#$x--$y + $y#$x--$y'
-                                                                 ),
+                                                           ),
 
-            'intra-protein-interaction': rxn.ReactionDefinition('intra-protein-interaction',
+            'intra-protein-interaction': rxn.ReactionDef('intra-protein-interaction',
                                                             '$x_ipi_$y',
-                                                            {
+                                                         {
                                                                 '$x': (spec.ProteinSpec, spec.SpecificationResolution.domain),
                                                                 '$y': (spec.ProteinSpec, spec.SpecificationResolution.domain)
                                                             },
                                                             '$x#$x--0,$y--0 -> $x#$x--$y.domain'
-                                                            ),
+                                                         ),
 
-            'transcription': rxn.ReactionDefinition('transcription',
+            'transcription': rxn.ReactionDef('transcription',
                                                    '$x_trsc_$y',
-                                                    {
+                                             {
                                                         '$x': (spec.ProteinSpec, spec.SpecificationResolution.component),
                                                         '$y': (spec.DnaSpec, spec.SpecificationResolution.component)
                                                     },
                                                    '$x# + $y# -> $x# + $y# + $y.mRNA#'
-                                                   ),
+                                             ),
 
-            'translation': rxn.ReactionDefinition('translation',
+            'translation': rxn.ReactionDef('translation',
                                                   '$x_trsl_$y',
-                                                  {
+                                           {
                                                     '$x': (spec.ProteinSpec, spec.SpecificationResolution.component),
                                                     '$y': (spec.RnaSpec, spec.SpecificationResolution.component)
                                                   },
                                                   '$x# + $y# -> $x# + $y# + $y.protein#'
-                                                 )
+                                           )
             }
 
 @pytest.fixture

@@ -76,14 +76,14 @@ class Spec(metaclass=ABCMeta):
     def to_component_spec(self) -> 'Spec':
         pass
 
+    def to_protein_component_spec(self) -> 'ProteinSpec':
+        return ProteinSpec(self.component_name, self.struct_index, EmptyLocus())
+
     def to_dna_component_spec(self) -> 'DnaSpec':
         return DnaSpec(self.component_name, self.struct_index, EmptyLocus())
 
     def to_rna_component_spec(self) -> 'MRnaSpec':
         return MRnaSpec(self.component_name, self.struct_index, EmptyLocus())
-
-    def to_protein_component_spec(self) -> 'ProteinSpec':
-        return ProteinSpec(self.component_name, self.struct_index, EmptyLocus())
 
     @property
     def resolution(self) -> 'LocusResolution':
@@ -328,18 +328,9 @@ def _string_from_spec(spec: Spec) -> str:
     else:
         return '{0}'.format(struct_name(spec, suffix))
 
-
 @typecheck
-def spec_from_string(spec_str: str) -> Spec:
-    def _spec_from_suffixed_name_and_items(name, struct_index, domain, subdomain, residue):
-        for suffix in suffix_to_spec:
-            if name.endswith(suffix.value):
-                name = name[:len(name) - len(suffix.value)]
-                return suffix_to_spec[suffix](name, struct_index, Locus(domain, subdomain, residue))
-
-        raise AssertionError('Could not parse spec component_name {}'.format(name))
-
-    def _locus_items_from_string(full_locus_str):
+def locus_from_string(locus_str: str) -> Locus:
+    def locus_items_from_string(full_locus_str):
         DOMAIN_SUBDOMAIN_RESIDUE_REGEX = '^[\w:-]+\/[\w:-]+\([\w:-]+\)$'
         DOMAIN_RESIDUE_REGEX = '^[\w:-]+\([\w:-]+\)$'
         DOMAIN_SUBDOMAIN_REGEX = '^[\w:-]+\/[\w:-]+$'
@@ -376,6 +367,22 @@ def spec_from_string(spec_str: str) -> Spec:
 
         return domain, subdomain, residue
 
+    locus_str = locus_str.strip('[]')
+    domain, subdomain, residue = locus_items_from_string(locus_str)
+    return Locus(domain, subdomain, residue)
+
+@typecheck
+def spec_from_string(spec_str: str) -> Spec:
+    @typecheck
+    def spec_from_suffixed_name_and_locus(name: str, struct_index: int, locus: Locus):
+        for suffix in suffix_to_spec:
+            if name.endswith(suffix.value):
+                name = name[:len(name) - len(suffix.value)]
+                return suffix_to_spec[suffix](name, struct_index, locus)
+
+        raise AssertionError('Could not parse spec component_name {}'.format(name))
+
+
     DOMAIN_DELIMITER = '_'
     STRUCT_DELIMITER = '@'
 
@@ -391,11 +398,9 @@ def spec_from_string(spec_str: str) -> Spec:
         name = items[0]
 
     if len(items) == 1:
-        return _spec_from_suffixed_name_and_items(name, struct_index, None, None, None)
+        return spec_from_suffixed_name_and_locus(name, struct_index, EmptyLocus())
     elif len(items) == 2:
-        locus_str = items[1].strip('[]')
-        domain, subdomain, residue = _locus_items_from_string(locus_str)
-        return _spec_from_suffixed_name_and_items(name, struct_index, domain, subdomain, residue)
+        return spec_from_suffixed_name_and_locus(name, struct_index, locus_from_string(items[1]))
     else:
         raise SyntaxError('Could not parse spec string {}'.format(spec_str))
 

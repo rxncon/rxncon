@@ -2,15 +2,14 @@ from typing import Dict, Tuple, List, Optional
 import re
 from typecheck import typecheck
 
-from rxncon.core.specification import Spec, RnaSpec, ProteinSpec, SpecificationResolution, \
-    DnaSpec
-from rxncon.core.state import State
-from rxncon.syntax.rxncon_from_string import state_from_string, specification_from_string
-
+from rxncon.core.spec import Spec, MRnaSpec, ProteinSpec, LocusResolution, DnaSpec, spec_from_string
+from rxncon.core.state import StateDef, State, state_from_string, STATE_DEFS
+from rxncon.util.utils import members
 
 class Reactant:
+    @typecheck
     def __init__(self, component: Spec, state: Optional[State]):
-
+        assert component.is_component_spec
         self.component, self.state = component, state
 
     def __str__(self) -> str:
@@ -24,28 +23,30 @@ class Reactant:
         return self.component == other.component and self.state == other.state
 
 
-class ReactionDefinition:
+class ReactionDef:
     ARROW_TWO_HEADS = '<->'
     ARROW_ONE_HEAD = '->'
     SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
-    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
+    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
 
-    def __init__(self, name: str, representation_def: str, variables_def: Dict[str, Tuple], reactants_def: str):
-        self.name, self.representation_def, self.variables_def, self.reactants_defs = \
-            name, representation_def, variables_def, reactants_def
+    @typecheck
+    def __init__(self, state_defs: List[StateDef], name: str, representation_def: str, variables_def: Dict[str, Tuple],
+                 reactants_def: str):
+        self.name, self.state_defs, self.representation_def, self.variables_def, self.reactants_defs = \
+            name, state_defs, representation_def, variables_def, reactants_def
 
         self._parse_reactants_def()
 
     @typecheck
-    def __eq__(self, other: 'ReactionDefinition') -> bool:
-        return self.name == other.name and self.representation_def == other.representation_def \
+    def __eq__(self, other: 'ReactionDef') -> bool:
+        return self.state_defs == other.state_defs and self.name == other.name and self.representation_def == other.representation_def \
             and self.variables_def == other.variables_def and self.reactants_defs == other.reactants_defs
 
     def __repr__(self) -> str:
         return str(self)
 
     def __str__(self) -> str:
-        return 'ReactionDefinition: {0}; representation_def: {1}; reactants_defs: {2} '\
+        return 'ReactionDef: {0}; representation_def: {1}; reactants_defs: {2} '\
             .format(self.name, self.representation_def, self.reactants_defs)
 
     def _parse_reactants_def(self):
@@ -62,37 +63,39 @@ class ReactionDefinition:
         self.reactant_defs_post = [x.strip() for x in reactants_def_post_str.split('+')]
 
     def _parse_reactant(self, definition: str, index, variables: Dict) -> Reactant:
-        def parse_state(state_str: str, variables: Dict) -> State:
-            for var, val in variables.items():
-                var_resolution_str_domain = '{0}.domain'.format(var.replace('$', '\$'))
-                if re.search(var_resolution_str_domain, state_str):
-                    state_str = re.sub(var_resolution_str_domain, '[{0}]'.format(str(val.domain)), state_str)
-                else:
-                    state_str = state_str.replace(var, str(val))
+        def parse_state(state_str: str) -> State:
+            for var_symbol, val in variables.items():
+                for method in members(val):
+                    var_with_method = '{0}.{1}'.format(var_symbol, method)
+                    if var_with_method in state_str:
+                        state_str = state_str.replace(var_with_method, str(getattr(val, method)()))
 
-            return state_from_string(state_str)
+                if var_symbol in state_str:
+                    state_str = state_str.replace(var_symbol, str(val))
 
-        def parse_component(component_str: str, variables: Dict) -> Spec:
+            return state_from_string(self.state_defs, state_str)
+
+        def parse_component(component_str: str) -> Spec:
             component_parts = component_str.split('.')
+            assert len(component_parts) < 3
 
-            base_component = variables[component_parts[0]].to_component_spec()
+            component = variables[component_parts[0]].to_component_spec()
+            method_str = None if len(component_parts) == 1 else component_parts[1]
 
-            if len(component_parts) == 1:
-                component = base_component
-            elif len(component_parts) == 2 and component_parts[1] == 'mRNA':
-                component = base_component.to_rna_component_spec()
-            elif len(component_parts) == 2 and component_parts[1] == 'gene':
-                component = base_component.to_dna_component_spec()
-            elif len(component_parts) == 2 and component_parts[1] == 'protein':
-                component = base_component.to_protein_component_spec()
-            else:
-                raise NotImplementedError
+            if method_str:
+                try:
+                    method = getattr(component, method_str)
+                except AttributeError:
+                    raise SyntaxError('Syntax error: {}'.format(component_str))
+
+                # Some of the 'method calls' are actually properties.
+                component = method if not callable(method) else method()
 
             return component
 
         component_str, state_str = definition.split('#')
 
-        component, state = parse_component(component_str, variables), parse_state(state_str, variables)
+        component, state = parse_component(component_str), parse_state(state_str)
         component.structure_index = index
 
         return Reactant(component, state)
@@ -121,7 +124,7 @@ class ReactionDefinition:
                     var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)
 
             val_str = re.match(var_regex, representation).group(1)
-            val_spec = specification_from_string(val_str)
+            val_spec = spec_from_string(val_str)
             assert isinstance(val_spec, self.variables_def[var][0]), \
                 '{0} is of type {1}, required to be of type {2}'.format(var, type(val_spec), self.variables_def[var][0])
             assert val_spec.has_resolution(self.variables_def[var][1]), \
@@ -153,69 +156,73 @@ class ReactionDefinition:
 
 
 REACTION_DEFINITIONS = [
-    ReactionDefinition(
+    ReactionDef(
+        STATE_DEFS,
         'phosphorylation',
         '$x_p+_$y',
         {
-            '$x': (ProteinSpec, SpecificationResolution.component),
-            '$y': (ProteinSpec, SpecificationResolution.residue)
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
         },
         '$x# + $y#$y-{0} -> $x# + $y#$y-{p}'
     ),
-    ReactionDefinition(
+    ReactionDef(
+        STATE_DEFS,
         'phosphotransfer',
         '$x_pt_$y',
         {
-            '$x': (ProteinSpec, SpecificationResolution.residue),
-            '$y': (ProteinSpec, SpecificationResolution.residue)
+            '$x': (ProteinSpec, LocusResolution.residue),
+            '$y': (ProteinSpec, LocusResolution.residue)
         },
         '$x#$x-{p} + $y#$y-{0} -> $x#$x-{0} + $y#$y-{p}'
     ),
-    ReactionDefinition(
+    ReactionDef(
+        STATE_DEFS,
         'protein-protein-interaction',
         '$x_ppi_$y',
         {
-            '$x': (ProteinSpec, SpecificationResolution.domain),
-            '$y': (ProteinSpec, SpecificationResolution.domain)
+            '$x': (ProteinSpec, LocusResolution.domain),
+            '$y': (ProteinSpec, LocusResolution.domain)
         },
         '$x#$x--0 + $y#$y--0 <-> $x#$x--$y + $y#$x--$y'
     ),
-
-    ReactionDefinition(
+    ReactionDef(
+        STATE_DEFS,
         'transcription',
         '$x_trsc_$y',
         {
-            '$x': (ProteinSpec, SpecificationResolution.component),
-            '$y': (DnaSpec, SpecificationResolution.component)
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (DnaSpec, LocusResolution.component)
         },
-        '$x# + $y# -> $x# + $y# + $y.mRNA#'
+        '$x# + $y# -> $x# + $y# + $y.to_mrna_component_spec#'
     ),
-    ReactionDefinition(
+    ReactionDef(
+        STATE_DEFS,
         'translation',
         '$x_trsl_$y',
         {
-            '$x': (ProteinSpec, SpecificationResolution.component),
-            '$y': (RnaSpec, SpecificationResolution.component)
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (MRnaSpec, LocusResolution.component)
         },
-        '$x# + $y# -> $x# + $y# + $y.protein#'
+        '$x# + $y# -> $x# + $y# + $y.to_protein_component_spec#'
     ),
-
-    ReactionDefinition(
+    ReactionDef(
+        STATE_DEFS,
         'intra-protein-interaction',
         '$x_ipi_$y',
         {
-            '$x': (ProteinSpec, SpecificationResolution.domain),
-            '$y': (ProteinSpec, SpecificationResolution.domain)
+            '$x': (ProteinSpec, LocusResolution.domain),
+            '$y': (ProteinSpec, LocusResolution.domain)
         },
-        '$x#$x--0,$y--0 -> $x#$x--$y.domain'
+        '$x#$x--0,$y--0 -> $x#$x--[$y.locus]'
     ),
-
-    ReactionDefinition(
+    ReactionDef(
+        STATE_DEFS,
         'gene-protein-interaction',
         '$x_bind_$y',
         {
-            '$x': (ProteinSpec, SpecificationResolution.domain),
-            '$y': (DnaSpec, SpecificationResolution.domain)
+            '$x': (ProteinSpec, LocusResolution.domain),
+            '$y': (DnaSpec, LocusResolution.domain)
         },
         '$x#$x--0 + $y#$y--0 -> $x#$x--$y + $y#$x--$y'
     )
@@ -223,42 +230,35 @@ REACTION_DEFINITIONS = [
 
 
 class Reaction:
-    def __init__(self, definition: ReactionDefinition, variables: Dict):
+    @typecheck
+    def __init__(self, definition: ReactionDef, variables: Dict):
         self.definition, self.variables = definition, variables
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.definition.representation_from_variables(self.variables)
 
-    def __eq__(self, other):
-        assert isinstance(other, Reaction)
+    @typecheck
+    def __eq__(self, other: 'Reaction') -> bool:
         return self.definition == other.definition and self.variables == other.variables
 
     @property
-    def reactants_pre(self):
+    def reactants_pre(self) -> List[Reactant]:
         return self.definition.reactants_pre_from_variables(self.variables)
 
     @property
-    def reactants_post(self):
+    def reactants_post(self) -> List[Reactant]:
         return self.definition.reactants_post_from_variables(self.variables)
 
     @property
-    def sources(self):
-        sources = []
-        for reactant in self.reactants_pre:
-            sources += reactant.state
-
-        return list(set(sources))
+    def sources(self) -> List[State]:
+        return [reactant.state for reactant in self.reactants_pre]
 
     @property
-    def products(self):
-        products = []
-        for reactant in self.reactants_post:
-            products += reactant.state
-
-        return list(set(products))
+    def products(self) -> List[State]:
+        return [reactant.state for reactant in self.reactants_post]
 
 
-def reaction_from_string(reaction_defs: List[ReactionDefinition], representation: str) -> Reaction:
+def reaction_from_string(reaction_defs: List[ReactionDef], representation: str) -> Reaction:
     the_definition = next((reaction_def for reaction_def in reaction_defs
                           if reaction_def.matches_representation(representation)), None)
 

@@ -1,4 +1,5 @@
 import functools
+from typing import List
 from enum import Enum
 from rxncon.venntastic.sets import ValueSet, EmptySet, Union, Intersection, Complement
 
@@ -6,7 +7,6 @@ def compose(*functions):
     return functools.reduce(lambda f, g: lambda x: f(g(x)), functions, lambda x: x)
 
 class OrderedEnum(Enum):
-
     def __repr__(self):
         return str(self)
 
@@ -23,7 +23,6 @@ class OrderedEnum(Enum):
         else:
             raise NotImplementedError
 
-
 def transform_set_expression(set_expression, leaf_transformer):
     if isinstance(set_expression, ValueSet):
         return ValueSet(leaf_transformer(set_expression.value))
@@ -39,4 +38,7 @@ def transform_set_expression(set_expression, leaf_transformer):
                             transform_set_expression(set_expression.right_expr, leaf_transformer))
     else:
         raise NotImplementedError
+
+def members(obj) -> List[str]:
+    return [x for x in dir(obj) if not x.startswith('__')]
 

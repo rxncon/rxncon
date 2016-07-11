@@ -4,9 +4,6 @@ from typing import List, Dict
 from typecheck import typecheck
 
 from rxncon.util.utils import OrderedEnum
-from rxncon.core.specification import SpecificationResolution, Spec, Domain
-from rxncon.syntax.specification_from_string import specification_from_string
-from rxncon.core.spec import _locus_items_from_string, spec_from_string
 
 
 @unique
@@ -18,21 +15,23 @@ class StateModifier(OrderedEnum):
     truncated = 'truncated'
 
 
-class StateDefinition:
+class StateDef:
     SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
     SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
 
+    @typecheck
     def __init__(self, name: str, representation_def: str, variables_def: Dict):
         self.name, self.representation_def, self.variables_def = name, representation_def, variables_def
 
     def __str__(self) -> str:
-        return 'StateDefinition: name={0}, representation_def={1}'.format(self.name, self.representation_def)
+        return 'StateDef: name={0}, representation_def={1}'.format(self.name, self.representation_def)
 
     def matches_representation(self, representation: str) -> bool:
         return True if re.match(self._to_matching_regex(), representation) else False
 
     def variables_from_representation(self, representation: str) -> Dict:
         assert self.matches_representation(representation)
+
         variables = {}
         for var, var_def in self.variables_def.items():
             var_regex = self._to_base_regex().replace(var, self.SPEC_REGEX_GROUPED)
@@ -41,6 +40,7 @@ class StateDefinition:
                     var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)
 
             val_str = re.match(var_regex, representation).group(1)
+
             if self.variables_def[var][0] is StateModifier:
                 value = state_modifier_from_string(val_str)
             elif self.variables_def[var][0] is Domain:
@@ -76,8 +76,8 @@ class StateDefinition:
         return regex
 
 
-STATE_DEFINITIONS = [
-    StateDefinition(
+STATE_DEFS = [
+    StateDef(
         'interaction-state',
         '$x--$y',
         {
@@ -85,7 +85,7 @@ STATE_DEFINITIONS = [
             '$y': (Spec, SpecificationResolution.domain)
         }
     ),
-    StateDefinition(
+    StateDef(
         'self-interaction-state',
         '$x--[$y]',
         {
@@ -93,14 +93,14 @@ STATE_DEFINITIONS = [
             '$y': (Domain, SpecificationResolution.domain)
         }
     ),
-    StateDefinition(
+    StateDef(
         'input-state',
         '[$x]',
         {
             '$x': (Spec, SpecificationResolution.component)
         }
     ),
-    StateDefinition(
+    StateDef(
         'covalent-modification-state',
         '$x-{$y}',
         {
@@ -108,7 +108,7 @@ STATE_DEFINITIONS = [
             '$y': (StateModifier, StateModifier.neutral)
         }
     ),
-    StateDefinition(
+    StateDef(
         'component-state',
         '$x',
         {
@@ -119,7 +119,7 @@ STATE_DEFINITIONS = [
 
 
 class State:
-    def __init__(self, state_defs: List[StateDefinition], definition: StateDefinition, variables: Dict):
+    def __init__(self, state_defs: List[StateDef], definition: StateDef, variables: Dict):
         self.state_defs, self.definition, self.variables = state_defs, definition, variables
 
     def __repr__(self):
@@ -162,7 +162,7 @@ def state_modifier_from_string(modifier: str) -> StateModifier:
     return StateModifier(modifier.lower())
 
 
-def state_from_string(state_defs: List[StateDefinition], representation: str) -> State:
+def state_from_string(state_defs: List[StateDef], representation: str) -> State:
     the_definition = next((state_def for state_def in state_defs
                            if state_def.matches_representation(representation)), None)
 
