@@ -26,23 +26,27 @@ class Spec(metaclass=ABCMeta):
 
     @typecheck
     def __eq__(self, other: 'Spec') -> bool:
-        return isinstance(other, type(self)) and self.component_name == other.component_name and self.locus == other.locus
+        return isinstance(other, type(self)) and self.component_name == other.component_name and self.locus == other.locus \
+            and self.struct_index == other.struct_index
 
     @typecheck
     def __lt__(self, other: 'Spec') -> bool:
         if self.component_name < other.component_name:
             return True
+        elif self.component_name == other.component_name and self.locus == other.locus:
+            return self.struct_index < other.struct_index
         elif self.component_name == other.component_name:
             return self.locus < other.locus
-        return False
+        else:
+            return False
 
     def _validate(self):
-        assert self.component_name is not None and re.match("\w+", self.component_name)
+        assert self.component_name is not None and re.match('\w+', self.component_name)
 
     @typecheck
     def is_equivalent_to(self, other: 'Spec') -> bool:
         return self == other or type(self) == type(other) and self.locus.residue == other.locus.residue and \
-                                self.struct_index == other.struct_index
+            self.struct_index == other.struct_index
 
     @typecheck
     def is_subspec_of(self, other: 'Spec') -> bool:
@@ -69,23 +73,29 @@ class Spec(metaclass=ABCMeta):
         return other.is_subspec_of(self)
 
     @property
+    @typecheck
     def is_component_spec(self) -> bool:
         return self.has_resolution(LocusResolution.component)
 
     @abstractmethod
+    @typecheck
     def to_component_spec(self) -> 'Spec':
         pass
 
+    @typecheck
     def to_protein_component_spec(self) -> 'ProteinSpec':
         return ProteinSpec(self.component_name, self.struct_index, EmptyLocus())
 
+    @typecheck
     def to_dna_component_spec(self) -> 'DnaSpec':
         return DnaSpec(self.component_name, self.struct_index, EmptyLocus())
 
+    @typecheck
     def to_rna_component_spec(self) -> 'MRnaSpec':
         return MRnaSpec(self.component_name, self.struct_index, EmptyLocus())
 
     @property
+    @typecheck
     def resolution(self) -> 'LocusResolution':
         return self.locus.resolution
 
@@ -115,7 +125,7 @@ class EmptySpec(Spec):
     @typecheck
     def __lt__(self, other: Spec) -> bool:
         if isinstance(other, EmptySpec):
-            return super().__lt__(other)
+            return False
         elif isinstance(other, ProteinSpec):
             return True
         elif isinstance(other, MRnaSpec):
@@ -130,7 +140,7 @@ class EmptySpec(Spec):
 
 
 class ProteinSpec(Spec):
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(str(self))
 
     @typecheck
@@ -156,7 +166,7 @@ class ProteinSpec(Spec):
 
 
 class MRnaSpec(Spec):
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(str(self))
 
     @typecheck
@@ -182,13 +192,13 @@ class MRnaSpec(Spec):
 
 
 class DnaSpec(Spec):
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(str(self))
 
     @typecheck
     def __eq__(self, other: Spec) -> bool:
         return isinstance(other, DnaSpec) and self.component_name == other.component_name \
-               and self.locus == other.locus and self.struct_index == other.struct_index
+            and self.locus == other.locus and self.struct_index == other.struct_index
 
     @typecheck
     def __lt__(self, other: Spec):
@@ -213,10 +223,10 @@ class Locus:
         self.domain, self.subdomain, self.residue = domain, subdomain, residue
         self._validate()
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(str(self))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
     def __str__(self) -> str:
@@ -236,9 +246,8 @@ class Locus:
             raise AssertionError
 
     @typecheck
-    def __eq__(self, other) -> bool:
-        return isinstance(other, Locus) and self.domain == other.domain \
-            and self.subdomain == other.subdomain and self.residue == other.residue
+    def __eq__(self, other: 'Locus') -> bool:
+        return self.domain == other.domain and self.subdomain == other.subdomain and self.residue == other.residue
 
     @typecheck
     def __lt__(self, other: 'Locus') -> bool:
@@ -381,7 +390,6 @@ def spec_from_string(spec_str: str) -> Spec:
                 return suffix_to_spec[suffix](name, struct_index, locus)
 
         raise AssertionError('Could not parse spec component_name {}'.format(name))
-
 
     DOMAIN_DELIMITER = '_'
     STRUCT_DELIMITER = '@'
