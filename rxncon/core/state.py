@@ -1,5 +1,6 @@
 import re
 from enum import unique
+from collections import OrderedDict
 from typing import List, Dict, Optional
 from typecheck import typecheck
 
@@ -47,7 +48,7 @@ class StateDef:
                 value = state_modifier_from_string(val_str)
             elif self.variables_def[var][0] is Locus:
                 value = locus_from_string(val_str)
-            elif self.variables_def[0] is Spec:
+            elif self.variables_def[var][0] is Spec:
                 value = spec_from_string(val_str)
             else:
                 raise AssertionError
@@ -118,7 +119,8 @@ STATE_DEFS = [
 class State:
     @typecheck
     def __init__(self, state_defs: List[StateDef], definition: StateDef, variables: Dict):
-        self.state_defs, self.definition, self.variables = state_defs, definition, variables
+        self.state_defs, self.definition = state_defs, definition
+        self.variables = OrderedDict((k, v) for k, v in sorted(variables.items()))
 
     def __repr__(self) -> str:
         return str(self)
@@ -143,6 +145,7 @@ class State:
         return [self.definition.variables_def[var][1] for var, value in self.variables.items()
                 if isinstance(value, Spec)]
 
+    @property
     @typecheck
     def is_elemental(self) -> bool:
         return all(component.has_resolution(elemental_resolution) for component, elemental_resolution
