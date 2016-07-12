@@ -411,9 +411,3 @@ def spec_from_string(spec_str: str) -> Spec:
         return spec_from_suffixed_name_and_locus(name, struct_index, locus_from_string(items[1]))
     else:
         raise SyntaxError('Could not parse spec string {}'.format(spec_str))
-
-
-
-
-
-
