@@ -42,6 +42,15 @@ class RxnConSystem:
 
         return list(set(states))
 
+    def sanitize(self, sanitize_structure=True, sanitize_domain=True, sanitize_specs=True):
+        if sanitize_structure:
+            pass
+        if sanitize_specs:
+            pass
+
+
+
+
     def _assert_consistency(self):
         required_states = []
         for contingency in self.contingencies:

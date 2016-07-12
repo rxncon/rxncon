@@ -91,7 +91,7 @@ class Spec(metaclass=ABCMeta):
         return DnaSpec(self.component_name, self.struct_index, EmptyLocus())
 
     @typecheck
-    def to_rna_component_spec(self) -> 'MRnaSpec':
+    def to_mrna_component_spec(self) -> 'MRnaSpec':
         return MRnaSpec(self.component_name, self.struct_index, EmptyLocus())
 
     @property
@@ -312,6 +312,7 @@ class SpecSuffix(OrderedEnum):
     dna     = 'DNA'
     protein = ''
 
+
 suffix_to_spec = OrderedDict(
     [
         (SpecSuffix.mrna, MRnaSpec),
@@ -350,40 +351,33 @@ def locus_from_string(locus_str: str) -> Locus:
             domain = full_locus_str.split('/')[0]
             subdomain = full_locus_str.split('/')[1].split('(')[0]
             residue = full_locus_str.split('/')[1].split('(')[1].strip(')')
-
         elif re.match(DOMAIN_RESIDUE_REGEX, full_locus_str):
             domain = full_locus_str.split('(')[0]
             subdomain = None
             residue = full_locus_str.split('(')[1].strip(')')
-
         elif re.match(DOMAIN_SUBDOMAIN_REGEX, full_locus_str):
             domain = full_locus_str.split('/')[0]
             subdomain = full_locus_str.split('/')[1]
             residue = None
-
         elif re.match(RESIDUE_REGEX, full_locus_str):
             domain = None
             subdomain = None
             residue = full_locus_str.strip('()')
-
         elif re.match(DOMAIN_REGEX, full_locus_str):
             domain = full_locus_str
             subdomain = None
             residue = None
-
         else:
             raise SyntaxError('Could not parse locus string {}'.format(full_locus_str))
 
         return domain, subdomain, residue
 
-    locus_str = locus_str.strip('[]')
-    domain, subdomain, residue = locus_items_from_string(locus_str)
-    return Locus(domain, subdomain, residue)
+    return Locus(*locus_items_from_string(locus_str.strip('[]')))
 
 @typecheck
 def spec_from_string(spec_str: str) -> Spec:
     @typecheck
-    def spec_from_suffixed_name_and_locus(name: str, struct_index: int, locus: Locus):
+    def spec_from_suffixed_name_and_locus(name: str, struct_index: Optional[int], locus: Locus):
         for suffix in suffix_to_spec:
             if name.endswith(suffix.value):
                 name = name[:len(name) - len(suffix.value)]
@@ -397,7 +391,9 @@ def spec_from_string(spec_str: str) -> Spec:
     struct_index = None
     items = spec_str.split(DOMAIN_DELIMITER, maxsplit=1)
 
-    if items[0] == EMPTY_SPEC:
+    if items[0].startswith(EMPTY_SPEC):
+        if items[0] != EMPTY_SPEC:
+            raise SyntaxError('Only the EmptySpec can start with {}'.format(EMPTY_SPEC))
         return EmptySpec()
     elif STRUCT_DELIMITER in items[0]:
         name, struct_index = items[0].split(STRUCT_DELIMITER)

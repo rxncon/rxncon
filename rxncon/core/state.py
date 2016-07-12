@@ -111,14 +111,7 @@ STATE_DEFS = [
             '$x': (Spec, LocusResolution.residue),
             '$y': (StateModifier, StateModifier.neutral)
         }
-    ),
-    StateDef(
-        'component-state',
-        '$x',
-        {
-            '$x': (Spec, LocusResolution.component)
-        }
-    ),
+    )
 ]
 
 
