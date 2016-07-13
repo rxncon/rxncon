@@ -2,13 +2,13 @@ from typing import Dict, Tuple, List, Optional
 import re
 from typecheck import typecheck
 
-from rxncon.core.spec import Spec, MRnaSpec, ProteinSpec, LocusResolution, DnaSpec, spec_from_string
+from rxncon.core.spec import MolSpec, MRnaSpec, ProteinSpec, LocusResolution, DnaSpec, mol_spec_from_string
 from rxncon.core.state import StateDef, State, state_from_string, STATE_DEFS
 from rxncon.util.utils import members
 
 class Reactant:
     @typecheck
-    def __init__(self, component: Spec, state: Optional[State]):
+    def __init__(self, component: MolSpec, state: Optional[State]):
         assert component.is_component_spec
         self.component, self.state = component, state
 
@@ -75,7 +75,7 @@ class ReactionDef:
 
             return state_from_string(self.state_defs, state_str)
 
-        def parse_component(component_str: str) -> Spec:
+        def parse_component(component_str: str) -> MolSpec:
             component_parts = component_str.split('.')
             assert len(component_parts) < 3
 
@@ -124,7 +124,7 @@ class ReactionDef:
                     var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)
 
             val_str = re.match(var_regex, representation).group(1)
-            val_spec = spec_from_string(val_str)
+            val_spec = mol_spec_from_string(val_str)
             assert isinstance(val_spec, self.variables_def[var][0]), \
                 '{0} is of type {1}, required to be of type {2}'.format(var, type(val_spec), self.variables_def[var][0])
             assert val_spec.has_resolution(self.variables_def[var][1]), \

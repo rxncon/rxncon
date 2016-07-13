@@ -9,7 +9,7 @@ from rxncon.util.utils import OrderedEnum
 
 EMPTY_SPEC = '0'
 
-class Spec(metaclass=ABCMeta):
+class MolSpec(metaclass=ABCMeta):
     @typecheck
     def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus'):
         self.component_name, self.struct_index, self.locus = component_name, struct_index, locus
@@ -25,12 +25,12 @@ class Spec(metaclass=ABCMeta):
         return _string_from_spec(self)
 
     @typecheck
-    def __eq__(self, other: 'Spec') -> bool:
+    def __eq__(self, other: 'MolSpec') -> bool:
         return isinstance(other, type(self)) and self.component_name == other.component_name and self.locus == other.locus \
             and self.struct_index == other.struct_index
 
     @typecheck
-    def __lt__(self, other: 'Spec') -> bool:
+    def __lt__(self, other: 'MolSpec') -> bool:
         if self.component_name < other.component_name:
             return True
         elif self.component_name == other.component_name and self.locus == other.locus:
@@ -44,12 +44,12 @@ class Spec(metaclass=ABCMeta):
         assert self.component_name is not None and re.match('\w+', self.component_name)
 
     @typecheck
-    def is_equivalent_to(self, other: 'Spec') -> bool:
+    def is_equivalent_to(self, other: 'MolSpec') -> bool:
         return self == other or type(self) == type(other) and self.locus.residue == other.locus.residue and \
             self.struct_index == other.struct_index
 
     @typecheck
-    def is_subspec_of(self, other: 'Spec') -> bool:
+    def is_subspec_of(self, other: 'MolSpec') -> bool:
         if self.is_equivalent_to(other):
             return True
 
@@ -66,7 +66,7 @@ class Spec(metaclass=ABCMeta):
         return True
 
     @typecheck
-    def is_superspec_of(self, other: 'Spec') -> bool:
+    def is_superspec_of(self, other: 'MolSpec') -> bool:
         if self.is_equivalent_to(other):
             return True
 
@@ -79,7 +79,7 @@ class Spec(metaclass=ABCMeta):
 
     @abstractmethod
     @typecheck
-    def to_component_spec(self) -> 'Spec':
+    def to_component_spec(self) -> 'MolSpec':
         pass
 
     @typecheck
@@ -104,7 +104,7 @@ class Spec(metaclass=ABCMeta):
         return self.resolution == resolution
 
 
-class EmptySpec(Spec):
+class EmptyMolSpec(MolSpec):
     def __init__(self):
         super().__init__(EMPTY_SPEC, None, EmptyLocus())
 
@@ -119,12 +119,12 @@ class EmptySpec(Spec):
         return EMPTY_SPEC
 
     @typecheck
-    def __eq__(self, other: 'Spec') -> bool:
-        return isinstance(other, EmptySpec)
+    def __eq__(self, other: 'MolSpec') -> bool:
+        return isinstance(other, EmptyMolSpec)
 
     @typecheck
-    def __lt__(self, other: Spec) -> bool:
-        if isinstance(other, EmptySpec):
+    def __lt__(self, other: MolSpec) -> bool:
+        if isinstance(other, EmptyMolSpec):
             return False
         elif isinstance(other, ProteinSpec):
             return True
@@ -139,24 +139,24 @@ class EmptySpec(Spec):
         raise AssertionError
 
 
-class ProteinSpec(Spec):
+class ProteinSpec(MolSpec):
     def __hash__(self) -> int:
         return hash(str(self))
 
     @typecheck
-    def __eq__(self, other: Spec) -> bool:
+    def __eq__(self, other: MolSpec) -> bool:
         return isinstance(other, ProteinSpec) and self.component_name == other.component_name \
             and self.locus == other.locus and self.struct_index == other.struct_index
 
     @typecheck
-    def __lt__(self, other: Spec) -> bool:
+    def __lt__(self, other: MolSpec) -> bool:
         if isinstance(other, ProteinSpec):
             return super().__lt__(other)
         elif isinstance(other, MRnaSpec):
             return False
         elif isinstance(other, DnaSpec):
             return False
-        elif isinstance(other, EmptySpec):
+        elif isinstance(other, EmptyMolSpec):
             return False
         else:
             raise NotImplementedError
@@ -165,24 +165,24 @@ class ProteinSpec(Spec):
         return ProteinSpec(self.component_name, self.struct_index, EmptyLocus())
 
 
-class MRnaSpec(Spec):
+class MRnaSpec(MolSpec):
     def __hash__(self) -> int:
         return hash(str(self))
 
     @typecheck
-    def __eq__(self, other: Spec) -> bool:
+    def __eq__(self, other: MolSpec) -> bool:
         return isinstance(other, MRnaSpec) and self.component_name == other.component_name \
             and self.locus == other.locus and self.struct_index == other.struct_index
 
     @typecheck
-    def __lt__(self, other: Spec) -> bool:
+    def __lt__(self, other: MolSpec) -> bool:
         if isinstance(other, MRnaSpec):
             return super().__lt__(other)
         elif isinstance(other, DnaSpec):
             return False
         elif isinstance(other, ProteinSpec):
             return True
-        elif isinstance(other, EmptySpec):
+        elif isinstance(other, EmptyMolSpec):
             return False
         else:
             raise NotImplementedError
@@ -191,24 +191,24 @@ class MRnaSpec(Spec):
         return MRnaSpec(self.component_name, self.struct_index, EmptyLocus())
 
 
-class DnaSpec(Spec):
+class DnaSpec(MolSpec):
     def __hash__(self) -> int:
         return hash(str(self))
 
     @typecheck
-    def __eq__(self, other: Spec) -> bool:
+    def __eq__(self, other: MolSpec) -> bool:
         return isinstance(other, DnaSpec) and self.component_name == other.component_name \
             and self.locus == other.locus and self.struct_index == other.struct_index
 
     @typecheck
-    def __lt__(self, other: Spec):
+    def __lt__(self, other: MolSpec):
         if isinstance(other, DnaSpec):
             return super().__lt__(other)
         elif isinstance(other, MRnaSpec):
             return True
         elif isinstance(other, ProteinSpec):
             return True
-        elif isinstance(other, EmptySpec):
+        elif isinstance(other, EmptyMolSpec):
             return False
         else:
             raise NotImplementedError
@@ -324,8 +324,8 @@ suffix_to_spec = OrderedDict(
 spec_to_suffix = OrderedDict((k, v) for v, k in suffix_to_spec.items())
 
 @typecheck
-def _string_from_spec(spec: Spec) -> str:
-    def struct_name(spec: Spec, suffix: SpecSuffix):
+def _string_from_spec(spec: MolSpec) -> str:
+    def struct_name(spec: MolSpec, suffix: SpecSuffix):
         if spec.struct_index:
             return "{0}{1}@{2}".format(spec.component_name, suffix.value, spec.struct_index)
         else:
@@ -375,7 +375,7 @@ def locus_from_string(locus_str: str) -> Locus:
     return Locus(*locus_items_from_string(locus_str.strip('[]')))
 
 @typecheck
-def spec_from_string(spec_str: str) -> Spec:
+def mol_spec_from_string(spec_str: str) -> MolSpec:
     @typecheck
     def spec_from_suffixed_name_and_locus(name: str, struct_index: Optional[int], locus: Locus):
         for suffix in suffix_to_spec:
@@ -394,7 +394,7 @@ def spec_from_string(spec_str: str) -> Spec:
     if items[0].startswith(EMPTY_SPEC):
         if items[0] != EMPTY_SPEC:
             raise SyntaxError('Only the EmptySpec can start with {}'.format(EMPTY_SPEC))
-        return EmptySpec()
+        return EmptyMolSpec()
     elif STRUCT_DELIMITER in items[0]:
         name, struct_index = items[0].split(STRUCT_DELIMITER)
         struct_index = int(struct_index)
@@ -407,3 +407,29 @@ def spec_from_string(spec_str: str) -> Spec:
         return spec_from_suffixed_name_and_locus(name, struct_index, locus_from_string(items[1]))
     else:
         raise SyntaxError('Could not parse spec string {}'.format(spec_str))
+
+
+class BondSpec:
+    @typecheck
+    def __init__(self, first: MolSpec, second: MolSpec):
+        self.first, self.second = sorted(first, second)
+
+    @typecheck
+    def __eq__(self, other: 'BondSpec') -> bool:
+        return self.first == other.first and self.second == other.second
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
+    def __str__(self) -> str:
+        return 'BondSpec<{0}, {1}>'.format(str(self.first), str(self.second))
+
+    def __repr__(self) -> str:
+        return str(self)
+
+
+
+
+
+
+

@@ -1,11 +1,11 @@
 import re
 from enum import unique
 from collections import OrderedDict
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from typecheck import typecheck
 
 from rxncon.util.utils import OrderedEnum
-from rxncon.core.spec import Spec, Locus, LocusResolution, locus_from_string, spec_from_string
+from rxncon.core.spec import MolSpec, Locus, LocusResolution, locus_from_string, mol_spec_from_string
 
 @unique
 class StateModifier(OrderedEnum):
@@ -21,7 +21,7 @@ class StateDef:
     SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
 
     @typecheck
-    def __init__(self, name: str, representation_def: str, variables_def: Dict):
+    def __init__(self, name: str, representation_def: str, variables_def: Dict[str, Any]):
         self.name, self.representation_def, self.variables_def = name, representation_def, variables_def
 
     def __str__(self) -> str:
@@ -32,7 +32,7 @@ class StateDef:
         return True if re.match(self._to_matching_regex(), representation) else False
 
     @typecheck
-    def variables_from_representation(self, representation: str) -> Dict:
+    def variables_from_representation(self, representation: str) -> Dict[str, Any]:
         assert self.matches_representation(representation)
 
         variables = {}
@@ -48,8 +48,8 @@ class StateDef:
                 value = state_modifier_from_string(val_str)
             elif self.variables_def[var][0] is Locus:
                 value = locus_from_string(val_str)
-            elif self.variables_def[var][0] is Spec:
-                value = spec_from_string(val_str)
+            elif self.variables_def[var][0] is MolSpec:
+                value = mol_spec_from_string(val_str)
             else:
                 raise AssertionError
 
@@ -86,15 +86,15 @@ STATE_DEFS = [
         'interaction-state',
         '$x--$y',
         {
-            '$x': (Spec, LocusResolution.domain),
-            '$y': (Spec, LocusResolution.domain)
+            '$x': (MolSpec, LocusResolution.domain),
+            '$y': (MolSpec, LocusResolution.domain)
         }
     ),
     StateDef(
         'self-interaction-state',
         '$x--[$y]',
         {
-            '$x': (Spec, LocusResolution.domain),
+            '$x': (MolSpec, LocusResolution.domain),
             '$y': (Locus, LocusResolution.domain)
         }
     ),
@@ -102,14 +102,14 @@ STATE_DEFS = [
         'input-state',
         '[$x]',
         {
-            '$x': (Spec, LocusResolution.component)
+            '$x': (MolSpec, LocusResolution.component)
         }
     ),
     StateDef(
         'covalent-modification-state',
         '$x-{$y}',
         {
-            '$x': (Spec, LocusResolution.residue),
+            '$x': (MolSpec, LocusResolution.residue),
             '$y': (StateModifier, StateModifier.neutral)
         }
     )
@@ -118,7 +118,7 @@ STATE_DEFS = [
 
 class State:
     @typecheck
-    def __init__(self, state_defs: List[StateDef], definition: StateDef, variables: Dict):
+    def __init__(self, state_defs: List[StateDef], definition: StateDef, variables: Dict[str, Any]):
         self.state_defs, self.definition = state_defs, definition
         self.variables = OrderedDict((k, v) for k, v in sorted(variables.items()))
 
@@ -133,8 +133,8 @@ class State:
         return self.definition == other.definition and self.variables == other.variables
 
     @property
-    def components(self) -> List[Spec]:
-        return [value for value in self.variables.values() if isinstance(value, Spec)]
+    def components(self) -> List[MolSpec]:
+        return [value for value in self.variables.values() if isinstance(value, MolSpec)]
 
     @property
     def modifier(self) -> Optional[StateModifier]:
@@ -143,7 +143,7 @@ class State:
     @property
     def elemental_resolutions(self) -> List[LocusResolution]:
         return [self.definition.variables_def[var][1] for var, value in self.variables.items()
-                if isinstance(value, Spec)]
+                if isinstance(value, MolSpec)]
 
     @property
     @typecheck
@@ -159,7 +159,7 @@ class State:
     def is_subset_of(self, other: 'State') -> bool:
         if self.definition == other.definition:
             return all(x.is_subspec_of(y) for x, y in zip(self.variables.values(), other.variables.values())
-                       if isinstance(x, Spec))
+                       if isinstance(x, MolSpec))
         else:
             return False
 

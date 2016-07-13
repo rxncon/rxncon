@@ -1,6 +1,6 @@
 import pytest
 import rxncon.core.state as sta
-from rxncon.core.spec import RnaSpec, SpecificationResolution, ProteinSpec, DnaSpec, Domain, Spec
+from rxncon.core.spec import RnaSpec, SpecificationResolution, ProteinSpec, DnaSpec, Domain, MolSpec
 from collections import namedtuple
 
 
@@ -346,20 +346,20 @@ def test_indirect_subset(test_case_indirect_subset):
 
         sta.StateDef('interaction-state',
                             '$x--$y',
-                     { '$x': (Spec, SpecificationResolution.domain),
-                              '$y': (Spec, SpecificationResolution.domain)},
+                     { '$x': (MolSpec, SpecificationResolution.domain),
+                              '$y': (MolSpec, SpecificationResolution.domain)},
                      ['component-state']
                      ),
 
         sta.StateDef('self-interaction-state',
                             '$x--[$y]',
-                     { '$x': (Spec, SpecificationResolution.domain),
+                     { '$x': (MolSpec, SpecificationResolution.domain),
                               '$y': (Domain, SpecificationResolution.domain)},
                      ['interaction-state']),
 
         sta.StateDef('component-state',
                             '$x',
-                     { '$x': (Spec, SpecificationResolution.component)},
+                     { '$x': (MolSpec, SpecificationResolution.component)},
                      [],
                      ),
     ]

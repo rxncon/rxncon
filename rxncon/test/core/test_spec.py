@@ -1,7 +1,7 @@
 import pytest
 from collections import namedtuple
 
-from rxncon.core.spec import Locus, Spec, DnaSpec, MRnaSpec, ProteinSpec, EmptySpec, spec_from_string, locus_from_string, \
+from rxncon.core.spec import Locus, MolSpec, DnaSpec, MRnaSpec, ProteinSpec, EmptyMolSpec, mol_spec_from_string, locus_from_string, \
     LocusResolution
 
 
@@ -23,7 +23,7 @@ def test_loci():
 
 
 def test_unstructured_specs():
-    protein_spec = spec_from_string('A_[dd/ss(rr)')
+    protein_spec = mol_spec_from_string('A_[dd/ss(rr)')
     # Protein
     assert isinstance(protein_spec, ProteinSpec)
     assert protein_spec.has_resolution(LocusResolution.residue)
@@ -35,12 +35,12 @@ def test_unstructured_specs():
     assert isinstance(protein_spec.to_mrna_component_spec(), MRnaSpec)
     assert protein_spec.to_mrna_component_spec().has_resolution(LocusResolution.component)
 
-    empty_spec = spec_from_string('0')
-    assert isinstance(empty_spec, EmptySpec)
+    empty_spec = mol_spec_from_string('0')
+    assert isinstance(empty_spec, EmptyMolSpec)
 
 
 def test_structured_specs():
-    protein_spec = spec_from_string('A@0_[dd/ss(rr)')
+    protein_spec = mol_spec_from_string('A@0_[dd/ss(rr)')
     # Protein
     assert isinstance(protein_spec, ProteinSpec)
     assert protein_spec.has_resolution(LocusResolution.residue)
@@ -56,5 +56,5 @@ def test_structured_specs():
     assert not protein_spec.to_mrna_component_spec().struct_index
 
     with pytest.raises(SyntaxError):
-        empty_spec = spec_from_string('0@1')
+        empty_spec = mol_spec_from_string('0@1')
 
