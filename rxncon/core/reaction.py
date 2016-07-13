@@ -1,26 +1,33 @@
-from typing import Dict, Tuple, List, Optional
+from typing import Dict, Any, List, Optional, Union
 import re
 from typecheck import typecheck
 
-from rxncon.core.spec import MolSpec, MRnaSpec, ProteinSpec, LocusResolution, DnaSpec, mol_spec_from_string
+from rxncon.core.spec import Spec, BondSpec, MolSpec, MRnaSpec, ProteinSpec, LocusResolution, DnaSpec, mol_spec_from_string, spec_from_string
 from rxncon.core.state import StateDef, State, state_from_string, STATE_DEFS
 from rxncon.util.utils import members
 
 class Reactant:
     @typecheck
-    def __init__(self, component: MolSpec, state: Optional[State]):
-        assert component.is_component_spec
-        self.component, self.state = component, state
+    def __init__(self, spec: Spec, value: Union[None, List[State], BondSpec]):
+        if isinstance(spec, MolSpec):
+            assert spec.is_component_spec
+            assert value is None or isinstance(value, BondSpec) or isinstance(value, List)
+        elif isinstance(spec, BondSpec):
+            assert isinstance(value, List)
+        else:
+            raise NotImplementedError
+
+        self.spec, self.value = spec, value
 
     def __str__(self) -> str:
-        return 'Reactant<{0}>:{1}'.format(str(self.component), str(self.state))
+        return 'Reactant<{0}>:{1}'.format(str(self.spec), str(self.value))
 
     def __repr__(self) -> str:
         return str(self)
 
     @typecheck
     def __eq__(self, other: 'Reactant'):
-        return self.component == other.component and self.state == other.state
+        return self.spec == other.spec and self.value == other.value
 
 
 class ReactionDef:
@@ -30,7 +37,7 @@ class ReactionDef:
     SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
 
     @typecheck
-    def __init__(self, state_defs: List[StateDef], name: str, representation_def: str, variables_def: Dict[str, Tuple],
+    def __init__(self, state_defs: List[StateDef], name: str, representation_def: str, variables_def: Dict[str, Any],
                  reactants_def: str):
         self.name, self.state_defs, self.representation_def, self.variables_def, self.reactants_defs = \
             name, state_defs, representation_def, variables_def, reactants_def
@@ -62,21 +69,39 @@ class ReactionDef:
         self.reactant_defs_pre = [x.strip() for x in reactants_def_pre_str.split('+')]
         self.reactant_defs_post = [x.strip() for x in reactants_def_post_str.split('+')]
 
-    def _parse_reactant(self, definition: str, index, variables: Dict) -> Reactant:
+    def _parse_reactant(self, definition: str, index, variables: Dict[str, Any]) -> Reactant:
         def parse_state(state_str: str) -> State:
-            for var_symbol, val in variables.items():
-                for method in members(val):
+            for var_symbol, var_val in variables.items():
+                for method in members(var_val):
                     var_with_method = '{0}.{1}'.format(var_symbol, method)
                     if var_with_method in state_str:
-                        state_str = state_str.replace(var_with_method, str(getattr(val, method)()))
+                        state_str = state_str.replace(var_with_method, str(getattr(var_val, method)()))
 
                 if var_symbol in state_str:
-                    state_str = state_str.replace(var_symbol, str(val))
+                    state_str = state_str.replace(var_symbol, str(var_val))
 
             return state_from_string(self.state_defs, state_str)
 
-        def parse_component(component_str: str) -> MolSpec:
-            component_parts = component_str.split('.')
+        def parse_value(value_str: str):
+            if not value_str:
+                return None
+
+            try:
+                potential_spec_str = value_str
+                for var_symb, var_val in variables.items():
+                    potential_spec_str = potential_spec_str.replace(var_symb, str(var_val))
+                return spec_from_string(potential_spec_str)
+            except SyntaxError:
+                return [parse_state(value) for value in value_str.split(',')]
+
+        def parse_spec(spec_str: str) -> Spec:
+            if '~' in spec_str:
+                for var_symb, var_val in variables.items():
+                    spec_str = spec_str.replace(var_symb, str(var_val))
+
+                return spec_from_string(spec_str)
+
+            component_parts = spec_str.split('.')
             assert len(component_parts) < 3
 
             component = variables[component_parts[0]].to_component_spec()
@@ -86,26 +111,26 @@ class ReactionDef:
                 try:
                     method = getattr(component, method_str)
                 except AttributeError:
-                    raise SyntaxError('Syntax error: {}'.format(component_str))
+                    raise SyntaxError('Syntax error: {}'.format(spec_str))
 
                 # Some of the 'method calls' are actually properties.
                 component = method if not callable(method) else method()
 
             return component
 
-        component_str, state_str = definition.split('#')
+        spec_str, value_str = definition.split('#')
 
-        component, state = parse_component(component_str), parse_state(state_str)
-        component.structure_index = index
+        spec, value = parse_spec(spec_str), parse_value(value_str)
+        spec.structure_index = index
 
-        return Reactant(component, state)
+        return Reactant(spec, value)
 
     @typecheck
     def matches_representation(self, representation: str) -> bool:
         return True if re.match(self._to_matching_regex(), representation) else False
 
     @typecheck
-    def representation_from_variables(self, variables: Dict) -> str:
+    def representation_from_variables(self, variables: Dict[str, Any]) -> str:
         representation = self.representation_def
         for var, val in variables.items():
             representation = representation.replace(var, str(val))
@@ -135,11 +160,11 @@ class ReactionDef:
         return variables
 
     @typecheck
-    def reactants_pre_from_variables(self, variables: Dict) -> List[Reactant]:
+    def reactants_pre_from_variables(self, variables: Dict[str, Any]) -> List[Reactant]:
         return [self._parse_reactant(x, i, variables) for i, x in enumerate(self.reactant_defs_pre)]
 
     @typecheck
-    def reactants_post_from_variables(self, variables: Dict) -> List[Reactant]:
+    def reactants_post_from_variables(self, variables: Dict[str, Any]) -> List[Reactant]:
         return [self._parse_reactant(x, i, variables) for i, x in enumerate(self.reactant_defs_post)]
 
     @typecheck
@@ -184,7 +209,7 @@ REACTION_DEFINITIONS = [
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (ProteinSpec, LocusResolution.domain)
         },
-        '$x#$x--0 + $y#$y--0 <-> $x#$x--$y + $y#$x--$y'
+        '$x#$x--0 + $y#$y--0 <-> $x#$x~$y + $y#$x~$y + $x~$y#$x--$y'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -214,7 +239,7 @@ REACTION_DEFINITIONS = [
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (ProteinSpec, LocusResolution.domain)
         },
-        '$x#$x--0,$y--0 -> $x#$x--[$y.locus]'
+        '$x#$x--0,$y--0 <-> $x#$x~$y + $x~$y#$x--[$y.locus]'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -224,7 +249,7 @@ REACTION_DEFINITIONS = [
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (DnaSpec, LocusResolution.domain)
         },
-        '$x#$x--0 + $y#$y--0 -> $x#$x--$y + $y#$x--$y'
+        '$x#$x--0 + $y#$y--0 -> $x#$x~$y + $y#$x~$y + $x~$y#$x--$y'
     )
 ]
 
@@ -251,12 +276,23 @@ class Reaction:
 
     @property
     def sources(self) -> List[State]:
-        return [reactant.state for reactant in self.reactants_pre]
+        states = []
+
+        for reactant in self.reactants_pre:
+            if isinstance(reactant.value, List):
+                states += reactant.value
+
+        return states
 
     @property
     def products(self) -> List[State]:
-        return [reactant.state for reactant in self.reactants_post]
+        states = []
 
+        for reactant in self.reactants_post:
+            if isinstance(reactant.value, List):
+                states += reactant.value
+
+        return states
 
 def reaction_from_string(reaction_defs: List[ReactionDef], representation: str) -> Reaction:
     the_definition = next((reaction_def for reaction_def in reaction_defs

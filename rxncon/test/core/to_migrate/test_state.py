@@ -328,7 +328,7 @@ def test_resolution_and_default_modifier(test_case_resolution_and_neutral_modifi
 
 def is_resolution_and_neutral_modifier_correct(the_case):
     for component in the_case.state.components():
-        assert (component, the_case.state.elemental_resolutions(component)) in the_case.expected_resolution
+        assert (component, the_case.state._elemental_resolutions(component)) in the_case.expected_resolution
     assert the_case.state.neutral_modifier == the_case.expected_neutral_modifier
     assert the_case.state.is_elemental() == the_case.expected_is_elemental
 

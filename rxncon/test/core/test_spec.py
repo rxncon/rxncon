@@ -2,7 +2,7 @@ import pytest
 from collections import namedtuple
 
 from rxncon.core.spec import Locus, MolSpec, DnaSpec, MRnaSpec, ProteinSpec, EmptyMolSpec, mol_spec_from_string, locus_from_string, \
-    LocusResolution
+    LocusResolution, bond_spec_from_string, spec_from_string
 
 
 
@@ -58,3 +58,12 @@ def test_structured_specs():
     with pytest.raises(SyntaxError):
         empty_spec = mol_spec_from_string('0@1')
 
+
+def test_bond_specs():
+    bond_spec = bond_spec_from_string('A_[x]~B_[y]')
+    assert bond_spec.first == mol_spec_from_string('A_[x]')
+    assert bond_spec.second == mol_spec_from_string('B_[y]')
+
+    assert bond_spec_from_string('B_[y]~A_[x]') == bond_spec_from_string('A_[x]~B_[y]')
+
+    assert bond_spec_from_string('A_[x]~0') == mol_spec_from_string('A_[x]')

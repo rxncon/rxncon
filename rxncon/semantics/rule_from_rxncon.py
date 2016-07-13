@@ -27,7 +27,7 @@ def rules_from_reaction(rxnconsys: RxnConSystem, reaction: Reaction):
     consumed_solutions = []
     disjunct_solutions = []
 
-    connected_components = [reactant.component for reactant in reaction.reactants_pre]
+    connected_components = [reactant.spec for reactant in reaction.reactants_pre]
 
     while state_solutions:
         solution = state_solutions.pop(0)
@@ -86,8 +86,8 @@ def rules_from_solution(rxnconsys: RxnConSystem, reaction: Reaction, solution: S
 def complexify_molecules_reactants(molecule_defs: Dict[Spec, MoleculeDef], molecules: List[Molecule],
                                    reactants: List[Reactant]):
     def reactant_to_molecule(reactant: Reactant, structure_index: int) -> Molecule:
-        molecule = Molecule(molecule_defs[reactant.component], structure_index)
-        [molecule.set_state(state) for state in reactant.state]
+        molecule = Molecule(molecule_defs[reactant.spec], structure_index)
+        [molecule.set_state(state) for state in reactant.value]
         return molecule
 
     complexes = [Complex(set(reactant_to_molecule(reactant, index))) for index, reactant in enumerate(reactants)]

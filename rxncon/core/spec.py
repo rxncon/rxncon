@@ -9,7 +9,10 @@ from rxncon.util.utils import OrderedEnum
 
 EMPTY_SPEC = '0'
 
-class MolSpec(metaclass=ABCMeta):
+class Spec(metaclass=ABCMeta):
+    pass
+
+class MolSpec(Spec, metaclass=ABCMeta):
     @typecheck
     def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus'):
         self.component_name, self.struct_index, self.locus = component_name, struct_index, locus
@@ -137,6 +140,9 @@ class EmptyMolSpec(MolSpec):
 
     def to_component_spec(self):
         raise AssertionError
+
+    def has_resolution(self, resolution: 'LocusResolution'):
+        return True
 
 
 class ProteinSpec(MolSpec):
@@ -374,6 +380,25 @@ def locus_from_string(locus_str: str) -> Locus:
 
     return Locus(*locus_items_from_string(locus_str.strip('[]')))
 
+class BondSpec(Spec):
+    @typecheck
+    def __init__(self, first: MolSpec, second: MolSpec):
+        self.first, self.second = sorted([first, second])
+
+    @typecheck
+    def __eq__(self, other: 'BondSpec') -> bool:
+        return self.first == other.first and self.second == other.second
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
+    def __str__(self) -> str:
+        return 'BondSpec<{0}, {1}>'.format(str(self.first), str(self.second))
+
+    def __repr__(self) -> str:
+        return str(self)
+
+
 @typecheck
 def mol_spec_from_string(spec_str: str) -> MolSpec:
     @typecheck
@@ -409,30 +434,16 @@ def mol_spec_from_string(spec_str: str) -> MolSpec:
         raise SyntaxError('Could not parse spec string {}'.format(spec_str))
 
 
-class BondSpec:
-    @typecheck
-    def __init__(self, first: MolSpec, second: MolSpec):
-        self.first, self.second = sorted(first, second)
+@typecheck
+def bond_spec_from_string(spec_str: str) -> Spec:
+    first, second = sorted([mol_spec_from_string(x) for x in spec_str.split('~')])
 
-    @typecheck
-    def __eq__(self, other: 'BondSpec') -> bool:
-        return self.first == other.first and self.second == other.second
+    if isinstance(first, EmptyMolSpec):
+        return second
+    else:
+        return BondSpec(first, second)
 
-    def __hash__(self) -> int:
-        return hash(str(self))
-
-    def __str__(self) -> str:
-        return 'BondSpec<{0}, {1}>'.format(str(self.first), str(self.second))
-
-    def __repr__(self) -> str:
-        return str(self)
-
-
-def bond_spec_from_string(spec_str: str) -> BondSpec:
-    first, second = spec_str.split('~')
-    return BondSpec(mol_spec_from_string(first), mol_spec_from_string(second))
-
-
-def spec_from_string(spec_str: str) -> Union[MolSpec, BondSpec]:
+@typecheck
+def spec_from_string(spec_str: str) -> Spec:
     return bond_spec_from_string(spec_str) if '~' in spec_str else mol_spec_from_string(spec_str)
 
