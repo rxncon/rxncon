@@ -72,7 +72,7 @@ def test_rule_from_rxn_and_contingency_soln_single_contingency():
     }
 
     contingency_soln = ValueSet(elemental_from_state(mol_defs, state_from_string('B_[(r)]-{p}')))
-    reaction = reaction_from_string(REACTION_DEFINITIONS, 'A_[x]_ppi_B_[y]')
+    reaction = reaction_from_string(REACTION_DEFS, 'A_[x]_ppi_B_[y]')
 
     rule = rule_from_reaction_and_contingency_soln(mol_defs, reaction, contingency_soln)
 
@@ -90,7 +90,7 @@ def test_rule_from_rxn_and_contingency_soln_or_contingency():
         ValueSet(state_from_string('A_[c]--C_[a]')),
         ValueSet(state_from_string('B_[(r)]-{p}'))
     )
-    reaction = reaction_from_string(REACTION_DEFINITIONS, 'A_[x]_ppi_B_[y]')
+    reaction = reaction_from_string(REACTION_DEFS, 'A_[x]_ppi_B_[y]')
 
     rules = rules_from_mol_defs_and_reaction_and_bg_state_set(mol_defs, reaction, contingency_soln)
 
@@ -121,7 +121,7 @@ def test_complicated_case():
     #     Union(PropertySet(state_from_string('A_[c]--C_[a]')),
     #           PropertySet(state_from_string('B_[e]--E_[b]'))))
 
-    reaction = reaction_from_string(REACTION_DEFINITIONS, 'A_[b]_ppi_B_[a]')
+    reaction = reaction_from_string(REACTION_DEFS, 'A_[b]_ppi_B_[a]')
 
     rules = rules_from_mol_defs_and_reaction_and_bg_state_set(mol_defs, reaction, cont_soln)
 

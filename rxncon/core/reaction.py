@@ -75,7 +75,9 @@ class ReactionDef:
                 for method in members(var_val):
                     var_with_method = '{0}.{1}'.format(var_symbol, method)
                     if var_with_method in state_str:
-                        state_str = state_str.replace(var_with_method, str(getattr(var_val, method)()))
+                        method_res = getattr(var_val, method)
+                        method_res = method_res if not callable(method_res) else method_res()
+                        state_str = state_str.replace(var_with_method, str(method_res))
 
                 if var_symbol in state_str:
                     state_str = state_str.replace(var_symbol, str(var_val))
@@ -180,7 +182,7 @@ class ReactionDef:
         return regex
 
 
-REACTION_DEFINITIONS = [
+REACTION_DEFS = [
     ReactionDef(
         STATE_DEFS,
         'phosphorylation',
