@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from typecheck import typecheck
 from abc import ABCMeta, abstractmethod
-from typing import Optional
+from typing import Optional, Union
 from enum import Enum, unique
 import re
 
@@ -428,8 +428,11 @@ class BondSpec:
         return str(self)
 
 
+def bond_spec_from_string(spec_str: str) -> BondSpec:
+    first, second = spec_str.split('~')
+    return BondSpec(mol_spec_from_string(first), mol_spec_from_string(second))
 
 
-
-
+def spec_from_string(spec_str: str) -> Union[MolSpec, BondSpec]:
+    return bond_spec_from_string(spec_str) if '~' in spec_str else mol_spec_from_string(spec_str)
 
