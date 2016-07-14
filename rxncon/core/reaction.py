@@ -82,7 +82,7 @@ class ReactionDef:
                 if var_symbol in state_str:
                     state_str = state_str.replace(var_symbol, str(var_val))
 
-            return state_from_string(self.state_defs, state_str)
+            return state_from_string(state_str)
 
         def parse_value(value_str: str):
             if not value_str:
@@ -258,8 +258,14 @@ REACTION_DEFS = [
 
 class Reaction:
     @typecheck
-    def __init__(self, definition: ReactionDef, variables: Dict):
+    def __init__(self, definition: ReactionDef, variables: Dict[str, Any]):
         self.definition, self.variables = definition, variables
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
+    def __repr__(self) -> str:
+        return str(self)
 
     def __str__(self) -> str:
         return self.definition.representation_from_variables(self.variables)
@@ -269,14 +275,17 @@ class Reaction:
         return self.definition == other.definition and self.variables == other.variables
 
     @property
+    @typecheck
     def reactants_pre(self) -> List[Reactant]:
         return self.definition.reactants_pre_from_variables(self.variables)
 
     @property
+    @typecheck
     def reactants_post(self) -> List[Reactant]:
         return self.definition.reactants_post_from_variables(self.variables)
 
     @property
+    @typecheck
     def sources(self) -> List[State]:
         states = []
 
@@ -287,6 +296,7 @@ class Reaction:
         return states
 
     @property
+    @typecheck
     def products(self) -> List[State]:
         states = []
 
@@ -296,8 +306,9 @@ class Reaction:
 
         return states
 
-def reaction_from_string(reaction_defs: List[ReactionDef], representation: str) -> Reaction:
-    the_definition = next((reaction_def for reaction_def in reaction_defs
+@typecheck
+def reaction_from_string(representation: str) -> Reaction:
+    the_definition = next((reaction_def for reaction_def in REACTION_DEFS
                           if reaction_def.matches_representation(representation)), None)
 
     assert the_definition, 'Could not match reaction {} with definition'.format(representation)

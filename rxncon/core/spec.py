@@ -7,10 +7,11 @@ import re
 
 from rxncon.util.utils import OrderedEnum
 
-EMPTY_SPEC = '0'
+EMPTY_MOL_SPEC = '0'
 
 class Spec(metaclass=ABCMeta):
     pass
+
 
 class MolSpec(Spec, metaclass=ABCMeta):
     @typecheck
@@ -25,6 +26,21 @@ class MolSpec(Spec, metaclass=ABCMeta):
         return str(self)
 
     def __str__(self) -> str:
+        @typecheck
+        def _string_from_spec(spec: MolSpec) -> str:
+            def struct_name(spec: MolSpec, suffix: 'SpecSuffix'):
+                if spec.struct_index:
+                    return "{0}{1}@{2}".format(spec.component_name, suffix.value, spec.struct_index)
+                else:
+                    return "{0}{1}".format(spec.component_name, suffix.value)
+
+            suffix = spec_to_suffix[type(spec)]
+
+            if str(spec.locus):
+                return '{0}_[{1}]'.format(struct_name(spec, suffix), str(spec.locus))
+            else:
+                return '{0}'.format(struct_name(spec, suffix))
+
         return _string_from_spec(self)
 
     @typecheck
@@ -109,17 +125,17 @@ class MolSpec(Spec, metaclass=ABCMeta):
 
 class EmptyMolSpec(MolSpec):
     def __init__(self):
-        super().__init__(EMPTY_SPEC, None, EmptyLocus())
+        super().__init__(EMPTY_MOL_SPEC, None, EmptyLocus())
 
     def _validate(self):
-        assert self.component_name == EMPTY_SPEC
+        assert self.component_name == EMPTY_MOL_SPEC
         assert self.locus.is_empty
 
     def __hash__(self) -> int:
         return hash(str(self))
 
     def __str__(self) -> str:
-        return EMPTY_SPEC
+        return EMPTY_MOL_SPEC
 
     @typecheck
     def __eq__(self, other: 'MolSpec') -> bool:
@@ -329,20 +345,6 @@ suffix_to_spec = OrderedDict(
 
 spec_to_suffix = OrderedDict((k, v) for v, k in suffix_to_spec.items())
 
-@typecheck
-def _string_from_spec(spec: MolSpec) -> str:
-    def struct_name(spec: MolSpec, suffix: SpecSuffix):
-        if spec.struct_index:
-            return "{0}{1}@{2}".format(spec.component_name, suffix.value, spec.struct_index)
-        else:
-            return "{0}{1}".format(spec.component_name, suffix.value)
-
-    suffix = spec_to_suffix[type(spec)]
-
-    if str(spec.locus):
-        return '{0}_[{1}]'.format(struct_name(spec, suffix), str(spec.locus))
-    else:
-        return '{0}'.format(struct_name(spec, suffix))
 
 @typecheck
 def locus_from_string(locus_str: str) -> Locus:
@@ -380,6 +382,7 @@ def locus_from_string(locus_str: str) -> Locus:
 
     return Locus(*locus_items_from_string(locus_str.strip('[]')))
 
+
 class BondSpec(Spec):
     @typecheck
     def __init__(self, first: MolSpec, second: MolSpec):
@@ -416,9 +419,9 @@ def mol_spec_from_string(spec_str: str) -> MolSpec:
     struct_index = None
     items = spec_str.split(DOMAIN_DELIMITER, maxsplit=1)
 
-    if items[0].startswith(EMPTY_SPEC):
-        if items[0] != EMPTY_SPEC:
-            raise SyntaxError('Only the EmptySpec can start with {}'.format(EMPTY_SPEC))
+    if items[0].startswith(EMPTY_MOL_SPEC):
+        if items[0] != EMPTY_MOL_SPEC:
+            raise SyntaxError('Only the EmptySpec can start with {}'.format(EMPTY_MOL_SPEC))
         return EmptyMolSpec()
     elif STRUCT_DELIMITER in items[0]:
         name, struct_index = items[0].split(STRUCT_DELIMITER)
@@ -442,6 +445,7 @@ def bond_spec_from_string(spec_str: str) -> Spec:
         return second
     else:
         return BondSpec(first, second)
+
 
 @typecheck
 def spec_from_string(spec_str: str) -> Spec:

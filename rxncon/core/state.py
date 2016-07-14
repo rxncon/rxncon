@@ -5,7 +5,7 @@ from typing import List, Dict, Optional, Any
 from typecheck import typecheck
 
 from rxncon.util.utils import OrderedEnum, members
-from rxncon.core.spec import Spec, MolSpec, BondSpec, EmptyMolSpec, Locus, LocusResolution, locus_from_string, mol_spec_from_string, spec_from_string
+from rxncon.core.spec import Spec, MolSpec, EmptyMolSpec, Locus, LocusResolution, locus_from_string, mol_spec_from_string, spec_from_string
 
 @unique
 class StateModifier(OrderedEnum):
@@ -92,7 +92,7 @@ class StateDef:
             for var, val in variables.items():
                 state_str = state_str.replace(var, str(val))
 
-            the_state = state_from_string(STATE_DEFS, state_str)
+            the_state = state_from_string(state_str)
             if the_state:
                 states.append(the_state)
 
@@ -156,9 +156,13 @@ STATE_DEFS = [
 
 class State:
     @typecheck
-    def __init__(self, state_defs: List[StateDef], definition: StateDef, variables: Dict[str, Any]):
-        self.state_defs, self.definition = state_defs, definition
+    def __init__(self, definition: StateDef, variables: Dict[str, Any]):
+        self.definition = definition
+        self.state_defs = STATE_DEFS
         self.variables = OrderedDict((k, v) for k, v in sorted(variables.items()))
+
+    def __hash__(self) -> int:
+        return hash(str(self))
 
     def __repr__(self) -> str:
         return str(self)
@@ -219,8 +223,8 @@ def state_modifier_from_string(modifier: str) -> StateModifier:
     return StateModifier(modifier.lower())
 
 @typecheck
-def state_from_string(state_defs: List[StateDef], representation: str) -> Optional[State]:
-    the_definition = next((state_def for state_def in state_defs
+def state_from_string(representation: str) -> Optional[State]:
+    the_definition = next((state_def for state_def in STATE_DEFS
                            if state_def.matches_representation(representation)), None)
 
     assert the_definition, 'Could not match reaction {} with definition'.format(representation)
@@ -229,4 +233,4 @@ def state_from_string(state_defs: List[StateDef], representation: str) -> Option
     if all(isinstance(x, EmptyMolSpec) for x in variables.values() if isinstance(x, Spec)):
         return None
 
-    return State(state_defs, the_definition, variables)
+    return State(the_definition, variables)
