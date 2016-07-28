@@ -7,7 +7,7 @@ import rxncon.core.rxncon_system as rxs
 import rxncon.core.state as sta
 import rxncon.core.reaction as rxn
 import rxncon.input.shared.contingency_list as cli
-import rxncon.syntax.rxncon_from_string as fst
+
 
 
 class Quick(inp.RxnConInput):

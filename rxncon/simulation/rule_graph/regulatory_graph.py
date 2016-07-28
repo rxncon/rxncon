@@ -75,35 +75,52 @@ class RegulatoryGraph():
 
     def add_reaction_to_graph(self, reaction: rxn.Reaction, graph: nex.DiGraph):
         graph.add_node(str(reaction), dict(type=NodeType.reaction.value))
-        if isinstance(reaction, rxn.OutputReaction):
-            graph.add_node(str(reaction), dict(type=NodeType.output.value))
-            return graph
-        elif reaction.product:
-            graph.add_node(str(reaction.product), dict(type=NodeType.state.value))
-            graph.add_edge(str(reaction), str(reaction.product), interaction=EdgeInteractionType.produce.value)
-            return graph
-        elif reaction.source:
-            for state_effector in self.get_subspecifications_of_state(reaction.source):
-                graph.add_edge(str(reaction), str(state_effector.expr), interaction=EdgeInteractionType.consume.value)
-            return graph
-        else:
-            raise AssertionError
+        #if isinstance(reaction, rxn.OutputReaction):
+        #    graph.add_node(str(reaction), dict(type=NodeType.output.value))
+        #    return graph
+        for reactant_post in reaction.reactants_post:
+            for reactant_post_state in reactant_post.states:
+                graph.add_node(str(reactant_post_state), dict(type=NodeType.state.value))
+                graph.add_edge(str(reaction), str(reactant_post_state), interaction=EdgeInteractionType.produce.value)
+
+        for reactant_pre in reaction.reactants_pre:
+            for reactant_pre_state in reactant_pre.states:
+                for state_effector in self.get_subspecifications_of_state(reactant_pre_state):
+                    graph.add_edge(str(reaction), str(state_effector.expr), interaction=EdgeInteractionType.consume.value)
+
+        return graph
+        # if reaction.product:
+        #     graph.add_node(str(reaction.product), dict(type=NodeType.state.value))
+        #     graph.add_edge(str(reaction), str(reaction.product), interaction=EdgeInteractionType.produce.value)
+        #     return graph
+        # elif reaction.source:
+        #     for state_effector in self.get_subspecifications_of_state(reaction.source):
+        #         graph.add_edge(str(reaction), str(state_effector.expr), interaction=EdgeInteractionType.consume.value)
+        #     return graph
+        # else:
+        #     raise AssertionError
 
     def add_state_effector_edge_or_input_to_graph(self, effector: eff.StateEffector, target_name, edge_type: EdgeInteractionType,
                                                   graph: nex.DiGraph):
-        if isinstance(effector.expr, sta.GlobalQuantityState):
-            graph.add_node(self.replace_invalid_chars(str(effector.expr)), type=NodeType.input.value)
+        #if isinstance(effector.expr, sta.GlobalQuantityState):
+        #    graph.add_node(self.replace_invalid_chars(str(effector.expr)), type=NodeType.input.value)
         graph.add_edge(self.replace_invalid_chars(str(effector.expr)), target_name,
                        interaction=edge_type.value)
         return graph
 
     def get_subspecifications_of_state(self, state: sta.State) -> tp.List[eff.StateEffector]:
         state_subspecification_effectors = set()
-        for react in self.rxncon_system.reactions:
-            if react.product is not None and state.is_superset_of(react.product):
-                state_subspecification_effectors.add(eff.StateEffector(react.product))
-            elif react.source is not None and state.is_superset_of(react.source):
-                state_subspecification_effectors.add(eff.StateEffector(react.source))
+        for reaction in self.rxncon_system.reactions:
+            if reaction.reactants_post:
+                for reactant_post in reaction.reactants_post:
+                    for reactant_post_state in reactant_post.states:
+                        if state.is_superset_of(reactant_post_state):
+                            state_subspecification_effectors.add(eff.StateEffector(reactant_post_state))
+            elif reaction.reactants_pre:
+                for reactant_pre in reaction.reactants_pre:
+                    for reactant_pre_state in reactant_pre.states:
+                        if state.is_superset_of(reactant_pre_state):
+                            state_subspecification_effectors.add(eff.StateEffector(reactant_pre_state))
         return state_subspecification_effectors
 
     def add_contingencies_to_graph(self, contingencies: tp.List[con.Contingency], reaction: rxn.Reaction, graph: nex.DiGraph):
@@ -114,7 +131,7 @@ class RegulatoryGraph():
                                                                            effector_edge_interaction_type_mapping[contingency.type], graph)
             elif isinstance(contingency.effector, eff.AndEffector) or isinstance(contingency.effector, eff.OrEffector) \
                     or isinstance(contingency.effector, eff.NotEffector):
-                graph = self.add_information_from_effector_reaction_contingency_type_to_graph(contingency.effector, contingency.target,
+                graph = self.add_information_from_effector_reaction_contingency_type_to_graph(contingency.effector, self.target_name_from_reaction_or_effector(contingency.target),
                                                                                               effector_edge_interaction_type_mapping[contingency.type], graph)
 
         return graph
@@ -130,20 +147,21 @@ class RegulatoryGraph():
         else:
             raise AssertionError
 
-    def add_information_from_effector_reaction_contingency_type_to_graph(self, effector: eff.Effector, target: tp.Union[eff.Effector, rxn.Reaction],
-                                                                         edge_type: EdgeInteractionType, graph: nex.DiGraph):
+    def add_information_from_effector_reaction_contingency_type_to_graph(self, effector, target_name, edge_type, graph):
 
-        target_name = self.target_name_from_reaction_or_effector(target)
 
         if isinstance(effector, eff.AndEffector) or isinstance(effector, eff.OrEffector):
-            graph.add_node(self.replace_invalid_chars(effector.name),
-                           type=effector_node_type_mapping[type(effector)].value)
-            graph.add_edge(self.replace_invalid_chars(effector.name), target_name,
-                           interaction=edge_type.value)
-            graph = self.add_information_from_effector_reaction_contingency_type_to_graph(effector.left_expr, effector,
-                                                                                          effector_edge_interaction_type_mapping[type(effector)], graph)
-            graph = self.add_information_from_effector_reaction_contingency_type_to_graph(effector.right_expr, effector,
-                                                                                          effector_edge_interaction_type_mapping[type(effector)], graph)
+            if effector.name is not None:
+                graph.add_node(self.replace_invalid_chars(effector.name),
+                               type=effector_node_type_mapping[type(effector)].value)
+                graph.add_edge(self.replace_invalid_chars(effector.name), target_name,
+                               interaction=edge_type.value)
+                target_name = self.target_name_from_reaction_or_effector(effector)
+
+            graph = self.add_information_from_effector_reaction_contingency_type_to_graph(effector.left_expr, target_name,
+                                                                                              effector_edge_interaction_type_mapping[type(effector)], graph)
+            graph = self.add_information_from_effector_reaction_contingency_type_to_graph(effector.right_expr, target_name,
+                                                                                              effector_edge_interaction_type_mapping[type(effector)], graph)
             return graph
         elif isinstance(effector, eff.StateEffector):
             for state_effector in self.get_subspecifications_of_state(effector.expr):
@@ -151,11 +169,13 @@ class RegulatoryGraph():
                                                                        edge_type, graph)
             return graph
         elif isinstance(effector, eff.NotEffector):
+            #if effector.name is not None:
             graph.add_node(self.replace_invalid_chars(effector.name),
                            type=effector_node_type_mapping[type(effector)].value)
             graph.add_edge(self.replace_invalid_chars(effector.name), target_name,
                            interaction=edge_type.value)
-            graph = self.add_information_from_effector_reaction_contingency_type_to_graph(effector.expr, effector,
+            target_name = self.target_name_from_reaction_or_effector(effector)
+            graph = self.add_information_from_effector_reaction_contingency_type_to_graph(effector.expr, target_name,
                                                                                           effector_edge_interaction_type_mapping[type(effector)], graph)
             return graph
         else:

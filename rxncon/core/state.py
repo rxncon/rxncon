@@ -71,7 +71,7 @@ class StateDefinition:
     def representation_from_variables(self, variables):
         representation = self.representation_def
         for var, val in variables.items():
-            if val is StateModifier:
+            if isinstance(val, StateModifier):
                 representation = representation.replace(var, str(val.value))
             else:
                 representation = representation.replace(var, str(val))
@@ -105,11 +105,11 @@ STATE_DEFINITION = [
                      '$y': (StateModifier, StateModifier.neutral)},
                     ['component-state']),
 
-    StateDefinition('component-state',
-                    '$x',
-                    {'$x': (spec.Specification, spec.SpecificationResolution.component)},
-                    [],
-                    ),
+    #StateDefinition('component-state',
+    #                '$x',
+    #                {'$x': (spec.Specification, spec.SpecificationResolution.component)},
+    #                [],
+#                    ),
 ]
 
 
@@ -156,34 +156,35 @@ class State():
 
     def is_subset_of(self, other: 'State') -> bool:
         subspec = False
-        if self.definition.name == other.definition.name or other.definition.name in self.definition.subset_of_def:
+        if self.definition.name == other.definition.name:# or other.definition.name in self.definition.subset_of_def:
             return self._component_subspecification_validation(other, subspec)
-        elif self.definition.name != other.definition.name and other.definition.name not in self.definition.subset_of_def:
-            for name_of_superset_state in self.definition.subset_of_def:
-                if other.definition.name in _get_STATE_DEFINITION(name_of_superset_state).subset_of_def:
-                   return self._component_subspecification_validation(other, subspec)
-            else:
-                return False
         else:
-            assert NotImplementedError
+            return False
+        #else:
+        #    assert NotImplementedError
 
     def _component_subspecification_validation(self, other: 'State', subspec: bool):
         for self_component in self.components():
+            found_component = False
             for other_component in other.components():
-                #check whether the to components are equal
+                #check whether the two components are equal
                 if self_component.to_component_specification() == other_component.to_component_specification():
                     #check if one is the subspecification and the othter the superspecification
+                    found_component = True
                     if self_component.is_subspecification_of(other_component) and other_component.is_superspecification_of(self_component):
                         #if both definition are different this is sufficient
-                        if self.definition.name != other.definition.name:
-                            subspec = True
+                        #if self.definition.name != other.definition.name:
+                        #    subspec = True
                         # otherwise we have to check if the modifier are equal like A_[(r)]-{p} != A_[(r)]-{ub}
-                        elif self.modifier() == other.modifier():
+                        if self.modifier() == other.modifier():
                             subspec = True
                         else:
                             return False
                     else:
                         return False
+            if not found_component:
+                return False
+
 
         return subspec
 
