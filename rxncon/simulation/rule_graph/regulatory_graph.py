@@ -1,5 +1,6 @@
 import typing as tp
 import re
+import copy
 from enum import Enum, unique
 import networkx as nex
 import rxncon.core.rxncon_system as rxs
@@ -58,6 +59,7 @@ effector_node_type_mapping = { eff.OrEffector: NodeType.OR,
                                eff.NotEffector: NodeType.NOT
                                }
 
+#todo: subspecification
 
 class RegulatoryGraph():
     def __init__(self,rxncon_system: rxs.RxnConSystem):
@@ -82,11 +84,12 @@ class RegulatoryGraph():
             for reactant_post_state in reactant_post.states:
                 graph.add_node(str(reactant_post_state), dict(type=NodeType.state.value))
                 graph.add_edge(str(reaction), str(reactant_post_state), interaction=EdgeInteractionType.produce.value)
-
-        for reactant_pre in reaction.reactants_pre:
-            for reactant_pre_state in reactant_pre.states:
-                for state_effector in self.get_subspecifications_of_state(reactant_pre_state):
-                    graph.add_edge(str(reaction), str(state_effector.expr), interaction=EdgeInteractionType.consume.value)
+        #todo: what should happen with this
+        # for reactant_pre in reaction.reactants_pre:
+        #    for reactant_pre_state in reactant_pre.states:
+        #        #for state_effector in self.get_subspecifications_of_state(reactant_pre_state):
+        #        graph.add_node(str(reactant_pre_state), dict(type=NodeType.state.value))
+        #        graph.add_edge(str(reaction), str(reactant_pre_state), interaction=EdgeInteractionType.consume.value)
 
         return graph
         # if reaction.product:
@@ -99,12 +102,17 @@ class RegulatoryGraph():
         #     return graph
         # else:
         #     raise AssertionError
+    def remove_structure(self, state):
+        state = copy.deepcopy(state)
+        for var in state.variables:
+            state.variables[var].structure_index = None
+        return state
 
     def add_state_effector_edge_or_input_to_graph(self, effector: eff.StateEffector, target_name, edge_type: EdgeInteractionType,
                                                   graph: nex.DiGraph):
         #if isinstance(effector.expr, sta.GlobalQuantityState):
         #    graph.add_node(self.replace_invalid_chars(str(effector.expr)), type=NodeType.input.value)
-        graph.add_edge(self.replace_invalid_chars(str(effector.expr)), target_name,
+        graph.add_edge(self.replace_invalid_chars(str(self.remove_structure(effector.expr))), target_name,
                        interaction=edge_type.value)
         return graph
 
@@ -164,8 +172,8 @@ class RegulatoryGraph():
                                                                                               effector_edge_interaction_type_mapping[type(effector)], graph)
             return graph
         elif isinstance(effector, eff.StateEffector):
-            for state_effector in self.get_subspecifications_of_state(effector.expr):
-                graph = self.add_state_effector_edge_or_input_to_graph(state_effector, target_name,
+            #for state_effector in self.get_subspecifications_of_state(effector.expr):
+            graph = self.add_state_effector_edge_or_input_to_graph(effector, target_name,
                                                                        edge_type, graph)
             return graph
         elif isinstance(effector, eff.NotEffector):

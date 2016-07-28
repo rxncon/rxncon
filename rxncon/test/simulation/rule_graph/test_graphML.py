@@ -158,13 +158,22 @@ def can_xgmml_be_written_to_file(test_case):
     os.remove(path)
     return file_exists
 
+def test_test():
+    quick_system = qui.Quick("""IR_[lig]_i_insulin_[IR]; ! <IR-empty>
+    <IR-empty>; AND IR@0--IR@2; AND IR@0_[lig]--0; AND IR@2_[lig]--0""")
+    reg_graph = reg.RegulatoryGraph(quick_system.rxncon_system)
+    actual_graph = reg_graph.to_graph()
+    gml_system = gml.XGMML(actual_graph, "name")
+    pass
+    #gml_system.to_file('/home/thiemese/data/reg_graph.xgmml')
+
 def test_insulin_reg_graph():
     quick_system = qui.Quick("""IR_[IRBD]_ppi_IR_[IRBD]
 IR_[lig]_i_insulin_[IR]; ! <IR-empty>
 IR_p+_IR_[TK(Y1158)]; ! <IR0-IR1-Insulin2>
 IR_p+_IR_[TK(Y1162)]; ! <IR0-IR1-Insulin2>
 IR_p+_IR_[TK(Y1163)]; ! <IR0-IR1-Insulin2>
-IR_ap_IR_[JM(Y972)]; ! <IR-IR-active>
+IR_ap+_IR_[JM(Y972)]; ! <IR-IR-active>
 IR_[JMY972]_ppi_IRS_[PTB]; ! IR_[JM(Y972)]-{P}; ! IRS_[PH]--PM_[phospholipids]
 IRS_[PH]_i_PM_[phospholipids]
 IR_p+_IRS_[(Y)]; ! IR_[JMY972]--IRS_[PTB]; ! <IR-active>
@@ -177,19 +186,19 @@ Grb2_[SH2]_ppi_Shc_[YY]; ! Shc_[(YY239240)]-{P}
 Grb2_[SH2]_ppi_Shc_[Y]; ! Shc_[(Y317)]-{P}
 IRS_[Y]_ppi_PI3K_[SH2]; ! IRS_[(Y)]-{P}
 
-<IR-empty>; AND IR@0--IR@2; AND IR@0_[lig]--0; AND IR@2_[lig]--0
+<IR-empty>; AND IR@0_[IRBD]--IR@2_[IRBD]; AND IR@0_[lig]--0; AND IR@2_[lig]--0
 
 <IR-IR-active>; AND <IR-phos>; AND <IR0-IR1-Insulin2>
 <IR-phos>; AND IR_[TK(Y1158)]-{P}; AND IR_[TK(Y1162)]-{P}; AND IR_[TK(Y1163)]-{P}
 
 <IR0-IR1-Insulin2>; OR <IR0-insulin2>; OR <IR1-insulin2>
-<IR0-insulin2>; AND IR@0--IR@1; AND IR@0_[lig]--insulin@2
-<IR1-insulin2>; AND IR@0--IR@1; AND IR@1_[lig]--insulin@2
+<IR0-insulin2>; AND IR@0_[IRBD]--IR@1_[IRBD]; AND IR@0_[lig]--insulin@2_[IR]
+<IR1-insulin2>; AND IR@0_[IRBD]--IR@1_[IRBD]; AND IR@1_[lig]--insulin@2_[IR]
 
 <IR-active>; AND <IR-phos>; AND <IR0-IR2-Insulin3>
 <IR0-IR2-Insulin3>; OR <IR0-insulin3>; OR <IR2-insulin3>
-<IR0-insulin3>; AND IR@0--IR@2; AND IR@0_[lig]--insulin@3
-<IR2-insulin3>; AND IR@0--IR@2; AND IR@2_[lig]--insulin@3
+<IR0-insulin3>; AND IR@0_[IRBD]--IR@2_[IRBD]; AND IR@0_[lig]--insulin@3_[IR]
+<IR2-insulin3>; AND IR@0_[IRBD]--IR@2_[IRBD]; AND IR@2_[lig]--insulin@3_[IR]
 """)
     reg_graph = reg.RegulatoryGraph(quick_system.rxncon_system)
     actual_graph = reg_graph.to_graph()

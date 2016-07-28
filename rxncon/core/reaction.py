@@ -147,6 +147,15 @@ REACTION_DEFINITIONS = [
         '$x# + $y#$y-{0} -> $x# + $y#$y-{p}'
     ),
     ReactionDefinition(
+        'auto-phosphorylation',
+        '$x_ap+_$y',
+        {
+            '$x': (ProteinSpecification, SpecificationResolution.component),
+            '$y': (ProteinSpecification, SpecificationResolution.residue)
+        },
+        '$y#$y-{0} -> $y#$y-{p}'
+    ),
+    ReactionDefinition(
         'phosphotransfer',
         '$x_pt_$y',
         {
@@ -158,6 +167,15 @@ REACTION_DEFINITIONS = [
     ReactionDefinition(
         'protein-protein-interaction',
         '$x_ppi_$y',
+        {
+            '$x': (ProteinSpecification, SpecificationResolution.domain),
+            '$y': (ProteinSpecification, SpecificationResolution.domain)
+        },
+        '$x#$x--0 + $y#$y--0 <-> $x#$x--$y + $y#$x--$y'
+    ),
+    ReactionDefinition(
+        'protein-protein-interaction',
+        '$x_i_$y',
         {
             '$x': (ProteinSpecification, SpecificationResolution.domain),
             '$y': (ProteinSpecification, SpecificationResolution.domain)
