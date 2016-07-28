@@ -20,10 +20,9 @@ class StateModifier(OrderedEnum):
 class StateDefinition:
     SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
     SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'  # substring matched by the group cannot be retrieved after performing a match or referenced later in the pattern.
-    def __init__(self, name, representation_def, variables_def, subset_def):
+    def __init__(self, name, representation_def, variables_def):
 
-        self.name, self.representation_def, \
-        self.variables_def, self.subset_of_def = name, representation_def, variables_def, subset_def
+        self.name, self.representation_def, self.variables_def = name, representation_def, variables_def
 
     def __repr__(self):
         return str(self)
@@ -84,26 +83,21 @@ STATE_DEFINITION = [
     StateDefinition('interaction-state',
                     '$x--$y',
                     {'$x': (spec.Specification, spec.SpecificationResolution.domain),
-                     '$y': (spec.Specification, spec.SpecificationResolution.domain)},
-                    ['component-state']
-                    ),
+                     '$y': (spec.Specification, spec.SpecificationResolution.domain)}),
 
     StateDefinition('self-interaction-state',
                     '$x--[$y]',
                     {'$x': (spec.Specification, spec.SpecificationResolution.domain),
-                     '$y': (spec.Domain, spec.SpecificationResolution.domain) },
-                    ['component-state']),
+                     '$y': (spec.Domain, spec.SpecificationResolution.domain) }),
 
     StateDefinition('input-state',
                     '[$x]',
-                    {'$x': (spec.Specification, spec.SpecificationResolution.component)},
-                    []),
+                    {'$x': (spec.Specification, spec.SpecificationResolution.component)}),
 
     StateDefinition('covalent-modification-state',
                     '$x-{$y}',
                     {'$x': (spec.Specification, spec.SpecificationResolution.residue),
-                     '$y': (StateModifier, StateModifier.neutral)},
-                    ['component-state']),
+                     '$y': (StateModifier, StateModifier.neutral)}),
 
     #StateDefinition('component-state',
     #                '$x',
@@ -172,9 +166,6 @@ class State():
                     #check if one is the subspecification and the othter the superspecification
                     found_component = True
                     if self_component.is_subspecification_of(other_component) and other_component.is_superspecification_of(self_component):
-                        #if both definition are different this is sufficient
-                        #if self.definition.name != other.definition.name:
-                        #    subspec = True
                         # otherwise we have to check if the modifier are equal like A_[(r)]-{p} != A_[(r)]-{ub}
                         if self.modifier() == other.modifier():
                             subspec = True
