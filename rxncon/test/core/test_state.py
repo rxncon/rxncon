@@ -109,6 +109,9 @@ def the_case_no_hierarchy():
         HierarchyTestCase(sta.state_from_string('A_[m]--B'),
                           [sta.state_from_string('A_[m]--0')]),
 
+        HierarchyTestCase(sta.state_from_string('A_[m]--A_[m]'),
+                          [sta.state_from_string('A_[m]--0')]),
+
         HierarchyTestCase(sta.state_from_string('A@0_[n]--B@1'),
                           [sta.state_from_string('A@0_[n]-{P}')]),
 

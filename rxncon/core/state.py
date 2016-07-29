@@ -158,26 +158,54 @@ class State():
         #    assert NotImplementedError
 
     def _component_subspecification_validation(self, other: 'State', subspec: bool):
-        for self_component in self.components():
-            found_component = False
-            for other_component in other.components():
-                #check whether the two components are equal
-                if self_component.to_component_specification() == other_component.to_component_specification():
-                    #check if one is the subspecification and the othter the superspecification
-                    found_component = True
-                    if self_component.is_subspecification_of(other_component) and other_component.is_superspecification_of(self_component):
-                        # otherwise we have to check if the modifier are equal like A_[(r)]-{p} != A_[(r)]-{ub}
-                        if self.modifier() == other.modifier():
-                            subspec = True
-                        else:
-                            return False
-                    else:
-                        return False
-            if not found_component:
+
+        if self.definition.name != other.definition.name:
+            return False
+
+        self_components = self.components()
+        other_components = other.components()
+
+        assert len(self_components) == len(other_components)
+
+        if len(self_components) == 1:
+            return self_components[0].is_subspecification_of(other_components[0]) and other_components[0].is_superspecification_of(self_components[0])
+
+        elif len(self_components) == 2:
+            #todo: refactor it
+            if self_components[0].is_subspecification_of(other_components[0]) and other_components[0].is_superspecification_of(self_components[0]) \
+                and self_components[1].is_subspecification_of(other_components[1]) and other_components[1].is_superspecification_of(self_components[1]):
+                return True
+
+            elif self_components[0].is_subspecification_of(other_components[1]) and other_components[1].is_superspecification_of(self_components[0]) \
+                    and self_components[1].is_subspecification_of(other_components[0]) and other_components[0].is_superspecification_of(self_components[1]):
+                return True
+            else:
                 return False
+        else:
+            return NotImplementedError
 
 
-        return subspec
+
+        # for self_component in self.components():
+        #     found_component = False
+        #     for other_component in other.components():
+        #         #check whether the two components are equal
+        #         if self_component.to_component_specification() == other_component.to_component_specification():
+        #             #check if one is the subspecification and the othter the superspecification
+        #             found_component = True
+        #             if self_component.is_subspecification_of(other_component) and other_component.is_superspecification_of(self_component):
+        #                 # otherwise we have to check if the modifier are equal like A_[(r)]-{p} != A_[(r)]-{ub}
+        #                 if self.modifier() == other.modifier():
+        #                     subspec = True
+        #                 else:
+        #                     return False
+        #             else:
+        #                 return False
+        #     if not found_component:
+        #         return False
+        #
+        #
+        # return subspec
 
 def state_modifier_from_string(modifier: str) -> StateModifier:
     return StateModifier(modifier.lower())
