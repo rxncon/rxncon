@@ -174,8 +174,8 @@ IR_p+_IR_[TK(Y1158)]; ! <IR0-IR1-Insulin2>
 IR_p+_IR_[TK(Y1162)]; ! <IR0-IR1-Insulin2>
 IR_p+_IR_[TK(Y1163)]; ! <IR0-IR1-Insulin2>
 IR_ap+_IR_[JM(Y972)]; ! <IR-IR-active>
-IR_[JMY972]_ppi_IRS_[PTB]; ! IR_[JM(Y972)]-{P}; ! IRS_[PH]--PM_[phospholipids]
-IRS_[PH]_i_PM_[phospholipids]
+IR_[JMY972]_ppi_IRS_[PTB]; ! IR_[JM(Y972)]-{P}; ! IRS_[PH]--Phospholipids_[IRS]
+IRS_[PH]_i_Phospholipids_[IRS]
 IR_p+_IRS_[(Y)]; ! IR_[JMY972]--IRS_[PTB]; ! <IR-active>
 Grb2_[SOS]_ppi_SOS_[Grb2]
 Grb2_[SH2]_ppi_IRS_[Y]; ! IRS_[(Y)]-{P}
@@ -212,3 +212,53 @@ IRS_[Y]_ppi_PI3K_[SH2]; ! IRS_[(Y)]-{P}
 <Grb2-SOS>; OR <Grb2-Shc-Sos>; OR <Grb2-IRS-Sos>
 <Grb2-Shc-Sos>; AND Grb2_[SH2]--Shc_[YY]; AND Grb2--SOS
 <Grb2-IRS-Sos>; AND Grb2_[SH2]--IRS_[Y]; AND Grb2--SOS"""
+
+
+
+def test_insulin_reg_graph_reactions_only():
+    quick_system = qui.Quick("""IR_[IRBD]_ppi_IR_[IRBD]
+IR_[lig]_i_insulin_[IR]
+IR_p+_IR_[TK(Y1158)]
+IR_p+_IR_[TK(Y1162)]
+IR_p+_IR_[TK(Y1163)]
+IR_ap+_IR_[JM(Y972)]
+IR_[JMY972]_ppi_IRS_[PTB]
+IRS_[PH]_i_Phospholipids_[IRS]
+IR_p+_IRS_[(Y)]
+Grb2_[SOS]_ppi_SOS_[Grb2]
+Grb2_[SH2]_ppi_IRS_[Y]
+IR_[JMY972]_ppi_Shc_[PTB]
+IR_p+_Shc_[(YY239240)]
+IR_p+_Shc_[(Y317)]
+Grb2_[SH2]_ppi_Shc_[YY]
+Grb2_[SH2]_ppi_Shc_[Y]
+IRS_[Y]_ppi_PI3K_[SH2]
+""")
+    reg_graph = reg.RegulatoryGraph(quick_system.rxncon_system)
+    actual_graph = reg_graph.to_graph()
+    gml_system = gml.XGMML(actual_graph, "reactions_only")
+    gml_system.to_file('/home/thiemese/data/ownCloud/Paper/geplante Paper/Bookchapter - rxncon/rxncon-to-rules-chapter/pics/reg_graph_reactions_only.xgmml')
+
+def test_reg_graph_some_cont():
+    quick_system = qui.Quick("""IR_[IRBD]_ppi_IR_[IRBD]
+IR_[lig]_i_insulin_[IR]
+IR_p+_IR_[TK(Y1158)]
+IR_p+_IR_[TK(Y1162)]
+IR_p+_IR_[TK(Y1163)]
+IR_ap+_IR_[JM(Y972)]
+IR_[JMY972]_ppi_IRS_[PTB]; ! IR_[JM(Y972)]-{P}; ! IRS_[PH]--Phospholipids_[IRS]
+IRS_[PH]_i_Phospholipids_[IRS]
+IR_p+_IRS_[(Y)]; ! IR_[JMY972]--IRS_[PTB]
+Grb2_[SOS]_ppi_SOS_[Grb2]
+Grb2_[SH2]_ppi_IRS_[Y]; ! IRS_[(Y)]-{P}
+IR_[JMY972]_ppi_Shc_[PTB]; ! IR_[JM(Y972)]-{P}
+IR_p+_Shc_[(YY239240)]; ! IR_[JMY972]--Shc_[PTB]
+IR_p+_Shc_[(Y317)]; ! IR_[JMY972]--Shc_[PTB]
+Grb2_[SH2]_ppi_Shc_[YY]; ! Shc_[(YY239240)]-{P}
+Grb2_[SH2]_ppi_Shc_[Y]; ! Shc_[(Y317)]-{P}
+IRS_[Y]_ppi_PI3K_[SH2]; ! IRS_[(Y)]-{P}
+""")
+    reg_graph = reg.RegulatoryGraph(quick_system.rxncon_system)
+    actual_graph = reg_graph.to_graph()
+    gml_system = gml.XGMML(actual_graph, "reactions_only")
+    gml_system.to_file('/home/thiemese/data/ownCloud/Paper/geplante Paper/Bookchapter - rxncon/rxncon-to-rules-chapter/pics/reg_graph_some_cont.xgmml')
