@@ -168,10 +168,15 @@ class State():
         assert len(self_components) == len(other_components)
 
         if len(self_components) == 1:
+            if self.modifier() != other.modifier():
+                return False
             return self_components[0].is_subspecification_of(other_components[0]) and other_components[0].is_superspecification_of(self_components[0])
 
         elif len(self_components) == 2:
             #todo: refactor it
+            if self.modifier() != other.modifier():
+                return False
+
             if self_components[0].is_subspecification_of(other_components[0]) and other_components[0].is_superspecification_of(self_components[0]) \
                 and self_components[1].is_subspecification_of(other_components[1]) and other_components[1].is_superspecification_of(self_components[1]):
                 return True
