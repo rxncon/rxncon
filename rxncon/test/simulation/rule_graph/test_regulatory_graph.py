@@ -55,87 +55,130 @@ def case_and_expected_regulatory_graph():
                       ('C_p+_A_[(c)]', 'A_[(c)]-{0}', reg.EdgeInteractionType.consume.value),
                       ('A_[(c)]-{p}', 'A_[b]_ppi_B_[a]', reg.EdgeInteractionType.required.value)]),
 
-        # RuleTestCase('''A_[b]_ppi_B_[a]; ! <comp>; ! C-{p}
-        #                 <comp>; AND A-{p}; AND A_[c]--C_[a]
-        #                 A_[b]_ppi_C_[a]
-        #                 C_p+_A_[(c)]
-        #                 D_p+_C_[(d)]''',
-        #              ['A_[b]_ppi_B_[a]', 'A_[c]_ppi_C_[a]', 'C_p+_A_[(c)]', 'D_p+_C_[(d)]'],
-        #              ['A_[b]--B_[a]', 'A_[c]--C_[a]', 'A_[(c)]-{p}', 'C_[(d)]-{p}'],
-        #              ['comp#AND'],
-        #              [('A_[b]_ppi_B_[a]', 'A_[b]--B_[a]', reg.EdgeInteractionType.produce.value),
-        #               ('A_[c]_ppi_C_[a]', 'A_[c]--C_[a]', reg.EdgeInteractionType.produce.value),
-        #               ('C_p+_A_[(c)]', 'A-{p}', reg.EdgeInteractionType.produce.value),
-        #               ('D_p+_C_[(d)]', 'C_[(d)]-{p}', reg.EdgeInteractionType.produce.value),
-        #               ('C_[(d)]-{p}', 'A_[b]_ppi_B_[a]', reg.EdgeInteractionType.required.value),
-        #               ('comp', 'A_[b]_ppi_B_[a]', reg.EdgeInteractionType.required.value),
-        #               ('A_[(c)]-{p}', 'comp', reg.EdgeInteractionType.AND.value),
-        #               ('A_[c]--C_[a]', 'comp', reg.EdgeInteractionType.AND.value)]),
+        RuleTestCase('''A_[b]_ppi_B_[a]; ! <comp>; ! C-{p}
+                        <comp>; AND A-{p}; AND A--C
+                        A_[c]_ppi_C_[a]
+                        C_p+_A_[(c)]
+                        D_p+_C_[(d)]''',
+                     ['A_[b]_ppi_B_[a]', 'A_[c]_ppi_C_[a]', 'C_p+_A_[(c)]', 'D_p+_C_[(d)]'],
+                     ['A_[b]--B_[a]', 'A_[b]--0', 'B_[a]--0', 'A_[c]--C_[a]','A_[c]--0', 'C_[a]--0', 'A_[(c)]-{p}', 'A_[(c)]-{0}' , 'C_[(d)]-{p}', 'C_[(d)]-{0}'],
+                     ['comp#AND'],
+                     [('A_[b]_ppi_B_[a]', 'A_[b]--B_[a]', reg.EdgeInteractionType.produce.value),
+                      ('A_[b]_ppi_B_[a]', 'A_[b]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[b]_ppi_B_[a]', 'B_[a]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[c]_ppi_C_[a]', 'A_[c]--C_[a]', reg.EdgeInteractionType.produce.value),
+                      ('A_[c]_ppi_C_[a]', 'A_[c]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[c]_ppi_C_[a]', 'C_[a]--0', reg.EdgeInteractionType.consume.value),
+                      ('C_p+_A_[(c)]', 'A_[(c)]-{p}', reg.EdgeInteractionType.produce.value),
+                      ('C_p+_A_[(c)]', 'A_[(c)]-{0}', reg.EdgeInteractionType.consume.value),
+                      ('D_p+_C_[(d)]', 'C_[(d)]-{p}', reg.EdgeInteractionType.produce.value),
+                      ('D_p+_C_[(d)]', 'C_[(d)]-{0}', reg.EdgeInteractionType.consume.value),
+                      ('C_[(d)]-{p}', 'A_[b]_ppi_B_[a]', reg.EdgeInteractionType.required.value),
+                      ('comp', 'A_[b]_ppi_B_[a]', reg.EdgeInteractionType.required.value),
+                      ('A_[(c)]-{p}', 'comp', reg.EdgeInteractionType.AND.value),
+                      ('A_[c]--C_[a]', 'comp', reg.EdgeInteractionType.AND.value)]),
         #
-        # RuleTestCase('''A_[b]_ppi_B_[a]; ! <comp>
-        #                 <comp>; AND <comp1>; AND <comp2>
-        #                 <comp1>; OR <comp3>; OR A_[c]--C_[a]
-        #                 <comp2>; AND A_[d]--D_[a]; AND A_[e]--E_[a]
-        #                 <comp3>; AND A_[f]--F_[a]; AND A_[g]--G_[a]
-        #                 A_[c]_ppi_C_[a]
-        #                 A_[d]_ppi_D_[a]
-        #                 A_[e]_ppi_E_[a]
-        #                 A_[f]_ppi_F_[a]
-        #                 A_[g]_ppi_G_[a]''',
-        #              ['A_[b]_ppi_B_[a]', 'A_[c]_ppi_C_[a]', 'A_[d]_ppi_D_[a]', 'A_[e]_ppi_E_[a]', 'A_[f]_ppi_F_[a]', 'A_[g]_ppi_G_[a]' ],
-        #              ['A_[b]--B_[a]', 'A_[c]--C_[a]', 'A_[d]--D_[a]', 'A_[e]--E_[a]', 'A_[f]--F_[a]', 'A_[g]--G_[a]'],
-        #              ['comp#AND', 'comp1#OR', 'comp2#AND', 'comp3#AND'],
-        #              [('A_[b]_ppi_B_[a]', 'A_[b]--B_[a]', reg.EdgeInteractionType.produce.value),
-        #               ('A_[c]_ppi_C_[a]', 'A_[c]--C_[a]', reg.EdgeInteractionType.produce.value),
-        #               ('A_[d]_ppi_D_[a]', 'A_[d]--D_[a]', reg.EdgeInteractionType.produce.value),
-        #               ('A_[e]_ppi_E_[a]', 'A_[e]--E_[a]', reg.EdgeInteractionType.produce.value),
-        #               ('A_[f]_ppi_F_[a]', 'A_[f]--F_[a]', reg.EdgeInteractionType.produce.value),
-        #               ('A_[g]_ppi_G_[a]', 'A_[g]--G_[a]', reg.EdgeInteractionType.produce.value),
-        #               ('comp', 'A_[b]_ppi_B_[a]', reg.EdgeInteractionType.required.value),
-        #               ('comp1', 'comp', reg.EdgeInteractionType.AND.value),
-        #               ('comp2', 'comp', reg.EdgeInteractionType.AND.value),
-        #               ('comp3', 'comp1', reg.EdgeInteractionType.OR.value),
-        #               ('A_[c]--C_[a]', 'comp1', reg.EdgeInteractionType.OR.value),
-        #               ('A_[d]--D_[a]', 'comp2', reg.EdgeInteractionType.AND.value),
-        #               ('A_[e]--E_[a]', 'comp2', reg.EdgeInteractionType.AND.value),
-        #               ('A_[f]--F_[a]', 'comp3', reg.EdgeInteractionType.AND.value),
-        #               ('A_[g]--G_[a]', 'comp3', reg.EdgeInteractionType.AND.value),]
-        #              ),
+        RuleTestCase('''A_[b]_ppi_B_[a]; ! <comp>
+                        <comp>; AND <comp1>; AND <comp2>
+                        <comp1>; OR <comp3>; OR A--C
+                        <comp2>; AND A_[d]--D_[a]; AND A--E
+                        <comp3>; AND A_[f]--F_[a]; AND A--G
+                        A_[c]_ppi_C_[a]
+                        A_[d]_ppi_D_[a]
+                        A_[e]_ppi_E_[a]
+                        A_[f]_ppi_F_[a]
+                        A_[g]_ppi_G_[a]''',
+                     ['A_[b]_ppi_B_[a]', 'A_[c]_ppi_C_[a]', 'A_[d]_ppi_D_[a]', 'A_[e]_ppi_E_[a]', 'A_[f]_ppi_F_[a]', 'A_[g]_ppi_G_[a]' ],
+                     ['A_[b]--B_[a]', 'A_[b]--0', 'B_[a]--0', 'A_[c]--C_[a]', 'A_[c]--0', 'C_[a]--0',  'A_[d]--D_[a]', 'A_[d]--0', 'D_[a]--0', 'A_[e]--E_[a]', 'A_[e]--0', 'E_[a]--0', 'A_[f]--F_[a]', 'A_[f]--0', 'F_[a]--0',
+                      'A_[g]--G_[a]', 'A_[g]--0', 'G_[a]--0'],
+                     ['comp#AND', 'comp1#OR', 'comp2#AND', 'comp3#AND'],
+                     [('A_[b]_ppi_B_[a]', 'A_[b]--B_[a]', reg.EdgeInteractionType.produce.value),
+                      ('A_[b]_ppi_B_[a]', 'A_[b]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[b]_ppi_B_[a]', 'B_[a]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[c]_ppi_C_[a]', 'A_[c]--C_[a]', reg.EdgeInteractionType.produce.value),
+                      ('A_[c]_ppi_C_[a]', 'A_[c]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[c]_ppi_C_[a]', 'C_[a]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[d]_ppi_D_[a]', 'A_[d]--D_[a]', reg.EdgeInteractionType.produce.value),
+                      ('A_[d]_ppi_D_[a]', 'A_[d]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[d]_ppi_D_[a]', 'D_[a]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[e]_ppi_E_[a]', 'A_[e]--E_[a]', reg.EdgeInteractionType.produce.value),
+                      ('A_[e]_ppi_E_[a]', 'A_[e]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[e]_ppi_E_[a]', 'E_[a]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[f]_ppi_F_[a]', 'A_[f]--F_[a]', reg.EdgeInteractionType.produce.value),
+                      ('A_[f]_ppi_F_[a]', 'A_[f]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[f]_ppi_F_[a]', 'F_[a]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[g]_ppi_G_[a]', 'A_[g]--G_[a]', reg.EdgeInteractionType.produce.value),
+                      ('A_[g]_ppi_G_[a]', 'A_[g]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[g]_ppi_G_[a]', 'G_[a]--0', reg.EdgeInteractionType.consume.value),
+                      ('comp', 'A_[b]_ppi_B_[a]', reg.EdgeInteractionType.required.value),
+                      ('comp1', 'comp', reg.EdgeInteractionType.AND.value),
+                      ('comp2', 'comp', reg.EdgeInteractionType.AND.value),
+                      ('comp3', 'comp1', reg.EdgeInteractionType.OR.value),
+                      ('A_[c]--C_[a]', 'comp1', reg.EdgeInteractionType.OR.value),
+                      ('A_[d]--D_[a]', 'comp2', reg.EdgeInteractionType.AND.value),
+                      ('A_[e]--E_[a]', 'comp2', reg.EdgeInteractionType.AND.value),
+                      ('A_[f]--F_[a]', 'comp3', reg.EdgeInteractionType.AND.value),
+                      ('A_[g]--G_[a]', 'comp3', reg.EdgeInteractionType.AND.value),]
+                     ),
 
-        # RuleTestCase('''A_[b]_ppi_B; ! <comp>
-        #                 <comp>; AND <comp1>; AND <Notcomp2>
-        #                 <comp1>; OR <comp3>; OR A--C
-        #                 <Notcomp2>; NOT A--D
-        #                 <comp3>; AND A--F; AND A--G
-        #                 A_ppi_C
-        #                 A_ppi_D
-        #                 A_ppi_F
-        #                 A_ppi_G''',
-        #              ['A_[b]_ppi_B', 'A_ppi_C', 'A_ppi_D', 'A_ppi_F', 'A_ppi_G' ],
-        #              ['A_[b]--B', 'A--C', 'A--D', 'A--F', 'A--G'],
-        #              ['comp#AND', 'comp1#OR', 'Notcomp2#NOT', 'comp3#AND'],
-        #              [('A_[b]_ppi_B', 'A_[b]--B', reg.EdgeInteractionType.produce.value),
-        #               ('A_ppi_C', 'A--C', reg.EdgeInteractionType.produce.value),
-        #               ('A_ppi_D', 'A--D', reg.EdgeInteractionType.produce.value),
-        #               ('A_ppi_F', 'A--F', reg.EdgeInteractionType.produce.value),
-        #               ('A_ppi_G', 'A--G', reg.EdgeInteractionType.produce.value),
-        #               ('comp', 'A_[b]_ppi_B', reg.EdgeInteractionType.required.value),
-        #               ('comp1', 'comp', reg.EdgeInteractionType.AND.value),
-        #               ('Notcomp2', 'comp', reg.EdgeInteractionType.AND.value),
-        #               ('comp3', 'comp1', reg.EdgeInteractionType.OR.value),
-        #               ('A--C', 'comp1', reg.EdgeInteractionType.OR.value),
-        #               ('A--D', 'Notcomp2', reg.EdgeInteractionType.NOT.value),
-        #               ('A--F', 'comp3', reg.EdgeInteractionType.AND.value),
-        #               ('A--G', 'comp3', reg.EdgeInteractionType.AND.value),]
-        #              ),
-        # RuleTestCase('''A_ppi_B; ! [Input]
+        RuleTestCase('''A_[B]_ppi_B_[A]; ! <comp>
+                        <comp>; AND <comp1>; AND <Notcomp2>
+                        <comp1>; OR <comp3>; OR A--C
+                        <Notcomp2>; NOT A--D
+                        <comp3>; AND A--F; AND A--G
+                        A_[C]_ppi_C_[A]
+                        A_[D]_ppi_D_[A]
+                        A_[F]_ppi_F_[A]
+                        A_[G]_ppi_G_[A]''',
+                     ['A_[B]_ppi_B_[A]', 'A_[C]_ppi_C_[A]', 'A_[D]_ppi_D_[A]', 'A_[F]_ppi_F_[A]', 'A_[G]_ppi_G_[A]' ],
+                     ['A_[B]--B_[A]', 'A_[B]--0', 'B_[A]--0', 'A_[C]--C_[A]', 'A_[C]--0', 'C_[A]--0', 'A_[D]--D_[A]',
+                      'A_[D]--0', 'D_[A]--0', 'A_[F]--F_[A]', 'A_[F]--0', 'F_[A]--0', 'A_[G]--G_[A]', 'A_[G]--0',
+                      'G_[A]--0'],
+                     ['comp#AND', 'comp1#OR', 'Notcomp2#NOT', 'comp3#AND'],
+                     [('A_[B]_ppi_B_[A]', 'A_[B]--B_[A]', reg.EdgeInteractionType.produce.value),
+                      ('A_[B]_ppi_B_[A]', 'A_[B]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[B]_ppi_B_[A]', 'B_[A]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[C]_ppi_C_[A]', 'A_[C]--C_[A]', reg.EdgeInteractionType.produce.value),
+                      ('A_[C]_ppi_C_[A]', 'A_[C]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[C]_ppi_C_[A]', 'C_[A]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[D]_ppi_D_[A]', 'A_[D]--D_[A]', reg.EdgeInteractionType.produce.value),
+                      ('A_[D]_ppi_D_[A]', 'A_[D]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[D]_ppi_D_[A]', 'D_[A]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[F]_ppi_F_[A]', 'A_[F]--F_[A]', reg.EdgeInteractionType.produce.value),
+                      ('A_[F]_ppi_F_[A]', 'A_[F]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[F]_ppi_F_[A]', 'F_[A]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[G]_ppi_G_[A]', 'A_[G]--G_[A]', reg.EdgeInteractionType.produce.value),
+                      ('A_[G]_ppi_G_[A]', 'A_[G]--0', reg.EdgeInteractionType.consume.value),
+                      ('A_[G]_ppi_G_[A]', 'G_[A]--0', reg.EdgeInteractionType.consume.value),
+                      ('comp', 'A_[B]_ppi_B_[A]', reg.EdgeInteractionType.required.value),
+                      ('comp1', 'comp', reg.EdgeInteractionType.AND.value),
+                      ('Notcomp2', 'comp', reg.EdgeInteractionType.AND.value),
+                      ('comp3', 'comp1', reg.EdgeInteractionType.OR.value),
+                      ('A_[C]--C_[A]', 'comp1', reg.EdgeInteractionType.OR.value),
+                      ('A_[D]--D_[A]', 'Notcomp2', reg.EdgeInteractionType.NOT.value),
+                      ('A_[F]--F_[A]', 'comp3', reg.EdgeInteractionType.AND.value),
+                      ('A_[G]--G_[A]', 'comp3', reg.EdgeInteractionType.AND.value),]
+                     ),
+
+        RuleTestCase('''A_p+_B_[(a)]
+                        C_p-_B_[(a)]''',
+                     ['A_p+_B_[(a)]', 'C_p-_B_[(a)]'],
+                     ['B_[(a)]-{p}', 'B_[(a)]-{0}'],
+                     [],
+                     [('A_p+_B_[(a)]', 'B_[(a)]-{p}', reg.EdgeInteractionType.produce.value),
+                      ('A_p+_B_[(a)]', 'B_[(a)]-{0}', reg.EdgeInteractionType.consume.value),
+                      ('C_p-_B_[(a)]', 'B_[(a)]-{p}', reg.EdgeInteractionType.consume.value),
+                      ('C_p-_B_[(a)]', 'B_[(a)]-{0}', reg.EdgeInteractionType.produce.value)]),
+
+
+        # RuleTestCase('''A_[B]_ppi_B_[A]; ! [Input]
         #                 [Output]; x A--B''',
-        #              ['A_ppi_B', '[Output]#out'],
-        #              ['A--B', '[Input]#in'],
+        #              ['A_[B]_ppi_B_[A]', '[Output]#out'],
+        #              ['A_[B]--B_[A]', '[Input]#in'],
         #              [],
-        #              [('A_ppi_B', 'A--B', reg.EdgeInteractionType.produce.value),
-        #               ('[Input]', 'A_ppi_B', reg.EdgeInteractionType.required.value),
-        #               ('A--B', '[Output]', reg.EdgeInteractionType.inhibition.value)]),
+        #              [('A_[B]_ppi_B_[A]', 'A_[B]--B_[A]', reg.EdgeInteractionType.produce.value),
+        #               ('[Input]', 'A_[B]_ppi_B_[A]', reg.EdgeInteractionType.required.value),
+        #               ('A_[B]--B_[A]', '[Output]', reg.EdgeInteractionType.inhibition.value)]),
 
         # RuleTestCase('''A_ppi_B; ! <comp>
         #                 <comp>; AND <comp1>; AND [Input]
@@ -155,34 +198,6 @@ def case_and_expected_regulatory_graph():
         #               ('comp1', 'comp', reg.EdgeInteractionType.AND.value),
         #               ('A--D', 'comp1', reg.EdgeInteractionType.OR.value),
         #               ('A--C', 'comp1', reg.EdgeInteractionType.OR.value)]),
-
-        # RuleTestCase('''A_p+_B
-        #                 C_p-_B''',
-        #              ['A_p+_B', 'C_p-_B'],
-        #              ['B-{p}'],
-        #              [],
-        #              [('A_p+_B', 'B-{p}', reg.EdgeInteractionType.produce.value),
-        #               ('C_p-_B', 'B-{p}', reg.EdgeInteractionType.consume.value)]),#
-        # RuleTestCase('''A_p+_B
-        #                 A_p+_B_[d]
-        #                 E_p+_B_[(r)]
-        #                 C_ppi_B; ! B-{P}
-        #                 C_p-_B''',
-        #              ['A_p+_B', 'A_p+_B_[d]', 'E_p+_B_[(r)]', 'C_ppi_B', 'C_p-_B'],
-        #              ['B-{p}', 'B_[d]-{p}', 'B_[(r)]-{p}', 'C--B'],
-        #              [],
-        #              [('A_p+_B', 'B-{p}', reg.EdgeInteractionType.produce.value),
-        #               ('A_p+_B_[d]', 'B_[d]-{p}', reg.EdgeInteractionType.produce.value),
-        #               ('E_p+_B_[(r)]', 'B_[(r)]-{p}', reg.EdgeInteractionType.produce.value),
-        #               ('C_p-_B', 'B-{p}', reg.EdgeInteractionType.consume.value),
-        #               ('C_p-_B', 'B_[d]-{p}', reg.EdgeInteractionType.consume.value),
-        #               ('C_p-_B', 'B_[(r)]-{p}', reg.EdgeInteractionType.consume.value),
-        #               ('C_ppi_B', 'C--B', reg.EdgeInteractionType.produce.value),
-        #               ('B-{p}', 'C_ppi_B', reg.EdgeInteractionType.required.value),
-        #               ('B_[d]-{p}', 'C_ppi_B', reg.EdgeInteractionType.required.value),
-        #               ('B_[(r)]-{p}', 'C_ppi_B', reg.EdgeInteractionType.required.value)
-        #               ]
-        #              )
 
     ]
 

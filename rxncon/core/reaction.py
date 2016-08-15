@@ -147,6 +147,15 @@ REACTION_DEFINITIONS = [
         '$x# + $y#$y-{0} -> $x# + $y#$y-{p}'
     ),
     ReactionDefinition(
+        'dephosphorylation',
+        '$x_p-_$y',
+        {
+            '$x': (ProteinSpecification, SpecificationResolution.component),
+            '$y': (ProteinSpecification, SpecificationResolution.residue)
+        },
+        '$x# + $y#$y-{p} -> $x# + $y#$y-{0}'
+    ),
+    ReactionDefinition(
         'auto-phosphorylation',
         '$x_ap+_$y',
         {
