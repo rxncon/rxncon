@@ -18,7 +18,6 @@ class Quick:
         self._reactions = []                    # type: List[Reaction]
         self._contingencies = []                # type: List[Contingency]
         self._contingency_list_entries = []     # type: List[ContingencyListEntry]
-
         self._parse_str()
         self._construct_contingencies()
         self._construct_rxncon_system()
