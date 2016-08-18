@@ -197,7 +197,8 @@ class State:
     @typecheck
     def is_subset_of(self, other: 'State') -> bool:
         if self.definition == other.definition:
-            return all(x.is_subspec_of(y) for x, y in zip(self._mol_specs, other._mol_specs))
+            return all(x.is_subspec_of(y) for x, y in zip(self._mol_specs, other._mol_specs)) and \
+                all(x == y for x, y in zip(self._non_mol_spec_props, other._non_mol_spec_props))
         else:
             return False
 
@@ -221,6 +222,10 @@ class State:
     @typecheck
     def _mol_specs(self) -> List[MolSpec]:
         return [x for x in self.variables.values() if isinstance(x, MolSpec)]
+
+    @property
+    def _non_mol_spec_props(self):
+        return [x for x in self.variables.values() if not isinstance(x, MolSpec)]
 
 
 @typecheck

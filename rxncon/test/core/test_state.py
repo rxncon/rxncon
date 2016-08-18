@@ -13,11 +13,14 @@ def test_ppi_states():
     assert state.is_superset_of(elem_state)
     assert elem_state.is_subset_of(state)
 
+    assert not state_from_string('A_[d]--D_[a]').is_superset_of(state_from_string('A_[d]--B_[a]'))
 
-def test_ppi_equality():
-    print(state_from_string('A--B'))
-    print(state_from_string('B--A'))
 
+
+
+def test_super_sub_mod():
+    assert state_from_string('A_[(r)]-{p}').is_subset_of(state_from_string('A-{p}'))
+    assert not state_from_string('A_[(r)]-{p}').is_subset_of(state_from_string('A-{ub}'))
 
 # @pytest.fixture
 # def the_case_hierarchy():

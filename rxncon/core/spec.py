@@ -64,8 +64,8 @@ class MolSpec(Spec, metaclass=ABCMeta):
 
     @typecheck
     def is_equivalent_to(self, other: 'MolSpec') -> bool:
-        return self == other or type(self) == type(other) and self.locus.residue == other.locus.residue and \
-            self.struct_index == other.struct_index
+        return self == other or type(self) == type(other) and self.component_name == other.component_name and \
+            self.locus.residue == other.locus.residue and self.struct_index == other.struct_index
 
     @typecheck
     def is_subspec_of(self, other: 'MolSpec') -> bool:

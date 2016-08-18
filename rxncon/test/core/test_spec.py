@@ -67,3 +67,9 @@ def test_bond_specs():
     assert bond_spec_from_string('B_[y]~A_[x]') == bond_spec_from_string('A_[x]~B_[y]')
 
     assert bond_spec_from_string('A_[x]~0') == mol_spec_from_string('A_[x]')
+
+
+def test_super_sub():
+    assert spec_from_string('A_[x]').is_subspec_of(spec_from_string('A'))
+    assert not spec_from_string('A').is_subspec_of(spec_from_string('B'))
+
