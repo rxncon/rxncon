@@ -25,3 +25,10 @@ def test_ipi_reaction():
 
     assert rxn.reactants_post == [Reactant(spec_from_string('A'), spec_from_string('A_[n]~A_[m]')),
                                   Reactant(spec_from_string('A_[n]~A_[m]'), [state_from_string('A_[n]--[m]')])]
+
+def test_wrong():
+    rxn = reaction_from_string('A_ppi_B')
+    assert rxn.products == [state_from_string('A_[B]--B_[A]')]
+
+    rxn = reaction_from_string('A_trsl_B')
+    assert Reactant(spec_from_string('BmRNA'), None) in rxn.reactants_post

@@ -63,7 +63,7 @@ class StateDef:
     def representation_from_variables(self, variables: Dict[str, Any]) -> str:
         representation = self.representation_def
         for var, val in variables.items():
-            if val is StateModifier:
+            if isinstance(val, StateModifier):
                 representation = representation.replace(var, str(val.value))
             else:
                 representation = representation.replace(var, str(val))
@@ -157,6 +157,7 @@ STATE_DEFS = [
 class State:
     @typecheck
     def __init__(self, definition: StateDef, variables: Dict[str, Any]):
+        # @todo fix ordering of variables
         self.definition = definition
         self.state_defs = STATE_DEFS
         self.variables = OrderedDict((k, v) for k, v in sorted(variables.items()))
@@ -173,6 +174,10 @@ class State:
     @typecheck
     def __eq__(self, other: 'State') -> bool:
         return self.definition == other.definition and self.variables == other.variables
+
+    @typecheck
+    def __lt__(self, other: 'State'):
+        return str(self) < str(other)
 
     @property
     @typecheck

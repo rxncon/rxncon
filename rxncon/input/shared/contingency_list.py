@@ -3,7 +3,7 @@ from functools import reduce
 from typing import Dict, List, Union
 from typecheck import typecheck
 
-from rxncon.core.reaction import reaction_from_string, REACTION_DEFS
+from rxncon.core.reaction import reaction_from_string
 from rxncon.util.utils import OrderedEnum
 from rxncon.core.contingency import ContingencyType, Contingency
 from rxncon.core.effector import StateEffector, NotEffector, BinaryEffector, OrEffector, Effector, AndEffector
@@ -69,7 +69,7 @@ def contingency_list_entry_from_subject_predicate_agent_strings(subject_str, pre
         subject = BooleanContingencyName(subject_str)
         predicate = BooleanOperator(predicate_str)
     else:
-        subject = reaction_from_string(REACTION_DEFS, subject_str)
+        subject = reaction_from_string(subject_str)
         predicate = ContingencyType(predicate_str)
 
     if re.match(BOOLEAN_CONTINGENCY_REGEX, agent_str):

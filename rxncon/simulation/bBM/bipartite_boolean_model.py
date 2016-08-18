@@ -40,6 +40,7 @@ class InitCondition:
 
     def __repr__(self):
         return str(self)
+
     def __str__(self):
         return "target: {0}, value: {1}".format(self.target, self.value)
 

@@ -4,7 +4,7 @@ from typecheck import typecheck
 
 from rxncon.input.shared.contingency_list import contingencies_from_contingency_list_entries, \
     contingency_list_entry_from_subject_predicate_agent_strings
-from rxncon.core.reaction import reaction_from_string, REACTION_DEFS
+from rxncon.core.reaction import reaction_from_string
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reaction
 from rxncon.core.contingency import Contingency
@@ -37,7 +37,7 @@ class Quick:
 
     @typecheck
     def _add_reaction_from_string(self, full_reaction_str: str):
-        reaction = reaction_from_string(REACTION_DEFS, full_reaction_str)
+        reaction = reaction_from_string(full_reaction_str)
         self._reactions.append(reaction)
 
     @typecheck

@@ -9,7 +9,6 @@ METHOD_SIMPLIFY_BINARY = '_simplify_binary'
 
 METHOD_NAME_COMPLEMENTS = 'complements'
 
-# @todo Make typechecking work in this module. Problem is the co/contravariance of function arguments and return types.
 class Set:
     def simplified_form(self) -> 'Set':
         simplification_methods = [
@@ -256,6 +255,7 @@ class BinarySet(Set):
             return self.left_expr
         else:
             return type(self)(self.left_expr._simplify_binary(), self.right_expr._simplify_binary())
+
 
 class Intersection(BinarySet):
     def __lt__(self, other: Set) -> bool:

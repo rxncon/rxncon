@@ -31,7 +31,7 @@ class RxnConSystem:
         for reaction in self.reactions:
             states += reaction.products
 
-        return list(set(states))
+        return sorted(list(set(states)))
 
     @property
     @typecheck
@@ -40,16 +40,7 @@ class RxnConSystem:
         for reaction in self.reactions:
             states += reaction.sources
 
-        return list(set(states))
-
-    def sanitize(self, sanitize_structure=True, sanitize_domain=True, sanitize_specs=True):
-        if sanitize_structure:
-            pass
-        if sanitize_specs:
-            pass
-
-
-
+        return sorted(list(set(states)))
 
     def _assert_consistency(self):
         required_states = []

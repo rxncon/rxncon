@@ -327,6 +327,17 @@ class LocusResolution(Enum):
     subdomain = 'subdomain'
     residue   = 'residue'
 
+    @typecheck
+    def __lt__(self, other: 'LocusResolution'):
+        if self == LocusResolution.component:
+            return other != LocusResolution.component
+        elif self == LocusResolution.domain:
+            return other in [LocusResolution.subdomain, LocusResolution.residue]
+        elif self == LocusResolution.subdomain:
+            return other == LocusResolution.residue
+        else:
+            return False
+
 
 @unique
 class SpecSuffix(OrderedEnum):

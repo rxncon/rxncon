@@ -1,7 +1,5 @@
-import pytest
-
-from rxncon.core.state import State, StateDef, StateModifier, STATE_DEFS, state_from_string, mol_spec_from_string
-from rxncon.core.spec import BondSpec, MolSpec, bond_spec_from_string, mol_spec_from_string
+from rxncon.core.state import state_from_string
+from rxncon.core.spec import bond_spec_from_string, mol_spec_from_string
 
 def test_ppi_states():
     state = state_from_string('A--B')
@@ -14,6 +12,12 @@ def test_ppi_states():
 
     assert state.is_superset_of(elem_state)
     assert elem_state.is_subset_of(state)
+
+
+def test_ppi_equality():
+    print(state_from_string('A--B'))
+    print(state_from_string('B--A'))
+
 
 
 def test_empty_ppi_states():
