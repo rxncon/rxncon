@@ -263,7 +263,9 @@ REACTION_DEFS = [
 class Reaction:
     @typecheck
     def __init__(self, definition: ReactionDef, variables: Dict[str, Any]):
-        self.definition, self.variables = definition, variables
+        self._reactants_lhs  = definition.reactants_lhs_from_variables(variables)
+        self._reactants_rhs  = definition.reactants_rhs_from_variables(variables)
+        self._representation = definition.representation_from_variables(variables)
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -272,21 +274,22 @@ class Reaction:
         return str(self)
 
     def __str__(self) -> str:
-        return self.definition.representation_from_variables(self.variables)
+        return self._representation
 
     @typecheck
     def __eq__(self, other: 'Reaction') -> bool:
-        return self.definition == other.definition and self.variables == other.variables
+        return self.reactants_lhs == other.reactants_lhs and self.reactants_rhs == other.reactants_rhs and \
+            str(self) == str(other)
 
     @property
     @typecheck
     def reactants_lhs(self) -> List[Reactant]:
-        return self.definition.reactants_lhs_from_variables(self.variables)
+        return self._reactants_lhs
 
     @property
     @typecheck
     def reactants_rhs(self) -> List[Reactant]:
-        return self.definition.reactants_rhs_from_variables(self.variables)
+        return self._reactants_rhs
 
     @property
     @typecheck

@@ -13,13 +13,13 @@ class BooleanModel:
         self._validate()
 
     def _validate(self):
-        all_targets = []
-        all_factor_targets = []
+        all_lhs_targets = []
+        all_rhs_targets = []
         for rule in self.update_rules:
-            all_targets.append(rule.target)
-            all_factor_targets += rule.factor_targets
+            all_lhs_targets.append(rule.target)
+            all_rhs_targets += rule.factor_targets
 
-        assert all(x in all_targets for x in all_factor_targets)
+        assert all(x in all_lhs_targets for x in all_rhs_targets)
 
 
 class InitialCondition:
@@ -50,19 +50,26 @@ class Target:
     def __repr__(self) -> str:
         return str(self)
 
-    @typecheck
-    def __str__(self) -> str:
-        return str(self.value)
-
 
 class ReactionTarget(Target):
     @typecheck
     def __init__(self, reaction_parent: Reaction):
-        self.reaction_parent = reaction_parent
+        self._reaction_parent = reaction_parent
         self.produced_targets    = [StateTarget(x) for x in reaction_parent.produced_states]
         self.consumed_targets    = [StateTarget(x) for x in reaction_parent.consumed_states]
         self.synthesised_targets = [StateTarget(x) for x in reaction_parent.synthesised_states]
         self.degraded_targets    = [StateTarget(x) for x in reaction_parent.degraded_states]
+
+    @typecheck
+    def __eq__(self, other: 'ReactionTarget'):
+        #  Possibly more than one ReactionTarget from a single reaction_parent, so also check all its targets.
+        return self._reaction_parent == other._reaction_parent and self.produced_targets == other.produced_targets and \
+            self.consumed_targets == other.consumed_targets and self.synthesised_targets == other.synthesised_targets and \
+            self.degraded_targets == other.degraded_targets
+
+    @typecheck
+    def __str__(self) -> str:
+        return str(self._reaction_parent)
 
     @typecheck
     def produces(self, state_target: StateTarget) -> bool:
@@ -83,17 +90,17 @@ class ReactionTarget(Target):
     @typecheck
     @property
     def components(self) -> List[MolSpec]:
-        return list(set(self.reaction_parent.components_lhs + self.reaction_parent.components_rhs))
+        return list(set(self._reaction_parent.components_lhs + self._reaction_parent.components_rhs))
 
 
 class StateTarget(Target):
     @typecheck
     def __init__(self, state_parent: State):
-        self.state_parent = state_parent
+        self._state_parent = state_parent
 
     @typecheck
     def __eq__(self, other: 'StateTarget') -> bool:
-        return self.state_parent == other.state_parent
+        return self._state_parent == other._state_parent
 
     @typecheck
     def is_produced_by(self, reaction_target: ReactionTarget) -> bool:
@@ -114,7 +121,7 @@ class StateTarget(Target):
     @typecheck
     @property
     def components(self) -> List[MolSpec]:
-        return self.state_parent.components
+        return self._state_parent.components
 
 class UpdateRule:
     @typecheck

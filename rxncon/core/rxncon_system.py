@@ -12,6 +12,7 @@ class RxnConSystem:
         self.reactions = reactions
         self.contingencies = contingencies
 
+        self._expand_fully_neutral_states()
         self._assert_consistency()
 
     @typecheck
@@ -41,6 +42,9 @@ class RxnConSystem:
             states += reaction.consumed_states
 
         return sorted(list(set(states)))
+
+    def _expand_fully_neutral_states(self):
+        pass
 
     def _assert_consistency(self):
         required_states = []

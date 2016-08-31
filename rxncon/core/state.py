@@ -228,6 +228,52 @@ class State:
         return [x for x in self.variables.values() if not isinstance(x, MolSpec)]
 
 
+class FullyNeutralState(State):
+    def __init__(self):
+        pass
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
+    def __str__(self) -> str:
+        return 'fully-neutral-state'
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __lt__(self, other: 'State'):
+        raise AssertionError
+
+    def __eq__(self, other: 'State') -> bool:
+        return isinstance(other, FullyNeutralState)
+
+    def is_subset_of(self, other: 'State') -> bool:
+        raise AssertionError
+
+    @property
+    def neutral_states(self) -> List['State']:
+        raise AssertionError
+
+    @property
+    def components(self) -> List[MolSpec]:
+        raise AssertionError
+
+    @property
+    def target(self) -> Spec:
+        raise AssertionError
+
+    @property
+    def is_elemental(self) -> bool:
+        raise AssertionError
+
+    @property
+    def is_neutral(self) -> bool:
+        raise AssertionError
+
+    def is_superset_of(self, other: 'State') -> bool:
+        raise AssertionError
+
+
 @typecheck
 def state_modifier_from_string(modifier: str) -> StateModifier:
     return StateModifier(modifier.lower())
