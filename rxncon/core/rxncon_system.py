@@ -2,7 +2,7 @@ from typing import List
 from typecheck import typecheck
 
 from rxncon.core.contingency import ContingencyType, Contingency
-from rxncon.core.reaction import Reaction
+from rxncon.core.reaction import Reaction, Reactant
 from rxncon.core.state import State
 from rxncon.core.spec import MolSpec
 
@@ -55,7 +55,14 @@ class RxnConSystem:
         return [x for x in self.states if component in x.components]
 
     def _expand_fully_neutral_states(self):
-        pass
+        for reaction in self.reactions:
+            self._expand(reaction.reactants_lhs)
+            self._expand(reaction.reactants_rhs)
+
+    def _expand(self, reactants: List[Reactant]):
+        for reactant in reactants:
+            if reactant.is_molecule_reactant and reactant.is_fully_neutral:
+                reactant.value = [x for x in self.states_for_component(reactant.spec) if x.is_neutral]
 
     def _assert_consistency(self):
         required_states = []
@@ -64,4 +71,4 @@ class RxnConSystem:
 
         for state in required_states:
             assert state in self.states, \
-                'State {0} appears in contingencies, but is neither produced or consumed'.format(str(state))
+                'State {0} appears in contingencies, but is neither produced nor consumed'.format(str(state))

@@ -3,7 +3,7 @@ import re
 from typecheck import typecheck
 
 from rxncon.core.spec import Spec, BondSpec, MolSpec, MRnaSpec, ProteinSpec, LocusResolution, DnaSpec, mol_spec_from_string, spec_from_string
-from rxncon.core.state import StateDef, State, state_from_string, STATE_DEFS
+from rxncon.core.state import StateDef, State, state_from_string, STATE_DEFS, FullyNeutralState
 from rxncon.util.utils import members
 
 class Reactant:
@@ -29,6 +29,14 @@ class Reactant:
     def __eq__(self, other: 'Reactant'):
         return self.spec == other.spec and self.value == other.value
 
+    @property
+    def is_molecule_reactant(self) -> bool:
+        return isinstance(self.spec, MolSpec)
+
+    @property
+    def is_fully_neutral(self) -> bool:
+        return self.is_molecule_reactant and isinstance(list, self.value) and len(self.value) == 1 and \
+            isinstance(self.value[0], FullyNeutralState)
 
 class ReactionDef:
     ARROW_TWO_HEADS = '<->'
@@ -263,8 +271,8 @@ REACTION_DEFS = [
 class Reaction:
     @typecheck
     def __init__(self, definition: ReactionDef, variables: Dict[str, Any]):
-        self._reactants_lhs  = definition.reactants_lhs_from_variables(variables)
-        self._reactants_rhs  = definition.reactants_rhs_from_variables(variables)
+        self.reactants_lhs   = definition.reactants_lhs_from_variables(variables)
+        self.reactants_rhs   = definition.reactants_rhs_from_variables(variables)
         self._representation = definition.representation_from_variables(variables)
 
     def __hash__(self) -> int:
@@ -279,16 +287,6 @@ class Reaction:
     @typecheck
     def __eq__(self, other: 'Reaction') -> bool:
         return self.reactants_lhs == other.reactants_lhs and self.reactants_rhs == other.reactants_rhs and str(self) == str(other)
-
-    @property
-    @typecheck
-    def reactants_lhs(self) -> List[Reactant]:
-        return self._reactants_lhs
-
-    @property
-    @typecheck
-    def reactants_rhs(self) -> List[Reactant]:
-        return self._reactants_rhs
 
     @property
     @typecheck
