@@ -290,11 +290,21 @@ class Reaction:
 
     @property
     @typecheck
+    def components_lhs(self) -> List[MolSpec]:
+        return [x.spec for x in self.reactants_lhs if isinstance(x.spec, MolSpec)]
+
+    @property
+    @typecheck
+    def components_rhs(self) -> List[MolSpec]:
+        return [x.spec for x in self.reactants_rhs if isinstance(x.spec, MolSpec)]
+
+    @property
+    @typecheck
     def consumed_states(self) -> List[State]:
         states = []
 
         for reactant in self.reactants_lhs:
-            if reactant.spec not in [x.spec for x in self.reactants_rhs]:
+            if reactant.spec not in self.components_rhs:
                 continue  # State is degraded, not consumed
             if isinstance(reactant.value, List):
                 states += reactant.value
@@ -307,7 +317,7 @@ class Reaction:
         states = []
 
         for reactant in self.reactants_rhs:
-            if reactant.spec not in [x.spec for x in self.reactants_lhs]:
+            if reactant.spec not in self.components_lhs:
                 continue  # State is synthesised, not produced
             if isinstance(reactant.value, List):
                 states += reactant.value
@@ -320,7 +330,7 @@ class Reaction:
         states = []
 
         for reactant in self.reactants_lhs:
-            if reactant.spec in [x.spec for x in self.reactants_rhs]:
+            if reactant.spec in self.components_rhs:
                 continue  # State is consumed, not degraded
             if isinstance(reactant.value, List):
                 states += reactant.value
@@ -333,7 +343,7 @@ class Reaction:
         states = []
 
         for reactant in self.reactants_rhs:
-            if reactant.spec in [x.spec for x in self.reactants_lhs]:
+            if reactant.spec in self.components_lhs:
                 continue  # State is produced, not synthesised
             if isinstance(reactant.value, List):
                 states += reactant.value

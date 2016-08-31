@@ -188,7 +188,7 @@ class State:
     @typecheck
     def is_elemental(self) -> bool:
         return all(spec.has_resolution(elemental_resolution) for spec, elemental_resolution
-                   in zip(self._mol_specs, self._elemental_resolutions))
+                   in zip(self.components, self._elemental_resolutions))
 
     @typecheck
     def is_superset_of(self, other: 'State') -> bool:
@@ -197,8 +197,8 @@ class State:
     @typecheck
     def is_subset_of(self, other: 'State') -> bool:
         if self.definition == other.definition:
-            return all(x.is_subspec_of(y) for x, y in zip(self._mol_specs, other._mol_specs)) and \
-                all(x == y for x, y in zip(self._non_mol_spec_props, other._non_mol_spec_props))
+            return all(x.is_subspec_of(y) for x, y in zip(self.components, other.components)) and \
+                   all(x == y for x, y in zip(self._non_mol_spec_props, other._non_mol_spec_props))
         else:
             return False
 
@@ -214,14 +214,14 @@ class State:
 
     @property
     @typecheck
-    def _elemental_resolutions(self) -> List[LocusResolution]:
-        return [self.definition.variables_def[var][1] for var, value in self.variables.items()
-                if isinstance(value, MolSpec)]
+    def components(self) -> List[MolSpec]:
+        return [x for x in self.variables.values() if isinstance(x, MolSpec)]
 
     @property
     @typecheck
-    def _mol_specs(self) -> List[MolSpec]:
-        return [x for x in self.variables.values() if isinstance(x, MolSpec)]
+    def _elemental_resolutions(self) -> List[LocusResolution]:
+        return [self.definition.variables_def[var][1] for var, value in self.variables.items()
+                if isinstance(value, MolSpec)]
 
     @property
     def _non_mol_spec_props(self):
