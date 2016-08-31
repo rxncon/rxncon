@@ -86,10 +86,10 @@ class RegulatoryGraph():
     def add_reaction_information_to_graph(self, reaction: rxn.Reaction):
         self.graph.add_node(str(reaction), dict(type=NodeType.reaction.value))
 
-        for reactant_post in reaction.reactants_post:
+        for reactant_post in reaction.reactants_rhs:
             self._add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.produce)
 
-        for reactant_pre in reaction.reactants_pre:
+        for reactant_pre in reaction.reactants_lhs:
             self._add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
 
     def remove_structure(self, state):
@@ -112,7 +112,7 @@ class RegulatoryGraph():
     def get_subset_of_state(self, state: sta.State) -> tp.List[eff.StateEffector]:
         subset_states = set()
         for reaction in self.rxncon_system.reactions:
-            for reactant_post in reaction.reactants_post + reaction.reactants_pre:
+            for reactant_post in reaction.reactants_rhs + reaction.reactants_lhs:
                 subset_states = self._check_reactant_subset_of_state(state, reactant_post, subset_states)
         return subset_states
 

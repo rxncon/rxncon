@@ -1,19 +1,19 @@
-from rxncon.venntastic.sets import Set as VennSet
+from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection
 from rxncon.core.reaction import Reaction
 from rxncon.core.state import State
-from rxncon.core.spec import Spec
 from typecheck import typecheck
 from typing import List, Union
 
 class BooleanModel:
     @typecheck
-    def __init__(self, rules: List["Rule"], init_conditions: List['InitialCondition']):
-        self.rules = rules
-        self.init_conditions = init_conditions
+    def __init__(self, update_rules: List['UpdateRule'], initial_conditions: List['InitialCondition']):
+        self.update_rules = update_rules
+        self.initial_conditions = initial_conditions
         self._validate()
 
     def _validate(self):
         pass
+
 
 class InitialCondition:
     @typecheck
@@ -31,22 +31,8 @@ class InitialCondition:
     def __str__(self):
         return "target: {0}, value: {1}".format(self.target, self.value)
 
+
 class Target:
-    @typecheck
-    def __init__(self, value: Union[Reaction, State]):
-        self.value = value
-
-    @typecheck
-    def __eq__(self, other: 'Target'):
-        if isinstance(self.value, Reaction) and isinstance(other.value, Reaction) and self.value == other.value:
-            return True
-        elif isinstance(self.value, State) and isinstance(other.value, State) and self.value == other.value:
-            return True
-        elif isinstance(self.value, Spec) and isinstance(other.value, Spec) and self.value == other.value:
-            return True
-        else:
-            return False
-
     def __hash__(self):
         return hash(str(self))
 
@@ -57,7 +43,53 @@ class Target:
         return str(self.value)
 
 
-class Rule:
+class ReactionTarget(Target):
+    @typecheck
+    def __init__(self, reaction_parent: Reaction):
+        self.reaction_parent = reaction_parent
+        self.produced_targets    = [StateTarget(x) for x in reaction_parent.produced_states]
+        self.consumed_targets    = [StateTarget(x) for x in reaction_parent.consumed_states]
+        self.synthesised_targets = [StateTarget(x) for x in reaction_parent.synthesised_states]
+        self.degraded_targets    = [StateTarget(x) for x in reaction_parent.degraded_states]
+
+    @typecheck
+    def produces(self, state_target: StateTarget):
+        return state_target in self.produced_targets
+
+    @typecheck
+    def consumes(self, state_target: StateTarget):
+        return state_target in self.consumed_targets
+
+    @typecheck
+    def synthesises(self, state_target: StateTarget):
+        return state_target in self.synthesised_targets
+
+    @typecheck
+    def degrades(self, state_target: StateTarget):
+        return state_target in self.degraded_targets
+
+
+class StateTarget(Target):
+    def __init__(self, state_parent: State):
+        self.state_parent = state_parent
+
+    def __eq__(self, other: 'StateTarget'):
+        return self.state_parent == other.state_parent
+
+    @typecheck
+    def is_produced_by(self, reaction_target: ReactionTarget):
+        return reaction_target.produces(self)
+
+    def is_consumed_by(self, reaction_target: ReactionTarget):
+        return reaction_target.consumes(self)
+
+    def is_synthesised_by(self, reaction_target: ReactionTarget):
+        return reaction_target.synthesises(self)
+
+    def is_degraded_by(self, reaction_target: ReactionTarget):
+        return reaction_target.degrades(self)
+
+class UpdateRule:
     @typecheck
     def __init__(self, target: Target, factor: VennSet):
         self.target = target
@@ -65,10 +97,7 @@ class Rule:
         self._validate()
 
     def _validate(self):
-        assert self.target.value is not None
-        assert isinstance(self.target, Target)
-        assert self.factor.value is not None
-        assert isinstance(self.factor, Factor)
+        assert self.factor.value_type == Target
 
     def __str__(self):
         return "target: {0}, factors: {1}".format(self.target, self.factor)

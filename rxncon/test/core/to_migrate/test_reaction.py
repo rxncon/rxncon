@@ -259,8 +259,8 @@ def is_reaction_correct(the_case):
 
     assert actual_reaction == the_case.expected_reaction and (actual_reaction == the_case.expected_reaction) is not None
     assert actual_reaction.definition == the_case.expected_definition and (actual_reaction.definition == the_case.expected_definition) is not None
-    assert actual_reaction.reactants_pre == the_case.expected_reactants_pre and (actual_reaction.reactants_pre == the_case.expected_reactants_pre) is not None
-    assert actual_reaction.reactants_post == the_case.expected_reactants_post and (actual_reaction.reactants_post == the_case.expected_reactants_post) is  not None
+    assert actual_reaction.reactants_lhs == the_case.expected_reactants_pre and (actual_reaction.reactants_lhs == the_case.expected_reactants_pre) is not None
+    assert actual_reaction.reactants_rhs == the_case.expected_reactants_post and (actual_reaction.reactants_rhs == the_case.expected_reactants_post) is not None
 
 
 
@@ -268,8 +268,8 @@ def test_simple():
 
     reaction = rxn.reaction_from_string('A@0_[m]_bind_Agene@1_[n]')
     print(reaction)
-    print(reaction.reactants_pre)
-    print(reaction.reactants_post)
+    print(reaction.reactants_lhs)
+    print(reaction.reactants_rhs)
 
 
 #

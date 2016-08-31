@@ -81,7 +81,13 @@ class Set:
 
     @property
     def values(self):
-        return [[x.value for x in term] for term in self.to_nested_lists()]
+        return [x.value for term in self.to_nested_lists() for x in term]
+
+    @property
+    def value_type(self):
+        types = [type(x) for x in self.values]
+        assert all(types[0] == x for x in types)
+        return types[0]
 
     def _complements_expanded(self) -> 'Set':
         return self

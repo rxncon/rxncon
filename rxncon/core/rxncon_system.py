@@ -29,7 +29,7 @@ class RxnConSystem:
     def product_states(self) -> List[State]:
         states = []
         for reaction in self.reactions:
-            states += reaction.products
+            states += reaction.produced_states
 
         return sorted(list(set(states)))
 
@@ -38,7 +38,7 @@ class RxnConSystem:
     def source_states(self) -> List[State]:
         states = []
         for reaction in self.reactions:
-            states += reaction.sources
+            states += reaction.consumed_states
 
         return sorted(list(set(states)))
 

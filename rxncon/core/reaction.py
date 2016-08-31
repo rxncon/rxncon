@@ -56,6 +56,52 @@ class ReactionDef:
         return 'ReactionDef: {0}; representation_def: {1}; reactants_defs: {2} '\
             .format(self.name, self.representation_def, self.reactants_defs)
 
+    @typecheck
+    def matches_representation(self, representation: str) -> bool:
+        return True if re.match(self._to_matching_regex(), representation) else False
+
+    @typecheck
+    def representation_from_variables(self, variables: Dict[str, Any]) -> str:
+        representation = self.representation_def
+        for var, val in variables.items():
+            representation = representation.replace(var, str(val))
+
+        return representation
+
+    @typecheck
+    def variables_from_representation(self, representation: str) -> Dict[str, Any]:
+        assert self.matches_representation(representation)
+
+        variables = {}
+        for var, var_def in self.variables_def.items():
+            var_regex = self._to_base_regex().replace(var, self.SPEC_REGEX_GROUPED)
+            for other_var in self.variables_def.keys():
+                if other_var != var:
+                    var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)
+
+            val_str = re.match(var_regex, representation).group(1)
+            val_spec = mol_spec_from_string(val_str)
+
+            variables[var] = val_spec
+
+        return variables
+
+    @typecheck
+    def validate_variables(self, variables: Dict[str, Any]):
+        for var, val in variables.items():
+            assert isinstance(val, self.variables_def[var][0]), \
+                '{0} is of type {1}, required to be of type {2}'.format(var, type(val), self.variables_def[var][0])
+            assert val.has_resolution(self.variables_def[var][1]), \
+                '{0} is of resolution {1}, required to be of resolution {2}'.format(var, val.resolution, self.variables_def[var][1])
+
+    @typecheck
+    def reactants_lhs_from_variables(self, variables: Dict[str, Any]) -> List[Reactant]:
+        return [self._parse_reactant(x, i, variables) for i, x in enumerate(self.reactant_defs_lhs)]
+
+    @typecheck
+    def reactants_rhs_from_variables(self, variables: Dict[str, Any]) -> List[Reactant]:
+        return [self._parse_reactant(x, i, variables) for i, x in enumerate(self.reactant_defs_rhs)]
+
     def _parse_reactants_def(self):
         if self.ARROW_TWO_HEADS in self.reactants_defs:
             arrow = self.ARROW_TWO_HEADS
@@ -64,10 +110,10 @@ class ReactionDef:
         else:
             raise AssertionError('Reaction definition requires presence of an arrow')
 
-        reactants_def_pre_str, reactants_def_post_str = self.reactants_defs.split(arrow)
+        reactants_def_lhs_str, reactants_def_rhs_str = self.reactants_defs.split(arrow)
 
-        self.reactant_defs_pre = [x.strip() for x in reactants_def_pre_str.split('+')]
-        self.reactant_defs_post = [x.strip() for x in reactants_def_post_str.split('+')]
+        self.reactant_defs_lhs = [x.strip() for x in reactants_def_lhs_str.split('+')]
+        self.reactant_defs_rhs = [x.strip() for x in reactants_def_rhs_str.split('+')]
 
     def _parse_reactant(self, definition: str, index, variables: Dict[str, Any]) -> Reactant:
         def parse_state(state_str: str) -> State:
@@ -126,52 +172,6 @@ class ReactionDef:
         spec.structure_index = index
 
         return Reactant(spec, value)
-
-    @typecheck
-    def matches_representation(self, representation: str) -> bool:
-        return True if re.match(self._to_matching_regex(), representation) else False
-
-    @typecheck
-    def representation_from_variables(self, variables: Dict[str, Any]) -> str:
-        representation = self.representation_def
-        for var, val in variables.items():
-            representation = representation.replace(var, str(val))
-
-        return representation
-
-    @typecheck
-    def variables_from_representation(self, representation: str) -> Dict[str, Any]:
-        assert self.matches_representation(representation)
-
-        variables = {}
-        for var, var_def in self.variables_def.items():
-            var_regex = self._to_base_regex().replace(var, self.SPEC_REGEX_GROUPED)
-            for other_var in self.variables_def.keys():
-                if other_var != var:
-                    var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)
-
-            val_str = re.match(var_regex, representation).group(1)
-            val_spec = mol_spec_from_string(val_str)
-
-            variables[var] = val_spec
-
-        return variables
-
-    @typecheck
-    def validate_variables(self, variables: Dict[str, Any]):
-        for var, val in variables.items():
-            assert isinstance(val, self.variables_def[var][0]), \
-                '{0} is of type {1}, required to be of type {2}'.format(var, type(val), self.variables_def[var][0])
-            assert val.has_resolution(self.variables_def[var][1]), \
-                '{0} is of resolution {1}, required to be of resolution {2}'.format(var, val.resolution, self.variables_def[var][1])
-
-    @typecheck
-    def reactants_pre_from_variables(self, variables: Dict[str, Any]) -> List[Reactant]:
-        return [self._parse_reactant(x, i, variables) for i, x in enumerate(self.reactant_defs_pre)]
-
-    @typecheck
-    def reactants_post_from_variables(self, variables: Dict[str, Any]) -> List[Reactant]:
-        return [self._parse_reactant(x, i, variables) for i, x in enumerate(self.reactant_defs_post)]
 
     @typecheck
     def _to_base_regex(self) -> str:
@@ -280,20 +280,22 @@ class Reaction:
 
     @property
     @typecheck
-    def reactants_pre(self) -> List[Reactant]:
-        return self.definition.reactants_pre_from_variables(self.variables)
+    def reactants_lhs(self) -> List[Reactant]:
+        return self.definition.reactants_lhs_from_variables(self.variables)
 
     @property
     @typecheck
-    def reactants_post(self) -> List[Reactant]:
-        return self.definition.reactants_post_from_variables(self.variables)
+    def reactants_rhs(self) -> List[Reactant]:
+        return self.definition.reactants_rhs_from_variables(self.variables)
 
     @property
     @typecheck
-    def sources(self) -> List[State]:
+    def consumed_states(self) -> List[State]:
         states = []
 
-        for reactant in self.reactants_pre:
+        for reactant in self.reactants_lhs:
+            if reactant.spec not in [x.spec for x in self.reactants_rhs]:
+                continue  # State is degraded, not consumed
             if isinstance(reactant.value, List):
                 states += reactant.value
 
@@ -301,10 +303,38 @@ class Reaction:
 
     @property
     @typecheck
-    def products(self) -> List[State]:
+    def produced_states(self) -> List[State]:
         states = []
 
-        for reactant in self.reactants_post:
+        for reactant in self.reactants_rhs:
+            if reactant.spec not in [x.spec for x in self.reactants_lhs]:
+                continue  # State is synthesised, not produced
+            if isinstance(reactant.value, List):
+                states += reactant.value
+
+        return states
+
+    @property
+    @typecheck
+    def degraded_states(self) -> List[State]:
+        states = []
+
+        for reactant in self.reactants_lhs:
+            if reactant.spec in [x.spec for x in self.reactants_rhs]:
+                continue  # State is consumed, not degraded
+            if isinstance(reactant.value, List):
+                states += reactant.value
+
+        return states
+
+    @property
+    @typecheck
+    def synthesised_states(self) -> List[State]:
+        states = []
+
+        for reactant in self.reactants_rhs:
+            if reactant.spec in [x.spec for x in self.reactants_lhs]:
+                continue  # State is produced, not synthesised
             if isinstance(reactant.value, List):
                 states += reactant.value
 
@@ -314,7 +344,6 @@ class Reaction:
 @typecheck
 def matching_reaction_def(representation: str) -> Optional[ReactionDef]:
     return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_representation(representation)), None)
-
 
 
 def reaction_from_string(representation: str, standardize=True) -> Reaction:

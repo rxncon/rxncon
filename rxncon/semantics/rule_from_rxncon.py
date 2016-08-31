@@ -27,7 +27,7 @@ def rules_from_reaction(rxnconsys: RxnConSystem, reaction: Reaction):
     consumed_solutions = []
     disjunct_solutions = []
 
-    connected_components = [reactant.spec for reactant in reaction.reactants_pre]
+    connected_components = [reactant.spec for reactant in reaction.reactants_lhs]
 
     while state_solutions:
         solution = state_solutions.pop(0)
@@ -75,8 +75,8 @@ def rules_from_solution(rxnconsys: RxnConSystem, reaction: Reaction, solution: S
     for molecules in molecule_set.values:
         molecules = merge_identical_molecules(molecules)
 
-        lhs = complexify_molecules_reactants(molecule_defs, molecules, reaction.reactants_pre)
-        rhs = complexify_molecules_reactants(molecule_defs, molecules, reaction.reactants_post)
+        lhs = complexify_molecules_reactants(molecule_defs, molecules, reaction.reactants_lhs)
+        rhs = complexify_molecules_reactants(molecule_defs, molecules, reaction.reactants_rhs)
 
         rules.append(Rule(lhs, rhs, Arrow.reversible, set()))
 
