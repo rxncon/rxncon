@@ -74,8 +74,8 @@ class RegulatoryGraph():
         return self.graph
 
     def _get_contingencies(self, reaction: rxn.Reaction):
-        contingencies = self.rxncon_system.strict_contingencies_for_reaction(reaction)
-        contingencies.extend(self.rxncon_system.quantitative_contingencies_for_reaction(reaction))
+        contingencies = self.rxncon_system.strict_contingencies(reaction)
+        contingencies.extend(self.rxncon_system.quant_contingencies(reaction))
         return contingencies
 
     def _add_reaction_reactant_to_graph(self, reaction: rxn.Reaction, reactants: rxn.Reactant, edge_type: EdgeInteractionType):

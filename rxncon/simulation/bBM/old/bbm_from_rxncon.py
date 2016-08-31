@@ -62,7 +62,7 @@ def rule_for_reaction_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, r
 
 
 def _get_vennset_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reaction: rxn.Reaction):
-    strict_contingency_state_set = _state_set_from_contingencies(rxnconsys.strict_contingencies_for_reaction(reaction))
+    strict_contingency_state_set = _state_set_from_contingencies(rxnconsys.strict_contingencies(reaction))
     _empty_set_validation(strict_contingency_state_set)
     if isinstance(reaction, rxn.OutputReaction):
         vennset = venn.Union(strict_contingency_state_set.to_full_simplified_form(),
@@ -73,7 +73,7 @@ def _get_vennset_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reacti
                                                       venn.ValueSet(sta.ComponentState(reaction.object.to_component_spec()))))
         if reaction.source:
             vennset = venn.Intersection(vennset, venn.ValueSet(reaction.source))
-    additional_strict_cont = convert_quantitative_contingencies_into_strict_contingencies(rxnconsys.quantitative_contingencies_for_reaction(reaction))
+    additional_strict_cont = convert_quantitative_contingencies_into_strict_contingencies(rxnconsys.quant_contingencies(reaction))
     additional_contingency_state_set = _state_set_from_contingencies(additional_strict_cont)
     _empty_set_validation(additional_contingency_state_set)
 

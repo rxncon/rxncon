@@ -12,7 +12,7 @@ def molecule_defs_from_rxncon(rxnconsys: RxnConSystem):
 
     molecule_defs = MolDefDict()
 
-    for state in rxnconsys.product_states + rxnconsys.source_states:
+    for state in rxnconsys.produced_states + rxnconsys.consumed_states:
         for spec in state.specs:
             molecule_defs[spec.to_component_spec()].add_state(state)
 

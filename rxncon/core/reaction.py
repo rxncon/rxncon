@@ -278,8 +278,7 @@ class Reaction:
 
     @typecheck
     def __eq__(self, other: 'Reaction') -> bool:
-        return self.reactants_lhs == other.reactants_lhs and self.reactants_rhs == other.reactants_rhs and \
-            str(self) == str(other)
+        return self.reactants_lhs == other.reactants_lhs and self.reactants_rhs == other.reactants_rhs and str(self) == str(other)
 
     @property
     @typecheck

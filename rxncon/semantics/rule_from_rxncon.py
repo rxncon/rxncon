@@ -15,7 +15,7 @@ from rxncon.venntastic.sets import UniversalSet, Intersection, MultiUnion, Multi
 def rules_from_reaction(rxnconsys: RxnConSystem, reaction: Reaction):
     state_set = UniversalSet()
 
-    for contingency in rxnconsys.strict_contingencies_for_reaction(reaction):
+    for contingency in rxnconsys.strict_contingencies(reaction):
         if contingency.type is ContingencyType.requirement:
             state_set = Intersection(state_set, state_set_from_effector(contingency.effector))
         elif contingency.type is ContingencyType.inhibition:
