@@ -1,7 +1,10 @@
-from rxncon.venntastic.sets import Set as VennSet
+from rxncon.venntastic.sets import Set as VennSet, MultiIntersection, MultiUnion, ValueSet, Intersection, Union, Complement, UniversalSet
 from rxncon.core.reaction import Reaction
 from rxncon.core.state import State
 from rxncon.core.spec import MolSpec
+from rxncon.core.contingency import Contingency, ContingencyType
+from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
+from rxncon.core.rxncon_system import RxnConSystem
 from typecheck import typecheck
 from typing import List
 
@@ -54,7 +57,7 @@ class Target:
 class ReactionTarget(Target):
     @typecheck
     def __init__(self, reaction_parent: Reaction):
-        self._reaction_parent = reaction_parent
+        self.reaction_parent     = reaction_parent
         self.produced_targets    = [StateTarget(x) for x in reaction_parent.produced_states]
         self.consumed_targets    = [StateTarget(x) for x in reaction_parent.consumed_states]
         self.synthesised_targets = [StateTarget(x) for x in reaction_parent.synthesised_states]
@@ -63,13 +66,13 @@ class ReactionTarget(Target):
     @typecheck
     def __eq__(self, other: 'ReactionTarget'):
         #  Possibly more than one ReactionTarget from a single reaction_parent, so also check all its targets.
-        return self._reaction_parent == other._reaction_parent and self.produced_targets == other.produced_targets and \
+        return self.reaction_parent == other.reaction_parent and self.produced_targets == other.produced_targets and \
             self.consumed_targets == other.consumed_targets and self.synthesised_targets == other.synthesised_targets and \
             self.degraded_targets == other.degraded_targets
 
     @typecheck
     def __str__(self) -> str:
-        return str(self._reaction_parent)
+        return str(self.reaction_parent)
 
     @typecheck
     def produces(self, state_target: StateTarget) -> bool:
@@ -90,7 +93,7 @@ class ReactionTarget(Target):
     @typecheck
     @property
     def components(self) -> List[MolSpec]:
-        return list(set(self._reaction_parent.components_lhs + self._reaction_parent.components_rhs))
+        return list(set(self.reaction_parent.components_lhs + self.reaction_parent.components_rhs))
 
 
 class StateTarget(Target):
@@ -123,12 +126,16 @@ class StateTarget(Target):
     def components(self) -> List[MolSpec]:
         return self._state_parent.components
 
+
 class UpdateRule:
     @typecheck
     def __init__(self, target: Target, factor: VennSet):
         self.target = target
         self.factor = factor
         self._validate()
+
+    def __str__(self):
+        return "target: {0}, factors: {1}".format(self.target, self.factor)
 
     @typecheck
     def factor_targets(self) -> List[Target]:
@@ -137,5 +144,50 @@ class UpdateRule:
     def _validate(self):
         assert self.factor.value_type == Target
 
-    def __str__(self):
-        return "target: {0}, factors: {1}".format(self.target, self.factor)
+
+def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
+    def component_factor(component: MolSpec) -> VennSet:
+        states = rxncon_sys.states_for_component(component)
+
+
+
+
+    reaction_targets = [ReactionTarget(x) for x in rxncon_sys.reactions]
+    state_targets    = [StateTarget(x) for x in rxncon_sys.states]
+
+    reaction_rules = []
+    state_rules    = []
+
+    for reaction_target in reaction_targets:
+        cont_fac = MultiIntersection(*(contingency_factor(x) for x in rxncon_sys.contingencies(reaction_target.reaction_parent)))
+        comp_fac = MultiIntersection(*(component_factor(x) for x in reaction_target.components))
+        reaction_rules.append(UpdateRule(reaction_target, Intersection(cont_fac, comp_fac)))
+
+
+
+
+
+
+def contingency_factor(contingency: Contingency) -> VennSet:
+    def parse_effector(eff: Effector) -> VennSet:
+        if isinstance(eff, StateEffector):
+            return ValueSet(eff.expr)
+        elif isinstance(eff, NotEffector):
+            return Complement(parse_effector(eff.expr))
+        elif isinstance(eff, OrEffector):
+            return Union(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
+        elif isinstance(eff, AndEffector):
+            return Intersection(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
+        else:
+            raise AssertionError
+
+    if contingency.type in [ContingencyType.requirement, ContingencyType.positive]:
+        return parse_effector(contingency.effector)
+    elif contingency.type in [ContingencyType.inhibition, ContingencyType.negative]:
+        return Complement(parse_effector(contingency.effector))
+    else:
+        return UniversalSet()
+
+
+
+

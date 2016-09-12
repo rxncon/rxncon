@@ -271,6 +271,7 @@ REACTION_DEFS = [
 class Reaction:
     @typecheck
     def __init__(self, definition: ReactionDef, variables: Dict[str, Any]):
+        self.name            = definition.name
         self.reactants_lhs   = definition.reactants_lhs_from_variables(variables)
         self.reactants_rhs   = definition.reactants_rhs_from_variables(variables)
         self._representation = definition.representation_from_variables(variables)

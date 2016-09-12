@@ -1,10 +1,11 @@
 from typing import List
 from typecheck import typecheck
+from collections import defaultdict
 
 from rxncon.core.contingency import ContingencyType, Contingency
 from rxncon.core.reaction import Reaction, Reactant
 from rxncon.core.state import State
-from rxncon.core.spec import MolSpec
+from rxncon.core.spec import MolSpec, BondSpec
 
 
 class RxnConSystem:
@@ -15,6 +16,10 @@ class RxnConSystem:
 
         self._expand_fully_neutral_states()
         self._assert_consistency()
+
+    @typecheck
+    def contingencies(self, reaction: Reaction) -> List[Contingency]:
+        return [x for x in self.contingencies if x.target == reaction]
 
     @typecheck
     def quant_contingencies(self, reaction: Reaction) -> List[Contingency]:
@@ -54,12 +59,31 @@ class RxnConSystem:
         assert component.is_component_spec
         return [x for x in self.states if component in x.components]
 
+    @typecheck
+    def states_grouped_for_component(self, component: MolSpec) -> List[List[State]]:
+        states = self.states_for_component(component)
+        grouped = defaultdict(list)
+
+        while states:
+            state = states.pop()
+            if isinstance(state.target, MolSpec):
+                grouped[(state.target, state.definition)] += state
+            elif isinstance(state.target, BondSpec):
+                if state.target.first.to_component_spec() == component:
+                    grouped[(state.target.first, state.definition)] += state
+                if state.target.second.to_component_spec() == component:
+                    grouped[(state.target.second, state.definition)] += state
+            else:
+                raise Exception
+
+        return list(grouped.values())
+
     def _expand_fully_neutral_states(self):
         for reaction in self.reactions:
-            self._expand(reaction.reactants_lhs)
-            self._expand(reaction.reactants_rhs)
+            self._expand_reactants(reaction.reactants_lhs)
+            self._expand_reactants(reaction.reactants_rhs)
 
-    def _expand(self, reactants: List[Reactant]):
+    def _expand_reactants(self, reactants: List[Reactant]):
         for reactant in reactants:
             if reactant.is_molecule_reactant and reactant.is_fully_neutral:
                 reactant.value = [x for x in self.states_for_component(reactant.spec) if x.is_neutral]
@@ -72,3 +96,5 @@ class RxnConSystem:
         for state in required_states:
             assert state in self.states, \
                 'State {0} appears in contingencies, but is neither produced nor consumed'.format(str(state))
+
+
