@@ -74,7 +74,7 @@ class RxnConSystem:
                 if state.target.second.to_component_spec() == component:
                     grouped[(state.target.second, state.definition)] += state
             else:
-                raise Exception
+                raise Exception('State target is neither MolSpec nor BondSpec')
 
         return list(grouped.values())
 

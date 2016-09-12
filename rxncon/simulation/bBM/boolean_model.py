@@ -126,6 +126,10 @@ class StateTarget(Target):
     def components(self) -> List[MolSpec]:
         return self._state_parent.components
 
+    @typecheck
+    @property
+    def is_neutral(self) -> bool:
+        return self._state_parent.is_neutral
 
 class UpdateRule:
     @typecheck
@@ -147,10 +151,39 @@ class UpdateRule:
 
 def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     def component_factor(component: MolSpec) -> VennSet:
-        states = rxncon_sys.states_for_component(component)
+        grouped_states = rxncon_sys.states_grouped_for_component(component)
+        factor = UniversalSet()
+        for group in grouped_states:
+            factor = Intersection(factor, MultiUnion(*(ValueSet(x) for x in group)))
 
+        return factor
 
+    def contingency_factor(contingency: Contingency) -> VennSet:
+        def parse_effector(eff: Effector) -> VennSet:
+            if isinstance(eff, StateEffector):
+                return ValueSet(eff.expr)
+            elif isinstance(eff, NotEffector):
+                return Complement(parse_effector(eff.expr))
+            elif isinstance(eff, OrEffector):
+                return Union(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
+            elif isinstance(eff, AndEffector):
+                return Intersection(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
+            else:
+                raise AssertionError
 
+        if contingency.type in [ContingencyType.requirement, ContingencyType.positive]:
+            return parse_effector(contingency.effector)
+        elif contingency.type in [ContingencyType.inhibition, ContingencyType.negative]:
+            return Complement(parse_effector(contingency.effector))
+        else:
+            return UniversalSet()
+
+    def initial_conditions(reaction_targets: List[ReactionTarget], state_targets: List[StateTarget]) -> List[InitialCondition]:
+        conds = [InitialCondition(x, False) for x in reaction_targets]
+        conds += [InitialCondition(x, True) for x in state_targets if x.is_neutral]
+        conds += [InitialCondition(x, False) for x in state_targets if not x.is_neutral]
+
+        return conds
 
     reaction_targets = [ReactionTarget(x) for x in rxncon_sys.reactions]
     state_targets    = [StateTarget(x) for x in rxncon_sys.states]
@@ -158,36 +191,33 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     reaction_rules = []
     state_rules    = []
 
+    # Factor for a reaction target is of the form:
+    # components AND contingencies
     for reaction_target in reaction_targets:
         cont_fac = MultiIntersection(*(contingency_factor(x) for x in rxncon_sys.contingencies(reaction_target.reaction_parent)))
         comp_fac = MultiIntersection(*(component_factor(x) for x in reaction_target.components))
         reaction_rules.append(UpdateRule(reaction_target, Intersection(cont_fac, comp_fac)))
 
+    # Factor for a state target is of the form:
+    # synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
+    for state_target in state_targets:
+        comp_fac = MultiIntersection(*(component_factor(x) for x in state_target.components))
+        synt_fac = MultiUnion(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
+        degr_fac = Complement(MultiUnion(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
 
+        prod_cons_facs = []
+        for reaction_target in reaction_targets:
+            if reaction_target.produces(state_target):
+                sources = MultiIntersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
+                prod_cons_facs.append(Intersection(ValueSet(reaction_target), sources))
 
+            if reaction_target.consumes(state_target):
+                sources = MultiIntersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
+                prod_cons_facs.append(Intersection(ValueSet(state_target), Complement(Intersection(ValueSet(reaction_target), sources))))
 
+        prod_cons_fac = MultiUnion(*prod_cons_facs)
 
+        state_rules.append(UpdateRule(state_target, Union(synt_fac, MultiIntersection(comp_fac, degr_fac, prod_cons_fac))))
 
-def contingency_factor(contingency: Contingency) -> VennSet:
-    def parse_effector(eff: Effector) -> VennSet:
-        if isinstance(eff, StateEffector):
-            return ValueSet(eff.expr)
-        elif isinstance(eff, NotEffector):
-            return Complement(parse_effector(eff.expr))
-        elif isinstance(eff, OrEffector):
-            return Union(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
-        elif isinstance(eff, AndEffector):
-            return Intersection(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
-        else:
-            raise AssertionError
-
-    if contingency.type in [ContingencyType.requirement, ContingencyType.positive]:
-        return parse_effector(contingency.effector)
-    elif contingency.type in [ContingencyType.inhibition, ContingencyType.negative]:
-        return Complement(parse_effector(contingency.effector))
-    else:
-        return UniversalSet()
-
-
-
+    return BooleanModel(reaction_rules + state_rules, initial_conditions(reaction_rules, state_rules))
 
