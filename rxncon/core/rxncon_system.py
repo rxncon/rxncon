@@ -3,7 +3,7 @@ from typecheck import typecheck
 from collections import defaultdict
 
 from rxncon.core.contingency import ContingencyType, Contingency
-from rxncon.core.reaction import Reaction, ReactionTerm
+from rxncon.core.reaction import Reaction, ReactionTerm, MoleculeReactionTerm
 from rxncon.core.state import State
 from rxncon.core.spec import MolSpec, BondSpec
 
@@ -18,16 +18,16 @@ class RxnConSystem:
         self._assert_consistency()
 
     @typecheck
-    def contingencies(self, reaction: Reaction) -> List[Contingency]:
+    def contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
         return [x for x in self.contingencies if x.target == reaction]
 
     @typecheck
-    def quant_contingencies(self, reaction: Reaction) -> List[Contingency]:
+    def q_contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
         return [x for x in self.contingencies if x.target == reaction and x.type
                 in [ContingencyType.positive, ContingencyType.negative]]
 
     @typecheck
-    def strict_contingencies(self, reaction: Reaction) -> List[Contingency]:
+    def s_contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
         return [x for x in self.contingencies if x.target == reaction and x.type
                 in [ContingencyType.requirement, ContingencyType.inhibition]]
 
@@ -80,13 +80,13 @@ class RxnConSystem:
 
     def _expand_fully_neutral_states(self):
         for reaction in self.reactions:
-            self._expand_reactants(reaction.terms_lhs)
-            self._expand_reactants(reaction.terms_rhs)
+            self._expand_reaction_terms(reaction.terms_lhs)
+            self._expand_reaction_terms(reaction.terms_rhs)
 
-    def _expand_reactants(self, reactants: List[ReactionTerm]):
-        for reactant in reactants:
-            if reactant.is_molecule_reactant and reactant.is_fully_neutral:
-                reactant.value = [x for x in self.states_for_component(reactant.spec) if x.is_neutral]
+    def _expand_reaction_terms(self, terms: List[ReactionTerm]):
+        for term in terms:
+            if isinstance(term, MoleculeReactionTerm) and term.is_fully_neutral:
+                term.states = [x for x in self.states_for_component(term.spec) if x.is_neutral]
 
     def _assert_consistency(self):
         required_states = []

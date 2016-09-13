@@ -28,6 +28,10 @@ class MoleculeReactionTerm(ReactionTerm):
     def __repr__(self) -> str:
         return str(self)
 
+    @property
+    def is_fully_neutral(self):
+        return self.states == [FullyNeutralState()]
+
 
 class BondReactionTerm(ReactionTerm):
     @typecheck
