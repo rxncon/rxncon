@@ -2,7 +2,7 @@ from typing import Dict, List
 
 from rxncon.core.contingency import ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, StateEffector, NotEffector
-from rxncon.core.reaction import Reaction, Reactant
+from rxncon.core.reaction import Reaction, ReactionTerm
 from rxncon.core.specification import Spec
 from rxncon.core.state import State
 from rxncon.core.rxncon_system import RxnConSystem
@@ -27,7 +27,7 @@ def rules_from_reaction(rxnconsys: RxnConSystem, reaction: Reaction):
     consumed_solutions = []
     disjunct_solutions = []
 
-    connected_components = [reactant.spec for reactant in reaction.reactants_lhs]
+    connected_components = [reactant.spec for reactant in reaction.terms_lhs]
 
     while state_solutions:
         solution = state_solutions.pop(0)
@@ -75,8 +75,8 @@ def rules_from_solution(rxnconsys: RxnConSystem, reaction: Reaction, solution: S
     for molecules in molecule_set.values:
         molecules = merge_identical_molecules(molecules)
 
-        lhs = complexify_molecules_reactants(molecule_defs, molecules, reaction.reactants_lhs)
-        rhs = complexify_molecules_reactants(molecule_defs, molecules, reaction.reactants_rhs)
+        lhs = complexify_molecules_reactants(molecule_defs, molecules, reaction.terms_lhs)
+        rhs = complexify_molecules_reactants(molecule_defs, molecules, reaction.terms_rhs)
 
         rules.append(Rule(lhs, rhs, Arrow.reversible, set()))
 
@@ -84,8 +84,8 @@ def rules_from_solution(rxnconsys: RxnConSystem, reaction: Reaction, solution: S
 
 
 def complexify_molecules_reactants(molecule_defs: Dict[Spec, MoleculeDef], molecules: List[Molecule],
-                                   reactants: List[Reactant]):
-    def reactant_to_molecule(reactant: Reactant, structure_index: int) -> Molecule:
+                                   reactants: List[ReactionTerm]):
+    def reactant_to_molecule(reactant: ReactionTerm, structure_index: int) -> Molecule:
         molecule = Molecule(molecule_defs[reactant.spec], structure_index)
         [molecule.set_state(state) for state in reactant.value]
         return molecule

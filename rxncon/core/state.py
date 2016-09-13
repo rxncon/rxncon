@@ -283,7 +283,9 @@ def state_from_string(representation: str) -> Optional[State]:
     the_definition = next((state_def for state_def in STATE_DEFS
                            if state_def.matches_representation(representation)), None)
 
-    assert the_definition, 'Could not match reaction {} with definition'.format(representation)
+    if not the_definition:
+        raise SyntaxError('Could not match reaction {} with definition'.format(representation))
+
     variables = the_definition.variables_from_representation(representation)
 
     if all(isinstance(x, EmptyMolSpec) for x in variables.values() if isinstance(x, Spec)):

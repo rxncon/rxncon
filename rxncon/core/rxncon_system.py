@@ -3,7 +3,7 @@ from typecheck import typecheck
 from collections import defaultdict
 
 from rxncon.core.contingency import ContingencyType, Contingency
-from rxncon.core.reaction import Reaction, Reactant
+from rxncon.core.reaction import Reaction, ReactionTerm
 from rxncon.core.state import State
 from rxncon.core.spec import MolSpec, BondSpec
 
@@ -80,10 +80,10 @@ class RxnConSystem:
 
     def _expand_fully_neutral_states(self):
         for reaction in self.reactions:
-            self._expand_reactants(reaction.reactants_lhs)
-            self._expand_reactants(reaction.reactants_rhs)
+            self._expand_reactants(reaction.terms_lhs)
+            self._expand_reactants(reaction.terms_rhs)
 
-    def _expand_reactants(self, reactants: List[Reactant]):
+    def _expand_reactants(self, reactants: List[ReactionTerm]):
         for reactant in reactants:
             if reactant.is_molecule_reactant and reactant.is_fully_neutral:
                 reactant.value = [x for x in self.states_for_component(reactant.spec) if x.is_neutral]

@@ -6,37 +6,44 @@ from rxncon.core.spec import Spec, BondSpec, MolSpec, MRnaSpec, ProteinSpec, Loc
 from rxncon.core.state import StateDef, State, state_from_string, STATE_DEFS, FullyNeutralState
 from rxncon.util.utils import members
 
-class Reactant:
-    @typecheck
-    def __init__(self, spec: Spec, value: Union[None, List[State], BondSpec]):
-        if isinstance(spec, MolSpec):
-            assert spec.is_component_spec
-            assert value is None or isinstance(value, BondSpec) or isinstance(value, List)
-        elif isinstance(spec, BondSpec):
-            assert isinstance(value, List)
-        else:
-            raise NotImplementedError
 
-        self.spec, self.value = spec, value
+class ReactionTerm:
+    pass
+
+
+class MoleculeReactionTerm(ReactionTerm):
+    @typecheck
+    def __init__(self, spec: MolSpec, states: List[State], bonds: List[BondSpec]):
+        assert spec.is_component_spec
+        self.spec, self.states, self.bonds = spec, states, bonds
+
+    @typecheck
+    def __eq__(self, other: ReactionTerm):
+        return isinstance(other, MoleculeReactionTerm) and self.states == other.states and self.bonds == other.bonds
 
     def __str__(self) -> str:
-        return 'Reactant<{0}>:{1}'.format(str(self.spec), str(self.value))
+        return 'MoleculeReactionTerm<{0}>states:{1},bonds:{2}'\
+            .format(str(self.spec), ''.join(str(x) for x in self.states), ''.join(str(x) for x in self.bonds))
 
     def __repr__(self) -> str:
         return str(self)
 
+
+class BondReactionTerm(ReactionTerm):
     @typecheck
-    def __eq__(self, other: 'Reactant'):
-        return self.spec == other.spec and self.value == other.value
+    def __init__(self, spec: BondSpec, states: List[State]):
+        self.spec, self.states = spec, states
 
-    @property
-    def is_molecule_reactant(self) -> bool:
-        return isinstance(self.spec, MolSpec)
+    @typecheck
+    def __eq__(self, other: ReactionTerm):
+        return isinstance(other, BondReactionTerm) and self.states == other.states
 
-    @property
-    def is_fully_neutral(self) -> bool:
-        return self.is_molecule_reactant and isinstance(self.value, list) and len(self.value) == 1 and \
-            isinstance(self.value[0], FullyNeutralState)
+    def __str__(self) -> str:
+        return 'BondReactionTerm<{0}>states:{1}'.format(str(self.spec), ''.join(str(x) for x in self.states))
+
+    def __repr__(self) -> str:
+        return str(self)
+
 
 class ReactionDef:
     ARROW_TWO_HEADS = '<->'
@@ -103,12 +110,12 @@ class ReactionDef:
                 '{0} is of resolution {1}, required to be of resolution {2}'.format(var, val.resolution, self.variables_def[var][1])
 
     @typecheck
-    def reactants_lhs_from_variables(self, variables: Dict[str, Any]) -> List[Reactant]:
-        return [self._parse_reactant(x, i, variables) for i, x in enumerate(self.reactant_defs_lhs)]
+    def terms_lhs_from_variables(self, variables: Dict[str, Any]) -> List[ReactionTerm]:
+        return [self._parse_term(x, i, variables) for i, x in enumerate(self.reactant_defs_lhs)]
 
     @typecheck
-    def reactants_rhs_from_variables(self, variables: Dict[str, Any]) -> List[Reactant]:
-        return [self._parse_reactant(x, i, variables) for i, x in enumerate(self.reactant_defs_rhs)]
+    def terms_rhs_from_variables(self, variables: Dict[str, Any]) -> List[ReactionTerm]:
+        return [self._parse_term(x, i, variables) for i, x in enumerate(self.reactant_defs_rhs)]
 
     def _parse_reactants_def(self):
         if self.ARROW_TWO_HEADS in self.reactants_defs:
@@ -123,7 +130,28 @@ class ReactionDef:
         self.reactant_defs_lhs = [x.strip() for x in reactants_def_lhs_str.split('+')]
         self.reactant_defs_rhs = [x.strip() for x in reactants_def_rhs_str.split('+')]
 
-    def _parse_reactant(self, definition: str, index, variables: Dict[str, Any]) -> Reactant:
+    def _parse_term(self, definition: str, index, variables: Dict[str, Any]) -> ReactionTerm:
+        def parse_spec_values(values_str: str):
+            if not values_str:
+                return []
+
+            try:
+                potential_spec_str = values_str
+                for var_symb, var_val in variables.items():
+                    potential_spec_str = potential_spec_str.replace(var_symb, str(var_val))
+                return [spec_from_string(potential_spec_str)]
+            except SyntaxError:
+                return []
+
+        def parse_state_values(values_str: str):
+            if not values_str:
+                return []
+
+            try:
+                return [parse_state(value) for value in values_str.split(',')]
+            except SyntaxError:
+                return []
+
         def parse_state(state_str: str) -> State:
             for var_symbol, var_val in variables.items():
                 for method in members(var_val):
@@ -138,19 +166,7 @@ class ReactionDef:
 
             return state_from_string(state_str)
 
-        def parse_value(value_str: str):
-            if not value_str:
-                return None
-
-            try:
-                potential_spec_str = value_str
-                for var_symb, var_val in variables.items():
-                    potential_spec_str = potential_spec_str.replace(var_symb, str(var_val))
-                return spec_from_string(potential_spec_str)
-            except SyntaxError:
-                return [parse_state(value) for value in value_str.split(',')]
-
-        def parse_spec(spec_str: str) -> Spec:
+        def parse_molecule_or_bond(spec_str: str) -> Spec:
             if '~' in spec_str:
                 for var_symb, var_val in variables.items():
                     spec_str = spec_str.replace(var_symb, str(var_val))
@@ -174,12 +190,16 @@ class ReactionDef:
 
             return component
 
-        spec_str, value_str = definition.split('#')
+        spec_str, values_str = definition.split('#')
 
-        spec, value = parse_spec(spec_str), parse_value(value_str)
+        spec = parse_molecule_or_bond(spec_str)
         spec.structure_index = index
 
-        return Reactant(spec, value)
+        if isinstance(spec, BondSpec):
+            return BondReactionTerm(spec, parse_state_values(values_str))
+        elif isinstance(spec, MolSpec):
+            return MoleculeReactionTerm(spec, parse_state_values(values_str), parse_spec_values(values_str))
+
 
     @typecheck
     def _to_base_regex(self) -> str:
@@ -272,8 +292,8 @@ class Reaction:
     @typecheck
     def __init__(self, definition: ReactionDef, variables: Dict[str, Any]):
         self.name            = definition.name
-        self.reactants_lhs   = definition.reactants_lhs_from_variables(variables)
-        self.reactants_rhs   = definition.reactants_rhs_from_variables(variables)
+        self.terms_lhs       = definition.terms_lhs_from_variables(variables)
+        self.terms_rhs       = definition.terms_rhs_from_variables(variables)
         self._representation = definition.representation_from_variables(variables)
 
     def __hash__(self) -> int:
@@ -287,28 +307,39 @@ class Reaction:
 
     @typecheck
     def __eq__(self, other: 'Reaction') -> bool:
-        return self.reactants_lhs == other.reactants_lhs and self.reactants_rhs == other.reactants_rhs and str(self) == str(other)
+        return self.terms_lhs == other.terms_lhs and self.terms_rhs == other.terms_rhs and str(self) == str(other)
 
     @property
     @typecheck
     def components_lhs(self) -> List[MolSpec]:
-        return [x.spec for x in self.reactants_lhs if isinstance(x.spec, MolSpec)]
+        return [x.spec for x in self.terms_lhs if isinstance(x, MoleculeReactionTerm)]
 
     @property
     @typecheck
     def components_rhs(self) -> List[MolSpec]:
-        return [x.spec for x in self.reactants_rhs if isinstance(x.spec, MolSpec)]
+        return [x.spec for x in self.terms_rhs if isinstance(x, MoleculeReactionTerm)]
+
+    @property
+    @typecheck
+    def bonds_lhs(self) -> List[BondSpec]:
+        return [x.spec for x in self.terms_lhs if isinstance(x, BondReactionTerm)]
+
+    @property
+    @typecheck
+    def bonds_rhs(self) -> List[BondSpec]:
+        return [x.spec for x in self.terms_rhs if isinstance(x, BondReactionTerm)]
 
     @property
     @typecheck
     def consumed_states(self) -> List[State]:
         states = []
 
-        for reactant in self.reactants_lhs:
-            if isinstance(reactant.spec, MolSpec) and reactant.spec not in self.components_rhs:
-                continue  # State is degraded, not consumed
-            if isinstance(reactant.value, List):
-                states += reactant.value
+        for term in self.terms_lhs:
+            if isinstance(term, MoleculeReactionTerm) and term.spec in self.components_rhs:
+                states += term.states
+            elif isinstance(term, BondReactionTerm) and term.spec.first.to_component_spec() in self.components_rhs and \
+                    term.spec.second.to_component_spec() in self.components_rhs:
+                states += term.states
 
         return states
 
@@ -317,11 +348,12 @@ class Reaction:
     def produced_states(self) -> List[State]:
         states = []
 
-        for reactant in self.reactants_rhs:
-            if isinstance(reactant.spec, MolSpec) and reactant.spec not in self.components_lhs:
-                continue  # State is synthesised, not produced
-            if isinstance(reactant.value, List):
-                states += reactant.value
+        for term in self.terms_rhs:
+            if isinstance(term, MoleculeReactionTerm) and term.spec in self.components_lhs:
+                states += term.states
+            elif isinstance(term, BondReactionTerm) and term.spec.first.to_component_spec() in self.components_lhs and \
+                    term.spec.second.to_component_spec() in self.components_lhs:
+                states += term.states
 
         return states
 
@@ -330,11 +362,12 @@ class Reaction:
     def degraded_states(self) -> List[State]:
         states = []
 
-        for reactant in self.reactants_lhs:
-            if isinstance(reactant.spec, MolSpec) and reactant.spec in self.components_rhs:
-                continue  # State is consumed, not degraded
-            if isinstance(reactant.value, List):
-                states += reactant.value
+        for term in self.terms_lhs:
+            if isinstance(term, MoleculeReactionTerm) and term.spec not in self.components_rhs:
+                states += term.states
+            elif isinstance(term, BondReactionTerm) and term.spec.first.to_component_spec() not in self.components_rhs and \
+                    term.spec.second.to_component_spec() not in self.components_rhs:
+                states += term.states
 
         return states
 
@@ -343,11 +376,12 @@ class Reaction:
     def synthesised_states(self) -> List[State]:
         states = []
 
-        for reactant in self.reactants_rhs:
-            if isinstance(reactant.spec, MolSpec) and reactant.spec in self.components_lhs:
-                continue  # State is produced, not synthesised
-            if isinstance(reactant.value, List):
-                states += reactant.value
+        for term in self.terms_rhs:
+            if isinstance(term, MoleculeReactionTerm) and term.spec not in self.components_lhs:
+                states += term.states
+            elif isinstance(term, BondReactionTerm) and term.spec.first.to_component_spec() not in self.components_lhs and \
+                    term.spec.second.to_component_spec() not in self.components_lhs:
+                states += term.states
 
         return states
 

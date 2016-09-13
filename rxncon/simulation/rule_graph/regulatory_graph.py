@@ -78,7 +78,7 @@ class RegulatoryGraph():
         contingencies.extend(self.rxncon_system.quant_contingencies(reaction))
         return contingencies
 
-    def _add_reaction_reactant_to_graph(self, reaction: rxn.Reaction, reactants: rxn.Reactant, edge_type: EdgeInteractionType):
+    def _add_reaction_reactant_to_graph(self, reaction: rxn.Reaction, reactants: rxn.ReactionTerm, edge_type: EdgeInteractionType):
         for reactant_state in reactants.states:
             self.graph.add_node(str(reactant_state), dict(type=NodeType.state.value))
             self.graph.add_edge(str(reaction), str(reactant_state), interaction=edge_type.value)
@@ -86,10 +86,10 @@ class RegulatoryGraph():
     def add_reaction_information_to_graph(self, reaction: rxn.Reaction):
         self.graph.add_node(str(reaction), dict(type=NodeType.reaction.value))
 
-        for reactant_post in reaction.reactants_rhs:
+        for reactant_post in reaction.terms_rhs:
             self._add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.produce)
 
-        for reactant_pre in reaction.reactants_lhs:
+        for reactant_pre in reaction.terms_lhs:
             self._add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
 
     def remove_structure(self, state):
@@ -103,7 +103,7 @@ class RegulatoryGraph():
         self.graph.add_edge(self.replace_invalid_chars(str(self.remove_structure(effector.expr))), target_name,
                             interaction=edge_type.value)
 
-    def _check_reactant_subset_of_state(self, state: sta.State, reactant: rxn.Reactant, subset_states: tp.Set):
+    def _check_reactant_subset_of_state(self, state: sta.State, reactant: rxn.ReactionTerm, subset_states: tp.Set):
         for reactant_state in reactant.states:
             if state.is_superset_of(reactant_state):
                 subset_states.add(eff.StateEffector(reactant_state))
