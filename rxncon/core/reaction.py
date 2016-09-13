@@ -35,7 +35,7 @@ class Reactant:
 
     @property
     def is_fully_neutral(self) -> bool:
-        return self.is_molecule_reactant and isinstance(list, self.value) and len(self.value) == 1 and \
+        return self.is_molecule_reactant and isinstance(self.value, list) and len(self.value) == 1 and \
             isinstance(self.value[0], FullyNeutralState)
 
 class ReactionDef:
@@ -305,7 +305,7 @@ class Reaction:
         states = []
 
         for reactant in self.reactants_lhs:
-            if reactant.spec not in self.components_rhs:
+            if isinstance(reactant.spec, MolSpec) and reactant.spec not in self.components_rhs:
                 continue  # State is degraded, not consumed
             if isinstance(reactant.value, List):
                 states += reactant.value
@@ -318,7 +318,7 @@ class Reaction:
         states = []
 
         for reactant in self.reactants_rhs:
-            if reactant.spec not in self.components_lhs:
+            if isinstance(reactant.spec, MolSpec) and reactant.spec not in self.components_lhs:
                 continue  # State is synthesised, not produced
             if isinstance(reactant.value, List):
                 states += reactant.value
@@ -331,7 +331,7 @@ class Reaction:
         states = []
 
         for reactant in self.reactants_lhs:
-            if reactant.spec in self.components_rhs:
+            if isinstance(reactant.spec, MolSpec) and reactant.spec in self.components_rhs:
                 continue  # State is consumed, not degraded
             if isinstance(reactant.value, List):
                 states += reactant.value
@@ -344,7 +344,7 @@ class Reaction:
         states = []
 
         for reactant in self.reactants_rhs:
-            if reactant.spec in self.components_lhs:
+            if isinstance(reactant.spec, MolSpec) and reactant.spec in self.components_lhs:
                 continue  # State is produced, not synthesised
             if isinstance(reactant.value, List):
                 states += reactant.value

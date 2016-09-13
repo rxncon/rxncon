@@ -201,8 +201,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     # Factor for a state target is of the form:
     # synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
     for state_target in state_targets:
-        comp_fac = MultiIntersection(*(component_factor(x) for x in state_target.components))
         synt_fac = MultiUnion(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
+        comp_fac = MultiIntersection(*(component_factor(x) for x in state_target.components))
         degr_fac = Complement(MultiUnion(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
 
         prod_cons_facs = []

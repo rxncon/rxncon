@@ -14,5 +14,4 @@ def test_with_cont():
 
 def test_ppi():
     rxncon_sys = Quick('''A_[x]_ppi_B_[y]''').rxncon_system
-
-    print(rxncon_sys)
+    assert rxncon_sys.produced_states == [state_from_string('A_[x]--B_[y]')]

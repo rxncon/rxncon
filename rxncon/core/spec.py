@@ -44,8 +44,8 @@ class MolSpec(Spec, metaclass=ABCMeta):
         return _string_from_spec(self)
 
     @typecheck
-    def __eq__(self, other: 'MolSpec') -> bool:
-        return isinstance(other, type(self)) and self.component_name == other.component_name and self.locus == other.locus \
+    def __eq__(self, other: Spec) -> bool:
+        return isinstance(other, MolSpec) and self.component_name == other.component_name and self.locus == other.locus \
             and self.struct_index == other.struct_index
 
     @typecheck
@@ -138,7 +138,7 @@ class EmptyMolSpec(MolSpec):
         return EMPTY_MOL_SPEC
 
     @typecheck
-    def __eq__(self, other: 'MolSpec') -> bool:
+    def __eq__(self, other: Spec) -> bool:
         return isinstance(other, EmptyMolSpec)
 
     @typecheck
@@ -166,7 +166,7 @@ class ProteinSpec(MolSpec):
         return hash(str(self))
 
     @typecheck
-    def __eq__(self, other: MolSpec) -> bool:
+    def __eq__(self, other: Spec) -> bool:
         return isinstance(other, ProteinSpec) and self.component_name == other.component_name \
             and self.locus == other.locus and self.struct_index == other.struct_index
 
@@ -192,7 +192,7 @@ class MRnaSpec(MolSpec):
         return hash(str(self))
 
     @typecheck
-    def __eq__(self, other: MolSpec) -> bool:
+    def __eq__(self, other: Spec) -> bool:
         return isinstance(other, MRnaSpec) and self.component_name == other.component_name \
             and self.locus == other.locus and self.struct_index == other.struct_index
 
@@ -218,7 +218,7 @@ class DnaSpec(MolSpec):
         return hash(str(self))
 
     @typecheck
-    def __eq__(self, other: MolSpec) -> bool:
+    def __eq__(self, other: Spec) -> bool:
         return isinstance(other, DnaSpec) and self.component_name == other.component_name \
             and self.locus == other.locus and self.struct_index == other.struct_index
 
@@ -400,8 +400,8 @@ class BondSpec(Spec):
         self.first, self.second = sorted([first, second])
 
     @typecheck
-    def __eq__(self, other: 'BondSpec') -> bool:
-        return self.first == other.first and self.second == other.second
+    def __eq__(self, other: Spec) -> bool:
+        return isinstance(other, BondSpec) and self.first == other.first and self.second == other.second
 
     def __hash__(self) -> int:
         return hash(str(self))
