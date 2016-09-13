@@ -51,8 +51,17 @@ class RxnConSystem:
 
     @property
     @typecheck
+    def synthesised_states(self) -> List[State]:
+        states = []
+        for reaction in self.reactions:
+            states += reaction.synthesised_states
+
+        return sorted(list(set(states)))
+
+    @property
+    @typecheck
     def states(self) -> List[State]:
-        return sorted(list(set(self.produced_states + self.consumed_states)))
+        return sorted(list(set(self.produced_states + self.consumed_states + self.synthesised_states)))
 
     @typecheck
     def states_for_component(self, component: MolSpec) -> List[State]:
@@ -67,12 +76,12 @@ class RxnConSystem:
         while states:
             state = states.pop()
             if isinstance(state.target, MolSpec):
-                grouped[(state.target, state.definition)] += state
+                grouped[(state.target, state.definition)].append(state)
             elif isinstance(state.target, BondSpec):
                 if state.target.first.to_component_spec() == component:
-                    grouped[(state.target.first, state.definition)] += state
+                    grouped[(state.target.first, state.definition)].append(state)
                 if state.target.second.to_component_spec() == component:
-                    grouped[(state.target.second, state.definition)] += state
+                    grouped[(state.target.second, state.definition)].append(state)
             else:
                 raise Exception('State target is neither MolSpec nor BondSpec')
 

@@ -1,4 +1,4 @@
-from rxncon.core.state import state_from_string
+from rxncon.core.state import state_from_string, FullyNeutralState
 from rxncon.core.spec import bond_spec_from_string, mol_spec_from_string
 
 def test_ppi_states():
@@ -23,6 +23,11 @@ def test_ppi_states():
 def test_super_sub_mod():
     assert state_from_string('A_[(r)]-{p}').is_subset_of(state_from_string('A-{p}'))
     assert not state_from_string('A_[(r)]-{p}').is_subset_of(state_from_string('A-{ub}'))
+
+
+def test_fully_neutral():
+    assert state_from_string('0') == FullyNeutralState()
+
 
 # @pytest.fixture
 # def the_case_hierarchy():

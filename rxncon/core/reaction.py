@@ -135,7 +135,7 @@ class ReactionDef:
         self.reactant_defs_rhs = [x.strip() for x in reactants_def_rhs_str.split('+')]
 
     def _parse_term(self, definition: str, index, variables: Dict[str, Any]) -> ReactionTerm:
-        def parse_spec_values(values_str: str):
+        def parse_bond_spec_values(values_str: str):
             if not values_str:
                 return []
 
@@ -143,7 +143,12 @@ class ReactionDef:
                 potential_spec_str = values_str
                 for var_symb, var_val in variables.items():
                     potential_spec_str = potential_spec_str.replace(var_symb, str(var_val))
-                return [spec_from_string(potential_spec_str)]
+
+                spec = spec_from_string(potential_spec_str)
+                if isinstance(spec, BondSpec):
+                    return [spec]
+                else:
+                    return []
             except SyntaxError:
                 return []
 
@@ -202,7 +207,7 @@ class ReactionDef:
         if isinstance(spec, BondSpec):
             return BondReactionTerm(spec, parse_state_values(values_str))
         elif isinstance(spec, MolSpec):
-            return MoleculeReactionTerm(spec, parse_state_values(values_str), parse_spec_values(values_str))
+            return MoleculeReactionTerm(spec, parse_state_values(values_str), parse_bond_spec_values(values_str))
 
 
     @typecheck
@@ -257,7 +262,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (DnaSpec, LocusResolution.component)
         },
-        '$x# + $y# -> $x# + $y# + $y.to_mrna_component_spec#'
+        '$x# + $y# -> $x# + $y# + $y.to_mrna_component_spec#0'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -267,7 +272,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (MRnaSpec, LocusResolution.component)
         },
-        '$x# + $y# -> $x# + $y# + $y.to_protein_component_spec#'
+        '$x# + $y# -> $x# + $y# + $y.to_protein_component_spec#0'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -288,6 +293,16 @@ REACTION_DEFS = [
             '$y': (DnaSpec, LocusResolution.domain)
         },
         '$x#$x--0 + $y#$y--0 -> $x#$x~$y + $y#$x~$y + $x~$y#$x--$y'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'protein-degradation',
+        '$x_deg_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.component)
+        },
+        '$x# + $y# -> $x#'
     )
 ]
 

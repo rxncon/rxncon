@@ -7,6 +7,8 @@ from typecheck import typecheck
 from rxncon.util.utils import OrderedEnum, members
 from rxncon.core.spec import Spec, MolSpec, EmptyMolSpec, Locus, LocusResolution, locus_from_string, mol_spec_from_string, spec_from_string
 
+FULLY_NEUTRAL_STATE_REPR = '0'
+
 @unique
 class StateModifier(OrderedEnum):
     neutral   = '0'
@@ -248,7 +250,7 @@ class FullyNeutralState(State):
         return str(self)
 
     def __lt__(self, other: 'State'):
-        raise AssertionError
+        return True
 
     def __eq__(self, other: 'State') -> bool:
         return isinstance(other, FullyNeutralState)
@@ -262,7 +264,7 @@ class FullyNeutralState(State):
 
     @property
     def components(self) -> List[MolSpec]:
-        raise AssertionError
+        return []
 
     @property
     def target(self) -> Spec:
@@ -286,6 +288,9 @@ def state_modifier_from_string(modifier: str) -> StateModifier:
 
 @typecheck
 def state_from_string(representation: str) -> Optional[State]:
+    if representation == FULLY_NEUTRAL_STATE_REPR:
+        return FullyNeutralState()
+
     the_definition = next((state_def for state_def in STATE_DEFS
                            if state_def.matches_representation(representation)), None)
 
