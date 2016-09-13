@@ -151,7 +151,7 @@ class UpdateRule:
 
 def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     def component_factor(component: MolSpec) -> VennSet:
-        grouped_states = rxncon_sys.states_grouped_for_component(component)
+        grouped_states = rxncon_sys.states_for_component_grouped(component)
         factor = UniversalSet()
         for group in grouped_states:
             factor = Intersection(factor, MultiUnion(*(ValueSet(x) for x in group)))

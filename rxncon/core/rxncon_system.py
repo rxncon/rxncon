@@ -60,7 +60,7 @@ class RxnConSystem:
         return [x for x in self.states if component in x.components]
 
     @typecheck
-    def states_grouped_for_component(self, component: MolSpec) -> List[List[State]]:
+    def states_for_component_grouped(self, component: MolSpec) -> List[List[State]]:
         states = self.states_for_component(component)
         grouped = defaultdict(list)
 

@@ -155,7 +155,7 @@ class EmptyMolSpec(MolSpec):
             raise NotImplementedError
 
     def to_component_spec(self):
-        raise AssertionError
+        return self
 
     def has_resolution(self, resolution: 'LocusResolution'):
         return True

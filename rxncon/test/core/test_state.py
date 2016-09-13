@@ -5,17 +5,19 @@ def test_ppi_states():
     state = state_from_string('A--B')
     assert state.target == bond_spec_from_string('A~B')
     assert not state.is_elemental
+    assert mol_spec_from_string('A') in state.components
+    assert mol_spec_from_string('B') in state.components
 
     elem_state = state_from_string('A_[d1]--B_[d2]')
     assert elem_state.target == bond_spec_from_string('A_[d1]~B_[d2]')
     assert elem_state.is_elemental
+    assert mol_spec_from_string('A') in elem_state.components
+    assert mol_spec_from_string('B') in elem_state.components
 
     assert state.is_superset_of(elem_state)
     assert elem_state.is_subset_of(state)
 
     assert not state_from_string('A_[d]--D_[a]').is_superset_of(state_from_string('A_[d]--B_[a]'))
-
-
 
 
 def test_super_sub_mod():

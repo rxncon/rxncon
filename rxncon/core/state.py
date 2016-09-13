@@ -188,7 +188,7 @@ class State:
     @typecheck
     def is_elemental(self) -> bool:
         return all(spec.has_resolution(elemental_resolution) for spec, elemental_resolution
-                   in zip(self.components, self._elemental_resolutions))
+                   in zip(self.mol_specs, self._elemental_resolutions))
 
     @typecheck
     def is_superset_of(self, other: 'State') -> bool:
@@ -214,8 +214,14 @@ class State:
 
     @property
     @typecheck
-    def components(self) -> List[MolSpec]:
+    def mol_specs(self) -> List[MolSpec]:
         return [x for x in self.variables.values() if isinstance(x, MolSpec)]
+
+    @property
+    @typecheck
+    def components(self) -> List[MolSpec]:
+        return [x.to_component_spec() for x in self.mol_specs]
+
 
     @property
     @typecheck
