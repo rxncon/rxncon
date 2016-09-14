@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, FrozenSet
 from typecheck import typecheck
 from collections import defaultdict
 

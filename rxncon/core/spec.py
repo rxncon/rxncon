@@ -96,22 +96,21 @@ class MolSpec(Spec, metaclass=ABCMeta):
     def is_component_spec(self) -> bool:
         return self.has_resolution(LocusResolution.component)
 
-    @abstractmethod
     @typecheck
     def to_component_spec(self) -> 'MolSpec':
-        pass
+        return type(self)(self.component_name, self.struct_index, EmptyLocus())
 
     @typecheck
     def to_protein_component_spec(self) -> 'ProteinSpec':
         return ProteinSpec(self.component_name, self.struct_index, EmptyLocus())
 
     @typecheck
-    def to_dna_component_spec(self) -> 'DnaSpec':
-        return DnaSpec(self.component_name, self.struct_index, EmptyLocus())
+    def to_dna_component_spec(self) -> 'DNASpec':
+        return DNASpec(self.component_name, self.struct_index, EmptyLocus())
 
     @typecheck
-    def to_mrna_component_spec(self) -> 'MRnaSpec':
-        return MRnaSpec(self.component_name, self.struct_index, EmptyLocus())
+    def to_mrna_component_spec(self) -> 'MRNASpec':
+        return MRNASpec(self.component_name, self.struct_index, EmptyLocus())
 
     @property
     @typecheck
@@ -147,9 +146,9 @@ class EmptyMolSpec(MolSpec):
             return False
         elif isinstance(other, ProteinSpec):
             return True
-        elif isinstance(other, MRnaSpec):
+        elif isinstance(other, MRNASpec):
             return True
-        elif isinstance(other, DnaSpec):
+        elif isinstance(other, DNASpec):
             return True
         else:
             raise NotImplementedError
@@ -174,33 +173,30 @@ class ProteinSpec(MolSpec):
     def __lt__(self, other: MolSpec) -> bool:
         if isinstance(other, ProteinSpec):
             return super().__lt__(other)
-        elif isinstance(other, MRnaSpec):
+        elif isinstance(other, MRNASpec):
             return False
-        elif isinstance(other, DnaSpec):
+        elif isinstance(other, DNASpec):
             return False
         elif isinstance(other, EmptyMolSpec):
             return False
         else:
             raise NotImplementedError
 
-    def to_component_spec(self) -> 'ProteinSpec':
-        return ProteinSpec(self.component_name, self.struct_index, EmptyLocus())
 
-
-class MRnaSpec(MolSpec):
+class MRNASpec(MolSpec):
     def __hash__(self) -> int:
         return hash(str(self))
 
     @typecheck
     def __eq__(self, other: Spec) -> bool:
-        return isinstance(other, MRnaSpec) and self.component_name == other.component_name \
+        return isinstance(other, MRNASpec) and self.component_name == other.component_name \
             and self.locus == other.locus and self.struct_index == other.struct_index
 
     @typecheck
     def __lt__(self, other: MolSpec) -> bool:
-        if isinstance(other, MRnaSpec):
+        if isinstance(other, MRNASpec):
             return super().__lt__(other)
-        elif isinstance(other, DnaSpec):
+        elif isinstance(other, DNASpec):
             return False
         elif isinstance(other, ProteinSpec):
             return True
@@ -209,24 +205,21 @@ class MRnaSpec(MolSpec):
         else:
             raise NotImplementedError
 
-    def to_component_spec(self) -> 'MRnaSpec':
-        return MRnaSpec(self.component_name, self.struct_index, EmptyLocus())
 
-
-class DnaSpec(MolSpec):
+class DNASpec(MolSpec):
     def __hash__(self) -> int:
         return hash(str(self))
 
     @typecheck
     def __eq__(self, other: Spec) -> bool:
-        return isinstance(other, DnaSpec) and self.component_name == other.component_name \
+        return isinstance(other, DNASpec) and self.component_name == other.component_name \
             and self.locus == other.locus and self.struct_index == other.struct_index
 
     @typecheck
     def __lt__(self, other: MolSpec):
-        if isinstance(other, DnaSpec):
+        if isinstance(other, DNASpec):
             return super().__lt__(other)
-        elif isinstance(other, MRnaSpec):
+        elif isinstance(other, MRNASpec):
             return True
         elif isinstance(other, ProteinSpec):
             return True
@@ -234,9 +227,6 @@ class DnaSpec(MolSpec):
             return False
         else:
             raise NotImplementedError
-
-    def to_component_spec(self) -> 'DnaSpec':
-        return DnaSpec(self.component_name, self.struct_index, EmptyLocus())
 
 
 class Locus:
@@ -348,8 +338,8 @@ class SpecSuffix(OrderedEnum):
 
 suffix_to_spec = OrderedDict(
     [
-        (SpecSuffix.mrna, MRnaSpec),
-        (SpecSuffix.dna, DnaSpec),
+        (SpecSuffix.mrna, MRNASpec),
+        (SpecSuffix.dna, DNASpec),
         (SpecSuffix.protein, ProteinSpec)
     ]
 )

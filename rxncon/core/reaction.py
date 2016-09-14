@@ -2,7 +2,7 @@ from typing import Dict, Any, List, Optional, Union
 import re
 from typecheck import typecheck
 
-from rxncon.core.spec import Spec, BondSpec, MolSpec, MRnaSpec, ProteinSpec, LocusResolution, DnaSpec, mol_spec_from_string, spec_from_string
+from rxncon.core.spec import Spec, BondSpec, MolSpec, MRNASpec, ProteinSpec, LocusResolution, DNASpec, mol_spec_from_string, spec_from_string
 from rxncon.core.state import StateDef, State, state_from_string, STATE_DEFS, FullyNeutralState
 from rxncon.util.utils import members
 
@@ -18,7 +18,7 @@ class MoleculeReactionTerm(ReactionTerm):
         self.spec, self.states, self.bonds = spec, states, bonds
 
     @typecheck
-    def __eq__(self, other: ReactionTerm):
+    def __eq__(self, other: ReactionTerm) -> bool:
         return isinstance(other, MoleculeReactionTerm) and self.states == other.states and self.bonds == other.bonds
 
     def __str__(self) -> str:
@@ -29,8 +29,8 @@ class MoleculeReactionTerm(ReactionTerm):
         return str(self)
 
     @property
-    def is_fully_neutral(self):
-        return self.states == [FullyNeutralState()]
+    def is_fully_neutral(self) -> bool:
+        return FullyNeutralState() in self.states and len(self.states) == 1
 
 
 class BondReactionTerm(ReactionTerm):
@@ -39,8 +39,8 @@ class BondReactionTerm(ReactionTerm):
         self.spec, self.states = spec, states
 
     @typecheck
-    def __eq__(self, other: ReactionTerm):
-        return isinstance(other, BondReactionTerm) and self.states == other.states
+    def __eq__(self, other: ReactionTerm) -> bool:
+        return isinstance(other, BondReactionTerm) and self.spec == other.spec and self.states == other.states
 
     def __str__(self) -> str:
         return 'BondReactionTerm<{0}>states:{1}'.format(str(self.spec), ''.join(str(x) for x in self.states))
@@ -260,7 +260,7 @@ REACTION_DEFS = [
         '$x_trsc_$y',
         {
             '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (DnaSpec, LocusResolution.component)
+            '$y': (DNASpec, LocusResolution.component)
         },
         '$x# + $y# -> $x# + $y# + $y.to_mrna_component_spec#0'
     ),
@@ -270,7 +270,7 @@ REACTION_DEFS = [
         '$x_trsl_$y',
         {
             '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (MRnaSpec, LocusResolution.component)
+            '$y': (MRNASpec, LocusResolution.component)
         },
         '$x# + $y# -> $x# + $y# + $y.to_protein_component_spec#0'
     ),
@@ -290,7 +290,7 @@ REACTION_DEFS = [
         '$x_bind_$y',
         {
             '$x': (ProteinSpec, LocusResolution.domain),
-            '$y': (DnaSpec, LocusResolution.domain)
+            '$y': (DNASpec, LocusResolution.domain)
         },
         '$x#$x--0 + $y#$y--0 -> $x#$x~$y + $y#$x~$y + $x~$y#$x--$y'
     ),
@@ -418,9 +418,9 @@ def reaction_from_string(representation: str, standardize=True) -> Reaction:
         for key in keys:
             required_type = rxn_def.variables_def[key][0]
             if not isinstance(variables[key], required_type):
-                if required_type is DnaSpec:
+                if required_type is DNASpec:
                     variables[key] = variables[key].to_dna_component_spec()
-                elif required_type is MRnaSpec:
+                elif required_type is MRNASpec:
                     variables[key] = variables[key].to_mrna_component_spec()
                 elif required_type is ProteinSpec:
                     variables[key] = variables[key].to_protein_component_spec()

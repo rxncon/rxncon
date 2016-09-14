@@ -217,7 +217,7 @@ class State:
     @property
     @typecheck
     def mol_specs(self) -> List[MolSpec]:
-        return [x for x in self.variables.values() if isinstance(x, MolSpec)]
+        return [x for x in self.variables.values() if isinstance(x, MolSpec) and not isinstance(x, EmptyMolSpec)]
 
     @property
     @typecheck
@@ -295,7 +295,7 @@ def state_from_string(representation: str) -> Optional[State]:
                            if state_def.matches_representation(representation)), None)
 
     if not the_definition:
-        raise SyntaxError('Could not match reaction {} with definition'.format(representation))
+        raise SyntaxError('Could not match State {} with definition'.format(representation))
 
     variables = the_definition.variables_from_representation(representation)
 

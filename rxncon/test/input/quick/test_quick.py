@@ -19,6 +19,7 @@ def test_simple_quick():
     return elems_eq(rxncon_sys.states_for_component_grouped(spec_from_string('B')),
                     [[state_from_string('B_[(r)]-{0}'), state_from_string('B_[(r)]-{p}')]])
 
+
 def test_with_cont():
     rxncon_sys = Quick('''A_p+_B_[(r)]; ! A_[(x)]-{p}
                        C_p+_A_[(x)]''').rxncon_system

@@ -19,6 +19,8 @@ def test_ppi_states():
 
     assert not state_from_string('A_[d]--D_[a]').is_superset_of(state_from_string('A_[d]--B_[a]'))
 
+    assert state_from_string('A_[x]--0').components == [mol_spec_from_string('A')]
+
 
 def test_super_sub_mod():
     assert state_from_string('A_[(r)]-{p}').is_subset_of(state_from_string('A-{p}'))

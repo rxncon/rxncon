@@ -1,7 +1,7 @@
 import pytest
 from collections import namedtuple
 
-from rxncon.core.spec import Locus, MolSpec, DnaSpec, MRnaSpec, ProteinSpec, EmptyMolSpec, mol_spec_from_string, locus_from_string, \
+from rxncon.core.spec import Locus, MolSpec, DNASpec, MRNASpec, ProteinSpec, EmptyMolSpec, mol_spec_from_string, locus_from_string, \
     LocusResolution, bond_spec_from_string, spec_from_string
 
 
@@ -29,10 +29,10 @@ def test_unstructured_specs():
     assert protein_spec.has_resolution(LocusResolution.residue)
     assert protein_spec.to_component_spec().has_resolution(LocusResolution.component)
     # DNA
-    assert isinstance(protein_spec.to_dna_component_spec(), DnaSpec)
+    assert isinstance(protein_spec.to_dna_component_spec(), DNASpec)
     assert protein_spec.to_dna_component_spec().has_resolution(LocusResolution.component)
     # mRNA
-    assert isinstance(protein_spec.to_mrna_component_spec(), MRnaSpec)
+    assert isinstance(protein_spec.to_mrna_component_spec(), MRNASpec)
     assert protein_spec.to_mrna_component_spec().has_resolution(LocusResolution.component)
 
     empty_spec = mol_spec_from_string('0')
@@ -47,11 +47,11 @@ def test_structured_specs():
     assert protein_spec.to_component_spec().has_resolution(LocusResolution.component)
     assert protein_spec.struct_index == 0
     # DNA
-    assert isinstance(protein_spec.to_dna_component_spec(), DnaSpec)
+    assert isinstance(protein_spec.to_dna_component_spec(), DNASpec)
     assert protein_spec.to_dna_component_spec().has_resolution(LocusResolution.component)
     assert not protein_spec.to_dna_component_spec().struct_index
     # mRNA
-    assert isinstance(protein_spec.to_mrna_component_spec(), MRnaSpec)
+    assert isinstance(protein_spec.to_mrna_component_spec(), MRNASpec)
     assert protein_spec.to_mrna_component_spec().has_resolution(LocusResolution.component)
     assert not protein_spec.to_mrna_component_spec().struct_index
 
