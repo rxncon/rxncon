@@ -38,7 +38,7 @@ class RxnConSystem:
         for reaction in self.reactions:
             states += reaction.produced_states
 
-        return sorted(list(set(states)))
+        return list(set(states))
 
     @property
     @typecheck
@@ -47,7 +47,7 @@ class RxnConSystem:
         for reaction in self.reactions:
             states += reaction.consumed_states
 
-        return sorted(list(set(states)))
+        return list(set(states))
 
     @property
     @typecheck
@@ -56,12 +56,12 @@ class RxnConSystem:
         for reaction in self.reactions:
             states += reaction.synthesised_states
 
-        return sorted(list(set(states)))
+        return list(set(states))
 
     @property
     @typecheck
     def states(self) -> List[State]:
-        return sorted(list(set(self.produced_states + self.consumed_states + self.synthesised_states)))
+        return list(set(self.produced_states + self.consumed_states + self.synthesised_states))
 
     @typecheck
     def states_for_component(self, component: MolSpec) -> List[State]:

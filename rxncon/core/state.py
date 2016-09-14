@@ -23,21 +23,21 @@ class StateDef:
     SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
 
     @typecheck
-    def __init__(self, name: str, representation_def: str, variables_def: Dict[str, Any], target_spec_def: str,
+    def __init__(self, name: str, repr_def: str, variables_def: Dict[str, Any], target_spec_def: str,
                  neutral_states_def: List[str]):
-        self.name, self.representation_def, self.variables_def, self.target_spec_def, self.neutral_states_def = \
-            name, representation_def, variables_def, target_spec_def, neutral_states_def
+        self.name, self.repr_def, self.variables_def, self.target_spec_def, self.neutral_states_def = \
+            name, repr_def, variables_def, target_spec_def, neutral_states_def
 
     def __str__(self) -> str:
-        return 'StateDef: name={0}, representation_def={1}'.format(self.name, self.representation_def)
+        return 'StateDef: name={0}, representation_def={1}'.format(self.name, self.repr_def)
 
     @typecheck
-    def matches_representation(self, representation: str) -> bool:
-        return True if re.match(self._to_matching_regex(), representation) else False
+    def matches_repr(self, repr: str) -> bool:
+        return True if re.match(self._to_matching_regex(), repr) else False
 
     @typecheck
-    def variables_from_representation(self, representation: str) -> Dict[str, Any]:
-        assert self.matches_representation(representation)
+    def variables_from_repr(self, representation: str) -> Dict[str, Any]:
+        assert self.matches_repr(representation)
 
         variables = {}
         for var, var_def in self.variables_def.items():
@@ -62,8 +62,8 @@ class StateDef:
         return variables
 
     @typecheck
-    def representation_from_variables(self, variables: Dict[str, Any]) -> str:
-        representation = self.representation_def
+    def repr_from_variables(self, variables: Dict[str, Any]) -> str:
+        representation = self.repr_def
         for var, val in variables.items():
             if isinstance(val, StateModifier):
                 representation = representation.replace(var, str(val.value))
@@ -101,7 +101,7 @@ class StateDef:
         return states
 
     def _to_base_regex(self) -> str:
-        return '^{}$'.format(self.representation_def
+        return '^{}$'.format(self.repr_def
                              .replace('+', '\+')
                              .replace('[', '\[')
                              .replace(']', '\]'))
@@ -171,7 +171,7 @@ class State:
         return str(self)
 
     def __str__(self) -> str:
-        return self.definition.representation_from_variables(self.variables)
+        return self.definition.repr_from_variables(self.variables)
 
     @typecheck
     def __eq__(self, other: 'State') -> bool:
@@ -223,7 +223,6 @@ class State:
     @typecheck
     def components(self) -> List[MolSpec]:
         return [x.to_component_spec() for x in self.mol_specs]
-
 
     @property
     @typecheck
@@ -292,12 +291,12 @@ def state_from_string(representation: str) -> Optional[State]:
         return FullyNeutralState()
 
     the_definition = next((state_def for state_def in STATE_DEFS
-                           if state_def.matches_representation(representation)), None)
+                           if state_def.matches_repr(representation)), None)
 
     if not the_definition:
         raise SyntaxError('Could not match State {} with definition'.format(representation))
 
-    variables = the_definition.variables_from_representation(representation)
+    variables = the_definition.variables_from_repr(representation)
 
     if all(isinstance(x, EmptyMolSpec) for x in variables.values() if isinstance(x, Spec)):
         return None
