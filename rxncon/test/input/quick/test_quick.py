@@ -1,6 +1,7 @@
-from rxncon.input.quick.quick import *
-from rxncon.core.state import state_from_string
 from rxncon.core.spec import spec_from_string
+from rxncon.core.state import state_from_string
+from rxncon.input.quick.quick import *
+from rxncon.util.utils import elems_eq
 
 
 def test_simple_quick():
@@ -70,12 +71,3 @@ def test_trsl():
         print('===')
 
 
-def elems_eq(first_list, second_list):
-    if all(isinstance(x, list) for x in first_list) and all(isinstance(x, list) for x in second_list):
-        uniq_first = [set(x) for x in first_list]
-        uniq_second = [set(x) for x in second_list]
-
-        return all(x in uniq_second for x in uniq_first) and all(x in uniq_first for x in uniq_second)
-
-    else:
-        return set(first_list) == set(second_list)

@@ -410,6 +410,7 @@ def matching_reaction_def(representation: str) -> Optional[ReactionDef]:
     return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_representation(representation)), None)
 
 
+@typecheck
 def reaction_from_string(representation: str, standardize=True) -> Reaction:
     def fixed_spec_types(rxn_def: ReactionDef, variables: Dict[str, Any]) -> Dict[str, Any]:
         keys = variables.keys()

@@ -199,7 +199,7 @@ class State:
     @typecheck
     def is_subset_of(self, other: 'State') -> bool:
         if self.definition == other.definition:
-            return all(x.is_subspec_of(y) for x, y in zip(self.components, other.components)) and \
+            return all(x.is_subspec_of(y) for x, y in zip(self.mol_specs, other.mol_specs)) and \
                    all(x == y for x, y in zip(self._non_mol_spec_props, other._non_mol_spec_props))
         else:
             return False
@@ -286,17 +286,17 @@ def state_modifier_from_string(modifier: str) -> StateModifier:
     return StateModifier(modifier.lower())
 
 @typecheck
-def state_from_string(representation: str) -> Optional[State]:
-    if representation == FULLY_NEUTRAL_STATE_REPR:
+def state_from_string(repr: str) -> Optional[State]:
+    if repr == FULLY_NEUTRAL_STATE_REPR:
         return FullyNeutralState()
 
     the_definition = next((state_def for state_def in STATE_DEFS
-                           if state_def.matches_repr(representation)), None)
+                           if state_def.matches_repr(repr)), None)
 
     if not the_definition:
-        raise SyntaxError('Could not match State {} with definition'.format(representation))
+        raise SyntaxError('Could not match State {} with definition'.format(repr))
 
-    variables = the_definition.variables_from_repr(representation)
+    variables = the_definition.variables_from_repr(repr)
 
     if all(isinstance(x, EmptyMolSpec) for x in variables.values() if isinstance(x, Spec)):
         return None

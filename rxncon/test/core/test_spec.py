@@ -73,3 +73,5 @@ def test_super_sub():
     assert spec_from_string('A_[x]').is_subspec_of(spec_from_string('A'))
     assert not spec_from_string('A').is_subspec_of(spec_from_string('B'))
 
+    assert mol_spec_from_string('A_[dom]').is_subspec_of(mol_spec_from_string('A'))
+    assert not mol_spec_from_string('A').is_subspec_of(mol_spec_from_string('A_[dom]'))

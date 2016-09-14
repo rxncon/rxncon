@@ -42,3 +42,13 @@ def transform_set_expression(set_expression, leaf_transformer):
 def members(obj) -> List[str]:
     return [x for x in dir(obj) if not x.startswith('__')]
 
+
+def elems_eq(first_list, second_list):
+    if all(isinstance(x, list) for x in first_list) and all(isinstance(x, list) for x in second_list):
+        uniq_first = [set(x) for x in first_list]
+        uniq_second = [set(x) for x in second_list]
+
+        return all(x in uniq_second for x in uniq_first) and all(x in uniq_first for x in uniq_second)
+
+    else:
+        return set(first_list) == set(second_list)

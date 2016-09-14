@@ -1,30 +1,113 @@
 from rxncon.core.state import state_from_string, FullyNeutralState
 from rxncon.core.spec import bond_spec_from_string, mol_spec_from_string
+from rxncon.util.utils import elems_eq
+import pytest
 
-def test_ppi_states():
-    state = state_from_string('A--B')
-    assert state.target == bond_spec_from_string('A~B')
+###                      ###
+# Test modification states #
+###                      ###
+
+def test_modification_props():
+    # Elemental state, neutral.
+    state = state_from_string('A_[(res)]-{0}')
+    assert state.is_elemental
+    assert elems_eq(state.components, [mol_spec_from_string('A')])
+    assert state.target == mol_spec_from_string('A_[(res)]')
+    assert state.is_neutral
+
+    # Elemental state, non-neutral.
+    state = state_from_string('A_[(res)]-{p}')
+    assert state.is_elemental
+    assert elems_eq(state.components, [mol_spec_from_string('A')])
+    assert state.target == mol_spec_from_string('A_[(res)]')
+    assert not state.is_neutral
+
+    # Non-elemental state.
+    state = state_from_string('A_[dom]-{0}')
     assert not state.is_elemental
-    assert mol_spec_from_string('A') in state.components
-    assert mol_spec_from_string('B') in state.components
-
-    elem_state = state_from_string('A_[d1]--B_[d2]')
-    assert elem_state.target == bond_spec_from_string('A_[d1]~B_[d2]')
-    assert elem_state.is_elemental
-    assert mol_spec_from_string('A') in elem_state.components
-    assert mol_spec_from_string('B') in elem_state.components
-
-    assert state.is_superset_of(elem_state)
-    assert elem_state.is_subset_of(state)
-
-    assert not state_from_string('A_[d]--D_[a]').is_superset_of(state_from_string('A_[d]--B_[a]'))
-
-    assert state_from_string('A_[x]--0').components == [mol_spec_from_string('A')]
+    assert elems_eq(state.components, [mol_spec_from_string('A')])
+    assert state.target == mol_spec_from_string('A_[dom]')
+    assert state.is_neutral
 
 
-def test_super_sub_mod():
-    assert state_from_string('A_[(r)]-{p}').is_subset_of(state_from_string('A-{p}'))
-    assert not state_from_string('A_[(r)]-{p}').is_subset_of(state_from_string('A-{ub}'))
+def test_modification_parsing():
+    # Upper/lower case should not matter for StateModifier.
+    assert state_from_string('A-{P}') == state_from_string('A-{p}')
+    assert state_from_string('A_[(res)]-{UB}') == state_from_string('A_[(res)]-{Ub}')
+
+    # Unknown StateModifier should raise.
+    with pytest.raises(ValueError):
+        state_from_string('A_[(res)]-{kryptonite}')
+
+
+def test_modification_superset_subset():
+    # Happy path, same modification.
+    assert state_from_string('A-{p}').is_superset_of(state_from_string('A_[dom]-{p}'))
+    assert state_from_string('A_[dom]-{p}').is_superset_of(state_from_string('A_[dom(res)]-{p}'))
+    assert state_from_string('A_[dom(res)]-{p}').is_subset_of(state_from_string('A_[dom]-{p}'))
+    assert state_from_string('A_[dom]-{p}').is_subset_of(state_from_string('A-{p}'))
+
+    # Sad path, same modification.
+    assert not state_from_string('A-{p}').is_subset_of(state_from_string('A_[dom]-{p}'))
+    assert not state_from_string('A_[dom]-{p}').is_subset_of(state_from_string('A_[dom(res)]-{p}'))
+    assert not state_from_string('A_[dom(res)]-{p}').is_superset_of(state_from_string('A_[dom]-{p}'))
+    assert not state_from_string('A_[dom]-{p}').is_superset_of(state_from_string('A-{p}'))
+
+    # Different modifications.
+    assert not state_from_string('A-{p}').is_superset_of(state_from_string('A_[dom]-{0}'))
+    assert not state_from_string('A_[dom(res)]-{ub}').is_subset_of(state_from_string('A_[dom]-{p}'))
+
+###                                     ###
+# Test protein-protein-interaction states #
+###                                     ###
+
+def test_ppi_props():
+    # Elemental state, neutral.
+    state = state_from_string('A_[m]--0')
+    assert state.is_elemental
+    assert elems_eq(state.components, [mol_spec_from_string('A')])
+    assert state.target == mol_spec_from_string('A_[m]')
+    assert state.is_neutral
+
+    # Elemental state, non-neutral.
+    state = state_from_string('A_[m]--B_[n]')
+    assert state.is_elemental
+    assert elems_eq(state.components, [mol_spec_from_string('A'), mol_spec_from_string('B')])
+    assert state.target == bond_spec_from_string('A_[m]~B_[n]')
+    assert not state.is_neutral
+
+    # Non-elemental state, neutral.
+    state = state_from_string('A--0')
+    assert not state.is_elemental
+    assert elems_eq(state.components, [mol_spec_from_string('A')])
+    assert state.target == mol_spec_from_string('A')
+    assert state.is_neutral
+
+    # Non-elemental state, non-neutral
+    state = state_from_string('A--B_[n]')
+    assert not state.is_elemental
+    assert elems_eq(state.components, [mol_spec_from_string('A'), mol_spec_from_string('B')])
+    assert state.target == bond_spec_from_string('A~B_[n]')
+    assert not state.is_neutral
+
+
+def test_ppi_parsing():
+    # Bonds are symmetric.
+    x = state_from_string('A_[x]--B_[y]')
+    y = state_from_string('B_[y]--A_[x]')
+
+    z = x == y
+
+
+def test_ppi_superset_subset():
+    # Happy path, neutral.
+    assert state_from_string('A--0').is_superset_of(state_from_string('A_[m]--0'))
+    assert state_from_string('A_[m]--0').is_subset_of(state_from_string('A--0'))
+
+    # Sad path, neutral.
+    assert not state_from_string('A--0').is_subset_of(state_from_string('A_[m]--0'))
+    assert not state_from_string('A_[m]--0').is_superset_of(state_from_string('A--0'))
+
 
 
 def test_fully_neutral():
