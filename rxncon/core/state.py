@@ -55,7 +55,7 @@ class StateDef:
             elif self.variables_def[var][0] is MolSpec:
                 value = mol_spec_from_string(val_str)
             else:
-                raise AssertionError
+                raise Exception('Unknown variable type {}'.format(self.variables_def[var][0]))
 
             variables[var] = value
 
@@ -86,6 +86,7 @@ class StateDef:
 
         return spec_from_string(target_str)
 
+    @typecheck
     def neutral_states_from_variables(self, variables: Dict[str, Any]) -> List['State']:
         states = []
 
@@ -94,11 +95,25 @@ class StateDef:
             for var, val in variables.items():
                 state_str = state_str.replace(var, str(val))
 
-            the_state = state_from_string(state_str)
+            try:
+                the_state = state_from_string(state_str)
+            except SyntaxError:
+                the_state = None
+
             if the_state:
                 states.append(the_state)
 
         return states
+
+    @typecheck
+    def validate_variables(self, variables: Dict[str, Any]):
+        if all(isinstance(x, EmptyMolSpec) for x in variables.values() if isinstance(x, Spec)):
+            raise SyntaxError('All MolSpec are EmptyMolSpec.')
+
+        for var, val in variables.items():
+            if isinstance(val, MolSpec):
+                if val.resolution > self.variables_def[var][1]:
+                    raise SyntaxError('Resolution too high.')
 
     def _to_base_regex(self) -> str:
         return '^{}$'.format(self.repr_def
@@ -286,19 +301,18 @@ def state_modifier_from_string(modifier: str) -> StateModifier:
     return StateModifier(modifier.lower())
 
 @typecheck
-def state_from_string(repr: str) -> Optional[State]:
+def state_from_string(repr: str) -> State:
     if repr == FULLY_NEUTRAL_STATE_REPR:
         return FullyNeutralState()
 
-    the_definition = next((state_def for state_def in STATE_DEFS
-                           if state_def.matches_repr(repr)), None)
+    state_def = next((x for x in STATE_DEFS if x.matches_repr(repr)), None)
 
-    if not the_definition:
+    if not state_def:
         raise SyntaxError('Could not match State {} with definition'.format(repr))
 
-    variables = the_definition.variables_from_repr(repr)
+    variables = state_def.variables_from_repr(repr)
+    # variables = state_def.order_variables(variables)
 
-    if all(isinstance(x, EmptyMolSpec) for x in variables.values() if isinstance(x, Spec)):
-        return None
+    state_def.validate_variables(variables)
 
-    return State(the_definition, variables)
+    return State(state_def, variables)

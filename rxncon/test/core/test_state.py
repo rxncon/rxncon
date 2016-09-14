@@ -62,28 +62,28 @@ def test_modification_superset_subset():
 ###                                     ###
 
 def test_ppi_props():
-    # Elemental state, neutral.
+    # Elemental state, free binding domain.
     state = state_from_string('A_[m]--0')
     assert state.is_elemental
     assert elems_eq(state.components, [mol_spec_from_string('A')])
     assert state.target == mol_spec_from_string('A_[m]')
     assert state.is_neutral
 
-    # Elemental state, non-neutral.
+    # Elemental state, bond.
     state = state_from_string('A_[m]--B_[n]')
     assert state.is_elemental
     assert elems_eq(state.components, [mol_spec_from_string('A'), mol_spec_from_string('B')])
     assert state.target == bond_spec_from_string('A_[m]~B_[n]')
     assert not state.is_neutral
 
-    # Non-elemental state, neutral.
+    # Non-elemental state, free binding domain.
     state = state_from_string('A--0')
     assert not state.is_elemental
     assert elems_eq(state.components, [mol_spec_from_string('A')])
     assert state.target == mol_spec_from_string('A')
     assert state.is_neutral
 
-    # Non-elemental state, non-neutral
+    # Non-elemental state, bond.
     state = state_from_string('A--B_[n]')
     assert not state.is_elemental
     assert elems_eq(state.components, [mol_spec_from_string('A'), mol_spec_from_string('B')])
@@ -93,21 +93,49 @@ def test_ppi_props():
 
 def test_ppi_parsing():
     # Bonds are symmetric.
-    x = state_from_string('A_[x]--B_[y]')
-    y = state_from_string('B_[y]--A_[x]')
+    # assert state_from_string('A_[x]--B_[y]') == state_from_string('B_[y]--A_[x]')
 
-    z = x == y
+    # Too fine resolution (higher than elemental) raises.
+    with pytest.raises(SyntaxError):
+        state_from_string('A_[(x)]--B_[(y)]')
 
 
 def test_ppi_superset_subset():
-    # Happy path, neutral.
+    # Happy path, free binding domain.
     assert state_from_string('A--0').is_superset_of(state_from_string('A_[m]--0'))
     assert state_from_string('A_[m]--0').is_subset_of(state_from_string('A--0'))
 
-    # Sad path, neutral.
+    # Sad path, free binding domain.
     assert not state_from_string('A--0').is_subset_of(state_from_string('A_[m]--0'))
     assert not state_from_string('A_[m]--0').is_superset_of(state_from_string('A--0'))
 
+    # Happy path, superset, bond.
+    assert state_from_string('A--B').is_superset_of(state_from_string('A_[m]--B_[n]'))
+    assert state_from_string('A--B').is_superset_of(state_from_string('A_[m]--B'))
+    assert state_from_string('A--B').is_superset_of(state_from_string('A--B_[n]'))
+    assert state_from_string('A_[m]--B').is_superset_of(state_from_string('A_[m]--B_[n]'))
+    assert state_from_string('A--B_[n]').is_superset_of(state_from_string('A_[m]--B_[n]'))
+
+    # Happy path, subset, bond.
+    assert state_from_string('A_[m]--B_[n]').is_subset_of(state_from_string('A--B'))
+    assert state_from_string('A_[m]--B').is_subset_of(state_from_string('A--B'))
+    assert state_from_string('A--B_[n]').is_subset_of(state_from_string('A--B'))
+    assert state_from_string('A_[m]--B_[n]').is_subset_of(state_from_string('A_[m]--B'))
+    assert state_from_string('A_[m]--B_[n]').is_subset_of(state_from_string('A--B_[n]'))
+
+    # Sad path, superset, bond.
+    assert not state_from_string('A--B').is_subset_of(state_from_string('A_[m]--B_[n]'))
+    assert not state_from_string('A--B').is_subset_of(state_from_string('A_[m]--B'))
+    assert not state_from_string('A--B').is_subset_of(state_from_string('A--B_[n]'))
+    assert not state_from_string('A_[m]--B').is_subset_of(state_from_string('A_[m]--B_[n]'))
+    assert not state_from_string('A--B_[n]').is_subset_of(state_from_string('A_[m]--B_[n]'))
+
+    # Sad path, subset, bond.
+    assert not state_from_string('A_[m]--B_[n]').is_superset_of(state_from_string('A--B'))
+    assert not state_from_string('A_[m]--B').is_superset_of(state_from_string('A--B'))
+    assert not state_from_string('A--B_[n]').is_superset_of(state_from_string('A--B'))
+    assert not state_from_string('A_[m]--B_[n]').is_superset_of(state_from_string('A_[m]--B'))
+    assert not state_from_string('A_[m]--B_[n]').is_superset_of(state_from_string('A--B_[n]'))
 
 
 def test_fully_neutral():
