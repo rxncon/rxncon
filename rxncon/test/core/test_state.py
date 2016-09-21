@@ -14,6 +14,7 @@ def test_modification_props():
     assert elems_eq(state.components, [mol_spec_from_string('A')])
     assert state.target == mol_spec_from_string('A_[(res)]')
     assert state.is_neutral
+    assert elems_eq(state.neutral_states, [state])
 
     # Elemental state, non-neutral.
     state = state_from_string('A_[(res)]-{p}')
@@ -21,13 +22,23 @@ def test_modification_props():
     assert elems_eq(state.components, [mol_spec_from_string('A')])
     assert state.target == mol_spec_from_string('A_[(res)]')
     assert not state.is_neutral
+    assert elems_eq(state.neutral_states, [state_from_string('A_[(res)]-{0}')])
 
-    # Non-elemental state.
+    # Non-elemental state, neutral.
     state = state_from_string('A_[dom]-{0}')
     assert not state.is_elemental
     assert elems_eq(state.components, [mol_spec_from_string('A')])
     assert state.target == mol_spec_from_string('A_[dom]')
     assert state.is_neutral
+    assert elems_eq(state.neutral_states, [state])
+
+    # Non-elemental state, non-neutral.
+    state = state_from_string('A_[dom]-{p}')
+    assert not state.is_elemental
+    assert elems_eq(state.components, [mol_spec_from_string('A')])
+    assert state.target == mol_spec_from_string('A_[dom]')
+    assert not state.is_neutral
+    assert elems_eq(state.neutral_states, [state_from_string('A_[dom]-{0}')])
 
 
 def test_modification_parsing():
@@ -57,6 +68,11 @@ def test_modification_superset_subset():
     assert not state_from_string('A-{p}').is_superset_of(state_from_string('A_[dom]-{0}'))
     assert not state_from_string('A_[dom(res)]-{ub}').is_subset_of(state_from_string('A_[dom]-{p}'))
 
+
+def test_modification_structured_index():
+    state = state_from_string('A@3-{p}')
+    assert state.components[0].struct_index == 3
+
 ###                                     ###
 # Test protein-protein-interaction states #
 ###                                     ###
@@ -68,6 +84,7 @@ def test_ppi_props():
     assert elems_eq(state.components, [mol_spec_from_string('A')])
     assert state.target == mol_spec_from_string('A_[m]')
     assert state.is_neutral
+    assert elems_eq(state.neutral_states, [state])
 
     # Elemental state, bond.
     state = state_from_string('A_[m]--B_[n]')
@@ -75,6 +92,7 @@ def test_ppi_props():
     assert elems_eq(state.components, [mol_spec_from_string('A'), mol_spec_from_string('B')])
     assert state.target == bond_spec_from_string('A_[m]~B_[n]')
     assert not state.is_neutral
+    assert elems_eq(state.neutral_states, [state_from_string('A_[m]--0'), state_from_string('B_[n]--0')])
 
     # Non-elemental state, free binding domain.
     state = state_from_string('A--0')
@@ -82,6 +100,7 @@ def test_ppi_props():
     assert elems_eq(state.components, [mol_spec_from_string('A')])
     assert state.target == mol_spec_from_string('A')
     assert state.is_neutral
+    assert elems_eq(state.neutral_states, [state])
 
     # Non-elemental state, bond.
     state = state_from_string('A--B_[n]')
@@ -89,10 +108,14 @@ def test_ppi_props():
     assert elems_eq(state.components, [mol_spec_from_string('A'), mol_spec_from_string('B')])
     assert state.target == bond_spec_from_string('A~B_[n]')
     assert not state.is_neutral
+    # @todo JCR 20160920 This is not correct, the state A--0 should be replaced by the list of domains of A that
+    # @todo              can bind to B. Perhaps we should invent a new notation for this, since this property cannot
+    # @todo              be known by just looking at the state itself, but requires knowledge of the rest of the system.
+    assert elems_eq(state.neutral_states, [state_from_string('A--0'), state_from_string('B_[n]--0')])
 
 
 def test_ppi_parsing():
-    # Bonds are symmetric.
+    # @todo JCR 20160920 Bonds are symmetric. We need extra structure to allow this is the StateDef.
     # assert state_from_string('A_[x]--B_[y]') == state_from_string('B_[y]--A_[x]')
 
     # Too fine resolution (higher than elemental) raises.
@@ -138,8 +161,62 @@ def test_ppi_superset_subset():
     assert not state_from_string('A_[m]--B_[n]').is_superset_of(state_from_string('A--B_[n]'))
 
 
+def test_ppi_structured_index():
+    state = state_from_string('X@4--Z@3')
+    assert elems_eq([(spec.component_name, spec.struct_index) for spec in state.mol_specs], [('X', 4), ('Z', 3)])
+
+###                          ###
+# Test self-interaction states #
+###                          ###
+
+def test_ipi_props():
+    # NOTE : States with free binding domain are the same states as tested in 'test_ppi_props', tested there.
+
+    # Elemental state, bond.
+    state = state_from_string('A_[m]--[n]')
+    assert state.is_elemental
+    assert elems_eq(state.components, [mol_spec_from_string('A')])
+    assert state.target == bond_spec_from_string('A_[m]~A_[n]')
+    assert not state.is_neutral
+    assert elems_eq(state.neutral_states, [state_from_string('A_[m]--0'), state_from_string('A_[n]--0')])
+
+    # Non-elemental state, bond.
+    state = state_from_string('A--A_[n]')
+    assert not state.is_elemental
+    assert elems_eq(state.components, [mol_spec_from_string('A')])
+    assert state.target == bond_spec_from_string('A~A_[n]')
+    assert not state.is_neutral
+    # @todo JCR 20160920 This is not correct, the state A--0 should be replaced by the list of domains of A that
+    # @todo              can bind to B. Perhaps we should invent a new notation for this, since this property cannot
+    # @todo              be known by just looking at the state itself, but requires knowledge of the rest of the system.
+    # @todo              Furthermore, the state A--0 is a superset of the other one, so it should not appear independently.
+    assert elems_eq(state.neutral_states, [state_from_string('A--0'), state_from_string('A_[n]--0')])
+
+
+def test_ipi_parsing():
+    # @todo JCR 20160920 Bonds are symmetric. We need extra structure to capture this is the StateDef.
+    # assert state_from_string('A_[x]--B_[y]') == state_from_string('B_[y]--A_[x]')
+
+    # Too fine resolution (higher than elemental) raises.
+    with pytest.raises(SyntaxError):
+        state_from_string('A_[(x)]--[(y)]')
+
+
+def test_ipi_superset_subset():
+    # NOTE : States with free binding domain are the same states as tested in 'test_ppi_superset_subset', tested there.
+
+    # @todo JCR 20160920 There is a problem here: the StateDef requires the second variable in the State string to be
+    # @todo              a Locus (i.e. '[n]') and not a full Spec (i.e. 'A_[n]').
+    pass
+
+
+###                      ###
+# Test Fully Neutral state #
+###                      ###
+
 def test_fully_neutral():
     assert state_from_string('0') == FullyNeutralState()
+
 
 
 # @pytest.fixture

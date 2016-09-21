@@ -57,17 +57,3 @@ def test_ppi_with_cont():
                     [[state_from_string('A_[n]--0'), state_from_string('A_[n]--B_[m]')],
                      [state_from_string('A_[(x)]-{0}'), state_from_string('A_[(x)]-{p}')]])
 
-
-def test_trsl():
-    rxncon_sys = Quick('''A_trsl_BmRNA
-                          C_p+_B_[(r1)]
-                          D_p+_B_[(r2)]''').rxncon_system
-
-    for rxn in rxncon_sys.reactions:
-        print(rxn)
-        print(rxn.synthesised_states)
-        print(rxn.produced_states)
-        print(rxn.consumed_states)
-        print('===')
-
-

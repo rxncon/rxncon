@@ -1,10 +1,12 @@
 from rxncon.core.reaction import *
 
+
 def test_simple_reaction():
     rxn = reaction_from_string('A_p+_B_[(r)]')
 
     assert rxn.terms_rhs == [MoleculeReactionTerm(mol_spec_from_string('A'), [], []),
                              MoleculeReactionTerm(mol_spec_from_string('B'), [state_from_string('B_[(r)]-{p}')], [])]
+
 
 def test_ppi_reaction():
     rxn = reaction_from_string('A_[x]_ppi_B_[y]')

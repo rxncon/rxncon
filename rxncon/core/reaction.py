@@ -236,6 +236,16 @@ REACTION_DEFS = [
     ),
     ReactionDef(
         STATE_DEFS,
+        'ubiquitination',
+        '$x_ub+_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$x# + $y#$y-{0} -> $x# + $y#$y-{ub}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
         'phosphotransfer',
         '$x_pt_$y',
         {

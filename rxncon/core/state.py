@@ -74,29 +74,15 @@ class StateDef:
 
     @typecheck
     def target_from_variables(self, variables: Dict[str, Any]) -> Spec:
-        target_str = self.target_spec_def
-        for var_symbol, value in variables.items():
-            for method in members(value):
-                symbol_with_method = '{0}.{1}'.format(var_symbol, method)
-                if symbol_with_method in target_str:
-                    target_str = target_str.replace(symbol_with_method, str(getattr(value, method)()))
-
-            if var_symbol in target_str:
-                target_str = target_str.replace(var_symbol, str(value))
-
-        return spec_from_string(target_str)
+        return spec_from_string(self._fill_vals_into_vars(self.target_spec_def, variables))
 
     @typecheck
     def neutral_states_from_variables(self, variables: Dict[str, Any]) -> List['State']:
         states = []
 
         for state_def in self.neutral_states_def:
-            state_str = state_def
-            for var, val in variables.items():
-                state_str = state_str.replace(var, str(val))
-
             try:
-                the_state = state_from_string(state_str)
+                the_state = state_from_string(self._fill_vals_into_vars(state_def, variables))
             except SyntaxError:
                 the_state = None
 
@@ -115,11 +101,25 @@ class StateDef:
                 if val.resolution > self.variables_def[var][1]:
                     raise SyntaxError('Resolution too high.')
 
+
     def _to_base_regex(self) -> str:
         return '^{}$'.format(self.repr_def
                              .replace('+', '\+')
                              .replace('[', '\[')
                              .replace(']', '\]'))
+
+    @typecheck
+    def _fill_vals_into_vars(self, str_with_vars: str, variables: Dict[str, Any]) -> str:
+        for var, val in variables.items():
+            for method in members(val):
+                symbol_with_method = '{0}.{1}'.format(var, method)
+                if symbol_with_method in str_with_vars:
+                    str_with_vars = str_with_vars.replace(symbol_with_method, str(getattr(val, method)()))
+
+            if var in str_with_vars:
+                str_with_vars = str_with_vars.replace(var, str(val))
+
+        return str_with_vars
 
     def _to_matching_regex(self) -> str:
         regex = self._to_base_regex()
@@ -147,7 +147,7 @@ STATE_DEFS = [
             '$y': [Locus, LocusResolution.domain]
         },
         '$x~$x.to_component_spec_[$y]',
-        ['$x--0', '$y--0']
+        ['$x--0', '$x.to_component_spec_[$y]--0']
     ),
     StateDef(
         'input-state',
