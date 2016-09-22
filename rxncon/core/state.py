@@ -29,7 +29,10 @@ class StateDef:
             name, repr_def, variables_def, target_spec_def, neutral_states_def
 
     def __str__(self) -> str:
-        return 'StateDef: name={0}, representation_def={1}'.format(self.name, self.repr_def)
+        return 'StateDef<{0}>'.format(self.name)
+
+    def __repr__(self) -> str:
+        return str(self)
 
     @typecheck
     def matches_repr(self, repr: str) -> bool:

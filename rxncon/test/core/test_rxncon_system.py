@@ -51,15 +51,15 @@ def test_translation():
         assert elems_eq(rxn.produced_states, expected_rxns[str(rxn)].produced_states)
         assert elems_eq(rxn.consumed_states, expected_rxns[str(rxn)].consumed_states)
 
-    assert rxncon_sys.states_for_component_grouped(mol_spec_from_string('A')) == []
-    assert rxncon_sys.states_for_component_grouped(mol_spec_from_string('C')) == []
-    assert rxncon_sys.states_for_component_grouped(mol_spec_from_string('E')) == []
-    assert elems_eq(rxncon_sys.states_for_component_grouped(mol_spec_from_string('B')), [
+    assert rxncon_sys.states_for_component_grouped(mol_spec_from_string('A')) == {}
+    assert rxncon_sys.states_for_component_grouped(mol_spec_from_string('C')) == {}
+    assert rxncon_sys.states_for_component_grouped(mol_spec_from_string('E')) == {}
+    assert elems_eq(rxncon_sys.states_for_component_grouped(mol_spec_from_string('B')).values(), [
         [state_from_string('B_[y]--0'), state_from_string('D_[x]--B_[y]')],
         [state_from_string('B_[(r1)]-{0}'), state_from_string('B_[(r1)]-{p}'), state_from_string('B_[(r1)]-{ub}')],
         [state_from_string('B_[(r2)]-{0}'), state_from_string('B_[(r2)]-{p}')]
     ])
-    assert elems_eq(rxncon_sys.states_for_component_grouped(mol_spec_from_string('D')), [
+    assert elems_eq(rxncon_sys.states_for_component_grouped(mol_spec_from_string('D')).values(), [
         [state_from_string('D_[x]--0'), state_from_string('D_[x]--B_[y]')]
     ])
 

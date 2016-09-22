@@ -1,10 +1,10 @@
-from typing import List, FrozenSet
+from typing import List, Dict, Tuple
 from typecheck import typecheck
 from collections import defaultdict
 
 from rxncon.core.contingency import ContingencyType, Contingency
 from rxncon.core.reaction import Reaction, ReactionTerm, MoleculeReactionTerm
-from rxncon.core.state import State
+from rxncon.core.state import State, StateDef
 from rxncon.core.spec import MolSpec, BondSpec
 
 
@@ -69,7 +69,7 @@ class RxnConSystem:
         return [x for x in self.states if component in x.components]
 
     @typecheck
-    def states_for_component_grouped(self, component: MolSpec) -> List[List[State]]:
+    def states_for_component_grouped(self, component: MolSpec) -> Dict[Tuple[MolSpec, StateDef], List[State]]:
         states = self.states_for_component(component)
         grouped = defaultdict(list)
 
@@ -85,7 +85,7 @@ class RxnConSystem:
             else:
                 raise Exception('State target is neither MolSpec nor BondSpec')
 
-        return list(grouped.values())
+        return grouped
 
     def _expand_fully_neutral_states(self):
         for reaction in self.reactions:

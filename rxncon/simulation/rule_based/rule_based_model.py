@@ -1,13 +1,13 @@
-from typing import Set, Optional
+from typing import List, Optional
 from typecheck import typecheck
 
-from rxncon.semantics.molecule import MoleculeDefinition, Molecule
+from rxncon.semantics.molecule import MolDef, Molecule
 from rxncon.semantics.rule import Rule
 
 class RuleBasedModel:
     @typecheck
-    def __init__(self, molecule_defs: Set[MoleculeDefinition], rules: Set['Rule'],
-                 parameters: Set['Parameter'], initial_conditions: Set['InitialCondition']):
+    def __init__(self, molecule_defs: List[MolDef], rules: List['Rule'],
+                 parameters: List['Parameter'], initial_conditions: List['InitialCondition']):
         self.mol_defs = molecule_defs
         self.rules = rules
         self.parameters = parameters
