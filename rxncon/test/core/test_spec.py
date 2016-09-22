@@ -75,3 +75,13 @@ def test_super_sub():
 
     assert mol_spec_from_string('A_[dom]').is_subspec_of(mol_spec_from_string('A'))
     assert not mol_spec_from_string('A').is_subspec_of(mol_spec_from_string('A_[dom]'))
+
+
+def test_equality():
+    non_struct = mol_spec_from_string('A_[d/s(r)]')
+    struct     = mol_spec_from_string('A@5_[d/s(r)]')
+
+    assert struct.is_non_struct_equiv_to(non_struct)
+    assert non_struct.is_non_struct_equiv_to(struct)
+    assert not struct == non_struct
+    assert not non_struct == struct

@@ -36,7 +36,7 @@ class RxnConSystem:
     def produced_states(self) -> List[State]:
         states = []
         for reaction in self.reactions:
-            states += reaction.produced_states
+            states += [state.to_non_struct_state() for state in reaction.produced_states]
 
         return list(set(states))
 
@@ -45,7 +45,7 @@ class RxnConSystem:
     def consumed_states(self) -> List[State]:
         states = []
         for reaction in self.reactions:
-            states += reaction.consumed_states
+            states += [state.to_non_struct_state() for state in reaction.consumed_states]
 
         return list(set(states))
 
@@ -54,7 +54,7 @@ class RxnConSystem:
     def synthesised_states(self) -> List[State]:
         states = []
         for reaction in self.reactions:
-            states += reaction.synthesised_states
+            states += [state.to_non_struct_state() for state in reaction.synthesised_states]
 
         return list(set(states))
 
@@ -100,7 +100,7 @@ class RxnConSystem:
     def _assert_consistency(self):
         required_states = []
         for contingency in self.contingencies:
-            required_states += contingency.effector.states
+            required_states += [state.to_non_struct_state() for state in contingency.effector.states]
 
         for state in required_states:
             assert state in self.states, \

@@ -3,6 +3,7 @@ from enum import unique
 from collections import OrderedDict
 from typing import List, Dict, Optional, Any
 from typecheck import typecheck
+from copy import deepcopy
 
 from rxncon.util.utils import OrderedEnum, members
 from rxncon.core.spec import Spec, MolSpec, EmptyMolSpec, Locus, LocusResolution, locus_from_string, mol_spec_from_string, spec_from_string
@@ -199,6 +200,15 @@ class State:
     def __lt__(self, other: 'State'):
         return str(self) < str(other)
 
+    @typecheck
+    def to_non_struct_state(self) -> 'State':
+        non_struct_vars = deepcopy(self.variables)
+        for k, v in non_struct_vars.items():
+            if isinstance(v, MolSpec):
+                non_struct_vars[k] = v.to_non_struct_spec()
+
+        return State(self.definition, non_struct_vars)
+
     @property
     @typecheck
     def target(self) -> Spec:
@@ -271,6 +281,9 @@ class FullyNeutralState(State):
 
     def __eq__(self, other: 'State') -> bool:
         return isinstance(other, FullyNeutralState)
+
+    def to_non_struct_state(self):
+        return self
 
     def is_subset_of(self, other: 'State') -> bool:
         raise AssertionError

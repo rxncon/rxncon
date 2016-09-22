@@ -1,4 +1,6 @@
 from typing import List, Dict, Tuple
+from collections import defaultdict
+from typecheck import typecheck
 
 from rxncon.core.spec import MolSpec, LocusResolution
 from rxncon.core.state import State, StateDef
@@ -11,24 +13,61 @@ class MutualExclusivityError(Exception):
 
 
 class MolDef:
-    def __init__(self, spec: MolSpec, grouped_states: Dict[Tuple[MolSpec, StateDef], List[State]]):
-        assert spec.has_resolution(LocusResolution.component)
-        self.spec = spec
-        self.grouped_states = grouped_states
+    @typecheck
+    def __init__(self, component: MolSpec, valid_states: Dict[Tuple[MolSpec, StateDef], List[State]]):
+        assert component.has_resolution(LocusResolution.component)
+        assert not component.struct_index
+
+        self.valid_states = valid_states
+        self._valid_states_nested = defaultdict(dict)
+        for (spec, state_def), states in self.valid_states.items():
+            self._valid_states_nested[spec][state_def] = states
+
         self._validate()
 
     def __str__(self) -> str:
-        return 'MolDef<{0}>, states: <{1}>'.format(str(self.spec), self.grouped_states)
+        return 'MolDef<{0}>, states: <{1}>'.format(str(self.component), self.valid_states)
 
     def __repr__(self) -> str:
         return str(self)
 
+    @typecheck
+    def valid_states_by_spec(self, spec: MolSpec) -> Dict[StateDef, List[State]]:
+        return self._valid_states_nested[spec]
+
     def _validate(self):
-        for (spec, state_def), states in self.grouped_states.items():
+        for (spec, state_def), states in self.valid_states.items():
             assert all(spec in state.mol_specs for state in states)
             assert all_eq([state_def] + [state.definition for state in states])
+            assert not spec.struct_index
+            assert not any(mol_spec.struct_index for state in states for mol_spec in state.mol_specs)
 
 
+class Mol:
+    @typecheck
+    def __init__(self, mol_def: MolDef, states: Dict[Tuple[MolSpec, StateDef], State]):
+        self.mol_def      = mol_def
+        self.states       = states
+        self.struct_index = None
 
+        self._determine_struct_index()
+        self._validate()
+
+    def _determine_struct_index(self):
+        pass
+
+    def _validate(self):
+        for (spec, state_def), state in self.states:
+            assert state in self.mol_def.valid_states[(spec, state_def)]
+
+
+@typecheck
 def mol_def_for_component(rxncon_sys: RxnConSystem, component: MolSpec) -> MolDef:
     return MolDef(component, rxncon_sys.states_for_component_grouped(component))
+
+
+# class Complex:
+#     def __init__(self, mols: List[Mol], ):
+
+
+

@@ -45,7 +45,7 @@ class MolSpec(Spec, metaclass=ABCMeta):
 
     @typecheck
     def __eq__(self, other: Spec) -> bool:
-        return isinstance(other, MolSpec) and self.component_name == other.component_name and self.locus == other.locus \
+        return isinstance(other, type(self)) and self.component_name == other.component_name and self.locus == other.locus \
             and self.struct_index == other.struct_index
 
     @typecheck
@@ -63,18 +63,16 @@ class MolSpec(Spec, metaclass=ABCMeta):
         assert self.component_name is not None and re.match('\w+', self.component_name)
 
     @typecheck
-    def is_equivalent_to(self, other: 'MolSpec') -> bool:
-        if self == other:
-            return True
-        elif type(self) == type(other) and self.locus.residue and other.locus.residue:
-            return self.component_name == other.component_name and self.locus.residue == other.locus.residue and \
-                self.struct_index == other.struct_index
-        else:
-            return False
+    def is_non_struct_equiv_to(self, other: Spec) -> bool:
+        return isinstance(other, type(self)) and self.to_non_struct_spec() == other.to_non_struct_spec()
+
+    @typecheck
+    def to_non_struct_spec(self):
+        return type(self)(self.component_name, None, self.locus)
 
     @typecheck
     def is_subspec_of(self, other: 'MolSpec') -> bool:
-        if self.is_equivalent_to(other):
+        if self == other:
             return True
 
         spec_pairs = zip([self.component_name, self.locus.domain, self.locus.subdomain, self.locus.residue],
@@ -83,7 +81,6 @@ class MolSpec(Spec, metaclass=ABCMeta):
         for my_property, other_property in spec_pairs:
             if my_property and other_property and my_property != other_property:
                 return False
-
             elif not my_property and other_property:
                 return False
 
@@ -91,7 +88,7 @@ class MolSpec(Spec, metaclass=ABCMeta):
 
     @typecheck
     def is_superspec_of(self, other: 'MolSpec') -> bool:
-        if self.is_equivalent_to(other):
+        if self == other:
             return True
 
         return other.is_subspec_of(self)
@@ -107,15 +104,15 @@ class MolSpec(Spec, metaclass=ABCMeta):
 
     @typecheck
     def to_protein_component_spec(self) -> 'ProteinSpec':
-        return ProteinSpec(self.component_name, self.struct_index, EmptyLocus())
+        return ProteinSpec(self.component_name, None, EmptyLocus())
 
     @typecheck
     def to_dna_component_spec(self) -> 'DNASpec':
-        return DNASpec(self.component_name, self.struct_index, EmptyLocus())
+        return DNASpec(self.component_name, None, EmptyLocus())
 
     @typecheck
     def to_mrna_component_spec(self) -> 'MRNASpec':
-        return MRNASpec(self.component_name, self.struct_index, EmptyLocus())
+        return MRNASpec(self.component_name, None, EmptyLocus())
 
     @property
     @typecheck
@@ -128,7 +125,7 @@ class MolSpec(Spec, metaclass=ABCMeta):
 
 
 class EmptyMolSpec(MolSpec):
-    def __init__(self):
+    def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus'):
         super().__init__(EMPTY_MOL_SPEC, None, EmptyLocus())
 
     def _validate(self):
@@ -170,11 +167,6 @@ class ProteinSpec(MolSpec):
         return hash(str(self))
 
     @typecheck
-    def __eq__(self, other: Spec) -> bool:
-        return isinstance(other, ProteinSpec) and self.component_name == other.component_name \
-            and self.locus == other.locus and self.struct_index == other.struct_index
-
-    @typecheck
     def __lt__(self, other: MolSpec) -> bool:
         if isinstance(other, ProteinSpec):
             return super().__lt__(other)
@@ -193,11 +185,6 @@ class MRNASpec(MolSpec):
         return hash(str(self))
 
     @typecheck
-    def __eq__(self, other: Spec) -> bool:
-        return isinstance(other, MRNASpec) and self.component_name == other.component_name \
-            and self.locus == other.locus and self.struct_index == other.struct_index
-
-    @typecheck
     def __lt__(self, other: MolSpec) -> bool:
         if isinstance(other, MRNASpec):
             return super().__lt__(other)
@@ -214,11 +201,6 @@ class MRNASpec(MolSpec):
 class DNASpec(MolSpec):
     def __hash__(self) -> int:
         return hash(str(self))
-
-    @typecheck
-    def __eq__(self, other: Spec) -> bool:
-        return isinstance(other, DNASpec) and self.component_name == other.component_name \
-            and self.locus == other.locus and self.struct_index == other.struct_index
 
     @typecheck
     def __lt__(self, other: MolSpec):
@@ -407,6 +389,10 @@ class BondSpec(Spec):
     def __repr__(self) -> str:
         return str(self)
 
+    @typecheck
+    def is_non_struct_equiv_to(self, other: Spec) -> bool:
+        return isinstance(other, BondSpec) and self.first.is_non_struct_equiv_to(other.first) and \
+            self.second.is_non_struct_equiv_to(other.second)
 
 @typecheck
 def mol_spec_from_string(spec_str: str) -> MolSpec:
@@ -428,7 +414,7 @@ def mol_spec_from_string(spec_str: str) -> MolSpec:
     if items[0].startswith(EMPTY_MOL_SPEC):
         if items[0] != EMPTY_MOL_SPEC:
             raise SyntaxError('Only the EmptySpec can start with {}'.format(EMPTY_MOL_SPEC))
-        return EmptyMolSpec()
+        return EmptyMolSpec(EMPTY_MOL_SPEC, None, EmptyLocus())
     elif STRUCT_DELIMITER in items[0]:
         name, struct_index = items[0].split(STRUCT_DELIMITER)
         struct_index = int(struct_index)
