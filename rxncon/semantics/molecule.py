@@ -1,6 +1,7 @@
 from typing import List, Dict, Tuple
 from collections import defaultdict
 from typecheck import typecheck
+from copy import deepcopy
 
 from rxncon.core.spec import MolSpec, LocusResolution
 from rxncon.core.state import State, StateDef
@@ -9,6 +10,14 @@ from rxncon.util.utils import all_eq
 
 
 class MutualExclusivityError(Exception):
+    pass
+
+
+class InconsistentStructureError(Exception):
+    pass
+
+
+class InsufficientStructureError(Exception):
     pass
 
 
@@ -27,7 +36,7 @@ class MolDef:
         self._validate()
 
     def __str__(self) -> str:
-        return 'MolDef<{0}>, states: <{1}>'.format(str(self.component), self.valid_states)
+        return 'MolDef<{0}>, valid_states: <{1}>'.format(str(self.component), self.valid_states)
 
     def __repr__(self) -> str:
         return str(self)
@@ -47,38 +56,53 @@ class MolDef:
 class Mol:
     @typecheck
     def __init__(self, mol_def: MolDef, states: Dict[Tuple[MolSpec, StateDef], State]):
-        self.mol_def      = mol_def
-        self.states       = states
-        self.struct_index = None
+        self.mol_def   = mol_def
+        self.states    = states
+        self.component = deepcopy(mol_def.component)
+        self._mutation_post_process()
 
+    def __str__(self):
+        return 'Mol<{0}>, states: <{1}>'.format(str(self.mol_def.component), str(self.states))
+
+    def __repr__(self):
+        return str(self)
+
+    def add_state(self, mol_spec: MolSpec, state: State):
+        assert not mol_spec.struct_index
+
+        if (mol_spec, state.definition) in self.states.keys():
+            raise MutualExclusivityError
+
+        self.states[(mol_spec, state.definition)] = state
+        self._mutation_post_process()
+
+    def _mutation_post_process(self):
         self._determine_struct_index()
         self._validate()
 
-    @property
-    def component(self) -> MolSpec:
-        return self.mol_def.component
-
     def _determine_struct_index(self):
-        possible_indices = {'all'}
+        UNIVERSAL_SET = {'all'}
+
+        possible_indices = UNIVERSAL_SET
 
         for state in self.states.values():
             indices = {component.struct_index for component in state.components if component.is_non_struct_equiv_to(self.component)
                        and component.struct_index is not None}
 
-            if indices and possible_indices == {'all'}:
+            if indices and possible_indices == UNIVERSAL_SET:
                 possible_indices = set(indices)
             elif indices:
                 possible_indices = possible_indices & indices
 
         if possible_indices == set():
-            raise Exception('Inconsistent structure indices on Mol {}'.format(str(self)))
+            raise InconsistentStructureError('Inconsistent structure annotation on Mol {}'.format(str(self)))
         elif len(possible_indices) > 1:
-            raise Exception('Insufficient structure annotation on Mol {}'.format(str(self)))
-        elif len(possible_indices) == 1:
-            self.struct_index = list(possible_indices)[0]
+            raise InsufficientStructureError('Insufficient structure annotation on Mol {}'.format(str(self)))
+        elif possible_indices != UNIVERSAL_SET and len(possible_indices) == 1:
+            self.component.struct_index = list(possible_indices)[0]
 
     def _validate(self):
-        for (spec, state_def), state in self.states:
+        for (spec, state_def), state in self.states.items():
             assert state.to_non_struct_state() in self.mol_def.valid_states[(spec, state_def)]
 
 
