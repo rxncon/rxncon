@@ -18,6 +18,7 @@ class MolDef:
         assert component.has_resolution(LocusResolution.component)
         assert not component.struct_index
 
+        self.component    = component
         self.valid_states = valid_states
         self._valid_states_nested = defaultdict(dict)
         for (spec, state_def), states in self.valid_states.items():
@@ -40,7 +41,7 @@ class MolDef:
             assert all(spec in state.mol_specs for state in states)
             assert all_eq([state_def] + [state.definition for state in states])
             assert not spec.struct_index
-            assert not any(mol_spec.struct_index for state in states for mol_spec in state.mol_specs)
+            assert not any(state.is_struct_state for state in states)
 
 
 class Mol:
@@ -53,12 +54,32 @@ class Mol:
         self._determine_struct_index()
         self._validate()
 
+    @property
+    def component(self) -> MolSpec:
+        return self.mol_def.component
+
     def _determine_struct_index(self):
-        pass
+        possible_indices = {'all'}
+
+        for state in self.states.values():
+            indices = {component.struct_index for component in state.components if component.is_non_struct_equiv_to(self.component)
+                       and component.struct_index is not None}
+
+            if indices and possible_indices == {'all'}:
+                possible_indices = set(indices)
+            elif indices:
+                possible_indices = possible_indices & indices
+
+        if possible_indices == set():
+            raise Exception('Inconsistent structure indices on Mol {}'.format(str(self)))
+        elif len(possible_indices) > 1:
+            raise Exception('Insufficient structure annotation on Mol {}'.format(str(self)))
+        elif len(possible_indices) == 1:
+            self.struct_index = list(possible_indices)[0]
 
     def _validate(self):
         for (spec, state_def), state in self.states:
-            assert state in self.mol_def.valid_states[(spec, state_def)]
+            assert state.to_non_struct_state() in self.mol_def.valid_states[(spec, state_def)]
 
 
 @typecheck
@@ -68,6 +89,6 @@ def mol_def_for_component(rxncon_sys: RxnConSystem, component: MolSpec) -> MolDe
 
 # class Complex:
 #     def __init__(self, mols: List[Mol], ):
-
+#
 
 

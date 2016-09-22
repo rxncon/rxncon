@@ -10,7 +10,7 @@ ReactionTestCase = namedtuple('ReactionTestCase', ['synthesised_states', 'produc
 def test_translation():
     rxncon_sys = Quick('''A_trsl_BmRNA
                           C_p+_B_[(r1)]
-                          D_p+_B_[(r2)] ; ! B_[(r1)]-{p}
+                          D_p+_B_[(r2)] ; ! B@1_[(r1)]-{p}
                           D_[x]_ppi_B_[y]
                           E_ub+_B_[(r1)]''').rxncon_system
 

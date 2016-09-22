@@ -211,6 +211,11 @@ class State:
 
     @property
     @typecheck
+    def is_struct_state(self) -> bool:
+        return any(mol_spec.struct_index for mol_spec in self.mol_specs)
+
+    @property
+    @typecheck
     def target(self) -> Spec:
         return self.definition.target_from_variables(self.variables)
 
@@ -284,6 +289,10 @@ class FullyNeutralState(State):
 
     def to_non_struct_state(self):
         return self
+
+    @property
+    def is_struct_state(self) -> bool:
+        return False
 
     def is_subset_of(self, other: 'State') -> bool:
         raise AssertionError
