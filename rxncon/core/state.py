@@ -336,8 +336,6 @@ def state_from_string(repr: str) -> State:
         raise SyntaxError('Could not match State {} with definition'.format(repr))
 
     variables = state_def.variables_from_repr(repr)
-    # variables = state_def.order_variables(variables)
-
     state_def.validate_variables(variables)
 
     return State(state_def, variables)

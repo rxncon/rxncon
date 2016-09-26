@@ -17,6 +17,16 @@ class RxnConSystem:
         self._expand_fully_neutral_states()
         self._assert_consistency()
 
+    @property
+    @typecheck
+    def components(self) -> List[MolSpec]:
+        components = []
+        for reaction in self.reactions:
+            components += [spec.to_non_struct_spec() for spec in reaction.components_lhs] + \
+                          [spec.to_non_struct_spec() for spec in reaction.components_rhs]
+
+        return list(set(components))
+
     @typecheck
     def contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
         return [x for x in self.contingencies if x.target == reaction]
