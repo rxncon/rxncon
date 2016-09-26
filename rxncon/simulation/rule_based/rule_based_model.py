@@ -246,18 +246,34 @@ class RuleBuilder:
         finished_contexts = []
 
         while overlapping_contexts:
-            current_context  = overlapping_contexts.pop()
-            disjunct_context = _make_disjunct(current_context, finished_contexts)
+            # Each of these 'overlapping' contexts originates straight from the contingencies. Therefore these
+            # must always be connected to the reactants. The problem with non-connectedness arises when we make them disjunct.
+            current_context   = overlapping_contexts.pop()
+            disjunct_contexts = self._make_disjunct(current_context, finished_contexts)
 
-            if not _connected(disjunct_context, lhs_center):
-                # If we fail, try again later.
-                overlapping_contexts.insert(0, current_context)
-            else:
-                rules.append(Rule(_make_complexes(lhs_center, disjunct_context),
-                                  _make_complexes(rhs_center, disjunct_context),
-                                  _arrow_for_reaction(reaction),
-                                  _rates_for_reaction(reaction)))
+            while disjunct_contexts:
+                disjunct_context = disjunct_contexts.pop()
+                if not self._connected(disjunct_context, lhs_center):
+                    # If we fail, try again later.
+                    disjunct_contexts.insert(0, disjunct_context)
+                else:
+                    finished_contexts.append(disjunct_context)
+                    rules.append(Rule(self._make_complexes(lhs_center, disjunct_context),
+                                      self._make_complexes(rhs_center, disjunct_context),
+                                      self._arrow_for_reaction(reaction),
+                                      self._rates_for_reaction(reaction)))
 
+        return rules
+
+    @typecheck
+    def _make_disjunct(self, context: Set, finished_contexts: List[Set]) -> List[Set]:
+        disjunct_contexts = []
+
+        for s in Intersection(context, Complement(MultiUnion(*finished_contexts))).to_intersection_terms():
+            no_complements     = self._expand_complements(s)
+            disjunct_contexts += no_complements.to_intersection_terms()
+
+        return disjunct_contexts
 
     def _determine_mol_defs(self):
         for component in self.rxncon_sys.components:
