@@ -41,32 +41,62 @@ class RxnConSystem:
         return [x for x in self.contingencies if x.target == reaction and x.type
                 in [ContingencyType.requirement, ContingencyType.inhibition]]
 
-    @property
+
     @typecheck
-    def produced_states(self) -> List[State]:
+    def _produced_states(self):
         states = []
         for reaction in self.reactions:
             states += [state.to_non_struct_state() for state in reaction.produced_states]
 
-        return list(set(states))
+        self.produced_states = list(set(states))
 
     @property
     @typecheck
-    def consumed_states(self) -> List[State]:
+    def produced_states(self) -> List[State]:
+        return self.__produced_states
+
+    @produced_states.setter
+    @typecheck
+    def produced_states(self, states: List[State]):
+        self.__produced_states = states
+
+
+    @typecheck
+    def _consumed_states(self):
         states = []
         for reaction in self.reactions:
             states += [state.to_non_struct_state() for state in reaction.consumed_states]
 
-        return list(set(states))
+        self.consumed_states = list(set(states))
 
     @property
     @typecheck
-    def synthesised_states(self) -> List[State]:
+    def consumed_states(self) -> List[State]:
+        return self.__consumed_states
+
+    @consumed_states.setter
+    @typecheck
+    def consumed_states(self, states: List[State]):
+        self.__consumed_states = states
+
+
+    @typecheck
+    def _synthesised_states(self):
         states = []
         for reaction in self.reactions:
             states += [state.to_non_struct_state() for state in reaction.synthesised_states]
 
-        return list(set(states))
+        self.synthesised_states = list(set(states))
+
+    @property
+    @typecheck
+    def synthesised_states(self) -> List[State]:
+        return self.__synthesised_states
+
+    @synthesised_states.setter
+    @typecheck
+    def synthesised_states(self, states: List[State]):
+        self.__synthesised_states = states
 
     @property
     @typecheck
@@ -98,6 +128,9 @@ class RxnConSystem:
         return grouped
 
     def _expand_fully_neutral_states(self):
+        self._produced_states()
+        self._consumed_states()
+        self._synthesised_states()
         for reaction in self.reactions:
             self._expand_reaction_terms(reaction.terms_lhs)
             self._expand_reaction_terms(reaction.terms_rhs)

@@ -52,7 +52,7 @@ class MolSpec(Spec, metaclass=ABCMeta):
     def __lt__(self, other: 'MolSpec') -> bool:
         if self.component_name < other.component_name:
             return True
-        elif self.component_name == other.component_name and self.locus == other.locus:
+        elif self.struct_index is not None and self.component_name == other.component_name and self.locus == other.locus:
             return self.struct_index < other.struct_index
         elif self.component_name == other.component_name:
             return self.locus < other.locus

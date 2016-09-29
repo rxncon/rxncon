@@ -53,6 +53,12 @@ class ContingencyListEntry:
     def __eq__(self, other: 'ContingencyListEntry') -> bool:
         return self.subject == other.subject and self.predicate == other.predicate and self.agent == other.agent
 
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return "ContingencyListEntry<{}>".format(self.agent)
+
     @property
     def is_boolean_entry(self) -> bool:
         return isinstance(self.subject, BooleanContingencyName)
@@ -114,6 +120,9 @@ class _BooleanContingencyEffector(Effector):
     @typecheck
     def __eq__(self, other: Effector) -> bool:
         return isinstance(other, _BooleanContingencyEffector) and self.expr == other.expr
+
+    def states(self):
+        return [self.expr]
 
 
 def _dereference_boolean_contingency_effectors(self: Effector, lookup_table: Dict[BooleanContingencyName, Effector]):

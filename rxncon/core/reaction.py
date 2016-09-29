@@ -246,6 +246,16 @@ REACTION_DEFS = [
     ),
     ReactionDef(
         STATE_DEFS,
+        'auto-phosphorylation',
+        '$x_ap+_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{0} -> $y#$y-{p}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
         'ubiquitination',
         '$x_ub+_$y',
         {
@@ -276,11 +286,31 @@ REACTION_DEFS = [
     ),
     ReactionDef(
         STATE_DEFS,
-        'de-protein-protein-interaction',
+        'protein-protein-dissociation',
         '$x_ppi-_$y',
         {
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (ProteinSpec, LocusResolution.domain)
+        },
+        '$x#$x~$y + $y#$x~$y + $x~$y#$x--$y -> $x#$x--0 + $y#$y--0'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'interaction',
+        '$x_i+_$y',
+        {
+            '$x': (MolSpec, LocusResolution.domain),
+            '$y': (MolSpec, LocusResolution.domain)
+        },
+        '$x#$x--0 + $y#$y--0 -> $x#$x~$y + $y#$x~$y + $x~$y#$x--$y'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'dissociation',
+        '$x_i-_$y',
+        {
+            '$x': (MolSpec, LocusResolution.domain),
+            '$y': (MolSpec, LocusResolution.domain)
         },
         '$x#$x~$y + $y#$x~$y + $x~$y#$x--$y -> $x#$x--0 + $y#$y--0'
     ),
