@@ -61,8 +61,8 @@ class ReactionTarget(Target):
         self.reaction_parent     = reaction_parent
         self.produced_targets    = [StateTarget(x) for x in reaction_parent.produced_states]
         self.consumed_targets    = [StateTarget(x) for x in reaction_parent.consumed_states]
-        self.synthesised_targets = [StateTarget(x) for x in reaction_parent.synthesised_states]
-        self.degraded_targets    = [StateTarget(x) for x in reaction_parent.degraded_states]
+        self.synthesised_targets = [StateTarget(x) for x in reaction_parent.synthesised_states] + [ComponentStateTarget(x) for x in reaction_parent.synthesised_components]
+        self.degraded_targets    = [StateTarget(x) for x in reaction_parent.degraded_states] + [ComponentStateTarget(x) for x in reaction_parent.degraded_components]
 
     @typecheck
     def __hash__(self) -> int:
@@ -103,16 +103,16 @@ class ReactionTarget(Target):
 
 class StateTarget(Target):
     @typecheck
+    def __init__(self, state_parent: State):
+        self._state_parent = state_parent
+
+    @typecheck
     def __hash__(self) -> int:
         return hash(str(self))
 
     @typecheck
     def __str__(self) -> str:
         return "StateTarget<{}>".format(str(self._state_parent))
-
-    @typecheck
-    def __init__(self, state_parent: State):
-        self._state_parent = state_parent
 
     @typecheck
     def __eq__(self, other: 'Target') -> bool:
@@ -144,6 +144,35 @@ class StateTarget(Target):
     def is_neutral(self) -> bool:
         return self._state_parent.is_neutral
 
+
+class ComponentStateTarget(StateTarget):
+    def __init__(self, component: MolSpec):
+        self.component = component
+
+    @typecheck
+    def __eq__(self, other: Target):
+        return isinstance(other, type(self)) and self.component == other.component
+
+    def __str__(self):
+        return "ComponentTarget<{}>".format(self.component)
+
+    def __repr__(self):
+        return str(self)
+
+    def __hash__(self):
+        return hash(str(self))
+
+    @property
+    @typecheck
+    def components(self) -> List[MolSpec]:
+        return [self.component]
+
+    @property
+    @typecheck
+    def is_neutral(self) -> bool:
+        return True
+
+
 class UpdateRule:
     @typecheck
     def __init__(self, target: Target, factor: VennSet):
@@ -164,13 +193,20 @@ class UpdateRule:
 
 
 def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
-    def component_factor(component: MolSpec) -> VennSet:
+    def naive_component_factor(component: MolSpec) -> VennSet:
         grouped_states = rxncon_sys.states_for_component_grouped(component)
         factor = UniversalSet()
         for group in grouped_states.values():
             factor = Intersection(factor, MultiUnion(*(ValueSet(StateTarget(x)) for x in group)))
 
         return factor
+
+    @typecheck
+    def component_factor(component: MolSpec) -> VennSet:
+        if component in stateless_targets.keys():
+            return ValueSet(stateless_targets[component])
+        else:
+            return naive_component_factor(component)
 
     def contingency_factor(contingency: Contingency) -> VennSet:
         def parse_effector(eff: Effector) -> VennSet:
@@ -199,18 +235,25 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
 
         return conds
 
-    reaction_targets = [ReactionTarget(x) for x in rxncon_sys.reactions]
-    state_targets    = [StateTarget(x) for x in rxncon_sys.states]
+    def stateless_component_targets(reaction_targets: List[ReactionTarget]):
+        all_components = [component for reaction_target in reaction_targets for component in reaction_target.components]
+        stateless_components = [component for component in all_components if naive_component_factor(component) == UniversalSet()]
+        return {x: ComponentStateTarget(x) for x in stateless_components}
 
-    reaction_rules = []
-    state_rules    = []
+    reaction_targets  = [ReactionTarget(x) for x in rxncon_sys.reactions]
+    stateless_targets = stateless_component_targets(reaction_targets)
+    state_targets     = [StateTarget(x) for x in rxncon_sys.states] + list(stateless_targets.values())
+
+    reaction_rules  = []
+    state_rules     = []
 
     # Factor for a reaction target is of the form:
     # components AND contingencies
     for reaction_target in reaction_targets:
         cont_fac = MultiIntersection(*(contingency_factor(x) for x in rxncon_sys.contingencies_for_reaction(reaction_target.reaction_parent)))
         comp_fac = MultiIntersection(*(component_factor(x) for x in reaction_target.components))
-        reaction_rules.append(UpdateRule(reaction_target, Intersection(cont_fac, comp_fac)))
+        reaction_rules.append(UpdateRule(reaction_target,
+                                         Intersection(cont_fac, comp_fac).to_full_simplified_form()))
 
     # Factor for a state target is of the form:
     # synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
@@ -219,19 +262,22 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
         comp_fac = MultiIntersection(*(component_factor(x) for x in state_target.components))
         degr_fac = Complement(MultiUnion(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
 
-        prod_cons_facs = []
+        prod_facs = []
+        cons_facs = []
+
         for reaction_target in reaction_targets:
             if reaction_target.produces(state_target):
                 sources = MultiIntersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
-                prod_cons_facs.append(Intersection(ValueSet(reaction_target), sources))
+                prod_facs.append(Intersection(ValueSet(reaction_target), sources))
 
             if reaction_target.consumes(state_target):
                 sources = MultiIntersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
-                prod_cons_facs.append(Intersection(ValueSet(state_target), Complement(Intersection(ValueSet(reaction_target), sources))))
+                cons_facs.append(Complement(Intersection(ValueSet(reaction_target), sources)))
 
-        prod_cons_fac = MultiUnion(*prod_cons_facs)
+        prod_cons_fac = Union(MultiUnion(*prod_facs), Intersection(ValueSet(state_target), MultiIntersection(*cons_facs)))
 
-        state_rules.append(UpdateRule(state_target, Union(synt_fac, MultiIntersection(comp_fac, degr_fac, prod_cons_fac))))
+        state_rules.append(UpdateRule(state_target,
+                                      Union(synt_fac, MultiIntersection(comp_fac, degr_fac, prod_cons_fac)).to_full_simplified_form()))
 
     return BooleanModel(reaction_rules + state_rules, initial_conditions(reaction_targets, state_targets))
 

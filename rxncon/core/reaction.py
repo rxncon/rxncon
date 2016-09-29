@@ -267,12 +267,22 @@ REACTION_DEFS = [
     ReactionDef(
         STATE_DEFS,
         'protein-protein-interaction',
-        '$x_ppi_$y',
+        '$x_ppi+_$y',
         {
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (ProteinSpec, LocusResolution.domain)
         },
-        '$x#$x--0 + $y#$y--0 <-> $x#$x~$y + $y#$x~$y + $x~$y#$x--$y'
+        '$x#$x--0 + $y#$y--0 -> $x#$x~$y + $y#$x~$y + $x~$y#$x--$y'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'de-protein-protein-interaction',
+        '$x_ppi-_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.domain),
+            '$y': (ProteinSpec, LocusResolution.domain)
+        },
+        '$x#$x~$y + $y#$x~$y + $x~$y#$x--$y -> $x#$x--0 + $y#$y--0'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -423,6 +433,16 @@ class Reaction:
                 states += term.states
 
         return states
+
+    @property
+    @typecheck
+    def degraded_components(self) -> List[MolSpec]:
+        return [component for component in self.components_lhs if component not in self.components_rhs]
+
+    @property
+    @typecheck
+    def synthesised_components(self) -> List[MolSpec]:
+        return [component for component in self.components_rhs if component not in self.components_lhs]
 
 
 @typecheck
