@@ -281,3 +281,42 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
 
     return BooleanModel(reaction_rules + state_rules, initial_conditions(reaction_targets, state_targets))
 
+
+def boolnet_str_from_boolean_model(boolean_model: BooleanModel) -> str:
+    def clean_str(the_str: str) -> str:
+        dirty_chars = {
+            '[': 'DOM',
+            ']': 'DOM',
+            '/': '',
+            '@': '',
+            '{': 'MOD',
+            '}': 'MOD',
+            ' ': '',
+            '(': 'RES',
+            ')': 'RES',
+            '<': '',
+            '>': ''
+        }
+        for dirty_char, clean_char in dirty_chars.items():
+            the_str = the_str.replace(dirty_char, clean_char)
+
+        return the_str
+
+    def str_from_factor(factor: VennSet) -> str:
+        if isinstance(factor, ValueSet):
+            return clean_str(str(factor.value))
+        elif isinstance(factor, Complement):
+            return '!({})'.format(str_from_factor(factor.expr))
+        elif isinstance(factor, Intersection):
+            return '({0} & {1})'.format(str_from_factor(factor.left_expr), str_from_factor(factor.right_expr))
+        elif isinstance(factor, Union):
+            return '({0} | {1})'.format(str_from_factor(factor.left_expr), str_from_factor(factor.right_expr))
+        else:
+            raise AssertionError
+
+    def str_from_update_rule(update_rule: UpdateRule) -> str:
+        return '{0} , {1}'.format(clean_str(str(update_rule.target)),
+                                  str_from_factor(update_rule.factor))
+
+    return 'targets, factors\n' + '\n'.join(str_from_update_rule(x) for x in boolean_model.update_rules) + '\n'
+

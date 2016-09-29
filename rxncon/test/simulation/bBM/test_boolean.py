@@ -9,7 +9,6 @@ def test_simple_system():
                                 C_p+_A_[(r)]
                                 D_p-_A_[(r)]""")
     boolmodel = bm.boolean_model_from_rxncon(rxncon_sys.rxncon_system)
-    for rule in boolmodel.update_rules:
-        print(rule)
-    boolmodel
+
+    print(bm.boolnet_str_from_boolean_model(boolmodel))
 
