@@ -29,11 +29,19 @@ class StateDef:
         self.name, self.repr_def, self.variables_def, self.target_spec_def, self.neutral_states_def = \
             name, repr_def, variables_def, target_spec_def, neutral_states_def
 
+    def __hash__(self):
+        return hash(str(self))
+
     def __str__(self) -> str:
         return 'StateDef<{0}>'.format(self.name)
 
     def __repr__(self) -> str:
         return str(self)
+
+    @typecheck
+    def __eq__(self, other: 'StateDef'):
+        return self.name == other.name and self.repr_def == other.repr_def and self.variables_def == other.variables_def \
+            and self.target_spec_def == other.target_spec_def and self.neutral_states_def == other.neutral_states_def
 
     @typecheck
     def matches_repr(self, repr: str) -> bool:
@@ -192,7 +200,7 @@ class State:
     def __str__(self) -> str:
         return self.definition.repr_from_variables(self.variables)
 
-    @typecheck
+    #@typecheck
     def __eq__(self, other: 'State') -> bool:
         return self.definition == other.definition and self.variables == other.variables
 

@@ -236,6 +236,16 @@ REACTION_DEFS = [
     ),
     ReactionDef(
         STATE_DEFS,
+        'dephosphorylation',
+        '$x_p-_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$x# + $y#$y-{p} -> $x# + $y#$y-{0}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
         'ubiquitination',
         '$x_ub+_$y',
         {
