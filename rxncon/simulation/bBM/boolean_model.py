@@ -8,6 +8,7 @@ from rxncon.core.rxncon_system import RxnConSystem
 from typecheck import typecheck
 from typing import List
 
+
 class BooleanModel:
     @typecheck
     def __init__(self, update_rules: List['UpdateRule'], initial_conditions: List['InitialCondition']):
@@ -57,6 +58,7 @@ class Target:
 class ReactionTarget(Target):
     @typecheck
     def __init__(self, reaction_parent: Reaction):
+        # maybe need to copy these objects.
         self.reaction_parent     = reaction_parent
         self.produced_targets    = [StateTarget(x) for x in reaction_parent.produced_states]
         self.consumed_targets    = [StateTarget(x) for x in reaction_parent.consumed_states]
