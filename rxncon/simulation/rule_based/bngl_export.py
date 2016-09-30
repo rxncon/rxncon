@@ -1,7 +1,8 @@
 from enum import Enum
 from typing import Tuple, List
 
-from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel, MolDef, Complex, SiteName, SiteModifier, InitialCondition
+from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel, MolDef, Complex, SiteName, SiteModifier, \
+    InitialCondition, Mol
 
 class BNGLSimulationMethods(Enum):
     ODE = 'ode'
@@ -68,11 +69,20 @@ def str_from_mol_def(mol_def: MolDef) -> str:
     return '{0}({1})'.format(mol_def.name, ','.join(site_str(x) for x in mol_def.site_defs.items()))
 
 
+def str_from_mol(mol: Mol) -> str:
+    def site_str(site: SiteName) -> str:
+        site_str = site
+        if mol.site_modifiers[site]:
+            site_str += '~{}'.format(mol.site_modifiers[site])
+        if mol.site_bonds[site]:
+
+
+
 def str_from_complex(complex: Complex) -> str:
-    pass
+    return '.'.join(str_from_mol(mol) for mol in complex.mols)
 
 
 def str_from_initial_condition(initial_condition: InitialCondition) -> str:
     value_str = initial_condition.value.name if initial_condition.value.name else initial_condition.value.value
 
-    return '{0}\t{1}'.format(str_from_complex(complex), value_str)
+    return '{0}\t{1}'.format(str_from_complex(initial_condition.complex), value_str)

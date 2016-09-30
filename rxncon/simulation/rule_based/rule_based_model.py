@@ -16,9 +16,17 @@ class MolDef:
 
 
 class Mol:
-    def __init__(self, mol_def: MolDef, site_modifiers: Dict[SiteName, SiteModifier]):
-        self.mol_def, self.site_modifiers = mol_def, site_modifiers
-        self.site_bonds = {site: None for site in self.site_modifiers.keys()}
+    def __init__(self, mol_def: MolDef, site_modifiers: Dict[SiteName, SiteModifier], site_bonds: Dict[SiteName, int]):
+        self.mol_def = mol_def
+
+        self.site_modifiers = {site: None for site in self.mol_def.site_defs.keys()}
+        for site, modifier in site_modifiers.items():
+            self.site_modifiers[site] = modifier
+
+        self.site_bonds = {site: None for site in self.mol_def.site_defs.keys()}
+        for site, bond in site_bonds.items():
+            self.site_bonds[site] = bond
+
         self._validate()
 
     def set_bond(self, site: SiteName, bond_num: int):
