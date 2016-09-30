@@ -14,52 +14,66 @@ class MolDef:
     def valid_modifiers(self, site: SiteName):
         return self.site_defs[site]
 
+    @property
+    def sites(self):
+        return self.site_defs.keys()
 
 class Mol:
-    def __init__(self, mol_def: MolDef, site_modifiers: Dict[SiteName, SiteModifier], site_bonds: Dict[SiteName, int]):
+    def __init__(self, mol_def: MolDef, site_to_modifier: Dict[SiteName, SiteModifier], site_to_bond: Dict[SiteName, int]):
         self.mol_def = mol_def
+        self.sites   = mol_def.site_defs.keys()
 
-        self.site_modifiers = {site: None for site in self.mol_def.site_defs.keys()}
-        for site, modifier in site_modifiers.items():
-            self.site_modifiers[site] = modifier
+        self.site_to_modifier = {site: None for site in self.sites}
+        for site, modifier in site_to_modifier.items():
+            self.site_to_modifier[site] = modifier
 
-        self.site_bonds = {site: None for site in self.mol_def.site_defs.keys()}
-        for site, bond in site_bonds.items():
-            self.site_bonds[site] = bond
+        self.site_to_bond = {site: None for site in self.sites}
+        for site, bond in site_to_bond.items():
+            self.site_to_bond[site] = bond
 
         self._validate()
 
+    @property
+    def name(self):
+        return self.mol_def.name
+
+    def site_has_state(self, site: SiteName) -> bool:
+        return self.site_to_bond[site] or self.site_to_modifier[site]
+
     def set_bond(self, site: SiteName, bond_num: int):
-        assert not self.site_bonds[site]
-        self.site_bonds[site] = bond_num
+        assert not self.site_to_bond[site]
+        self.site_to_bond[site] = bond_num
 
     def set_modifier(self, site: SiteName, modifier: SiteModifier):
-        assert not self.site_modifiers[site]
+        assert not self.site_to_modifier[site]
         assert modifier in self.mol_def.valid_modifiers(site)
-        self.site_modifiers[site] = modifier
+        self.site_to_modifier[site] = modifier
 
     def _validate(self):
-        for site, modifier in self.site_modifiers.items():
+        for site, modifier in self.site_to_modifier.items():
             assert modifier in self.mol_def.valid_modifiers(site)
 
 
 class Complex:
     def __init__(self):
-        self.mols       = {}  # type: Dict[MolIndex, Mol]
+        self._mols       = {}  # type: Dict[MolIndex, Mol]
         self.bond_index = 0
+
+    @property
+    def mols(self):
+        return self._mols.values()
 
     def apply_state(self, state: State):
         assert state.is_elemental
 
-
     def set_mol_at_index(self, mol: Mol, index: MolIndex):
-        assert not self.mols[index]
-        self.mols[index] = mol
+        assert not self._mols[index]
+        self._mols[index] = mol
 
     def set_bond(self, first_index: MolIndex, first_site: SiteName, second_index: MolIndex, second_site: SiteName):
         self.bond_index += 1
-        self.mols[first_index].set_bond(first_site, self.bond_index)
-        self.mols[second_index].set_bond(second_site, self.bond_index)
+        self._mols[first_index].set_bond(first_site, self.bond_index)
+        self._mols[second_index].set_bond(second_site, self.bond_index)
 
 
 def str_from_spec(spec: MolSpec) -> str:

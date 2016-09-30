@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Tuple, List
 
 from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel, MolDef, Complex, SiteName, SiteModifier, \
-    InitialCondition, Mol
+    InitialCondition, Mol, Parameter, Rule
 
 class BNGLSimulationMethods(Enum):
     ODE = 'ode'
@@ -31,7 +31,7 @@ def bngl_str_from_rule_based_model(rule_based_model: RuleBasedModel, settings=BN
         return 'begin seed species\n{0}\nend seed species\n'.format('\n'.join(seeded_species))
 
     def parameters_str() -> str:
-        parameters = [string_from_parameter(parameter) for parameter in rule_based_model.parameters]
+        parameters = [str_from_parameter(parameter) for parameter in rule_based_model.parameters]
         return 'begin parameters\n{0}\nend parameters\n'.format('\n'.join(parameters))
 
     def observables_str() -> str:
@@ -39,7 +39,7 @@ def bngl_str_from_rule_based_model(rule_based_model: RuleBasedModel, settings=BN
         return ''
 
     def reaction_rules_str() -> str:
-        rules = [string_from_rule(rule) for rule in rule_based_model.rules]
+        rules = [str_from_rule(rule) for rule in rule_based_model.rules]
         return 'begin reaction rules\n{0}\nend reaction rules\n'.format('\n'.join(rules))
 
     def footer_str() -> str:
@@ -57,9 +57,8 @@ def bngl_str_from_rule_based_model(rule_based_model: RuleBasedModel, settings=BN
                  observables_str(),
                  reaction_rules_str(),
                  footer_str()]
-    bngl_strs = [bngl_str for bngl_str in bngl_strs if bngl_str]
 
-    return '\n'.join(bngl_strs)
+    return '\n'.join(bngl_str for bngl_str in bngl_strs if bngl_str)
 
 
 def str_from_mol_def(mol_def: MolDef) -> str:
@@ -71,12 +70,15 @@ def str_from_mol_def(mol_def: MolDef) -> str:
 
 def str_from_mol(mol: Mol) -> str:
     def site_str(site: SiteName) -> str:
-        site_str = site
-        if mol.site_modifiers[site]:
-            site_str += '~{}'.format(mol.site_modifiers[site])
-        if mol.site_bonds[site]:
+        s = site
+        if mol.site_to_modifier[site]:
+            s += '~{}'.format(mol.site_to_modifier[site])
+        if mol.site_to_bond[site]:
+            s += '!{}'.format(mol.site_to_bond[site])
 
+        return s
 
+    return '{0}({1})'.format(mol.name, ','.join(site_str(x) for x in mol.sites))
 
 def str_from_complex(complex: Complex) -> str:
     return '.'.join(str_from_mol(mol) for mol in complex.mols)
@@ -86,3 +88,15 @@ def str_from_initial_condition(initial_condition: InitialCondition) -> str:
     value_str = initial_condition.value.name if initial_condition.value.name else initial_condition.value.value
 
     return '{0}\t{1}'.format(str_from_complex(initial_condition.complex), value_str)
+
+
+def str_from_parameter(parameter: Parameter) -> str:
+    assert parameter.name and parameter.value
+
+    return '{0}\t\t{1}'.format(parameter.name, parameter.value)
+
+
+def str_from_rule(rule: Rule) -> str:
+    return '{0} -> {1}   {2}'.format(' + '.join(str_from_complex(x) for x in rule.lhs),
+                                     ' + '.join(str_from_complex(x) for x in rule.rhs),
+                                     rule.rate.name if rule.rate.name else rule.rate.value)
