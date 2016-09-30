@@ -1,6 +1,6 @@
 from rxncon.venntastic.sets import Set as VennSet, MultiIntersection, MultiUnion, ValueSet, Intersection, Union, Complement, UniversalSet
-from rxncon.core.reaction import Reaction
-from rxncon.core.state import State
+from rxncon.core.reaction import Reaction, matching_reaction_def, reaction_from_string
+from rxncon.core.state import State, STATE_DEFS, state_from_string
 from rxncon.core.spec import MolSpec
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
@@ -8,6 +8,7 @@ from rxncon.core.rxncon_system import RxnConSystem
 from typecheck import typecheck
 from typing import List
 
+import re
 
 class BooleanModel:
     @typecheck
@@ -281,3 +282,57 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
 
     return BooleanModel(reaction_rules + state_rules, initial_conditions(reaction_targets, state_targets))
 
+
+@typecheck
+def boolean_rule_from_str(rule_str: str):
+
+    @typecheck
+    def is_state_target(target_str: str):
+        if next((x for x in STATE_DEFS if x.matches_repr(target_str)), None) is not None:
+            return True
+        return False
+
+    @typecheck
+    def is_reaction_target(target_str: str):
+        if matching_reaction_def(target_str):
+            return True
+        return False
+
+    @typecheck
+    def target_str_to_rule_target(target_str):
+        if is_state_target(target_str):
+            return StateTarget(state_from_string(target_str))
+        elif is_reaction_target(target_str):
+            return ReactionTarget(reaction_from_string(target_str))
+        else:
+            raise NotImplementedError
+
+    @typecheck
+    # syn | C & ( deg & ( prod & ss1 & ss2 ) | ( s & ! deg & ! con )
+    def factor_str_to_rule_factor(factor_str: str):
+        factor_str= factor_str.replace(" ", "")
+        if re.match("[^(]([\w\[\]\{\}()-]+)", factor_str):
+            element = re.match("[\w()\]\[\{\}_-]+(?=\))", factor_str).group()
+            return ValueSet(target_str_to_rule_target(element[:-1]))
+        elif re.match("[^(][\w\[\]\{\}()-]+[^)]", factor_str):
+            return ValueSet(target_str_to_rule_target(re.match("[^(][\w\[\]\{\}()-]+[^)]", factor_str).group()))
+        if factor_str.startswith("!"):
+            return Complement(factor_str_to_rule_factor(factor_str[1:]))
+        elif factor_str.startswith("("):
+            left_OR_expr = re.match("^\(([\w\[\]\{\}()-_]+)\|", factor_str)
+            left_AND_expr = re.match("^\(([\w\[\]\{\}()-_]+)[&]", factor_str)
+            if left_OR_expr:
+                return Union(target_str_to_rule_target(left_OR_expr.group(1)), factor_str_to_rule_factor(factor_str[left_OR_expr.end():]))
+            if left_AND_expr:
+                return Intersection(target_str_to_rule_target(left_AND_expr.group(1)), factor_str_to_rule_factor(factor_str[left_AND_expr.end():]))
+
+
+
+
+
+    target_str, factor_str = rule_str.split(',')
+    factor = factor_str_to_rule_factor(factor_str)
+    factor
+
+
+    #UpdateRule(rule_target, Intersection(cont_fac, comp_fac)

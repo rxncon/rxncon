@@ -57,3 +57,7 @@ def test_insulin_system():
     <IR2-insulin3>; AND IR@0_[IRBD]--IR@2_[IRBD]; AND IR@2_[lig]--insulin@3_[IR]
     """)
     boolmodel = bm.boolean_model_from_rxncon(rxncon_sys.rxncon_system)
+
+def test_rule_from_str():
+    test = bm.boolean_rule_from_str('a--b, (a-{p} | (a_ppi+_b &c--d))')
+    test
