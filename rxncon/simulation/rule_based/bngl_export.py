@@ -1,11 +1,7 @@
 from enum import Enum
+from typing import Optional
 
-from rxncon.semantics.molecule import ModificationProperty, Molecule, AssociationProperty, \
-    AssociationPropertyDefinition, ModificationPropertyDefinition, MoleculeDefinition, LocalizationPropertyDefinition, \
-    LocalizationProperty
-import rxncon.semantics.rule
-from rxncon.simulation.rule_based.rule_based_model import InitialCondition, Parameter, RuleBasedModel
-
+from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel
 
 class BNGLSimulationMethods(Enum):
     ODE = 'ode'
@@ -21,7 +17,7 @@ class BNGLSettings:
         self.simulation_time_steps = 100
 
 
-class BNGLSystem:
+def bngl_str_from_rule_based_model(rule_based_model: RuleBasedModel, setting: Optional[BNGLSettings]):
     def __init__(self, rule_based_model: RuleBasedModel, settings: BNGLSettings):
         self.rule_based_model = rule_based_model
         self.settings = settings

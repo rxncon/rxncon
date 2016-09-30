@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional
 
 from rxncon.core.state import State
 from rxncon.core.spec import MolSpec
@@ -61,3 +61,42 @@ def str_from_spec(spec: MolSpec) -> str:
         spec_str = spec_str.replace(bad_char, '')
 
     return spec_str
+
+
+class Parameter:
+    def __init__(self, name: Optional[str], value: Optional[str]):
+        assert name or value
+        self.name, self.value = name, value
+
+
+class InitialCondition:
+    def __init__(self, complex: Complex, value: Parameter):
+        self.complex, self.value = complex, value
+
+
+class Observable:
+    def __init__(self, name: str, complex: Complex):
+        self.name, self.complex = name, complex
+
+
+class Rule:
+    def __init__(self, lhs: List[Complex], rhs: List[Complex], rate: Parameter):
+        self.lhs, self.rhs, self.rate = lhs, rhs, rate
+
+
+class RuleBasedModel:
+    def __init__(self, mol_defs: List[MolDef], initial_conditions: List[InitialCondition], parameters: List[Parameter],
+                 observables: List[Observable], rules: List[Rule]):
+        self.mol_defs, self.initial_conditions, self.parameters, self.observables, self.rules = mol_defs, initial_conditions, \
+            parameters, observables, rules
+
+
+
+
+
+
+
+
+
+
+
