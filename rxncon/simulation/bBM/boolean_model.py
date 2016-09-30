@@ -348,6 +348,7 @@ def boolean_rule_from_str(rule_str: str):
 
     @typecheck
     # syn | C & ( deg & ( prod & ss1 & ss2 ) | ( s & ! deg & ! con )
+    #todo statement without parentheses
     def factor_str_to_rule_factor(factor_str: str):
         factor_str= factor_str.replace(" ", "")
         if re.match("[^(]([\w\[\]\{\}()-]+)", factor_str):
