@@ -3,16 +3,50 @@ from typecheck import typecheck
 from typing import Dict, List, Any, Optional
 
 from pyeda.inter import And, Or, Not, expr
-from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies, Expression
+from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies, Expression, Literal, NaryOp, \
+    Complement as pyedaComplement
 
 SYMS = 'abcdefghijklmnopqrstuvwxyz'
 
 class Set:
     @typecheck
-    def to_full_simplified_form(self) -> 'Set':
+    def to_dnf_set(self) -> 'Set':
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
         return pyeda_to_venn(self._to_pyeda_expr(val_to_sym).to_cnf().to_dnf(), sym_to_val)
+
+    @typecheck
+    def to_dnf_list(self) -> List['Set']:
+        val_to_sym = self._make_val_to_sym_dict()
+        sym_to_val = {sym: val for val, sym in val_to_sym.items()}
+        dnf_set = self._to_pyeda_expr(val_to_sym).to_cnf().to_dnf()
+
+        if isinstance(dnf_set, Literal):
+            return [pyeda_to_venn(dnf_set, sym_to_val)]
+        elif isinstance(dnf_set, NaryOp):
+            return [pyeda_to_venn(x, sym_to_val) for x in dnf_set.xs]
+        else:
+            raise Exception
+
+    @typecheck
+    def to_dnf_nested_list(self) -> List[List['Set']]:
+        val_to_sym = self._make_val_to_sym_dict()
+        sym_to_val = {sym: val for val, sym in val_to_sym.items()}
+        dnf_set = self._to_pyeda_expr(val_to_sym).to_cnf().to_dnf()
+
+        if isinstance(dnf_set, Literal):
+            return [pyeda_to_venn(dnf_set, sym_to_val)]
+
+        res = []
+        for term in dnf_set.xs:
+            if isinstance(term, Literal):
+                res.append([pyeda_to_venn(term, sym_to_val)])
+            elif isinstance(term, NaryOp):
+                res.append([pyeda_to_venn(x, sym_to_val) for x in term.xs])
+            else:
+                raise Exception
+        return res
+
 
     @typecheck
     def is_equivalent_to(self, other: 'Set') -> bool:
@@ -39,7 +73,7 @@ class Set:
     @typecheck
     def value_type(self):
         types = [type(x) for x in self.values]
-        # assert all(types[0] == x for x in types)
+        # assert all(types[0] in x.mro() for x in types)
         return types[0]
 
     @typecheck
@@ -266,5 +300,7 @@ def pyeda_to_venn(pyeda_expr, sym_to_val):
         return MultiUnion(*(pyeda_to_venn(x, sym_to_val) for x in pyeda_expr.xs))
     elif isinstance(pyeda_expr, NotOp):
         return Complement(pyeda_to_venn(pyeda_expr.x, sym_to_val))
+    elif isinstance(pyeda_expr, pyedaComplement):
+        return Complement(ValueSet(sym_to_val[pyeda_expr.inputs[0].name]))
     else:
         raise Exception

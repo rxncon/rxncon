@@ -261,7 +261,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
         cont_fac = MultiIntersection(*(contingency_factor(x) for x in rxncon_sys.contingencies_for_reaction(reaction_target.reaction_parent)))
         comp_fac = MultiIntersection(*(component_factor(x) for x in reaction_target.components))
         reaction_rules.append(UpdateRule(reaction_target,
-                                         Intersection(cont_fac, comp_fac).to_full_simplified_form()))
+                                         Intersection(cont_fac, comp_fac).to_dnf_set()))
 
     # Factor for a state target is of the form:
     # synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
@@ -285,7 +285,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
         prod_cons_fac = Union(MultiUnion(*prod_facs), Intersection(ValueSet(state_target), MultiIntersection(*cons_facs)))
 
         state_rules.append(UpdateRule(state_target,
-                                      Union(synt_fac, MultiIntersection(comp_fac, degr_fac, prod_cons_fac)).to_full_simplified_form()))
+                                      Union(synt_fac, MultiIntersection(comp_fac, degr_fac, prod_cons_fac)).to_dnf_set()))
 
     return BooleanModel(reaction_rules + state_rules, initial_conditions(reaction_targets, state_targets))
 

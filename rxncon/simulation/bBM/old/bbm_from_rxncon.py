@@ -65,10 +65,10 @@ def _get_vennset_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reacti
     strict_contingency_state_set = _state_set_from_contingencies(rxnconsys.s_contingencies_for_reaction(reaction))
     _empty_set_validation(strict_contingency_state_set)
     if isinstance(reaction, rxn.OutputReaction):
-        vennset = venn.Union(strict_contingency_state_set.to_full_simplified_form(),
+        vennset = venn.Union(strict_contingency_state_set.to_dnf_set(),
                              venn.ValueSet(reaction))
     else:
-        vennset = venn.Intersection(strict_contingency_state_set.to_full_simplified_form(),
+        vennset = venn.Intersection(strict_contingency_state_set.to_dnf_set(),
                                     venn.Intersection(venn.ValueSet(sta.ComponentState(reaction.subject.to_component_spec())),
                                                       venn.ValueSet(sta.ComponentState(reaction.object.to_component_spec()))))
         if reaction.source:
@@ -81,7 +81,7 @@ def _get_vennset_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reacti
 
 
 def _empty_set_validation(state_set: venn.Set):
-    if isinstance(state_set.to_full_simplified_form(), venn.EmptySet):
+    if isinstance(state_set.to_dnf_set(), venn.EmptySet):
         raise AssertionError("There is no way to fulfill the contingencies: {}".format(state_set))
 
 
@@ -148,11 +148,11 @@ def rule_for_state_from_rxnconsys_and_reaction(rxnconsys: rxs.RxnConSystem, reac
     else:
         vennset = pos_rules
 
-    if isinstance(vennset.to_full_simplified_form(), venn.EmptySet):
+    if isinstance(vennset.to_dnf_set(), venn.EmptySet):
         raise AssertionError("There is no way to fulfill this rule: {}".format(vennset))
 
     return bbm.Rule(bbm.Node(reaction.product),
-                    bbm.Factor(vennset.to_full_simplified_form()))
+                    bbm.Factor(vennset.to_dnf_set()))
 
 
 def _state_set_from_contingencies(contingencies: tg.List[con.Contingency]) -> venn.Set:
