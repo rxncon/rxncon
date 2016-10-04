@@ -1,14 +1,21 @@
-from rxncon.venntastic.sets import Set as VennSet, MultiIntersection, MultiUnion, ValueSet, Intersection, Union, Complement, UniversalSet
+from rxncon.venntastic.sets import Set as VennSet, MultiIntersection, MultiUnion, ValueSet, Intersection, Union, Complement, UniversalSet, pyeda_to_venn
 from rxncon.core.reaction import Reaction, matching_reaction_def, reaction_from_string
-from rxncon.core.state import State, STATE_DEFS, state_from_string
+from rxncon.core.state import State, matching_state_def, state_from_string
 from rxncon.core.spec import MolSpec
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
 from rxncon.core.rxncon_system import RxnConSystem
 from typecheck import typecheck
-from typing import List
+from typing import List, Dict, Tuple
 
-import re
+from itertools import product
+from math import ceil
+from copy import copy
+
+from string import ascii_lowercase
+from re import findall
+from pyeda.inter import expr
+
 
 class BooleanModel:
     @typecheck
@@ -283,7 +290,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     return BooleanModel(reaction_rules + state_rules, initial_conditions(reaction_targets, state_targets))
 
 
-
 def boolnet_str_from_boolean_model(boolean_model: BooleanModel) -> str:
     def clean_str(the_str: str) -> str:
         dirty_chars = {
@@ -322,119 +328,61 @@ def boolnet_str_from_boolean_model(boolean_model: BooleanModel) -> str:
 
     return 'targets, factors\n' + '\n'.join(str_from_update_rule(x) for x in boolean_model.update_rules) + '\n'
 
+
+alphabet = ascii_lowercase
+
 @typecheck
-def boolean_rule_from_str(rule_str: str):
+def rxncon_bool_str_to_venn(factor_str: str):
 
     @typecheck
-    def is_state_target(target_str: str):
-        if next((x for x in STATE_DEFS if x.matches_repr(target_str)), None) is not None:
-            return True
-        return False
-
-    @typecheck
-    def is_reaction_target(target_str: str):
-        if matching_reaction_def(target_str):
-            return True
-        return False
-
-    @typecheck
-    def target_str_to_rule_target(target_str):
-        if is_state_target(target_str):
+    def _target_str_to_rule_target(target_str: str):
+        if matching_state_def(target_str):
             return StateTarget(state_from_string(target_str))
-        elif is_reaction_target(target_str):
+        elif matching_reaction_def(target_str):
             return ReactionTarget(reaction_from_string(target_str))
         else:
             raise NotImplementedError
 
+    @typecheck
+    def _rxncon_states_and_reactions(factor_str) -> List[str]:
+        return list(set(findall('[\w\[\]\{\}/()+_-]+', factor_str)))
+
+    @typecheck
+    def _character_numbering(factor_str) -> List[str]:
+        number_of_alphabet_repetitions = ceil(len(_rxncon_states_and_reactions(factor_str)) / len(alphabet))
+        combinations = []
+        while number_of_alphabet_repetitions:
+            combinations.extend(
+                ["".join(combination) for combination in product(alphabet, repeat=number_of_alphabet_repetitions)][
+                ::-1])
+            number_of_alphabet_repetitions -= 1
+        return combinations[::-1]
+
+    @typecheck
+    def _make_value_str_to_sym_str_dict(factor_str: str) -> Dict[str, str]:
+        return {value: sym for sym, value in
+                zip(_character_numbering(factor_str), _rxncon_states_and_reactions(factor_str))}
+
+    @typecheck
+    def _make_sym_str_to_value_target_dict(value_to_sym_dict: Dict[str, str]) -> Dict[str, Target]:
+        return {sym: _target_str_to_rule_target(value) for value, sym in value_to_sym_dict.items()}
+
+    @typecheck
+    def eda_compatible_str(factor_str: str) -> Tuple[str, Dict[str, str]]:
+        eda_factor_str = copy(factor_str)
+        value_to_sym_dict = _make_value_str_to_sym_str_dict(factor_str)
+        for value, sym in value_to_sym_dict.items():
+            eda_factor_str = eda_factor_str.replace(value, sym)
+        return eda_factor_str.replace("<", '(').replace('>', ')').replace('!','~'), value_to_sym_dict
+
     # syn | C & ( deg & ( prod & ss1 & ss2 ) | ( s & ! deg & ! con )
-
-
-    def _get_parentheses_pairs(factor_str):
-        parentheses_pairs = []
-        for idx, char in enumerate(factor_str):
-            if char == "<":
-                parentheses_pairs.append([idx])
-            if char == ">":
-                for parentheses_pair in parentheses_pairs[::-1]:
-                    if len(parentheses_pair) == 1:
-                        parentheses_pair.append(idx)
-                        break
-        return [tuple(parentheses_pair) for parentheses_pair in parentheses_pairs]
-
-    def venn_conversion(bool_expr: List[str]):
-        return [Complement(ValueSet(target_str_to_rule_target(ele))) if ele.startswith('!') else ValueSet(target_str_to_rule_target(ele)) for ele in bool_expr]
-
-    def get_factor(factor_str: str):
-        if factor_str.split("&"):
-            return MultiIntersection(*venn_conversion(factor_str.split("&")))
-        elif factor_str.split("|"):
-            return MultiUnion(*venn_conversion(factor_str.split("|")))
-        else:
-            raise NotImplementedError
-
-
-    #def factor_str_to_rule_factor(factor_str: str):
-        #1) finde die klammer paare
-        #3) löse klammern auf die keine weiteren klammern enthalten
-        #2) finde benachbarte klammern
-    #    factor_str = factor_str.replace(" ", "")
-    #    parentheses_pairs = _get_parentheses_pairs(factor_str)
-    #    parentheses_set_mapping = {}
-
-        # for parentheses_pair in parentheses_pairs:
-        #     sub_factor_str = factor_str[parentheses_pair[0]+1:parentheses_pair[1]]
-        #     if not "<" in sub_factor_str or not ">" in sub_factor_str:
-        #         parentheses_set_mapping[parentheses_pair] = get_factor(sub_factor_str)
-        #
-        # def merge_perenthesis():
-        #     pass
-        # # todo This can be done recursively we have always tuple
-        # # merge directly neighboring tuple
-        # # if there are no directly neighboring tuple any more check if the start and end are directly continues
-        # # if check if the last or first parenthesis is directly neighbored
-        # # <<a|b>&<a|c>>
-        # # 0        6           16 17         27  29            43 44 45 46
-        # # < a--a | <b_ppi+_a | <  < c--a&d--e > | <e_ppi-_a&f--r>   >  > >
-        #
-        # parentheses_pairs
-    #'f--e=<a--a | <b_ppi+_a | <<c--a&d--e> | <e_ppi-_a&f--r> >>>'
-    def factor_str_to_rule_factor(factor_str: str):
-        if factor_str.startswith('<') or factor_str.startswith('>'):
-            return factor_str_to_rule_factor(factor_str[1:])
-        elif re.match('[\w\]\[\}\{()-_]',factor_str):
-            rule_target_match_AND_inner_OR = re.match('([\w\[\]\{\}()-_]+[^>])[&]([\w\[\]\{\}()-_]+)>[|]', factor_str)
-            rule_target_match_AND_inner_AND = re.match('([\w\[\]\{\}()-_]+[^>])[&]([\w\[\]\{\}()-_]+)>[&]', factor_str)
-            rule_target_match_OR_inner_OR = re.match('([\w\[\]\{\}()-_]+[^>])[|]([\w\[\]\{\}()-_]+)>[|]', factor_str)
-            rule_target_match_OR_inner_AND = re.match('([\w\[\]\{\}()-_]+[^>])[|]([\w\[\]\{\}()-_]+)>[&]', factor_str)
-            rule_target_match_AND = re.match('([\w\]\[\}\{()-_]+[^>])[&]', factor_str)
-            rule_target_match_OR  = re.match('([\w\]\[\}\{()-_]+[^>])[|]', factor_str)
-            rule_target_match = re.match('[\w\]\[\}\{()-_]+[^>|&]', factor_str)
-            if rule_target_match_AND_inner_OR:
-                return Union(Intersection(ValueSet(target_str_to_rule_target(rule_target_match_AND_inner_OR.group(1))), ValueSet(target_str_to_rule_target(rule_target_match_AND_inner_OR.group(2)))),
-                             factor_str_to_rule_factor(factor_str[rule_target_match_AND_inner_OR.end():]))
-            elif rule_target_match_AND_inner_AND:
-                return Union(Intersection(ValueSet(target_str_to_rule_target(rule_target_match_AND_inner_AND.group(1))),
-                                          ValueSet(target_str_to_rule_target(rule_target_match_AND_inner_AND.group(2)))),
-                             factor_str_to_rule_factor(factor_str[rule_target_match_AND_inner_AND.end():]))
-            elif rule_target_match_OR_inner_OR:
-                return Union(Intersection(ValueSet(target_str_to_rule_target(rule_target_match_OR_inner_OR.group(1))),
-                                          ValueSet(target_str_to_rule_target(rule_target_match_OR_inner_OR.group(2)))),
-                             factor_str_to_rule_factor(factor_str[rule_target_match_OR_inner_OR.end():]))
-            elif rule_target_match_OR_inner_AND:
-                return Union(Intersection(ValueSet(target_str_to_rule_target(rule_target_match_OR_inner_AND.group(1))),
-                                          ValueSet(target_str_to_rule_target(rule_target_match_OR_inner_AND.group(2)))),
-                             factor_str_to_rule_factor(factor_str[rule_target_match_OR_inner_AND.end():]))
-            elif rule_target_match_AND:
-                return Intersection(ValueSet(target_str_to_rule_target(rule_target_match_AND.group(1))),factor_str_to_rule_factor(factor_str[rule_target_match_AND.end():]))
-            elif rule_target_match_OR:
-                return Union(ValueSet(target_str_to_rule_target(rule_target_match_OR.group(1))), factor_str_to_rule_factor(factor_str[rule_target_match_OR.end():]))
-            elif rule_target_match:
-                return ValueSet(target_str_to_rule_target(rule_target_match.group()))
-
-    rule_str = rule_str.replace(" ", "")
-    target_str, factor_str = rule_str.split('=')
+    factor_str = factor_str.replace(" ", "")
     assert factor_str.count("<") == factor_str.count('>')
-    target = target_str_to_rule_target(target_str)
-    factor = factor_str_to_rule_factor(factor_str)
+    eda_factor_str, value_to_sym_dict = eda_compatible_str(factor_str)
+    pyeda = expr(eda_factor_str)
+    return pyeda_to_venn(pyeda, _make_sym_str_to_value_target_dict(value_to_sym_dict))
 
-    return UpdateRule(target, factor)
+
+
+
+

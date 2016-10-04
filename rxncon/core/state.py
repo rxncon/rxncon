@@ -334,11 +334,15 @@ def state_modifier_from_string(modifier: str) -> StateModifier:
     return StateModifier(modifier.lower())
 
 @typecheck
+def matching_state_def(repr: str) -> Optional[StateDef]:
+    return next((x for x in STATE_DEFS if x.matches_repr(repr)), None)
+
+@typecheck
 def state_from_string(repr: str) -> State:
     if repr == FULLY_NEUTRAL_STATE_REPR:
         return FullyNeutralState()
 
-    state_def = next((x for x in STATE_DEFS if x.matches_repr(repr)), None)
+    state_def = matching_state_def(repr)
 
     if not state_def:
         raise SyntaxError('Could not match State {} with definition'.format(repr))
