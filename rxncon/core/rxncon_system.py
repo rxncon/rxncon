@@ -14,6 +14,10 @@ class RxnConSystem:
         self.reactions = reactions
         self.contingencies = contingencies
 
+        self.__produced_states = None
+        self.__consumed_states = None
+        self.__synthesised_states = None
+
         self._expand_fully_neutral_states()
         self._assert_consistency()
 
@@ -41,28 +45,24 @@ class RxnConSystem:
         return [x for x in self.contingencies if x.target == reaction and x.type
                 in [ContingencyType.requirement, ContingencyType.inhibition]]
 
-
     @typecheck
-    def _produced_states(self):
+    def _calculate_produced_states(self):
         states = []
         for reaction in self.reactions:
             states += [state.to_non_struct_state() for state in reaction.produced_states]
 
-        self.produced_states = list(set(states))
+        self.__produced_states = list(set(states))
 
     @property
     @typecheck
     def produced_states(self) -> List[State]:
+        if not self.__produced_states:
+            self._calculate_produced_states()
+
         return self.__produced_states
 
-    @produced_states.setter
     @typecheck
-    def produced_states(self, states: List[State]):
-        self.__produced_states = states
-
-
-    @typecheck
-    def _consumed_states(self):
+    def _calculate_consumed_states(self):
         states = []
         for reaction in self.reactions:
             states += [state.to_non_struct_state() for state in reaction.consumed_states]

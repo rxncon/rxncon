@@ -346,33 +346,95 @@ def boolean_rule_from_str(rule_str: str):
         else:
             raise NotImplementedError
 
-    @typecheck
     # syn | C & ( deg & ( prod & ss1 & ss2 ) | ( s & ! deg & ! con )
-    #todo statement without parentheses
+
+
+    def _get_parentheses_pairs(factor_str):
+        parentheses_pairs = []
+        for idx, char in enumerate(factor_str):
+            if char == "<":
+                parentheses_pairs.append([idx])
+            if char == ">":
+                for parentheses_pair in parentheses_pairs[::-1]:
+                    if len(parentheses_pair) == 1:
+                        parentheses_pair.append(idx)
+                        break
+        return [tuple(parentheses_pair) for parentheses_pair in parentheses_pairs]
+
+    def venn_conversion(bool_expr: List[str]):
+        return [Complement(ValueSet(target_str_to_rule_target(ele))) if ele.startswith('!') else ValueSet(target_str_to_rule_target(ele)) for ele in bool_expr]
+
+    def get_factor(factor_str: str):
+        if factor_str.split("&"):
+            return MultiIntersection(*venn_conversion(factor_str.split("&")))
+        elif factor_str.split("|"):
+            return MultiUnion(*venn_conversion(factor_str.split("|")))
+        else:
+            raise NotImplementedError
+
+
+    #def factor_str_to_rule_factor(factor_str: str):
+        #1) finde die klammer paare
+        #3) löse klammern auf die keine weiteren klammern enthalten
+        #2) finde benachbarte klammern
+    #    factor_str = factor_str.replace(" ", "")
+    #    parentheses_pairs = _get_parentheses_pairs(factor_str)
+    #    parentheses_set_mapping = {}
+
+        # for parentheses_pair in parentheses_pairs:
+        #     sub_factor_str = factor_str[parentheses_pair[0]+1:parentheses_pair[1]]
+        #     if not "<" in sub_factor_str or not ">" in sub_factor_str:
+        #         parentheses_set_mapping[parentheses_pair] = get_factor(sub_factor_str)
+        #
+        # def merge_perenthesis():
+        #     pass
+        # # todo This can be done recursively we have always tuple
+        # # merge directly neighboring tuple
+        # # if there are no directly neighboring tuple any more check if the start and end are directly continues
+        # # if check if the last or first parenthesis is directly neighbored
+        # # <<a|b>&<a|c>>
+        # # 0        6           16 17         27  29            43 44 45 46
+        # # < a--a | <b_ppi+_a | <  < c--a&d--e > | <e_ppi-_a&f--r>   >  > >
+        #
+        # parentheses_pairs
+    #'f--e=<a--a | <b_ppi+_a | <<c--a&d--e> | <e_ppi-_a&f--r> >>>'
     def factor_str_to_rule_factor(factor_str: str):
-        factor_str= factor_str.replace(" ", "")
-        if re.match("[^(]([\w\[\]\{\}()-]+)", factor_str):
-            element = re.match("[\w()\]\[\{\}_-]+(?=\))", factor_str).group()
-            return ValueSet(target_str_to_rule_target(element[:-1]))
-        elif re.match("[^(][\w\[\]\{\}()-]+[^)]", factor_str):
-            return ValueSet(target_str_to_rule_target(re.match("[^(][\w\[\]\{\}()-]+[^)]", factor_str).group()))
-        if factor_str.startswith("!"):
-            return Complement(factor_str_to_rule_factor(factor_str[1:]))
-        elif factor_str.startswith("("):
-            left_OR_expr = re.match("^\(([\w\[\]\{\}()-_]+)\|", factor_str)
-            left_AND_expr = re.match("^\(([\w\[\]\{\}()-_]+)[&]", factor_str)
-            if left_OR_expr:
-                return Union(target_str_to_rule_target(left_OR_expr.group(1)), factor_str_to_rule_factor(factor_str[left_OR_expr.end():]))
-            if left_AND_expr:
-                return Intersection(target_str_to_rule_target(left_AND_expr.group(1)), factor_str_to_rule_factor(factor_str[left_AND_expr.end():]))
+        if factor_str.startswith('<') or factor_str.startswith('>'):
+            return factor_str_to_rule_factor(factor_str[1:])
+        elif re.match('[\w\]\[\}\{()-_]',factor_str):
+            rule_target_match_AND_inner_OR = re.match('([\w\[\]\{\}()-_]+[^>])[&]([\w\[\]\{\}()-_]+)>[|]', factor_str)
+            rule_target_match_AND_inner_AND = re.match('([\w\[\]\{\}()-_]+[^>])[&]([\w\[\]\{\}()-_]+)>[&]', factor_str)
+            rule_target_match_OR_inner_OR = re.match('([\w\[\]\{\}()-_]+[^>])[|]([\w\[\]\{\}()-_]+)>[|]', factor_str)
+            rule_target_match_OR_inner_AND = re.match('([\w\[\]\{\}()-_]+[^>])[|]([\w\[\]\{\}()-_]+)>[&]', factor_str)
+            rule_target_match_AND = re.match('([\w\]\[\}\{()-_]+[^>])[&]', factor_str)
+            rule_target_match_OR  = re.match('([\w\]\[\}\{()-_]+[^>])[|]', factor_str)
+            rule_target_match = re.match('[\w\]\[\}\{()-_]+[^>|&]', factor_str)
+            if rule_target_match_AND_inner_OR:
+                return Union(Intersection(ValueSet(target_str_to_rule_target(rule_target_match_AND_inner_OR.group(1))), ValueSet(target_str_to_rule_target(rule_target_match_AND_inner_OR.group(2)))),
+                             factor_str_to_rule_factor(factor_str[rule_target_match_AND_inner_OR.end():]))
+            elif rule_target_match_AND_inner_AND:
+                return Union(Intersection(ValueSet(target_str_to_rule_target(rule_target_match_AND_inner_AND.group(1))),
+                                          ValueSet(target_str_to_rule_target(rule_target_match_AND_inner_AND.group(2)))),
+                             factor_str_to_rule_factor(factor_str[rule_target_match_AND_inner_AND.end():]))
+            elif rule_target_match_OR_inner_OR:
+                return Union(Intersection(ValueSet(target_str_to_rule_target(rule_target_match_OR_inner_OR.group(1))),
+                                          ValueSet(target_str_to_rule_target(rule_target_match_OR_inner_OR.group(2)))),
+                             factor_str_to_rule_factor(factor_str[rule_target_match_OR_inner_OR.end():]))
+            elif rule_target_match_OR_inner_AND:
+                return Union(Intersection(ValueSet(target_str_to_rule_target(rule_target_match_OR_inner_AND.group(1))),
+                                          ValueSet(target_str_to_rule_target(rule_target_match_OR_inner_AND.group(2)))),
+                             factor_str_to_rule_factor(factor_str[rule_target_match_OR_inner_AND.end():]))
+            elif rule_target_match_AND:
+                return Intersection(ValueSet(target_str_to_rule_target(rule_target_match_AND.group(1))),factor_str_to_rule_factor(factor_str[rule_target_match_AND.end():]))
+            elif rule_target_match_OR:
+                return Union(ValueSet(target_str_to_rule_target(rule_target_match_OR.group(1))), factor_str_to_rule_factor(factor_str[rule_target_match_OR.end():]))
+            elif rule_target_match:
+                return ValueSet(target_str_to_rule_target(rule_target_match.group()))
 
-
-
-
-
-    target_str, factor_str = rule_str.split(',')
+    rule_str = rule_str.replace(" ", "")
+    target_str, factor_str = rule_str.split('=')
+    assert factor_str.count("<") == factor_str.count('>')
+    target = target_str_to_rule_target(target_str)
     factor = factor_str_to_rule_factor(factor_str)
-    factor
 
-
-    #UpdateRule(rule_target, Intersection(cont_fac, comp_fac)
+    return UpdateRule(target, factor)

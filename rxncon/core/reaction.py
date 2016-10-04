@@ -363,6 +363,16 @@ REACTION_DEFS = [
             '$y': (ProteinSpec, LocusResolution.component)
         },
         '$x# + $y# -> $x#'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'protein-synthesis',
+        '$x_syn_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.component)
+        },
+        '$x# -> $x# + $y#0'
     )
 ]
 
