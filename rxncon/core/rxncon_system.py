@@ -14,22 +14,20 @@ class RxnConSystem:
         self.reactions = reactions
         self.contingencies = contingencies
 
-        self.__produced_states    = None
-        self.__consumed_states    = None
-        self.__synthesised_states = None
+        self._components         = []
+        self._states             = []
+        self._produced_states    = []
+        self._consumed_states    = []
+        self._synthesised_states = []
 
         self._expand_fully_neutral_states()
         self._assert_consistency()
 
-    @property
     @typecheck
     def components(self) -> List[MolSpec]:
-        components = []
-        for reaction in self.reactions:
-            components += [spec.to_non_struct_spec() for spec in reaction.components_lhs] + \
-                          [spec.to_non_struct_spec() for spec in reaction.components_rhs]
-
-        return list(set(components))
+        if not self._components:
+            self._calculate_components()
+        return self._components
 
     @typecheck
     def contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
@@ -47,37 +45,36 @@ class RxnConSystem:
 
     @property
     @typecheck
-    def produced_states(self) -> List[State]:
-        if not self.__produced_states:
-            self._calculate_produced_states()
+    def states(self) -> List[State]:
+        if not self._states:
+            self._calculate_states()
+        return self._states
 
-        return self.__produced_states
+    @property
+    @typecheck
+    def produced_states(self) -> List[State]:
+        if not self._produced_states:
+            self._calculate_produced_states()
+        return self._produced_states
 
     @property
     @typecheck
     def consumed_states(self) -> List[State]:
-        if not self.__consumed_states:
+        if not self._consumed_states:
             self._calculate_consumed_states()
-
-        return self.__consumed_states
+        return self._consumed_states
 
     @property
     @typecheck
     def synthesised_states(self) -> List[State]:
-        if not self.__synthesised_states:
+        if not self._synthesised_states:
             self._calculate_synthesised_states()
-
-        return self.__synthesised_states
-
-    @property
-    @typecheck
-    def states(self) -> List[State]:
-        return list(set(self.produced_states + self.consumed_states + self.synthesised_states))
+        return self._synthesised_states
 
     @typecheck
     def states_for_component(self, component: MolSpec) -> List[State]:
         assert component.is_component_spec
-        return [x for x in self.states if component in x.components]
+        return [x for x in self.states if component.to_non_struct_spec() in x.components]
 
     @typecheck
     def states_for_component_grouped(self, component: MolSpec) -> Dict[Tuple[MolSpec, StateDef], List[State]]:
@@ -99,12 +96,25 @@ class RxnConSystem:
         return grouped
 
     @typecheck
+    def _calculate_components(self):
+        components = []
+        for reaction in self.reactions:
+            components += [spec.to_non_struct_spec() for spec in reaction.components_lhs] + \
+                          [spec.to_non_struct_spec() for spec in reaction.components_rhs]
+
+        self._components = list(set(components))
+
+    @typecheck
+    def _calculate_states(self):
+        self._states = list(set(self.produced_states + self.consumed_states + self.synthesised_states))
+
+    @typecheck
     def _calculate_produced_states(self):
         states = []
         for reaction in self.reactions:
             states += [state.to_non_struct_state() for state in reaction.produced_states]
 
-        self.__produced_states = list(set(states))
+        self._produced_states = list(set(states))
 
     @typecheck
     def _calculate_consumed_states(self):
@@ -112,7 +122,7 @@ class RxnConSystem:
         for reaction in self.reactions:
             states += [state.to_non_struct_state() for state in reaction.consumed_states]
 
-        self.__consumed_states = list(set(states))
+        self._consumed_states = list(set(states))
 
     @typecheck
     def _calculate_synthesised_states(self):
@@ -120,7 +130,7 @@ class RxnConSystem:
         for reaction in self.reactions:
             states += [state.to_non_struct_state() for state in reaction.synthesised_states]
 
-        self.__synthesised_states = list(set(states))
+        self._synthesised_states = list(set(states))
 
     def _expand_fully_neutral_states(self):
         for reaction in self.reactions:
@@ -140,5 +150,3 @@ class RxnConSystem:
         for state in required_states:
             assert state in self.states, \
                 'State {0} appears in contingencies, but is neither produced nor consumed'.format(str(state))
-
-
