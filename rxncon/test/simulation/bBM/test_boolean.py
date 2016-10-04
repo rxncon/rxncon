@@ -115,6 +115,10 @@ def boolean_test_cases():
     ]
 def test_rule_from_str(boolean_test_cases):
     for the_case in boolean_test_cases:
-        expected_boolean_rule = bm.boolean_rule_from_str(the_case.boolean_string)
+        expected_boolean_rule = bm.rxncon_bool_str_to_venn(the_case.boolean_string)
         expected_boolean_rule.target == the_case.boolean_rule.target
         expected_boolean_rule.factor.is_equivalent_to(the_case.boolean_rule.factor)
+
+
+def test_create_eda_compartible_str():
+    venn = bm.rxncon_bool_str_to_venn('<a--a | <b_ppi+_a | <<c--a&d--e> | <e_ppi-_a&f--r> >>>')
