@@ -32,49 +32,14 @@ def test_property_set_dictionary_keys():
     assert dictionary[y] == 'diebla'
 
 
-def test_nested_list_simplifies_mutual_complements():
+def test_simplifies():
     x1 = Intersection(ValueSet(1), ValueSet(2))
     x2 = Intersection(ValueSet(1), Complement(ValueSet(2)))
 
     z = Union(x1, x2)
 
-    assert z.to_nested_lists() == [[ValueSet(1)]]
-
-
-def test_nested_list_universal_empty():
-    assert EmptySet().to_nested_lists() == [[EmptySet()]]
-    assert UniversalSet().to_nested_lists() == [[UniversalSet()]]
-
-
-def test_union_list_universal_empty():
-    assert EmptySet().to_intersection_terms() == [EmptySet()]
-    assert UniversalSet().to_intersection_terms() == [UniversalSet()]
-
-
-def test_complementary_expansion():
-    class Z3Integer:
-        def __init__(self, value):
-            assert isinstance(value, int)
-            self.value = value % 3
-
-        def __eq__(self, other):
-            return self.value == other.value
-
-        def __hash__(self):
-            return hash(self.value)
-
-        def __str__(self):
-            return 'Z3Int({0})'.format(self.value)
-
-        def __repr__(self):
-            return str(self)
-
-        def complements(self):
-            return [Z3Integer(x) for x in range(3) if x != self.value]
-
-    p = Complement(ValueSet(Z3Integer(1)))
-
-    assert p.simplified_form().is_equivalent_to(Union(ValueSet(Z3Integer(2)), ValueSet(Z3Integer(0))))
+    assert z.to_full_simplified_form() == ValueSet(1)
+    assert z.is_equivalent_to(ValueSet(1))
 
 
 # Test the superset / subset relationships
