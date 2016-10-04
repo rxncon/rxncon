@@ -95,7 +95,6 @@ class RxnConSystem:
 
         return grouped
 
-    @typecheck
     def _calculate_components(self):
         components = []
         for reaction in self.reactions:
@@ -104,11 +103,9 @@ class RxnConSystem:
 
         self._components = list(set(components))
 
-    @typecheck
     def _calculate_states(self):
         self._states = list(set(self.produced_states + self.consumed_states + self.synthesised_states))
 
-    @typecheck
     def _calculate_produced_states(self):
         states = []
         for reaction in self.reactions:
@@ -116,7 +113,6 @@ class RxnConSystem:
 
         self._produced_states = list(set(states))
 
-    @typecheck
     def _calculate_consumed_states(self):
         states = []
         for reaction in self.reactions:
@@ -124,7 +120,6 @@ class RxnConSystem:
 
         self._consumed_states = list(set(states))
 
-    @typecheck
     def _calculate_synthesised_states(self):
         states = []
         for reaction in self.reactions:
