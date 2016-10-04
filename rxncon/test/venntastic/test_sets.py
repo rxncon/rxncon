@@ -217,230 +217,62 @@ def test_is_equivalent_to():
     assert UniversalSet().is_equivalent_to(Union(ValueSet(1), Complement(ValueSet(1))))
 
 
-# Test the cardinality calculator
-def test_cardinality_empty_and_universal_set():
-    assert EmptySet().cardinality == {}
-    assert UniversalSet().cardinality == {(UniversalSet(),): 1}
+# # Test the cardinality calculator
+# def test_cardinality_empty_and_universal_set():
+#     assert EmptySet().cardinality == {}
+#     assert UniversalSet().cardinality == {(UniversalSet(),): 1}
+#
+#
+# def test_cardinality_respects_complement_properties(sets):
+#     for x in sets:
+#         assert Intersection(x, Complement(x)).cardinality == {}
+#         assert Union(x, Complement(x)).cardinality == {(UniversalSet(),): 1}
+#
+#
+# def test_cardinality_property_sets():
+#     # Test the standard examples of the inclusion-exclusion principle:
+#     # |A u (B u C)| = |A| + |B| + |C| - |A^B| - |A^C| - |B^C| + |A^B^C|
+#     assert Union(ValueSet(1), Union(ValueSet(2), ValueSet(3))).cardinality == \
+#            {(ValueSet(1),): 1, (ValueSet(2),): 1, (ValueSet(3),): 1, (ValueSet(1), ValueSet(2)): -1, (ValueSet(1), ValueSet(3)): -1,
+#             (ValueSet(2), ValueSet(3)): -1, (ValueSet(1), ValueSet(2), ValueSet(3)): 1}
+#
+#     # |(A u B) u C| = same
+#     assert Union(Union(ValueSet(1), ValueSet(2)), ValueSet(3)).cardinality == \
+#            {(ValueSet(1),): 1, (ValueSet(2),): 1, (ValueSet(3),): 1, (ValueSet(1), ValueSet(2)): -1, (ValueSet(1), ValueSet(3)): -1,
+#             (ValueSet(2), ValueSet(3)): -1, (ValueSet(1), ValueSet(2), ValueSet(3)): 1}
+#
+#     # |A u (B u (C u D))| = |A| + |B| + |C| + |D| - |A^B| - |A^C| - |A^D| - |B^C| - |B^D| -|C^D| + |A^B^C| +
+#     #                       |B^C^D| + |A^C^D| + |A^B^D| - |A^B^C^D|
+#     assert Union(ValueSet(1), Union(ValueSet(2), Union(ValueSet(3), ValueSet(4)))).cardinality == \
+#            {(ValueSet(1),): 1, (ValueSet(2),): 1, (ValueSet(3),): 1, (ValueSet(4),): 1,
+#             (ValueSet(1), ValueSet(2)): -1, (ValueSet(1), ValueSet(3)): -1, (ValueSet(1), ValueSet(4)): -1,
+#             (ValueSet(2), ValueSet(3)): -1, (ValueSet(2), ValueSet(4)): -1, (ValueSet(3), ValueSet(4)): -1,
+#             (ValueSet(1), ValueSet(2), ValueSet(3)): 1, (ValueSet(2), ValueSet(3), ValueSet(4)): 1,
+#             (ValueSet(1), ValueSet(3), ValueSet(4)): 1, (ValueSet(1), ValueSet(2), ValueSet(4)): 1,
+#             (ValueSet(1), ValueSet(2), ValueSet(3), ValueSet(4)): -1}
+#
+#     # |(A u B) u (C u D)| = same
+#     assert Union(Union(ValueSet(1), ValueSet(2)), Union(ValueSet(3), ValueSet(4))).cardinality == \
+#            {(ValueSet(1),): 1, (ValueSet(2),): 1, (ValueSet(3),): 1, (ValueSet(4),): 1,
+#             (ValueSet(1), ValueSet(2)): -1, (ValueSet(1), ValueSet(3)): -1, (ValueSet(1), ValueSet(4)): -1,
+#             (ValueSet(2), ValueSet(3)): -1, (ValueSet(2), ValueSet(4)): -1, (ValueSet(3), ValueSet(4)): -1,
+#             (ValueSet(1), ValueSet(2), ValueSet(3)): 1, (ValueSet(2), ValueSet(3), ValueSet(4)): 1,
+#             (ValueSet(1), ValueSet(3), ValueSet(4)): 1, (ValueSet(1), ValueSet(2), ValueSet(4)): 1,
+#             (ValueSet(1), ValueSet(2), ValueSet(3), ValueSet(4)): -1}
+#
+#
+# def test_cardinality_property_sets_and_complements():
+#     assert Union(Complement(ValueSet(1)), ValueSet(2)).cardinality == \
+#            {(UniversalSet(),): 1, (ValueSet(1),): -1, (ValueSet(1), ValueSet(2)): 1}
+#
+#     assert Union(Complement(ValueSet(1)), Union(ValueSet(2), Complement(ValueSet(3)))).cardinality == \
+#            {(UniversalSet(),): 1, (ValueSet(1), ValueSet(3)): -1, (ValueSet(1), ValueSet(2), ValueSet(3)): 1}
+#
+#     assert Intersection(Complement(ValueSet(1)), Intersection(ValueSet(2), Complement(ValueSet(3)))).cardinality == \
+#            {(ValueSet(2),): 1, (ValueSet(1), ValueSet(2)): -1, (ValueSet(2), ValueSet(3)): -1,
+#             (ValueSet(1), ValueSet(2), ValueSet(3)): 1}
+#
 
-
-def test_cardinality_respects_complement_properties(sets):
-    for x in sets:
-        assert Intersection(x, Complement(x)).cardinality == {}
-        assert Union(x, Complement(x)).cardinality == {(UniversalSet(),): 1}
-
-
-def test_cardinality_property_sets():
-    # Test the standard examples of the inclusion-exclusion principle:
-    # |A u (B u C)| = |A| + |B| + |C| - |A^B| - |A^C| - |B^C| + |A^B^C|
-    assert Union(ValueSet(1), Union(ValueSet(2), ValueSet(3))).cardinality == \
-           {(ValueSet(1),): 1, (ValueSet(2),): 1, (ValueSet(3),): 1, (ValueSet(1), ValueSet(2)): -1, (ValueSet(1), ValueSet(3)): -1,
-            (ValueSet(2), ValueSet(3)): -1, (ValueSet(1), ValueSet(2), ValueSet(3)): 1}
-
-    # |(A u B) u C| = same
-    assert Union(Union(ValueSet(1), ValueSet(2)), ValueSet(3)).cardinality == \
-           {(ValueSet(1),): 1, (ValueSet(2),): 1, (ValueSet(3),): 1, (ValueSet(1), ValueSet(2)): -1, (ValueSet(1), ValueSet(3)): -1,
-            (ValueSet(2), ValueSet(3)): -1, (ValueSet(1), ValueSet(2), ValueSet(3)): 1}
-
-    # |A u (B u (C u D))| = |A| + |B| + |C| + |D| - |A^B| - |A^C| - |A^D| - |B^C| - |B^D| -|C^D| + |A^B^C| +
-    #                       |B^C^D| + |A^C^D| + |A^B^D| - |A^B^C^D|
-    assert Union(ValueSet(1), Union(ValueSet(2), Union(ValueSet(3), ValueSet(4)))).cardinality == \
-           {(ValueSet(1),): 1, (ValueSet(2),): 1, (ValueSet(3),): 1, (ValueSet(4),): 1,
-            (ValueSet(1), ValueSet(2)): -1, (ValueSet(1), ValueSet(3)): -1, (ValueSet(1), ValueSet(4)): -1,
-            (ValueSet(2), ValueSet(3)): -1, (ValueSet(2), ValueSet(4)): -1, (ValueSet(3), ValueSet(4)): -1,
-            (ValueSet(1), ValueSet(2), ValueSet(3)): 1, (ValueSet(2), ValueSet(3), ValueSet(4)): 1,
-            (ValueSet(1), ValueSet(3), ValueSet(4)): 1, (ValueSet(1), ValueSet(2), ValueSet(4)): 1,
-            (ValueSet(1), ValueSet(2), ValueSet(3), ValueSet(4)): -1}
-
-    # |(A u B) u (C u D)| = same
-    assert Union(Union(ValueSet(1), ValueSet(2)), Union(ValueSet(3), ValueSet(4))).cardinality == \
-           {(ValueSet(1),): 1, (ValueSet(2),): 1, (ValueSet(3),): 1, (ValueSet(4),): 1,
-            (ValueSet(1), ValueSet(2)): -1, (ValueSet(1), ValueSet(3)): -1, (ValueSet(1), ValueSet(4)): -1,
-            (ValueSet(2), ValueSet(3)): -1, (ValueSet(2), ValueSet(4)): -1, (ValueSet(3), ValueSet(4)): -1,
-            (ValueSet(1), ValueSet(2), ValueSet(3)): 1, (ValueSet(2), ValueSet(3), ValueSet(4)): 1,
-            (ValueSet(1), ValueSet(3), ValueSet(4)): 1, (ValueSet(1), ValueSet(2), ValueSet(4)): 1,
-            (ValueSet(1), ValueSet(2), ValueSet(3), ValueSet(4)): -1}
-
-
-def test_cardinality_property_sets_and_complements():
-    assert Union(Complement(ValueSet(1)), ValueSet(2)).cardinality == \
-           {(UniversalSet(),): 1, (ValueSet(1),): -1, (ValueSet(1), ValueSet(2)): 1}
-
-    assert Union(Complement(ValueSet(1)), Union(ValueSet(2), Complement(ValueSet(3)))).cardinality == \
-           {(UniversalSet(),): 1, (ValueSet(1), ValueSet(3)): -1, (ValueSet(1), ValueSet(2), ValueSet(3)): 1}
-
-    assert Intersection(Complement(ValueSet(1)), Intersection(ValueSet(2), Complement(ValueSet(3)))).cardinality == \
-           {(ValueSet(2),): 1, (ValueSet(1), ValueSet(2)): -1, (ValueSet(2), ValueSet(3)): -1,
-            (ValueSet(1), ValueSet(2), ValueSet(3)): 1}
-
-
-# Test the boolean functions that are used to determine super/subset relations
-def test_boolean_function_single_and_clause():
-    bool_func = BooleanFunction([BooleanAndClause(required_true=[0, 2], required_false=[1, 3])])
-
-    assert bool_func(true=[0, 2], false=[1, 3])
-    assert not bool_func(true=[0, 1, 2, 3])
-    assert not bool_func(true=[1, 3], false=[0, 2])
-
-
-def test_boolean_function_multiple_and_clauses():
-    bool_func = BooleanFunction([BooleanAndClause(required_true=[0], required_false=[1]),
-                                 BooleanAndClause(required_true=[1], required_false=[0])])
-
-    assert not bool_func(true=[0, 1])
-    assert bool_func(true=[0], false=[1])
-    assert not bool_func(false=[0, 1])
-    assert bool_func(true=[1], false=[0])
-
-    bool_func = BooleanFunction([BooleanAndClause(required_true=['a']),
-                                 BooleanAndClause(required_false=['a'])])
-
-    assert bool_func(true=['a'])
-    assert bool_func(false=['a'])
-
-
-def test_boolean_function_always_true():
-    # Non-trivial boolean function with one input.
-    bool_func = BooleanFunction([BooleanAndClause(required_true=[0])])
-
-    assert bool_func(true=[0])
-    assert not bool_func(false=[0])
-    assert not bool_func()
-
-    assert not BooleanFunctionAlwaysTrue().implies(bool_func)
-    assert bool_func.implies(BooleanFunctionAlwaysTrue())
-
-    # Trivial 'always true' boolean function with one input.
-    bool_func = BooleanFunction([BooleanAndClause(required_true=[0]),
-                                 BooleanAndClause(required_false=[0])])
-
-    assert bool_func.implies(BooleanFunctionAlwaysTrue())
-    assert BooleanFunctionAlwaysTrue().implies(bool_func)
-
-
-def test_boolean_function_always_false():
-    # Non-trivial boolean function with one input.
-    bool_func = BooleanFunction([BooleanAndClause(required_true=[0])])
-
-    assert BooleanFunctionAlwaysFalse().implies(bool_func)
-    assert not bool_func.implies(BooleanFunctionAlwaysFalse())
-
-
-def test_boolean_function_called_with_wrong_arguments():
-    bool_func = BooleanFunction([BooleanAndClause(required_true=['a']),
-                                 BooleanAndClause(required_false=['a'])])
-
-    with pytest.raises(NameError):
-        bool_func(true=['b'])
-
-
-def test_boolean_function_from_nested_list_form():
-    bool_func = boolean_function_from_nested_list_form([[ValueSet(1), Complement(ValueSet(2))],
-                                                        [ValueSet(2), Complement(ValueSet(1))]])
-
-    assert bool_func(true=[ValueSet(1)], false=[ValueSet(2)])
-    assert bool_func(true=[ValueSet(2)], false=[ValueSet(1)])
-
-    assert not bool_func(true=[ValueSet(1), ValueSet(2)])
-    assert not bool_func(false=[ValueSet(1), ValueSet(2)])
-
-    assert not bool_func(true=[ValueSet(1)])
-    assert not bool_func(true=[ValueSet(2)])
-    assert not bool_func(false=[ValueSet(1)])
-    assert not bool_func(false=[ValueSet(2)])
-
-
-def test_boolean_function_from_nested_list_form_corner_cases():
-    assert isinstance(boolean_function_from_nested_list_form([[ValueSet(1), Complement(ValueSet(1))]]),
-                      BooleanFunctionAlwaysFalse)
-
-    with pytest.raises(Exception):
-        boolean_function_from_nested_list_form([])
-
-    with pytest.raises(Exception):
-        boolean_function_from_nested_list_form('a')
-
-
-def test_generate_boolean_value_lists():
-    value_generator = generate_boolean_value_lists([1, 2, 3])
-
-    expected_boolean_lists = [
-        ([1, 2, 3], []),
-        ([1, 2], [3]),
-        ([1, 3], [2]),
-        ([1], [2, 3]),
-        ([2, 3], [1]),
-        ([2], [1, 3]),
-        ([3], [1, 2]),
-        ([], [1, 2, 3])
-    ]
-
-    actual_boolean_lists = list(value_generator)
-
-    assert all(expected in actual_boolean_lists for expected in expected_boolean_lists)
-    assert all(actual in expected_boolean_lists for actual in actual_boolean_lists)
-
-
-def test_boolean_function_implies_equivalent_functions():
-    first_bool_func = BooleanFunction([BooleanAndClause(required_true=[0], required_false=[1]),
-                                       BooleanAndClause(required_true=[1], required_false=[0])])
-
-    second_bool_func = BooleanFunction([BooleanAndClause(required_true=[1], required_false=[0]),
-                                        BooleanAndClause(required_true=[0], required_false=[1])])
-
-    assert first_bool_func.implies(second_bool_func)
-    assert second_bool_func.implies(first_bool_func)
-
-
-def test_boolean_function_implies_subset():
-    and_func = BooleanFunction([BooleanAndClause(required_true=[0, 1])])
-    zero_func = BooleanFunction([BooleanAndClause(required_true=[0])])
-    one_func = BooleanFunction([BooleanAndClause(required_true=[1])])
-
-    assert and_func.implies(zero_func)
-    assert and_func.implies(one_func)
-    assert not zero_func.implies(and_func)
-    assert not one_func.implies(and_func)
-
-
-# Test the "Gram-Schmidt" algorithm
-def test_manual_gram_schmidt_overlaps_simplify_correctly():
-    ab = ValueSet('ab')
-    ac = ValueSet('ac')
-    be = ValueSet('be')
-    bf = ValueSet('bf')
-
-    set1 = Intersection(ab, be)
-    set2 = Intersection(Intersection(ab, bf), Complement(set1))
-    set3 = Intersection(Intersection(Intersection(ac, be), Complement(set2)), Complement(set1))
-    set4 = Intersection(Intersection(Intersection(Intersection(ac, bf), Complement(set3)), Complement(set2)), Complement(set1))
-
-    assert set2.is_equivalent_to(Intersection(Intersection(ab, bf), Complement(be)))
-    assert set3.is_equivalent_to(Intersection(Intersection(ac, be), Complement(ab)))
-    assert set4.is_equivalent_to(Intersection(Intersection(Intersection(ac, bf), Complement(be)), Complement(ab)))
-
-    assert len(set1.to_nested_lists()) == 1
-    assert len(set2.to_nested_lists()) == 1
-    assert len(set3.to_nested_lists()) == 1
-    assert len(set4.to_nested_lists()) == 1
-
-
-def test_gram_schmidt():
-    ab = ValueSet('ab')
-    ac = ValueSet('ac')
-    be = ValueSet('be')
-    bf = ValueSet('bf')
-
-    ab_be = Intersection(ab, be)
-    ab_bf = Intersection(ab, bf)
-    ac_be = Intersection(ac, be)
-    ac_bf = Intersection(ac, bf)
-
-    set1, set2, set3, set4 = gram_schmidt_disjunctify([ab_be, ab_bf, ac_be, ac_bf])
-
-    assert set1.is_equivalent_to(ab_be)
-    assert set2.is_equivalent_to(Intersection(Intersection(ab, bf), Complement(be)))
-    assert set3.is_equivalent_to(Intersection(Intersection(ac, be), Complement(ab)))
-    assert set4.is_equivalent_to(Intersection(Intersection(Intersection(ac, bf), Complement(be)), Complement(ab)))
 
 
 @pytest.fixture

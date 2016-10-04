@@ -21,7 +21,7 @@ class Set:
     def is_subset_of(self, other: 'Set') -> bool:
         val_to_sym = self._make_val_to_sym_dict()
         val_to_sym = other._make_val_to_sym_dict(val_to_sym)
-        return Implies(self._to_pyeda_expr(val_to_sym), other._to_pyeda_expr(val_to_sym)) == expr(1)
+        return Implies(self._to_pyeda_expr(val_to_sym), other._to_pyeda_expr(val_to_sym)).equivalent(expr(1))
 
     def is_superset_of(self, other: 'Set') -> bool:
         return other.is_subset_of(self)
@@ -224,11 +224,11 @@ def pyeda_to_venn(pyeda_expr, sym_to_val):
     if isinstance(pyeda_expr, Variable):
         return ValueSet(sym_to_val[pyeda_expr.name])
     elif isinstance(pyeda_expr, AndOp):
-        return MultiIntersection(*(pyeda_to_venn(x, sym_to_val) for x in pyeda_expr.inputs))
+        return MultiIntersection(*(pyeda_to_venn(x, sym_to_val) for x in pyeda_expr.xs))
     elif isinstance(pyeda_expr, OrOp):
-        return MultiUnion(*(pyeda_to_venn(x, sym_to_val) for x in pyeda_expr.inputs))
+        return MultiUnion(*(pyeda_to_venn(x, sym_to_val) for x in pyeda_expr.xs))
     elif isinstance(pyeda_expr, NotOp):
-        return Complement(pyeda_to_venn(pyeda_expr.inputs[0], sym_to_val))
+        return Complement(pyeda_to_venn(pyeda_expr.x, sym_to_val))
     else:
         raise Exception
 
