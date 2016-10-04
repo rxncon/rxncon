@@ -6,7 +6,7 @@ import rxncon.semantics.molecule_instance
 
 import rxncon.semantics.rule
 import rxncon.simulation.rule_based.rule_based_model as rbm
-import rxncon.simulation.rule_based.bngl_export as bex
+import rxncon.simulation.rule_based.bngl_from_rule_based_model as bex
 import rxncon.core.specification as spec
 
 

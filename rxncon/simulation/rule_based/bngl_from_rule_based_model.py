@@ -2,7 +2,8 @@ from enum import Enum
 from typing import Tuple, List
 
 from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel, MolDef, Complex, SiteName, SiteModifier, \
-    InitialCondition, Mol, Parameter, Rule
+    InitialCondition, Mol, Parameter, Rule, Observable
+
 
 class BNGLSimulationMethods(Enum):
     ODE = 'ode'
@@ -18,7 +19,7 @@ class BNGLSettings:
         self.simulation_time_steps = 100
 
 
-def bngl_str_from_rule_based_model(rule_based_model: RuleBasedModel, settings=BNGLSettings()) -> str:
+def bngl_from_rule_based_model(rule_based_model: RuleBasedModel, settings=BNGLSettings()) -> str:
     def header_str() -> str:
         return 'begin model'
 
@@ -35,8 +36,8 @@ def bngl_str_from_rule_based_model(rule_based_model: RuleBasedModel, settings=BN
         return 'begin parameters\n{0}\nend parameters\n'.format('\n'.join(parameters))
 
     def observables_str() -> str:
-        # @todo Add this.
-        return ''
+        observables = [str_from_observable(observable) for observable in rule_based_model.observables]
+        return 'begin observables\n{0}\nend observables\n'.format('\n'.join(observables))
 
     def reaction_rules_str() -> str:
         rules = [str_from_rule(rule) for rule in rule_based_model.rules]
@@ -78,7 +79,8 @@ def str_from_mol(mol: Mol) -> str:
 
         return s
 
-    return '{0}({1})'.format(mol.name, ','.join(site_str(x) for x in mol.sites))
+    return '{0}({1})'.format(mol.name, ','.join(site_str(x) for x in mol.sites if mol.site_has_state(x)))
+
 
 def str_from_complex(complex: Complex) -> str:
     return '.'.join(str_from_mol(mol) for mol in complex.mols)
@@ -94,6 +96,10 @@ def str_from_parameter(parameter: Parameter) -> str:
     assert parameter.name and parameter.value
 
     return '{0}\t\t{1}'.format(parameter.name, parameter.value)
+
+
+def str_from_observable(observable: Observable) -> str:
+    return 'Molecules\t{0}\t{1}'.format(observable.name, str_from_complex(observable.complex))
 
 
 def str_from_rule(rule: Rule) -> str:
