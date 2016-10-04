@@ -1,45 +1,53 @@
 import functools
-import itertools as itt
-from typing import Dict, List
+from typecheck import typecheck
+from typing import Dict, List, Any, Optional
 
 from pyeda.inter import And, Or, Not, expr
-from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies
+from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies, Expression
 
 SYMS = 'abcdefghijklmnopqrstuvwxyz'
 
 class Set:
+    @typecheck
     def to_full_simplified_form(self) -> 'Set':
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
         return pyeda_to_venn(self._to_pyeda_expr(val_to_sym).to_cnf().to_dnf(), sym_to_val)
 
+    @typecheck
     def is_equivalent_to(self, other: 'Set') -> bool:
         val_to_sym = self._make_val_to_sym_dict()
         val_to_sym = other._make_val_to_sym_dict(val_to_sym)
         return self._to_pyeda_expr(val_to_sym).equivalent(other._to_pyeda_expr(val_to_sym))
 
+    @typecheck
     def is_subset_of(self, other: 'Set') -> bool:
         val_to_sym = self._make_val_to_sym_dict()
         val_to_sym = other._make_val_to_sym_dict(val_to_sym)
         return Implies(self._to_pyeda_expr(val_to_sym), other._to_pyeda_expr(val_to_sym)).equivalent(expr(1))
 
+    @typecheck
     def is_superset_of(self, other: 'Set') -> bool:
         return other.is_subset_of(self)
 
     @property
+    @typecheck
     def values(self):
         return []
 
     @property
+    @typecheck
     def value_type(self):
         types = [type(x) for x in self.values]
         # assert all(types[0] == x for x in types)
         return types[0]
 
-    def _to_pyeda_expr(self, val_to_sym):
+    @typecheck
+    def _to_pyeda_expr(self, val_to_sym: Dict[Any, str]) -> Expression:
         return None
 
-    def _make_val_to_sym_dict(self, existing_dict=None):
+    @typecheck
+    def _make_val_to_sym_dict(self, existing_dict: Optional[Dict[Any, str]]=None) -> Dict[Any, str]:
         vals = list(set(self.values))
 
         if existing_dict:
@@ -64,18 +72,22 @@ class ValueSet(UnarySet):
         assert isinstance(hash(value), int)
         self.value = value
 
-    def __eq__(self, other: Set):
+    @typecheck
+    def __eq__(self, other: Set) -> bool:
         if isinstance(other, ValueSet):
             return self.value == other.value
         else:
             return False
 
+    @typecheck
     def __hash__(self) -> int:
         return hash('*property-set-{}*'.format(hash(self.value)))
 
+    @typecheck
     def __repr__(self) -> str:
         return str(self)
 
+    @typecheck
     def __str__(self) -> str:
         if self.value:
             return 'ValueSet({})'.format(self.value)
@@ -86,7 +98,8 @@ class ValueSet(UnarySet):
     def values(self):
         return [self.value]
 
-    def _to_pyeda_expr(self, val_to_sym):
+    @typecheck
+    def _to_pyeda_expr(self, val_to_sym: Dict[Any, str]) -> Expression:
         if self.value:
             return expr(val_to_sym[self.value])
         else:
@@ -94,36 +107,48 @@ class ValueSet(UnarySet):
 
 
 class EmptySet(UnarySet):
-    def __eq__(self, other: Set):
+    @typecheck
+    def __eq__(self, other: Set) -> bool:
         return isinstance(other, EmptySet)
 
+    @typecheck
     def __hash__(self) -> int:
         return hash('*empty-set*')
 
+    @typecheck
     def __repr__(self) -> str:
         return str(self)
 
+    @typecheck
     def __str__(self) -> str:
         return 'EmptySet'
 
-    def _to_pyeda_expr(self, val_to_sym):
+    @typecheck
+    def _to_pyeda_expr(self, val_to_sym: Dict[Any, str]) -> Expression:
         return expr(0)
 
 
 class Complement(UnarySet):
+    @typecheck
     def __init__(self, expr: Set):
         self.expr = expr
 
-    def __eq__(self, other: Set):
+    @typecheck
+    def __eq__(self, other: Set) -> bool:
         if isinstance(other, Complement):
             return self.expr == other.expr
+        else:
+            return False
 
+    @typecheck
     def __hash__(self) -> int:
         return hash('*complement-{}*'.format(self.expr))
 
+    @typecheck
     def __repr__(self) -> str:
         return str(self)
 
+    @typecheck
     def __str__(self) -> str:
         return 'Complement({})'.format(self.expr)
 
@@ -131,11 +156,13 @@ class Complement(UnarySet):
     def values(self):
         return self.expr.values
 
-    def _to_pyeda_expr(self, val_to_sym):
+    @typecheck
+    def _to_pyeda_expr(self, val_to_sym: Dict[Any, str]) -> Expression:
         return Not(self.expr._to_pyeda_expr(val_to_sym))
 
 
 class BinarySet(Set):
+    @typecheck
     def __init__(self, left_expr: Set, right_expr: Set):
         self.left_expr = left_expr
         self.right_expr = right_expr
@@ -146,42 +173,52 @@ class BinarySet(Set):
 
 
 class Intersection(BinarySet):
-    def __eq__(self, other: Set):
+    @typecheck
+    def __eq__(self, other: Set) -> bool:
         if isinstance(other, Intersection):
             return self.left_expr == other.left_expr and self.right_expr == other.right_expr
         else:
             return False
 
+    @typecheck
     def __hash__(self) -> int:
         return hash('*intersection-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
 
+    @typecheck
     def __repr__(self) -> str:
         return str(self)
 
+    @typecheck
     def __str__(self) -> str:
         return 'Intersection({0}, {1})'.format(self.left_expr, self.right_expr)
 
-    def _to_pyeda_expr(self, val_to_sym):
+    @typecheck
+    def _to_pyeda_expr(self, val_to_sym: Dict[Any, str]) -> Expression:
         return And(self.left_expr._to_pyeda_expr(val_to_sym), self.right_expr._to_pyeda_expr(val_to_sym))
 
 
 class Union(BinarySet):
-    def __eq__(self, other: Set):
+    @typecheck
+    def __eq__(self, other: Set) -> bool:
         if isinstance(other, Union):
             return self.left_expr == other.left_expr and self.right_expr == other.right_expr
         else:
             return False
 
+    @typecheck
     def __hash__(self) -> int:
         return hash('*union-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
 
+    @typecheck
     def __repr__(self) -> str:
         return str(self)
 
+    @typecheck
     def __str__(self) -> str:
         return 'Union({0}, {1})'.format(self.left_expr, self.right_expr)
 
-    def _to_pyeda_expr(self, val_to_sym):
+    @typecheck
+    def _to_pyeda_expr(self, val_to_sym: Dict[Any, str]) -> Expression:
         return Or(self.left_expr._to_pyeda_expr(val_to_sym), self.right_expr._to_pyeda_expr(val_to_sym))
 
 
@@ -231,5 +268,3 @@ def pyeda_to_venn(pyeda_expr, sym_to_val):
         return Complement(pyeda_to_venn(pyeda_expr.x, sym_to_val))
     else:
         raise Exception
-
-

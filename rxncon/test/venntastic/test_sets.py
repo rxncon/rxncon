@@ -134,6 +134,11 @@ def test_superset_subset_for_nested_unions():
     xz = Union(x, z)
     xyz = Union(x, Union(y, z))
 
+    for a in [x, y, z, xy, yz, xz, xyz]:
+        for b in [x, y, z, xy, yz, xz, xyz]:
+            if a != b:
+                assert not a.is_equivalent_to(b)
+
     assert xyz.is_superset_of(x)
     assert xyz.is_superset_of(y)
     assert xyz.is_superset_of(z)
@@ -179,6 +184,9 @@ def test_union_properties(sets):
     for x in sets:
         assert UniversalSet().is_equivalent_to(Union(x, Complement(x)))
         assert UniversalSet().is_equivalent_to(Union(Complement(x), x))
+
+        assert Union(x, Complement(x)).is_equivalent_to(UniversalSet())
+        assert Union(Complement(x), x).is_equivalent_to(UniversalSet())
 
         assert x.is_equivalent_to(Union(EmptySet(), x))
         assert x.is_equivalent_to(Union(x, EmptySet()))
