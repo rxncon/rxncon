@@ -373,14 +373,14 @@ def rxncon_bool_str_to_venn(factor_str: str):
         value_to_sym_dict = _make_value_str_to_sym_str_dict(factor_str)
         for value, sym in value_to_sym_dict.items():
             eda_factor_str = eda_factor_str.replace(value, sym)
-        return eda_factor_str.replace("<", '(').replace('>', ')'), value_to_sym_dict
+        return eda_factor_str.replace("<", '(').replace('>', ')').replace('!','~'), value_to_sym_dict
 
     # syn | C & ( deg & ( prod & ss1 & ss2 ) | ( s & ! deg & ! con )
     factor_str = factor_str.replace(" ", "")
     assert factor_str.count("<") == factor_str.count('>')
     eda_factor_str, value_to_sym_dict = eda_compatible_str(factor_str)
     pyeda = expr(eda_factor_str)
-    pyeda_to_venn(pyeda, _make_sym_str_to_value_target_dict(value_to_sym_dict))
+    return pyeda_to_venn(pyeda, _make_sym_str_to_value_target_dict(value_to_sym_dict))
 
 
 

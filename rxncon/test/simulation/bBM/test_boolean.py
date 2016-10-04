@@ -61,63 +61,60 @@ def test_insulin_system():
     """)
     boolmodel = bm.boolean_model_from_rxncon(rxncon_sys.rxncon_system)
 
-BooleanRuleTestCase = namedtuple('BooleanRuleTestCase', ['boolean_string', 'boolean_rule'])
+BooleanRuleTestCase = namedtuple('BooleanRuleTestCase', ['boolean_string', 'boolean_factor'])
 
 @pytest.fixture
 def boolean_test_cases():
     return [
-        BooleanRuleTestCase('f--e=<a--a | <b_ppi+_a | <<c--a&d--e> | <e_ppi-_a&f--r> >>>',
-                            bm.UpdateRule(bm.StateTarget(state_from_string('f--e')), bm.Union(bm.ValueSet(bm.StateTarget(state_from_string('a--a'))), bm.Union(bm.ValueSet(bm.ReactionTarget(reaction_from_string('b_[a]_ppi+_a_[b]'))),
-                                                                                                      Union(bm.Intersection(bm.ValueSet(bm.StateTarget(state_from_string('c--a'))), bm.ValueSet(bm.StateTarget(state_from_string('d--e')))),
-                                                                                                            bm.Intersection(bm.ValueSet(bm.ReactionTarget(reaction_from_string('e_[a]_ppi-_a_[e]'))), bm.ValueSet(bm.StateTarget(state_from_string('f--r'))))
-                                                                                                            )
-                                                                                                      )
-                                                                                            )
-                                          )
-                            ),
-        BooleanRuleTestCase('a--b= <a-{p} | <a_ppi+_b &c--d>>',
-                           bm.UpdateRule(bm.StateTarget(state_from_string('a--b')), Union(ValueSet(bm.StateTarget(state_from_string('a-{p}'))),
-                                                                                         Intersection(ValueSet(bm.ReactionTarget(reaction_from_string('a_ppi+_b'))), ValueSet(bm.StateTarget(state_from_string('c--d'))))))
-                           ),
+        # BooleanRuleTestCase('<a--a | <b_ppi+_a | <<c--a&d--e> | <e_ppi-_a&f--r> >>>',
+        #                     bm.Union(bm.ValueSet(bm.StateTarget(state_from_string('a--a'))), bm.Union(bm.ValueSet(bm.ReactionTarget(reaction_from_string('b_[a]_ppi+_a_[b]'))),
+        #                                                                                               Union(bm.Intersection(bm.ValueSet(bm.StateTarget(state_from_string('c--a'))), bm.ValueSet(bm.StateTarget(state_from_string('d--e')))),
+        #                                                                                                     bm.Intersection(bm.ValueSet(bm.ReactionTarget(reaction_from_string('e_[a]_ppi-_a_[e]'))), bm.ValueSet(bm.StateTarget(state_from_string('f--r'))))
+        #                                                                                                     )
+        #                                                                                               )
+        #                              )
+        #                     ),
+        # BooleanRuleTestCase('<a-{p} | <a_ppi+_b &c--d>>',
+        #                    Union(ValueSet(bm.StateTarget(state_from_string('a-{p}'))),
+        #                          Intersection(ValueSet(bm.ReactionTarget(reaction_from_string('a_ppi+_b'))), ValueSet(bm.StateTarget(state_from_string('c--d')))))
+        #                    ),
 
-        BooleanRuleTestCase('a--b= <<a-{p} | <a--b & a--c>>')
+        #BooleanRuleTestCase('a--b= <<a-{p} | <a--b & a--c>>')
 
-        # BooleanRuleTestCase('a--b= <a_syn_b | < < <<a--b & a_[b]--0> & <a--b & b_[a]--0 >> & <! c_deg_a & <a_ppi+_b & <a_[b]--0 & b_[a]--0>>> > | <a--b & <! c_deg_a & ! a_ppi-_b>> > >',
-        #                     bm.UpdateRule(bm.StateTarget(state_from_string('a--b')),
-        #                                   Union(ValueSet(bm.ReactionTarget(reaction_from_string('a_syn_b'))),
-        #                                         Union(
-        #                                                 Intersection(
-        #                                                             Intersection(
-        #                                                                         Intersection(ValueSet(bm.StateTarget(state_from_string('a--b'))),
-        #                                                                                 ValueSet(bm.StateTarget(state_from_string('a_[b]--0')))
-        #                                                                                 ),
-        #                                                                         Intersection(ValueSet(bm.StateTarget(state_from_string('a--b'))),
-        #                                                                                 ValueSet(bm.StateTarget(state_from_string('b_[a]--0')))
-        #                                                                                     )
-        #                                                                         ),
-        #                                                             Intersection(Complement(ValueSet(bm.ReactionTarget(reaction_from_string('c_deg_a')))),
-        #                                                                          Intersection(ValueSet(bm.ReactionTarget(reaction_from_string('a_ppi+_b'))),
-        #                                                                                       Intersection(ValueSet(bm.StateTarget(state_from_string('a_[b]--0'))),
-        #                                                                                                    ValueSet(bm.StateTarget(state_from_string('b_[a]--0')))
-        #                                                                                                    )
-        #                                                                                       )
-        #                                                                          )
-        #                                                             ),
-        #                                                 Intersection(ValueSet(bm.StateTarget(state_from_string('a--b'))),
-        #                                                              Intersection(Complement(ValueSet(bm.ReactionTarget(reaction_from_string('c_deg_a')))),
-        #                                                                           Complement(ValueSet(bm.ReactionTarget(reaction_from_string('a_ppi-_b'))))
-        #                                                                           )
-        #                                                              )
-        #                                             )
-        #                                         )
-        #                                   )
-        #                     )
+        BooleanRuleTestCase('<a_syn_b | < < <<a--b & a_[b]--0> & <a--b & b_[a]--0 >> & <! c_deg_a & <a_ppi+_b & <a_[b]--0 & b_[a]--0>>> > | <a--b & <! c_deg_a & ! a_ppi-_b>> > >',
+                              Union(ValueSet(bm.ReactionTarget(reaction_from_string('a_syn_b'))),
+                                    Union(
+                                            Intersection(
+                                                        Intersection(
+                                                                    Intersection(ValueSet(bm.StateTarget(state_from_string('a--b'))),
+                                                                            ValueSet(bm.StateTarget(state_from_string('a_[b]--0')))
+                                                                            ),
+                                                                    Intersection(ValueSet(bm.StateTarget(state_from_string('a--b'))),
+                                                                            ValueSet(bm.StateTarget(state_from_string('b_[a]--0')))
+                                                                                )
+                                                                    ),
+                                                        Intersection(Complement(ValueSet(bm.ReactionTarget(reaction_from_string('c_deg_a')))),
+                                                                     Intersection(ValueSet(bm.ReactionTarget(reaction_from_string('a_ppi+_b'))),
+                                                                                  Intersection(ValueSet(bm.StateTarget(state_from_string('a_[b]--0'))),
+                                                                                               ValueSet(bm.StateTarget(state_from_string('b_[a]--0')))
+                                                                                               )
+                                                                                  )
+                                                                     )
+                                                        ),
+                                            Intersection(ValueSet(bm.StateTarget(state_from_string('a--b'))),
+                                                         Intersection(Complement(ValueSet(bm.ReactionTarget(reaction_from_string('c_deg_a')))),
+                                                                      Complement(ValueSet(bm.ReactionTarget(reaction_from_string('a_ppi-_b'))))
+                                                                      )
+                                                         )
+                                        )
+                                    )
+                              )
+
     ]
 def test_rule_from_str(boolean_test_cases):
     for the_case in boolean_test_cases:
-        expected_boolean_rule = bm.rxncon_bool_str_to_venn(the_case.boolean_string)
-        expected_boolean_rule.target == the_case.boolean_rule.target
-        expected_boolean_rule.factor.is_equivalent_to(the_case.boolean_rule.factor)
+        actual_boolean_factor = bm.rxncon_bool_str_to_venn(the_case.boolean_string)
+        actual_boolean_factor.is_equivalent_to(the_case.boolean_factor)
 
 
 def test_create_eda_compartible_str():
