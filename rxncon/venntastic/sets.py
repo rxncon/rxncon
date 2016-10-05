@@ -12,6 +12,20 @@ SYMS = [''.join(tuple) for tuple in product('ABCDEFGHIJKLMNOPQRSTUVWXYZ', repeat
 
 class Set:
     @typecheck
+    def calc_solutions(self) -> List[Dict['Set', bool]]:
+        val_to_sym = self._make_val_to_sym_dict()
+        sym_to_val = {sym: val for val, sym in val_to_sym.items()}
+
+        venn_solns = []
+        for s in self._to_pyeda_expr(val_to_sym).satisfy_all():
+            venn_soln = {}
+            for sym, truth in s.items():
+                venn_soln[sym_to_val[sym]] = bool(truth)
+            venn_solns.append(venn_soln)
+
+        return venn_solns
+
+    @typecheck
     def to_simplified_set(self) -> 'Set':
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
