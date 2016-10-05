@@ -60,26 +60,26 @@ def test_insulin_system():
     <IR2-insulin3>; AND IR@0_[IRBD]--IR@2_[IRBD]; AND IR@2_[lig]--insulin@3_[IR]
     """)
     boolmodel = bm.boolean_model_from_rxncon(rxncon_sys.rxncon_system)
+    print('hallo')
 
 BooleanRuleTestCase = namedtuple('BooleanRuleTestCase', ['boolean_string', 'boolean_factor'])
 
 @pytest.fixture
 def boolean_test_cases():
     return [
-        # BooleanRuleTestCase('<a--a | <b_ppi+_a | <<c--a&d--e> | <e_ppi-_a&f--r> >>>',
-        #                     bm.Union(bm.ValueSet(bm.StateTarget(state_from_string('a--a'))), bm.Union(bm.ValueSet(bm.ReactionTarget(reaction_from_string('b_[a]_ppi+_a_[b]'))),
-        #                                                                                               Union(bm.Intersection(bm.ValueSet(bm.StateTarget(state_from_string('c--a'))), bm.ValueSet(bm.StateTarget(state_from_string('d--e')))),
-        #                                                                                                     bm.Intersection(bm.ValueSet(bm.ReactionTarget(reaction_from_string('e_[a]_ppi-_a_[e]'))), bm.ValueSet(bm.StateTarget(state_from_string('f--r'))))
-        #                                                                                                     )
-        #                                                                                               )
-        #                              )
-        #                     ),
-        # BooleanRuleTestCase('<a-{p} | <a_ppi+_b &c--d>>',
-        #                    Union(ValueSet(bm.StateTarget(state_from_string('a-{p}'))),
-        #                          Intersection(ValueSet(bm.ReactionTarget(reaction_from_string('a_ppi+_b'))), ValueSet(bm.StateTarget(state_from_string('c--d')))))
-        #                    ),
+        BooleanRuleTestCase('<a--a | <b_ppi+_a | <<c--a&d--e> | <e_ppi-_a&f--r> >>>',
+                            bm.Union(bm.ValueSet(bm.StateTarget(state_from_string('a--a'))), bm.Union(bm.ValueSet(bm.ReactionTarget(reaction_from_string('b_[a]_ppi+_a_[b]'))),
+                                                                                                      Union(bm.Intersection(bm.ValueSet(bm.StateTarget(state_from_string('c--a'))), bm.ValueSet(bm.StateTarget(state_from_string('d--e')))),
+                                                                                                            bm.Intersection(bm.ValueSet(bm.ReactionTarget(reaction_from_string('e_[a]_ppi-_a_[e]'))), bm.ValueSet(bm.StateTarget(state_from_string('f--r'))))
+                                                                                                            )
+                                                                                                      )
+                                     )
+                            ),
+        BooleanRuleTestCase('<a-{p} | <a_ppi+_b &c--d>>',
+                           Union(ValueSet(bm.StateTarget(state_from_string('a-{p}'))),
+                                 Intersection(ValueSet(bm.ReactionTarget(reaction_from_string('a_ppi+_b'))), ValueSet(bm.StateTarget(state_from_string('c--d')))))
+                           ),
 
-        #BooleanRuleTestCase('a--b= <<a-{p} | <a--b & a--c>>')
 
         BooleanRuleTestCase('<a_syn_b | < < <<a--b & a_[b]--0> & <a--b & b_[a]--0 >> & <! c_deg_a & <a_ppi+_b & <a_[b]--0 & b_[a]--0>>> > | <a--b & <! c_deg_a & ! a_ppi-_b>> > >',
                               Union(ValueSet(bm.ReactionTarget(reaction_from_string('a_syn_b'))),

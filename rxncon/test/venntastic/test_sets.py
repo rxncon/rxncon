@@ -38,7 +38,6 @@ def test_simplifies():
 
     z = Union(x1, x2)
 
-    assert z.to_dnf_set() == ValueSet(1)
     assert z.is_equivalent_to(ValueSet(1))
 
 

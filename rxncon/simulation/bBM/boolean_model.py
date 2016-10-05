@@ -22,7 +22,7 @@ class BooleanModel:
     def __init__(self, update_rules: List['UpdateRule'], initial_conditions: List['InitialCondition']):
         self.update_rules = update_rules
         self.initial_conditions = initial_conditions
-        self._validate()
+        # self._validate()
 
     def _validate(self):
         all_lhs_targets = []
@@ -197,17 +197,17 @@ class UpdateRule:
         return self.factor.values
 
     def _validate(self):
-        assert any(cls == Target for cls in self.factor.value_type.mro())
+        pass
+        # assert any(cls == Target for cls in self.factor.value_type.mro())
 
 
 def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     def naive_component_factor(component: MolSpec) -> VennSet:
         grouped_states = rxncon_sys.states_for_component_grouped(component)
-        factor = UniversalSet()
-        for group in grouped_states.values():
-            factor = Intersection(factor, MultiUnion(*(ValueSet(StateTarget(x)) for x in group)))
+        if not grouped_states.values():
+            return UniversalSet()
 
-        return factor
+        return MultiIntersection(*(MultiUnion(*(ValueSet(StateTarget(x)) for x in group)) for group in grouped_states.values()))
 
     @typecheck
     def component_factor(component: MolSpec) -> VennSet:
@@ -260,8 +260,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     for reaction_target in reaction_targets:
         cont_fac = MultiIntersection(*(contingency_factor(x) for x in rxncon_sys.contingencies_for_reaction(reaction_target.reaction_parent)))
         comp_fac = MultiIntersection(*(component_factor(x) for x in reaction_target.components))
-        reaction_rules.append(UpdateRule(reaction_target,
-                                         Intersection(cont_fac, comp_fac).to_dnf_set()))
+        reaction_rules.append(UpdateRule(reaction_target, Intersection(cont_fac, comp_fac).to_simplified_set()))
 
     # Factor for a state target is of the form:
     # synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
@@ -285,7 +284,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
         prod_cons_fac = Union(MultiUnion(*prod_facs), Intersection(ValueSet(state_target), MultiIntersection(*cons_facs)))
 
         state_rules.append(UpdateRule(state_target,
-                                      Union(synt_fac, MultiIntersection(comp_fac, degr_fac, prod_cons_fac)).to_dnf_set()))
+                                      Union(synt_fac, MultiIntersection(comp_fac, degr_fac, prod_cons_fac)).to_simplified_set()))
 
     return BooleanModel(reaction_rules + state_rules, initial_conditions(reaction_targets, state_targets))
 
@@ -333,7 +332,6 @@ alphabet = ascii_lowercase
 
 @typecheck
 def rxncon_bool_str_to_venn(factor_str: str):
-
     @typecheck
     def _target_str_to_rule_target(target_str: str):
         if matching_state_def(target_str):
