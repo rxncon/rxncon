@@ -3,12 +3,13 @@ from typecheck import typecheck
 from typing import Dict, List, Any, Optional
 from collections import OrderedDict
 from itertools import product
+import re
 
 from pyeda.inter import And, Or, Not, expr
 from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies, Expression, Literal, NaryOp, \
     Complement as pyedaComplement
 
-SYMS = [''.join(tuple) for tuple in product('ABCDEFGHIJKLMNOPQRSTUVWXYZ', repeat=2)]
+SYMS = [''.join(tup) for tup in product('ABCDEFGHIJKLMNOPQRSTUVWXYZ', repeat=2)]
 
 class Set:
     @typecheck
@@ -18,10 +19,7 @@ class Set:
 
         venn_solns = []
         for s in self._to_pyeda_expr(val_to_sym).satisfy_all():
-            venn_soln = {}
-            for sym, truth in s.items():
-                venn_soln[sym_to_val[sym]] = bool(truth)
-            venn_solns.append(venn_soln)
+            venn_solns.append({sym_to_val[sym.name]: bool(truth) for sym, truth in s.items()})
 
         return venn_solns
 
@@ -29,13 +27,13 @@ class Set:
     def to_simplified_set(self) -> 'Set':
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
-        return pyeda_to_venn(self._to_pyeda_expr(val_to_sym).simplify(), sym_to_val)
+        return venn_from_pyeda(self._to_pyeda_expr(val_to_sym).simplify(), sym_to_val)
 
     @typecheck
     def to_dnf_set(self) -> 'Set':
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
-        return pyeda_to_venn(self._to_pyeda_expr(val_to_sym).to_dnf(), sym_to_val)
+        return venn_from_pyeda(self._to_pyeda_expr(val_to_sym).to_dnf(), sym_to_val)
 
     @typecheck
     def to_dnf_list(self) -> List['Set']:
@@ -44,9 +42,9 @@ class Set:
         dnf_set = self._to_pyeda_expr(val_to_sym).to_dnf()
 
         if isinstance(dnf_set, Literal):
-            return [pyeda_to_venn(dnf_set, sym_to_val)]
+            return [venn_from_pyeda(dnf_set, sym_to_val)]
         elif isinstance(dnf_set, NaryOp):
-            return [pyeda_to_venn(x, sym_to_val) for x in dnf_set.xs]
+            return [venn_from_pyeda(x, sym_to_val) for x in dnf_set.xs]
         else:
             raise Exception
 
@@ -57,14 +55,14 @@ class Set:
         dnf_set = self._to_pyeda_expr(val_to_sym).to_dnf()
 
         if isinstance(dnf_set, Literal):
-            return [pyeda_to_venn(dnf_set, sym_to_val)]
+            return [venn_from_pyeda(dnf_set, sym_to_val)]
 
         res = []
         for term in dnf_set.xs:
             if isinstance(term, Literal):
-                res.append([pyeda_to_venn(term, sym_to_val)])
+                res.append([venn_from_pyeda(term, sym_to_val)])
             elif isinstance(term, NaryOp):
-                res.append([pyeda_to_venn(x, sym_to_val) for x in term.xs])
+                res.append([venn_from_pyeda(x, sym_to_val) for x in term.xs])
             else:
                 raise Exception
         return res
@@ -312,16 +310,43 @@ def nested_expression_from_list_and_binary_op(xs: List[Set], binary_op) -> Set:
         return functools.reduce(binary_op, xs[1:], xs[0])
 
 
-def pyeda_to_venn(pyeda_expr, sym_to_val):
+def venn_from_pyeda(pyeda_expr, sym_to_val):
     if isinstance(pyeda_expr, Variable):
         return ValueSet(sym_to_val[pyeda_expr.name])
     elif isinstance(pyeda_expr, AndOp):
-        return MultiIntersection(*(pyeda_to_venn(x, sym_to_val) for x in pyeda_expr.xs))
+        return MultiIntersection(*(venn_from_pyeda(x, sym_to_val) for x in pyeda_expr.xs))
     elif isinstance(pyeda_expr, OrOp):
-        return MultiUnion(*(pyeda_to_venn(x, sym_to_val) for x in pyeda_expr.xs))
+        return MultiUnion(*(venn_from_pyeda(x, sym_to_val) for x in pyeda_expr.xs))
     elif isinstance(pyeda_expr, NotOp):
-        return Complement(pyeda_to_venn(pyeda_expr.x, sym_to_val))
+        return Complement(venn_from_pyeda(pyeda_expr.x, sym_to_val))
     elif isinstance(pyeda_expr, pyedaComplement):
         return Complement(ValueSet(sym_to_val[pyeda_expr.inputs[0].name]))
     else:
         raise Exception
+
+
+def venn_from_str(venn_str, value_parser=lambda x: x):
+    # The values have to be surrounded by a single space.
+    BOOL_REGEX            = '[\(\)\|\&\~]+'
+    pyeda_str             = ''
+    pyeda_sym_to_val      = {}
+    venn_sym_to_pyeda_sym = {}
+    current_sym           = 0
+
+    parts = venn_str.split(' ')
+
+    for part in parts:
+        match = re.match(BOOL_REGEX, part)
+        if match and match.string == part:
+            pyeda_str += part
+        else:
+            if part in venn_sym_to_pyeda_sym.keys():
+                pyeda_str += venn_sym_to_pyeda_sym[part]
+            else:
+                pyeda_sym = SYMS[current_sym]
+                current_sym += 1
+                venn_sym_to_pyeda_sym[part] = pyeda_sym
+                pyeda_sym_to_val[pyeda_sym] = value_parser(part)
+                pyeda_str += pyeda_sym
+
+    return venn_from_pyeda(expr(pyeda_str), pyeda_sym_to_val)

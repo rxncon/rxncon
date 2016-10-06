@@ -1,4 +1,4 @@
-from rxncon.venntastic.sets import Set as VennSet, MultiIntersection, MultiUnion, ValueSet, Intersection, Union, Complement, UniversalSet, pyeda_to_venn
+from rxncon.venntastic.sets import Set as VennSet, MultiIntersection, MultiUnion, ValueSet, Intersection, Union, Complement, UniversalSet, venn_from_pyeda
 from rxncon.core.reaction import Reaction, matching_reaction_def, reaction_from_string
 from rxncon.core.state import State, matching_state_def, state_from_string
 from rxncon.core.spec import MolSpec
@@ -327,58 +327,6 @@ def boolnet_str_from_boolean_model(boolean_model: BooleanModel) -> str:
 
     return 'targets, factors\n' + '\n'.join(str_from_update_rule(x) for x in boolean_model.update_rules) + '\n'
 
-
-alphabet = ascii_lowercase
-
-@typecheck
-def rxncon_bool_str_to_venn(factor_str: str):
-    @typecheck
-    def _target_str_to_rule_target(target_str: str):
-        if matching_state_def(target_str):
-            return StateTarget(state_from_string(target_str))
-        elif matching_reaction_def(target_str):
-            return ReactionTarget(reaction_from_string(target_str))
-        else:
-            raise NotImplementedError
-
-    @typecheck
-    def _rxncon_states_and_reactions(factor_str) -> List[str]:
-        return list(set(findall('[\w\[\]\{\}/()+_-]+', factor_str)))
-
-    @typecheck
-    def _character_numbering(factor_str) -> List[str]:
-        number_of_alphabet_repetitions = ceil(len(_rxncon_states_and_reactions(factor_str)) / len(alphabet))
-        combinations = []
-        while number_of_alphabet_repetitions:
-            combinations.extend(
-                ["".join(combination) for combination in product(alphabet, repeat=number_of_alphabet_repetitions)][
-                ::-1])
-            number_of_alphabet_repetitions -= 1
-        return combinations[::-1]
-
-    @typecheck
-    def _make_value_str_to_sym_str_dict(factor_str: str) -> Dict[str, str]:
-        return {value: sym for sym, value in
-                zip(_character_numbering(factor_str), _rxncon_states_and_reactions(factor_str))}
-
-    @typecheck
-    def _make_sym_str_to_value_target_dict(value_to_sym_dict: Dict[str, str]) -> Dict[str, Target]:
-        return {sym: _target_str_to_rule_target(value) for value, sym in value_to_sym_dict.items()}
-
-    @typecheck
-    def eda_compatible_str(factor_str: str) -> Tuple[str, Dict[str, str]]:
-        eda_factor_str = copy(factor_str)
-        value_to_sym_dict = _make_value_str_to_sym_str_dict(factor_str)
-        for value, sym in value_to_sym_dict.items():
-            eda_factor_str = eda_factor_str.replace(value, sym)
-        return eda_factor_str.replace("<", '(').replace('>', ')').replace('!','~'), value_to_sym_dict
-
-    # syn | C & ( deg & ( prod & ss1 & ss2 ) | ( s & ! deg & ! con )
-    factor_str = factor_str.replace(" ", "")
-    assert factor_str.count("<") == factor_str.count('>')
-    eda_factor_str, value_to_sym_dict = eda_compatible_str(factor_str)
-    pyeda = expr(eda_factor_str)
-    return pyeda_to_venn(pyeda, _make_sym_str_to_value_target_dict(value_to_sym_dict))
 
 
 

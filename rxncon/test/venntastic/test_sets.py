@@ -41,6 +41,13 @@ def test_simplifies():
     assert z.is_equivalent_to(ValueSet(1))
 
 
+def test_parser():
+    assert venn_from_str('1 & 2', int).is_equivalent_to(Intersection(ValueSet(1), ValueSet(2)))
+    assert venn_from_str('( 1 | 2 ) & 3', int).is_equivalent_to(Intersection(ValueSet(3), Union(ValueSet(1), ValueSet(2))))
+    assert venn_from_str('~ 1', int).is_equivalent_to(Complement(ValueSet(1)))
+    assert venn_from_str('~( 1 | 2 )', int).is_equivalent_to(Intersection(Complement(ValueSet(1)), Complement(ValueSet(2))))
+
+
 # Test the superset / subset relationships
 def test_superset_subset_for_unary_sets():
     assert UniversalSet() == ValueSet(None)
@@ -111,6 +118,20 @@ def test_superset_subset_for_nested_intersections():
     assert xy.is_superset_of(xyz)
     assert yz.is_superset_of(xyz)
     assert xz.is_superset_of(xyz)
+
+    assert not xyz.is_superset_of(x)
+    assert not xyz.is_superset_of(y)
+    assert not xyz.is_superset_of(z)
+    assert not xyz.is_superset_of(xy)
+    assert not xyz.is_superset_of(yz)
+    assert not xyz.is_superset_of(xz)
+
+    assert not x.is_subset_of(xyz)
+    assert not y.is_subset_of(xyz)
+    assert not z.is_subset_of(xyz)
+    assert not xy.is_subset_of(xyz)
+    assert not yz.is_subset_of(xyz)
+    assert not xz.is_subset_of(xyz)
 
 
 def test_superset_subset_for_flat_unions():
