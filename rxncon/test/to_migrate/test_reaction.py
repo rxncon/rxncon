@@ -151,12 +151,12 @@ def reaction_test_case(reaction_definitions):
                          [rxn.ReactionTerm(spec.ProteinSpec('A', 0, spec.Domain(None, None, None)),
                                            []),
                           rxn.ReactionTerm(spec.ProteinSpec('B', 1, spec.Domain(None, None, None)),
-                                           [sta.state_from_string('B@1_[(y)]-{0}')])],
+                                           [sta.state_from_str('B@1_[(y)]-{0}')])],
 
                          [rxn.ReactionTerm(spec.ProteinSpec('A', 0, spec.Domain(None, None, None)),
                                            []),
                           rxn.ReactionTerm(spec.ProteinSpec('B', 1, spec.Domain(None, None, None)),
-                                           [sta.state_from_string('B@1_[(y)]-{P}')])],
+                                           [sta.state_from_str('B@1_[(y)]-{P}')])],
 
                          ),
 
@@ -167,14 +167,14 @@ def reaction_test_case(reaction_definitions):
                                        '$y': rxn.specification_from_string('B@1_[(y)]')
                                        }),
                          [rxn.ReactionTerm(spec.ProteinSpec('A', 0, spec.Domain(None, None, None)),
-                                           [sta.state_from_string('A@0_[(x)]-{P}')]),
+                                           [sta.state_from_str('A@0_[(x)]-{P}')]),
                           rxn.ReactionTerm(spec.ProteinSpec('B', 1, spec.Domain(None, None, None)),
-                                           [sta.state_from_string('B@1_[(y)]-{0}')])],
+                                           [sta.state_from_str('B@1_[(y)]-{0}')])],
 
                          [rxn.ReactionTerm(spec.ProteinSpec('A', 0, spec.Domain(None, None, None)),
-                                           [sta.state_from_string('A@0_[(x)]-{0}')]),
+                                           [sta.state_from_str('A@0_[(x)]-{0}')]),
                           rxn.ReactionTerm(spec.ProteinSpec('B', 1, spec.Domain(None, None, None)),
-                                           [sta.state_from_string('B@1_[(y)]-{P}')])],
+                                           [sta.state_from_str('B@1_[(y)]-{P}')])],
                          ),
 
         ReactionTestCase('A@0_[b]_ppi_B@1_[a]',
@@ -184,14 +184,14 @@ def reaction_test_case(reaction_definitions):
                                        '$y': rxn.specification_from_string('B@1_[a]')
                                        }),
                          [rxn.ReactionTerm(spec.ProteinSpec('A', 0, spec.Domain(None, None, None)),
-                                           [sta.state_from_string('A@0_[b]--0')]),
+                                           [sta.state_from_str('A@0_[b]--0')]),
                           rxn.ReactionTerm(spec.ProteinSpec('B', 1, spec.Domain(None, None, None)),
-                                           [sta.state_from_string('B@1_[a]--0')])],
+                                           [sta.state_from_str('B@1_[a]--0')])],
 
                          [rxn.ReactionTerm(spec.ProteinSpec('A', 0, spec.Domain(None, None, None)),
-                                           [sta.state_from_string('A@0_[b]--B@1_[a]')]),
+                                           [sta.state_from_str('A@0_[b]--B@1_[a]')]),
                           rxn.ReactionTerm(spec.ProteinSpec('B', 1, spec.Domain(None, None, None)),
-                                           [sta.state_from_string('A@0_[b]--B@1_[a]')])],
+                                           [sta.state_from_str('A@0_[b]--B@1_[a]')])],
 
                          ),
         ReactionTestCase('A@0_[n]_ipi_A@0_[m]',
@@ -201,10 +201,10 @@ def reaction_test_case(reaction_definitions):
                                        '$y': rxn.specification_from_string('A@0_[m]')
                                        }),
                          [rxn.ReactionTerm(spec.ProteinSpec('A', 0, spec.Domain(None, None, None)),
-                                           [sta.state_from_string('A@0_[n]--0'), sta.state_from_string('A@0_[m]--0')])],
+                                           [sta.state_from_str('A@0_[n]--0'), sta.state_from_str('A@0_[m]--0')])],
 
                          [rxn.ReactionTerm(spec.ProteinSpec('A', 0, spec.Domain(None, None, None)),
-                                           [sta.state_from_string('A@0_[n]--[m]')])],
+                                           [sta.state_from_str('A@0_[n]--[m]')])],
 
                          ),
 
@@ -255,7 +255,7 @@ def test_reactions(reaction_test_case):
 
 
 def is_reaction_correct(the_case):
-    actual_reaction = rxn.reaction_from_string(the_case.reaction_str)
+    actual_reaction = rxn.reaction_from_str(the_case.reaction_str)
 
     assert actual_reaction == the_case.expected_reaction and (actual_reaction == the_case.expected_reaction) is not None
     assert actual_reaction.definition == the_case.expected_definition and (actual_reaction.definition == the_case.expected_definition) is not None
@@ -266,7 +266,7 @@ def is_reaction_correct(the_case):
 
 def test_simple():
 
-    reaction = rxn.reaction_from_string('A@0_[m]_bind_Agene@1_[n]')
+    reaction = rxn.reaction_from_str('A@0_[m]_bind_Agene@1_[n]')
     print(reaction)
     print(reaction.terms_lhs)
     print(reaction.terms_rhs)

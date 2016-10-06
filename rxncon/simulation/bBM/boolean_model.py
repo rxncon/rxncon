@@ -1,6 +1,6 @@
 from rxncon.venntastic.sets import Set as VennSet, MultiIntersection, MultiUnion, ValueSet, Intersection, Union, Complement, UniversalSet, venn_from_pyeda
-from rxncon.core.reaction import Reaction, matching_reaction_def, reaction_from_string
-from rxncon.core.state import State, matching_state_def, state_from_string
+from rxncon.core.reaction import Reaction, matching_reaction_def, reaction_from_str
+from rxncon.core.state import State, matching_state_def, state_from_str
 from rxncon.core.spec import MolSpec
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector

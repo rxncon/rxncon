@@ -3,12 +3,12 @@ from functools import reduce
 from typing import Dict, List, Union
 from typecheck import typecheck
 
-from rxncon.core.reaction import reaction_from_string
+from rxncon.core.reaction import reaction_from_str
 from rxncon.util.utils import OrderedEnum
 from rxncon.core.contingency import ContingencyType, Contingency
 from rxncon.core.effector import StateEffector, NotEffector, BinaryEffector, OrEffector, Effector, AndEffector
 from rxncon.core.reaction import Reaction
-from rxncon.core.state import state_from_string, State
+from rxncon.core.state import state_from_str, State
 
 
 BOOLEAN_CONTINGENCY_REGEX = '^<.*>$'
@@ -75,13 +75,13 @@ def contingency_list_entry_from_subject_predicate_agent_strings(subject_str, pre
         subject = BooleanContingencyName(subject_str)
         predicate = BooleanOperator(predicate_str)
     else:
-        subject = reaction_from_string(subject_str)
+        subject = reaction_from_str(subject_str)
         predicate = ContingencyType(predicate_str)
 
     if re.match(BOOLEAN_CONTINGENCY_REGEX, agent_str):
         agent = BooleanContingencyName(agent_str)
     else:
-        agent = state_from_string(agent_str)
+        agent = state_from_str(agent_str)
 
     return ContingencyListEntry(subject, predicate, agent)
 

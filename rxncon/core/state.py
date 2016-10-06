@@ -6,7 +6,7 @@ from typecheck import typecheck
 from copy import deepcopy
 
 from rxncon.util.utils import OrderedEnum, members
-from rxncon.core.spec import Spec, MolSpec, EmptyMolSpec, Locus, LocusResolution, locus_from_string, mol_spec_from_string, spec_from_string
+from rxncon.core.spec import Spec, MolSpec, EmptyMolSpec, Locus, LocusResolution, locus_from_str, mol_spec_from_str, spec_from_str
 
 FULLY_NEUTRAL_STATE_REPR = '0'
 
@@ -61,11 +61,11 @@ class StateDef:
             val_str = re.match(var_regex, representation).group(1)
 
             if self.variables_def[var][0] is StateModifier:
-                value = state_modifier_from_string(val_str)
+                value = state_modifier_from_str(val_str)
             elif self.variables_def[var][0] is Locus:
-                value = locus_from_string(val_str)
+                value = locus_from_str(val_str)
             elif self.variables_def[var][0] is MolSpec:
-                value = mol_spec_from_string(val_str)
+                value = mol_spec_from_str(val_str)
             else:
                 raise Exception('Unknown variable type {}'.format(self.variables_def[var][0]))
 
@@ -86,7 +86,7 @@ class StateDef:
 
     @typecheck
     def target_from_variables(self, variables: Dict[str, Any]) -> Spec:
-        return spec_from_string(self._fill_vals_into_vars(self.target_spec_def, variables))
+        return spec_from_str(self._fill_vals_into_vars(self.target_spec_def, variables))
 
     @typecheck
     def neutral_states_from_variables(self, variables: Dict[str, Any]) -> List['State']:
@@ -94,7 +94,7 @@ class StateDef:
 
         for state_def in self.neutral_states_def:
             try:
-                the_state = state_from_string(self._fill_vals_into_vars(state_def, variables))
+                the_state = state_from_str(self._fill_vals_into_vars(state_def, variables))
             except SyntaxError:
                 the_state = None
 
@@ -330,7 +330,7 @@ class FullyNeutralState(State):
 
 
 @typecheck
-def state_modifier_from_string(modifier: str) -> StateModifier:
+def state_modifier_from_str(modifier: str) -> StateModifier:
     return StateModifier(modifier.lower())
 
 @typecheck
@@ -338,7 +338,7 @@ def matching_state_def(repr: str) -> Optional[StateDef]:
     return next((x for x in STATE_DEFS if x.matches_repr(repr)), None)
 
 @typecheck
-def state_from_string(repr: str) -> State:
+def state_from_str(repr: str) -> State:
     if repr == FULLY_NEUTRAL_STATE_REPR:
         return FullyNeutralState()
 

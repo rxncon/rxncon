@@ -2,8 +2,8 @@ from typing import Dict, Any, List, Optional, Union
 import re
 from typecheck import typecheck
 
-from rxncon.core.spec import Spec, BondSpec, MolSpec, MRNASpec, ProteinSpec, LocusResolution, DNASpec, mol_spec_from_string, spec_from_string
-from rxncon.core.state import StateDef, State, state_from_string, STATE_DEFS, FullyNeutralState
+from rxncon.core.spec import Spec, BondSpec, MolSpec, MRNASpec, ProteinSpec, LocusResolution, DNASpec, mol_spec_from_str, spec_from_str
+from rxncon.core.state import StateDef, State, state_from_str, STATE_DEFS, FullyNeutralState
 from rxncon.util.utils import members
 
 
@@ -99,7 +99,7 @@ class ReactionDef:
                     var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)
 
             val_str = re.match(var_regex, representation).group(1)
-            val_spec = mol_spec_from_string(val_str)
+            val_spec = mol_spec_from_str(val_str)
 
             variables[var] = val_spec
 
@@ -144,7 +144,7 @@ class ReactionDef:
                 for var_symb, var_val in variables.items():
                     potential_spec_str = potential_spec_str.replace(var_symb, str(var_val))
 
-                spec = spec_from_string(potential_spec_str)
+                spec = spec_from_str(potential_spec_str)
                 if isinstance(spec, BondSpec):
                     return [spec]
                 else:
@@ -173,14 +173,14 @@ class ReactionDef:
                 if var_symbol in state_str:
                     state_str = state_str.replace(var_symbol, str(var_val))
 
-            return state_from_string(state_str)
+            return state_from_str(state_str)
 
         def parse_molecule_or_bond(spec_str: str) -> Spec:
             if '~' in spec_str:
                 for var_symb, var_val in variables.items():
                     spec_str = spec_str.replace(var_symb, str(var_val))
 
-                return spec_from_string(spec_str)
+                return spec_from_str(spec_str)
 
             component_parts = spec_str.split('.')
             assert len(component_parts) < 3
@@ -491,7 +491,7 @@ def matching_reaction_def(representation: str) -> Optional[ReactionDef]:
 
 
 @typecheck
-def reaction_from_string(representation: str, standardize=True) -> Reaction:
+def reaction_from_str(representation: str, standardize=True) -> Reaction:
     def fixed_spec_types(rxn_def: ReactionDef, variables: Dict[str, Any]) -> Dict[str, Any]:
         keys = variables.keys()
         assert len(list(keys)) == 2
@@ -531,7 +531,9 @@ def reaction_from_string(representation: str, standardize=True) -> Reaction:
         return variables
 
     the_definition = matching_reaction_def(representation)
-    assert the_definition, 'Could not match reaction {} with definition'.format(representation)
+
+    if not the_definition:
+        raise SyntaxError('Could not match reaction {} with definition'.format(representation))
 
     variables = the_definition.variables_from_representation(representation)
 

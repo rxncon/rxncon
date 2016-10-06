@@ -335,8 +335,8 @@ spec_to_suffix = OrderedDict((k, v) for v, k in suffix_to_spec.items())
 
 
 @typecheck
-def locus_from_string(locus_str: str) -> Locus:
-    def locus_items_from_string(full_locus_str):
+def locus_from_str(locus_str: str) -> Locus:
+    def locus_items_from_str(full_locus_str):
         DOMAIN_SUBDOMAIN_RESIDUE_REGEX = '^[\w:-]+\/[\w:-]+\([\w:-]+\)$'
         DOMAIN_RESIDUE_REGEX = '^[\w:-]+\([\w:-]+\)$'
         DOMAIN_SUBDOMAIN_REGEX = '^[\w:-]+\/[\w:-]+$'
@@ -368,7 +368,7 @@ def locus_from_string(locus_str: str) -> Locus:
 
         return domain, subdomain, residue
 
-    return Locus(*locus_items_from_string(locus_str.strip('[]')))
+    return Locus(*locus_items_from_str(locus_str.strip('[]')))
 
 
 class BondSpec(Spec):
@@ -395,7 +395,7 @@ class BondSpec(Spec):
             self.second.is_non_struct_equiv_to(other.second)
 
 @typecheck
-def mol_spec_from_string(spec_str: str) -> MolSpec:
+def mol_spec_from_str(spec_str: str) -> MolSpec:
     @typecheck
     def spec_from_suffixed_name_and_locus(name: str, struct_index: Optional[int], locus: Locus):
         for suffix in suffix_to_spec:
@@ -424,14 +424,14 @@ def mol_spec_from_string(spec_str: str) -> MolSpec:
     if len(items) == 1:
         return spec_from_suffixed_name_and_locus(name, struct_index, EmptyLocus())
     elif len(items) == 2:
-        return spec_from_suffixed_name_and_locus(name, struct_index, locus_from_string(items[1]))
+        return spec_from_suffixed_name_and_locus(name, struct_index, locus_from_str(items[1]))
     else:
         raise SyntaxError('Could not parse spec string {}'.format(spec_str))
 
 
 @typecheck
-def bond_spec_from_string(spec_str: str) -> Spec:
-    first, second = sorted([mol_spec_from_string(x) for x in spec_str.split('~')])
+def bond_spec_from_str(spec_str: str) -> Spec:
+    first, second = sorted([mol_spec_from_str(x) for x in spec_str.split('~')])
 
     if isinstance(first, EmptyMolSpec):
         return second
@@ -440,6 +440,6 @@ def bond_spec_from_string(spec_str: str) -> Spec:
 
 
 @typecheck
-def spec_from_string(spec_str: str) -> Spec:
-    return bond_spec_from_string(spec_str) if '~' in spec_str else mol_spec_from_string(spec_str)
+def spec_from_str(spec_str: str) -> Spec:
+    return bond_spec_from_str(spec_str) if '~' in spec_str else mol_spec_from_str(spec_str)
 
