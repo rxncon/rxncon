@@ -2,7 +2,7 @@ import typing as tg
 import rxncon.core.rxncon_system as rxs
 import rxncon.core.reaction as rxn
 import rxncon.core.contingency as con
-import rxncon.simulation.bBM.bipartite_boolean_model as bbm
+import rxncon.simulation.boolean.bipartite_boolean_model as bbm
 import rxncon.venntastic.sets as venn
 import rxncon.core.effector as eff
 import rxncon.core.state as sta
