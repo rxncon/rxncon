@@ -22,7 +22,7 @@ class BooleanModel:
     def __init__(self, update_rules: List['UpdateRule'], initial_conditions: List['InitialCondition']):
         self.update_rules = update_rules
         self.initial_conditions = initial_conditions
-        # self._validate()
+        self._validate()
 
     def _validate(self):
         all_lhs_targets = []

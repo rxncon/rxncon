@@ -12,7 +12,6 @@ from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies, Expression
 SYMS = [''.join(tup) for tup in product('ABCDEFGHIJKLMNOPQRSTUVWXYZ', repeat=2)]
 
 class Set:
-    @typecheck
     def calc_solutions(self) -> List[Dict['Set', bool]]:
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
@@ -23,19 +22,16 @@ class Set:
 
         return venn_solns
 
-    @typecheck
     def to_simplified_set(self) -> 'Set':
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
         return venn_from_pyeda(self._to_pyeda_expr(val_to_sym).simplify(), sym_to_val)
 
-    @typecheck
     def to_dnf_set(self) -> 'Set':
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
         return venn_from_pyeda(self._to_pyeda_expr(val_to_sym).to_dnf(), sym_to_val)
 
-    @typecheck
     def to_dnf_list(self) -> List['Set']:
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
@@ -48,7 +44,6 @@ class Set:
         else:
             raise Exception
 
-    @typecheck
     def to_dnf_nested_list(self) -> List[List['Set']]:
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
@@ -67,39 +62,32 @@ class Set:
                 raise Exception
         return res
 
-    @typecheck
     def is_equivalent_to(self, other: 'Set') -> bool:
         val_to_sym = self._make_val_to_sym_dict()
         val_to_sym = other._make_val_to_sym_dict(val_to_sym)
         return self._to_pyeda_expr(val_to_sym).equivalent(other._to_pyeda_expr(val_to_sym))
 
-    @typecheck
     def is_subset_of(self, other: 'Set') -> bool:
         val_to_sym = self._make_val_to_sym_dict()
         val_to_sym = other._make_val_to_sym_dict(val_to_sym)
         return Implies(self._to_pyeda_expr(val_to_sym), other._to_pyeda_expr(val_to_sym)).equivalent(expr(1))
 
-    @typecheck
     def is_superset_of(self, other: 'Set') -> bool:
         return other.is_subset_of(self)
 
     @property
-    @typecheck
     def values(self):
         return []
 
     @property
-    @typecheck
     def value_type(self):
         types = [type(x) for x in self.values]
         # assert all(types[0] in x.mro() for x in types)
         return types[0]
 
-    @typecheck
     def _to_pyeda_expr(self, val_to_sym: Dict[Any, str]) -> Expression:
         return None
 
-    @typecheck
     def _make_val_to_sym_dict(self, existing_dict: Optional[OrderedDict]=None) -> OrderedDict:
         vals = list(set(self.values))
 
@@ -125,22 +113,18 @@ class ValueSet(UnarySet):
         assert isinstance(hash(value), int)
         self.value = value
 
-    @typecheck
     def __eq__(self, other: Set) -> bool:
         if isinstance(other, ValueSet):
             return self.value == other.value
         else:
             return False
 
-    @typecheck
     def __hash__(self) -> int:
         return hash('*value-set-{}*'.format(hash(self.value)))
 
-    @typecheck
     def __repr__(self) -> str:
         return str(self)
 
-    @typecheck
     def __str__(self) -> str:
         if self.value:
             return '({})'.format(self.value)
@@ -151,7 +135,6 @@ class ValueSet(UnarySet):
     def values(self):
         return [self.value]
 
-    @typecheck
     def _to_pyeda_expr(self, val_to_sym: OrderedDict) -> Expression:
         if self.value:
             return expr(val_to_sym[self.value])
@@ -160,48 +143,38 @@ class ValueSet(UnarySet):
 
 
 class EmptySet(UnarySet):
-    @typecheck
     def __eq__(self, other: Set) -> bool:
         return isinstance(other, EmptySet)
 
-    @typecheck
     def __hash__(self) -> int:
         return hash('*empty-set*')
 
-    @typecheck
     def __repr__(self) -> str:
         return str(self)
 
-    @typecheck
     def __str__(self) -> str:
         return 'EmptySet'
 
-    @typecheck
     def _to_pyeda_expr(self, val_to_sym: OrderedDict) -> Expression:
         return expr(0)
 
 
 class Complement(UnarySet):
-    @typecheck
     def __init__(self, expr: Set):
         self.expr = expr
 
-    @typecheck
     def __eq__(self, other: Set) -> bool:
         if isinstance(other, Complement):
             return self.expr == other.expr
         else:
             return False
 
-    @typecheck
     def __hash__(self) -> int:
         return hash('*complement-{}*'.format(self.expr))
 
-    @typecheck
     def __repr__(self) -> str:
         return str(self)
 
-    @typecheck
     def __str__(self) -> str:
         return '!({})'.format(self.expr)
 
@@ -209,13 +182,11 @@ class Complement(UnarySet):
     def values(self):
         return self.expr.values
 
-    @typecheck
     def _to_pyeda_expr(self, val_to_sym: OrderedDict) -> Expression:
         return Not(self.expr._to_pyeda_expr(val_to_sym))
 
 
 class BinarySet(Set):
-    @typecheck
     def __init__(self, left_expr: Set, right_expr: Set):
         self.left_expr = left_expr
         self.right_expr = right_expr
@@ -226,51 +197,41 @@ class BinarySet(Set):
 
 
 class Intersection(BinarySet):
-    @typecheck
     def __eq__(self, other: Set) -> bool:
         if isinstance(other, Intersection):
             return self.left_expr == other.left_expr and self.right_expr == other.right_expr
         else:
             return False
 
-    @typecheck
     def __hash__(self) -> int:
         return hash('*intersection-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
 
-    @typecheck
     def __repr__(self) -> str:
         return str(self)
 
-    @typecheck
     def __str__(self) -> str:
         return '({0} & {1})'.format(self.left_expr, self.right_expr)
 
-    @typecheck
     def _to_pyeda_expr(self, val_to_sym: OrderedDict) -> Expression:
         return And(self.left_expr._to_pyeda_expr(val_to_sym), self.right_expr._to_pyeda_expr(val_to_sym))
 
 
 class Union(BinarySet):
-    @typecheck
     def __eq__(self, other: Set) -> bool:
         if isinstance(other, Union):
             return self.left_expr == other.left_expr and self.right_expr == other.right_expr
         else:
             return False
 
-    @typecheck
     def __hash__(self) -> int:
         return hash('*union-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
 
-    @typecheck
     def __repr__(self) -> str:
         return str(self)
 
-    @typecheck
     def __str__(self) -> str:
         return '({0} | {1})'.format(self.left_expr, self.right_expr)
 
-    @typecheck
     def _to_pyeda_expr(self, val_to_sym: OrderedDict) -> Expression:
         return Or(self.left_expr._to_pyeda_expr(val_to_sym), self.right_expr._to_pyeda_expr(val_to_sym))
 
