@@ -333,7 +333,7 @@ def venn_from_str(venn_str, value_parser=lambda x: x):
     venn_sym_to_pyeda_sym = {}
     current_sym           = 0
 
-    parts = venn_str.split(' ')
+    parts = venn_str.split()
 
     for part in parts:
         match = re.match(BOOL_REGEX, part)

@@ -356,21 +356,21 @@ REACTION_DEFS = [
     ),
     ReactionDef(
         STATE_DEFS,
-        'protein-degradation',
+        'degradation',
         '$x_deg_$y',
         {
             '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.component)
+            '$y': (MolSpec, LocusResolution.component)
         },
         '$x# + $y# -> $x#'
     ),
     ReactionDef(
         STATE_DEFS,
-        'protein-synthesis',
+        'synthesis',
         '$x_syn_$y',
         {
             '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.component)
+            '$y': (MolSpec, LocusResolution.component)
         },
         '$x# -> $x# + $y#0'
     )

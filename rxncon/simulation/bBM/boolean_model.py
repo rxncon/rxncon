@@ -54,11 +54,9 @@ class InitialCondition:
 
 
 class Target:
-#    @typecheck
     def __hash__(self) -> int:
         return hash(str(self))
 
-#    @typecheck
     def __repr__(self) -> str:
         return str(self)
 
@@ -85,7 +83,7 @@ class ReactionTarget(Target):
 
     @typecheck
     def __str__(self) -> str:
-        return "ReactionTarget<{}>".format(str(self.reaction_parent))
+        return str(self.reaction_parent)
 
     @typecheck
     def produces(self, state_target: 'StateTarget') -> bool:
@@ -120,7 +118,7 @@ class StateTarget(Target):
 
     @typecheck
     def __str__(self) -> str:
-        return "StateTarget<{}>".format(str(self._state_parent))
+        return str(self._state_parent)
 
     @typecheck
     def __eq__(self, other: 'Target') -> bool:
@@ -162,7 +160,7 @@ class ComponentStateTarget(StateTarget):
         return isinstance(other, type(self)) and self.component == other.component
 
     def __str__(self):
-        return "ComponentTarget<{}>".format(self.component)
+        return str(self.component)
 
     def __repr__(self):
         return str(self)
@@ -219,7 +217,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     def contingency_factor(contingency: Contingency) -> VennSet:
         def parse_effector(eff: Effector) -> VennSet:
             if isinstance(eff, StateEffector):
-                return ValueSet(StateTarget(eff.expr))
+                return ValueSet(StateTarget(eff.expr.to_non_struct_state()))
             elif isinstance(eff, NotEffector):
                 return Complement(parse_effector(eff.expr))
             elif isinstance(eff, OrEffector):
@@ -250,7 +248,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
 
     reaction_targets  = [ReactionTarget(x) for x in rxncon_sys.reactions]
     stateless_targets = stateless_component_targets(reaction_targets)
-    state_targets     = [StateTarget(x) for x in rxncon_sys.states] + list(stateless_targets.values())
+    state_targets     = [StateTarget(x.to_non_struct_state()) for x in rxncon_sys.states] + list(stateless_targets.values())
 
     reaction_rules  = []
     state_rules     = []
