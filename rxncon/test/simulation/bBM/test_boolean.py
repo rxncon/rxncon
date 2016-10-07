@@ -150,7 +150,24 @@ def test_insulin_system():
         # State updates
         'IR_[IRBD]--0':                    '{0} & (( IR_[IRBD]_ppi-_IR_[IRBD] & IR_[IRBD]--IR_[IRBD] ) | ( IR_[IRBD]--0 & ~( IR_[IRBD]_ppi+_IR_[IRBD] & IR_[IRBD]--0 )))'.format(IR),
         'IR_[IRBD]--IR_[IRDB]':            '{0} & (( IR_[IRBD]_ppi+_IR_[IRBD] & IR_[IRBD]--0 ) | ( IR_[IRBD]--IR_[IRBD] & ~( IR_[IRBD]_ppi-_IR_[IRBD] & IR_[IRBD]--IR_[IRBD] )))'.format(IR),
+        'IR_[lig]--0':                     '{0} & (( IR_[lig]_i-_insulin_[IR] & IR_[lig]--insulin_[IR] ) | ( IR_[lig]--0 & ~( IR_[lig]_i+_insulin_[IR] & IR_[lig]--0 & insulin_[IR]--0 )))'.format(IR),
+        'IR_[lig]--insulin_[IR]':          '{0} & {1} & (( IR_[lig]_i+_insulin_[IR] & IR_[lig]--0 & insulin_[IR]--0 ) | ( IR_[lig]--insulin_[IR] & ~( IR_[lig]_i-_insulin_[IR] & IR_[lig]--insulin_[IR] )))'.format(IR, insulin),
+        'insulin_[IR]--0':                 '{0} & (( IR_[lig]_i-_insulin_[IR] & IR_[lig]--insulin_[IR] ) | ( insulin_[IR]--0 & ~( IR_[lig]_i+_insulin_[IR] & IR_[lig]--0 & insulin_[IR]--0 )))'.format(insulin),
+        'IR_[TK(Y1158)]-{0}':              '{0} & ( IR_[TK(Y1158)]-{{0}} & ~( IR_p+_IR_[TK(Y1158)] & IR_[TK(Y1158)]-{{0}} ))'.format(IR),
+        'IR_[TK(Y1162)]-{0}':              '{0} & ( IR_[TK(Y1162)]-{{0}} & ~( IR_p+_IR_[TK(Y1162)] & IR_[TK(Y1162)]-{{0}} ))'.format(IR),
+        'IR_[TK(Y1163)]-{0}':              '{0} & ( IR_[TK(Y1163)]-{{0}} & ~( IR_p+_IR_[TK(Y1163)] & IR_[TK(Y1163)]-{{0}} ))'.format(IR),
+        'IR_[JM(Y972)]-{0}':               '{0} & ( IR_[JM(Y972)]-{{0}} & ~( IR_ap+_IR_[JM(Y972)] & IR_[JM(Y972)]-{{0}} ))'.format(IR),
+        'IR_[TK(Y1158)]-{p}':              '{0} & ( IR_[TK(Y1158)]-{{p}} | ( IR_p+_IR_[TK(Y1158)] & IR_[TK(Y1158)]-{{0}} ))'.format(IR),
+        'IR_[TK(Y1162)]-{p}':              '{0} & ( IR_[TK(Y1162)]-{{p}} | ( IR_p+_IR_[TK(Y1162)] & IR_[TK(Y1162)]-{{0}} ))'.format(IR),
+        'IR_[TK(Y1163)]-{p}':              '{0} & ( IR_[TK(Y1163)]-{{p}} | ( IR_p+_IR_[TK(Y1163)] & IR_[TK(Y1163)]-{{0}} ))'.format(IR),
+        'IR_[JM(Y972)]-{p}':               '{0} & ( IR_[JM(Y972)]-{{p}} | ( IR_ap+_IR_[JM(Y972)] & IR_[JM(Y972)]-{{0}} ))'.format(IR),
+        'IR_[JMY972]--0':                  '{0} & (( IR_[JMY972]_ppi-_IRS_[PTB] & IR_[JMY972]--IRS_[PTB] ) | ( IR_[JMY972]_ppi-_Shc_[PTB] & IR_[JMY972]--Shc_[PTB] ) | ( IR_[JMY972]--0 & ~( IR_[JMY972]_ppi+_IRS_[PTB] & IR_[JMY972]--0 & IRS_[PTB]--0 ) & ~( IR_[JMY972]_ppi+_Shc_[PTB] & IR_[JMY972]--0 & Shc_[PTB]--0 )))'.format(IR),
+        'IR_[JMY972]--IRS_[PTB]':          '{0} & {1} & (( IR_[JMY972]_ppi+_IRS_[PTB] & IR_[JMY972]--0 & IRS_[PTB]--0 ) | ( IR_[JMY972]--IRS_[PTB] & ~( IR_[JMY972]_ppi-_IRS_[PTB] & IR_[JMY972]--IRS_[PTB] )))'.format(IR, IRS),
+        'IRS_[PTB]--0':                    '{0} & (( IR_[JMY972]_ppi-_IRS_[PTB] & IR_[JMY972]--IRS_[PTB] ) | ( IRS_[PTB]--0 & ~( IR_[JMY972]_ppi+_IRS_[PTB] & IR_[JMY972]--0 & IRS_[PTB]--0 )))'.format(IRS),
+        'IR_[JMY972]--Shc_[PTB]':          '{0} & {1} & (( IR_[JMY972]_ppi+_Shc_[PTB] & IR_[JMY972]--0 & Shc_[PTB]--0 ) | ( IR_[JMY972]--Shc_[PTB] & ~( IR_[JMY972]_ppi-_Shc_[PTB] & IR_[JMY972]--Shc_[PTB] )))'.format(IR, Shc),
+        'Shc_[PTB]--0':                    '{0} & (( IR_[JMY972]_ppi-_Shc_[PTB] & IR_[JMY972]--Shc_[PTB] ) | ( Shc_[PTB]--0 & ~( IR_[JMY972]_ppi+_Shc_[PTB] & IR_[JMY972]--0 & Shc_[PTB]--0 )))'.format(Shc),
 
+        # 'IRS_[PH]--0':                     ''
     }
 
     for update_rule in boolean_model.update_rules:
