@@ -1,24 +1,16 @@
 from rxncon.venntastic.sets import Set as VennSet, MultiIntersection, MultiUnion, ValueSet, Intersection, Union, Complement, UniversalSet, venn_from_pyeda
-from rxncon.core.reaction import Reaction, matching_reaction_def, reaction_from_str
-from rxncon.core.state import State, matching_state_def, state_from_str
+from rxncon.core.reaction import Reaction
+from rxncon.core.state import State
 from rxncon.core.spec import MolSpec
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
 from rxncon.core.rxncon_system import RxnConSystem
-from typecheck import typecheck
-from typing import List, Dict, Tuple
 
-from itertools import product
-from math import ceil
-from copy import copy
+from typing import List
 
-from string import ascii_lowercase
-from re import findall
-from pyeda.inter import expr
 
 
 class BooleanModel:
-    @typecheck
     def __init__(self, update_rules: List['UpdateRule'], initial_conditions: List['InitialCondition']):
         self.update_rules = update_rules
         self.initial_conditions = initial_conditions
@@ -35,20 +27,16 @@ class BooleanModel:
 
 
 class InitialCondition:
-    @typecheck
     def __init__(self, target: 'Target', value: bool):
         self.target = target
         self.value = value
 
-    @typecheck
     def __eq__(self, other: 'InitialCondition') -> bool:
         return self.target == other.target and self.value == self.value
 
-    @typecheck
     def __repr__(self) -> str:
         return str(self)
 
-    @typecheck
     def __str__(self) -> str:
         return "target: {0}, value: {1}".format(str(self.target), str(self.value))
 
@@ -62,7 +50,6 @@ class Target:
 
 
 class ReactionTarget(Target):
-    @typecheck
     def __init__(self, reaction_parent: Reaction):
         self.reaction_parent     = reaction_parent
         self.produced_targets    = [StateTarget(x) for x in reaction_parent.produced_states]
@@ -70,83 +57,65 @@ class ReactionTarget(Target):
         self.synthesised_targets = [StateTarget(x) for x in reaction_parent.synthesised_states] + [ComponentStateTarget(x) for x in reaction_parent.synthesised_components]
         self.degraded_targets    = [StateTarget(x) for x in reaction_parent.degraded_states] + [ComponentStateTarget(x) for x in reaction_parent.degraded_components]
 
-    @typecheck
     def __hash__(self) -> int:
         return hash(str(self))
 
-    @typecheck
     def __eq__(self, other: Target):
         #  Possibly more than one ReactionTarget from a single reaction_parent, so also check all its targets.
         return isinstance(other, ReactionTarget) and self.reaction_parent == other.reaction_parent and self.produced_targets == other.produced_targets and \
             self.consumed_targets == other.consumed_targets and self.synthesised_targets == other.synthesised_targets and \
             self.degraded_targets == other.degraded_targets
 
-    @typecheck
     def __str__(self) -> str:
         return str(self.reaction_parent)
 
-    @typecheck
     def produces(self, state_target: 'StateTarget') -> bool:
         return state_target in self.produced_targets
 
-    @typecheck
     def consumes(self, state_target: 'StateTarget') -> bool:
         return state_target in self.consumed_targets
 
-    @typecheck
     def synthesises(self, state_target: 'StateTarget') -> bool:
         return state_target in self.synthesised_targets
 
-    @typecheck
     def degrades(self, state_target: 'StateTarget') -> bool:
         return state_target in self.degraded_targets
 
     @property
-    @typecheck
     def components(self) -> List[MolSpec]:
         return list(set(self.reaction_parent.components_lhs + self.reaction_parent.components_rhs))
 
 
 class StateTarget(Target):
-    @typecheck
     def __init__(self, state_parent: State):
         self._state_parent = state_parent
 
-    @typecheck
     def __hash__(self) -> int:
         return hash(str(self))
 
-    @typecheck
     def __str__(self) -> str:
         return str(self._state_parent)
 
-    @typecheck
     def __eq__(self, other: 'Target') -> bool:
         return isinstance(other, StateTarget) and self._state_parent == other._state_parent
 
-    @typecheck
     def is_produced_by(self, reaction_target: ReactionTarget) -> bool:
         return reaction_target.produces(self)
 
-    @typecheck
     def is_consumed_by(self, reaction_target: ReactionTarget) -> bool:
         return reaction_target.consumes(self)
 
-    @typecheck
     def is_synthesised_by(self, reaction_target: ReactionTarget) -> bool:
         return reaction_target.synthesises(self)
 
-    @typecheck
     def is_degraded_by(self, reaction_target: ReactionTarget) -> bool:
         return reaction_target.degrades(self)
 
     @property
-    @typecheck
     def components(self) -> List[MolSpec]:
         return self._state_parent.components
 
     @property
-    @typecheck
     def is_neutral(self) -> bool:
         return self._state_parent.is_neutral
 
@@ -155,7 +124,6 @@ class ComponentStateTarget(StateTarget):
     def __init__(self, component: MolSpec):
         self.component = component
 
-    @typecheck
     def __eq__(self, other: Target):
         return isinstance(other, type(self)) and self.component == other.component
 
@@ -169,18 +137,15 @@ class ComponentStateTarget(StateTarget):
         return hash(str(self))
 
     @property
-    @typecheck
     def components(self) -> List[MolSpec]:
         return [self.component]
 
     @property
-    @typecheck
     def is_neutral(self) -> bool:
         return True
 
 
 class UpdateRule:
-    @typecheck
     def __init__(self, target: Target, factor: VennSet):
         self.target = target
         self.factor = factor
@@ -190,7 +155,6 @@ class UpdateRule:
         return "target: {0}, factors: {1}".format(self.target, self.factor)
 
     @property
-    @typecheck
     def factor_targets(self) -> List[Target]:
         return self.factor.values
 
@@ -207,7 +171,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
 
         return MultiIntersection(*(MultiUnion(*(ValueSet(StateTarget(x)) for x in group)) for group in grouped_states.values()))
 
-    @typecheck
     def component_factor(component: MolSpec) -> VennSet:
         if component in stateless_targets.keys():
             return ValueSet(stateless_targets[component])

@@ -1,5 +1,4 @@
 from typing import List, Dict, Tuple
-from typecheck import typecheck
 from collections import defaultdict
 
 from rxncon.core.contingency import ContingencyType, Contingency
@@ -9,7 +8,6 @@ from rxncon.core.spec import MolSpec, BondSpec
 
 
 class RxnConSystem:
-    @typecheck
     def __init__(self, reactions: List[Reaction], contingencies: List[Contingency]):
         self.reactions = reactions
         self.contingencies = contingencies
@@ -23,60 +21,50 @@ class RxnConSystem:
         self._expand_fully_neutral_states()
         self._assert_consistency()
 
-    @typecheck
     def components(self) -> List[MolSpec]:
         if not self._components:
             self._calculate_components()
         return self._components
 
-    @typecheck
     def contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
         return [x for x in self.contingencies if x.target == reaction]
 
-    @typecheck
     def q_contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
         return [x for x in self.contingencies if x.target == reaction and x.type
                 in [ContingencyType.positive, ContingencyType.negative]]
 
-    @typecheck
     def s_contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
         return [x for x in self.contingencies if x.target == reaction and x.type
                 in [ContingencyType.requirement, ContingencyType.inhibition]]
 
     @property
-    @typecheck
     def states(self) -> List[State]:
         if not self._states:
             self._calculate_states()
         return self._states
 
     @property
-    @typecheck
     def produced_states(self) -> List[State]:
         if not self._produced_states:
             self._calculate_produced_states()
         return self._produced_states
 
     @property
-    @typecheck
     def consumed_states(self) -> List[State]:
         if not self._consumed_states:
             self._calculate_consumed_states()
         return self._consumed_states
 
     @property
-    @typecheck
     def synthesised_states(self) -> List[State]:
         if not self._synthesised_states:
             self._calculate_synthesised_states()
         return self._synthesised_states
 
-    @typecheck
     def states_for_component(self, component: MolSpec) -> List[State]:
         assert component.is_component_spec
         return [x for x in self.states if component.to_non_struct_spec() in x.components]
 
-    @typecheck
     def states_for_component_grouped(self, component: MolSpec) -> Dict[Tuple[MolSpec, StateDef], List[State]]:
         states = self.states_for_component(component)
         grouped = defaultdict(list)

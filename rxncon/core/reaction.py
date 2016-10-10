@@ -1,6 +1,5 @@
 from typing import Dict, Any, List, Optional, Union
 import re
-from typecheck import typecheck
 
 from rxncon.core.spec import Spec, BondSpec, MolSpec, MRNASpec, ProteinSpec, LocusResolution, DNASpec, mol_spec_from_str, spec_from_str
 from rxncon.core.state import StateDef, State, state_from_str, STATE_DEFS, FullyNeutralState
@@ -12,12 +11,10 @@ class ReactionTerm:
 
 
 class MoleculeReactionTerm(ReactionTerm):
-    @typecheck
     def __init__(self, spec: MolSpec, states: List[State], bonds: List[BondSpec]):
         assert spec.is_component_spec
         self.spec, self.states, self.bonds = spec, states, bonds
 
-    @typecheck
     def __eq__(self, other: ReactionTerm) -> bool:
         return isinstance(other, MoleculeReactionTerm) and self.states == other.states and self.bonds == other.bonds
 
@@ -34,11 +31,9 @@ class MoleculeReactionTerm(ReactionTerm):
 
 
 class BondReactionTerm(ReactionTerm):
-    @typecheck
     def __init__(self, spec: BondSpec, states: List[State]):
         self.spec, self.states = spec, states
 
-    @typecheck
     def __eq__(self, other: ReactionTerm) -> bool:
         return isinstance(other, BondReactionTerm) and self.spec == other.spec and self.states == other.states
 
@@ -55,7 +50,6 @@ class ReactionDef:
     SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
     SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
 
-    @typecheck
     def __init__(self, state_defs: List[StateDef], name: str, representation_def: str, variables_def: Dict[str, Any],
                  reactants_def: str):
         self.name, self.state_defs, self.representation_def, self.variables_def, self.reactants_defs = \
@@ -63,7 +57,6 @@ class ReactionDef:
 
         self._parse_reactants_def()
 
-    @typecheck
     def __eq__(self, other: 'ReactionDef') -> bool:
         return self.state_defs == other.state_defs and self.name == other.name and self.representation_def == other.representation_def \
             and self.variables_def == other.variables_def and self.reactants_defs == other.reactants_defs
@@ -75,11 +68,9 @@ class ReactionDef:
         return 'ReactionDef: {0}; representation_def: {1}; reactants_defs: {2} '\
             .format(self.name, self.representation_def, self.reactants_defs)
 
-    @typecheck
     def matches_representation(self, representation: str) -> bool:
         return True if re.match(self._to_matching_regex(), representation) else False
 
-    @typecheck
     def representation_from_variables(self, variables: Dict[str, Any]) -> str:
         representation = self.representation_def
         for var, val in variables.items():
@@ -87,7 +78,6 @@ class ReactionDef:
 
         return representation
 
-    @typecheck
     def variables_from_representation(self, representation: str) -> Dict[str, Any]:
         assert self.matches_representation(representation)
 
@@ -105,7 +95,6 @@ class ReactionDef:
 
         return variables
 
-    @typecheck
     def validate_variables(self, variables: Dict[str, Any]):
         for var, val in variables.items():
             assert isinstance(val, self.variables_def[var][0]), \
@@ -113,11 +102,9 @@ class ReactionDef:
             assert val.has_resolution(self.variables_def[var][1]), \
                 '{0} is of resolution {1}, required to be of resolution {2}'.format(var, val.resolution, self.variables_def[var][1])
 
-    @typecheck
     def terms_lhs_from_variables(self, variables: Dict[str, Any]) -> List[ReactionTerm]:
         return [self._parse_term(x, i, variables) for i, x in enumerate(self.reactant_defs_lhs)]
 
-    @typecheck
     def terms_rhs_from_variables(self, variables: Dict[str, Any]) -> List[ReactionTerm]:
         return [self._parse_term(x, i, variables) for i, x in enumerate(self.reactant_defs_rhs)]
 
@@ -210,11 +197,9 @@ class ReactionDef:
             return MoleculeReactionTerm(spec, parse_state_values(values_str), parse_bond_spec_values(values_str))
 
 
-    @typecheck
     def _to_base_regex(self) -> str:
         return '^{}$'.format(self.representation_def.replace('+', '\+'))
 
-    @typecheck
     def _to_matching_regex(self) -> str:
         regex = self._to_base_regex()
         for var in self.variables_def.keys():
@@ -378,7 +363,6 @@ REACTION_DEFS = [
 
 
 class Reaction:
-    @typecheck
     def __init__(self, definition: ReactionDef, variables: Dict[str, Any]):
         self.name            = definition.name
         self.terms_lhs       = definition.terms_lhs_from_variables(variables)
@@ -394,32 +378,26 @@ class Reaction:
     def __str__(self) -> str:
         return self._representation
 
-    @typecheck
     def __eq__(self, other: 'Reaction') -> bool:
         return self.terms_lhs == other.terms_lhs and self.terms_rhs == other.terms_rhs and str(self) == str(other)
 
     @property
-    @typecheck
     def components_lhs(self) -> List[MolSpec]:
         return [x.spec for x in self.terms_lhs if isinstance(x, MoleculeReactionTerm)]
 
     @property
-    @typecheck
     def components_rhs(self) -> List[MolSpec]:
         return [x.spec for x in self.terms_rhs if isinstance(x, MoleculeReactionTerm)]
 
     @property
-    @typecheck
     def bonds_lhs(self) -> List[BondSpec]:
         return [x.spec for x in self.terms_lhs if isinstance(x, BondReactionTerm)]
 
     @property
-    @typecheck
     def bonds_rhs(self) -> List[BondSpec]:
         return [x.spec for x in self.terms_rhs if isinstance(x, BondReactionTerm)]
 
     @property
-    @typecheck
     def consumed_states(self) -> List[State]:
         states = []
 
@@ -433,7 +411,6 @@ class Reaction:
         return states
 
     @property
-    @typecheck
     def produced_states(self) -> List[State]:
         states = []
 
@@ -447,7 +424,6 @@ class Reaction:
         return states
 
     @property
-    @typecheck
     def degraded_states(self) -> List[State]:
         states = []
 
@@ -461,7 +437,6 @@ class Reaction:
         return states
 
     @property
-    @typecheck
     def synthesised_states(self) -> List[State]:
         states = []
 
@@ -475,22 +450,18 @@ class Reaction:
         return states
 
     @property
-    @typecheck
     def degraded_components(self) -> List[MolSpec]:
         return [component for component in self.components_lhs if component not in self.components_rhs]
 
     @property
-    @typecheck
     def synthesised_components(self) -> List[MolSpec]:
         return [component for component in self.components_rhs if component not in self.components_lhs]
 
 
-@typecheck
 def matching_reaction_def(representation: str) -> Optional[ReactionDef]:
     return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_representation(representation)), None)
 
 
-@typecheck
 def reaction_from_str(representation: str, standardize=True) -> Reaction:
     def fixed_spec_types(rxn_def: ReactionDef, variables: Dict[str, Any]) -> Dict[str, Any]:
         keys = variables.keys()

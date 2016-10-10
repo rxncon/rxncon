@@ -2,7 +2,6 @@ import re
 from enum import unique
 from collections import OrderedDict
 from typing import List, Dict, Optional, Any
-from typecheck import typecheck
 from copy import deepcopy
 
 from rxncon.util.utils import OrderedEnum, members
@@ -23,7 +22,6 @@ class StateDef:
     SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
     SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
 
-    @typecheck
     def __init__(self, name: str, repr_def: str, variables_def: Dict[str, Any], target_spec_def: str,
                  neutral_states_def: List[str]):
         self.name, self.repr_def, self.variables_def, self.target_spec_def, self.neutral_states_def = \
@@ -38,16 +36,13 @@ class StateDef:
     def __repr__(self) -> str:
         return str(self)
 
-    @typecheck
     def __eq__(self, other: 'StateDef'):
         return self.name == other.name and self.repr_def == other.repr_def and self.variables_def == other.variables_def \
             and self.target_spec_def == other.target_spec_def and self.neutral_states_def == other.neutral_states_def
 
-    @typecheck
     def matches_repr(self, repr: str) -> bool:
         return True if re.match(self._to_matching_regex(), repr) else False
 
-    @typecheck
     def variables_from_repr(self, representation: str) -> Dict[str, Any]:
         assert self.matches_repr(representation)
 
@@ -73,7 +68,6 @@ class StateDef:
 
         return variables
 
-    @typecheck
     def repr_from_variables(self, variables: Dict[str, Any]) -> str:
         representation = self.repr_def
         for var, val in variables.items():
@@ -84,11 +78,9 @@ class StateDef:
 
         return representation
 
-    @typecheck
     def target_from_variables(self, variables: Dict[str, Any]) -> Spec:
         return spec_from_str(self._fill_vals_into_vars(self.target_spec_def, variables))
 
-    @typecheck
     def neutral_states_from_variables(self, variables: Dict[str, Any]) -> List['State']:
         states = []
 
@@ -103,7 +95,6 @@ class StateDef:
 
         return states
 
-    @typecheck
     def validate_variables(self, variables: Dict[str, Any]):
         if all(isinstance(x, EmptyMolSpec) for x in variables.values() if isinstance(x, Spec)):
             raise SyntaxError('All MolSpec are EmptyMolSpec.')
@@ -120,7 +111,6 @@ class StateDef:
                              .replace('[', '\[')
                              .replace(']', '\]'))
 
-    @typecheck
     def _fill_vals_into_vars(self, str_with_vars: str, variables: Dict[str, Any]) -> str:
         for var, val in variables.items():
             for method in members(val):
@@ -184,7 +174,6 @@ STATE_DEFS = [
 
 
 class State:
-    @typecheck
     def __init__(self, definition: StateDef, variables: Dict[str, Any]):
         # @todo fix ordering of variables
         self.definition = definition
@@ -200,15 +189,12 @@ class State:
     def __str__(self) -> str:
         return self.definition.repr_from_variables(self.variables)
 
-    #@typecheck
     def __eq__(self, other: 'State') -> bool:
         return self.definition == other.definition and self.variables == other.variables
 
-    @typecheck
     def __lt__(self, other: 'State'):
         return str(self) < str(other)
 
-    @typecheck
     def to_non_struct_state(self) -> 'State':
         non_struct_vars = deepcopy(self.variables)
         for k, v in non_struct_vars.items():
@@ -218,26 +204,21 @@ class State:
         return State(self.definition, non_struct_vars)
 
     @property
-    @typecheck
     def is_struct_state(self) -> bool:
         return any(mol_spec.struct_index for mol_spec in self.mol_specs)
 
     @property
-    @typecheck
     def target(self) -> Spec:
         return self.definition.target_from_variables(self.variables)
 
     @property
-    @typecheck
     def is_elemental(self) -> bool:
         return all(spec.has_resolution(elemental_resolution) for spec, elemental_resolution
                    in zip(self.mol_specs, self._elemental_resolutions))
 
-    @typecheck
     def is_superset_of(self, other: 'State') -> bool:
         return other.is_subset_of(self)
 
-    @typecheck
     def is_subset_of(self, other: 'State') -> bool:
         if self.definition == other.definition:
             return all(x.is_subspec_of(y) for x, y in zip(self.mol_specs, other.mol_specs)) and \
@@ -246,27 +227,22 @@ class State:
             return False
 
     @property
-    @typecheck
     def is_neutral(self) -> bool:
         return len(self.neutral_states) == 1 and self == self.neutral_states[0]
 
     @property
-    @typecheck
     def neutral_states(self) -> List['State']:
         return self.definition.neutral_states_from_variables(self.variables)
 
     @property
-    @typecheck
     def mol_specs(self) -> List[MolSpec]:
         return [x for x in self.variables.values() if isinstance(x, MolSpec) and not isinstance(x, EmptyMolSpec)]
 
     @property
-    @typecheck
     def components(self) -> List[MolSpec]:
         return [x.to_component_spec() for x in self.mol_specs]
 
     @property
-    @typecheck
     def _elemental_resolutions(self) -> List[LocusResolution]:
         return [self.definition.variables_def[var][1] for var, value in self.variables.items()
                 if isinstance(value, MolSpec)]
@@ -329,15 +305,12 @@ class FullyNeutralState(State):
         raise AssertionError
 
 
-@typecheck
 def state_modifier_from_str(modifier: str) -> StateModifier:
     return StateModifier(modifier.lower())
 
-@typecheck
 def matching_state_def(repr: str) -> Optional[StateDef]:
     return next((x for x in STATE_DEFS if x.matches_repr(repr)), None)
 
-@typecheck
 def state_from_str(repr: str) -> State:
     if repr == FULLY_NEUTRAL_STATE_REPR:
         return FullyNeutralState()
