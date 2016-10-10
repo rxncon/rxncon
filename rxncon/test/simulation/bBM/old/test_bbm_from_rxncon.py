@@ -1,7 +1,7 @@
 import pytest
-import rxncon.simulation.bBM.bbm_from_rxncon as bfr
+import rxncon.simulation.boolean.bbm_from_rxncon as bfr
 import rxncon.input.quick.quick as quick
-import rxncon.simulation.bBM.bBM_boolnet_exporter as bbe
+import rxncon.simulation.boolean.bBM_boolnet_exporter as bbe
 
 
 def test_simple_rule_system_with_degradation():

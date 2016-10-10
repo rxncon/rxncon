@@ -3,12 +3,12 @@ from functools import reduce
 from typing import Dict, List, Union
 from typecheck import typecheck
 
-from rxncon.core.reaction import reaction_from_string
+from rxncon.core.reaction import reaction_from_str
 from rxncon.util.utils import OrderedEnum
 from rxncon.core.contingency import ContingencyType, Contingency
 from rxncon.core.effector import StateEffector, NotEffector, BinaryEffector, OrEffector, Effector, AndEffector
 from rxncon.core.reaction import Reaction
-from rxncon.core.state import state_from_string, State
+from rxncon.core.state import state_from_str, State
 
 
 BOOLEAN_CONTINGENCY_REGEX = '^<.*>$'
@@ -53,6 +53,12 @@ class ContingencyListEntry:
     def __eq__(self, other: 'ContingencyListEntry') -> bool:
         return self.subject == other.subject and self.predicate == other.predicate and self.agent == other.agent
 
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return "ContingencyListEntry<{}>".format(self.agent)
+
     @property
     def is_boolean_entry(self) -> bool:
         return isinstance(self.subject, BooleanContingencyName)
@@ -69,13 +75,13 @@ def contingency_list_entry_from_subject_predicate_agent_strings(subject_str, pre
         subject = BooleanContingencyName(subject_str)
         predicate = BooleanOperator(predicate_str)
     else:
-        subject = reaction_from_string(subject_str)
+        subject = reaction_from_str(subject_str)
         predicate = ContingencyType(predicate_str)
 
     if re.match(BOOLEAN_CONTINGENCY_REGEX, agent_str):
         agent = BooleanContingencyName(agent_str)
     else:
-        agent = state_from_string(agent_str)
+        agent = state_from_str(agent_str)
 
     return ContingencyListEntry(subject, predicate, agent)
 
@@ -114,6 +120,9 @@ class _BooleanContingencyEffector(Effector):
     @typecheck
     def __eq__(self, other: Effector) -> bool:
         return isinstance(other, _BooleanContingencyEffector) and self.expr == other.expr
+
+    def states(self):
+        return [self.expr]
 
 
 def _dereference_boolean_contingency_effectors(self: Effector, lookup_table: Dict[BooleanContingencyName, Effector]):

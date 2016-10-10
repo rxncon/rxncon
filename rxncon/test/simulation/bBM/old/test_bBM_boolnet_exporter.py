@@ -3,8 +3,8 @@ import time
 import tempfile
 import pytest
 
-import rxncon.simulation.bBM.bipartite_boolean_model as bbm
-import rxncon.simulation.bBM.bBM_boolnet_exporter as bbe
+import rxncon.simulation.boolean.bipartite_boolean_model as bbm
+import rxncon.simulation.boolean.bBM_boolnet_exporter as bbe
 import rxncon.syntax.rxncon_from_string as rfs
 import rxncon.venntastic.sets as venn
 import rxncon.core.state as sta

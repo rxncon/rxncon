@@ -1,13 +1,11 @@
 from abc import ABCMeta, abstractproperty
 from typing import List, Optional
-from typecheck import typecheck
 
 from rxncon.core.state import State
 
 
 class Effector(metaclass=ABCMeta):
     @property
-    @typecheck
     def name(self) -> Optional[str]:
         try:
             return self._name
@@ -15,7 +13,6 @@ class Effector(metaclass=ABCMeta):
             return None
 
     @name.setter
-    @typecheck
     def name(self, value: str):
         self._name = value
 
@@ -25,7 +22,6 @@ class Effector(metaclass=ABCMeta):
 
 
 class StateEffector(Effector):
-    @typecheck
     def __init__(self, expr: State):
         self.expr = expr
 
@@ -38,41 +34,34 @@ class StateEffector(Effector):
     def __str__(self) -> str:
         return 'StateEffector({})'.format(str(self.expr))
 
-    @typecheck
     def __eq__(self, other: Effector) -> bool:
         return isinstance(other, StateEffector) and self.expr == other.expr and self.name == other.name
 
     @property
-    @typecheck
     def states(self) -> List[State]:
         return [self.expr]
 
 
 class NotEffector(Effector):
-    @typecheck
     def __init__(self, expr: Effector):
         self.expr = expr
 
     def __str__(self) -> str:
         return 'NotEffector({})'.format(self.expr)
 
-    @typecheck
     def __eq__(self, other: Effector) -> bool:
         return isinstance(other, NotEffector) and self.expr == other.expr and self.name == other.name
 
     @property
-    @typecheck
     def states(self) -> List[State]:
         return self.expr.states
 
 
 class BinaryEffector(Effector, metaclass=ABCMeta):
-    @typecheck
     def __init__(self, left_expr: Effector, right_expr: Effector):
         self.left_expr = left_expr
         self.right_expr = right_expr
 
-    @typecheck
     def __eq__(self, other: Effector) -> bool:
         return type(self) == type(other) and self.name == other.name and \
             self.left_expr == other.left_expr and self.right_expr == other.right_expr

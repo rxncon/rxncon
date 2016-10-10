@@ -1,7 +1,7 @@
 import re
 import os
 
-import rxncon.simulation.bBM.bipartite_boolean_model as bbm
+import rxncon.simulation.boolean.bipartite_boolean_model as bbm
 import rxncon.venntastic.sets as venn
 import rxncon.core.reaction as rxn
 import rxncon.core.state as sta
