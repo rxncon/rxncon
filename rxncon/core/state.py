@@ -17,15 +17,16 @@ class StateModifier(OrderedEnum):
     gtp       = 'gtp'
     truncated = 'truncated'
 
+class EmptyStateError(Exception):
+    pass
+
 
 class StateDef:
     SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
     SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
 
-    def __init__(self, name: str, repr_def: str, variables_def: Dict[str, Any], target_spec_def: str,
-                 neutral_states_def: List[str]):
-        self.name, self.repr_def, self.variables_def, self.target_spec_def, self.neutral_states_def = \
-            name, repr_def, variables_def, target_spec_def, neutral_states_def
+    def __init__(self, name: str, repr_def: str, variables_def: Dict[str, Any], neutral_states_def: List[str]):
+        self.name, self.repr_def, self.variables_def, self.neutral_states_def = name, repr_def, variables_def, neutral_states_def
 
     def __hash__(self):
         return hash(str(self))
@@ -37,13 +38,13 @@ class StateDef:
         return str(self)
 
     def __eq__(self, other: 'StateDef'):
-        return self.name == other.name and self.repr_def == other.repr_def and self.variables_def == other.variables_def \
-            and self.target_spec_def == other.target_spec_def and self.neutral_states_def == other.neutral_states_def
+        return self.name == other.name and self.repr_def == other.repr_def and self.variables_def == other.variables_def  and \
+            self.neutral_states_def == other.neutral_states_def
 
     def matches_repr(self, repr: str) -> bool:
         return True if re.match(self._to_matching_regex(), repr) else False
 
-    def variables_from_repr(self, representation: str) -> Dict[str, Any]:
+    def vars_from_repr(self, representation: str) -> Dict[str, Any]:
         assert self.matches_repr(representation)
 
         variables = {}
@@ -68,7 +69,7 @@ class StateDef:
 
         return variables
 
-    def repr_from_variables(self, variables: Dict[str, Any]) -> str:
+    def repr_from_vars(self, variables: Dict[str, Any]) -> str:
         representation = self.repr_def
         for var, val in variables.items():
             if isinstance(val, StateModifier):
@@ -78,16 +79,13 @@ class StateDef:
 
         return representation
 
-    def target_from_variables(self, variables: Dict[str, Any]) -> Spec:
-        return spec_from_str(self._fill_vals_into_vars(self.target_spec_def, variables))
-
-    def neutral_states_from_variables(self, variables: Dict[str, Any]) -> List['State']:
+    def neutral_states_from_vars(self, variables: Dict[str, Any]) -> List['State']:
         states = []
 
         for state_def in self.neutral_states_def:
             try:
                 the_state = state_from_str(self._fill_vals_into_vars(state_def, variables))
-            except SyntaxError:
+            except EmptyStateError:
                 the_state = None
 
             if the_state:
@@ -95,9 +93,9 @@ class StateDef:
 
         return states
 
-    def validate_variables(self, variables: Dict[str, Any]):
+    def validate_vars(self, variables: Dict[str, Any]):
         if all(isinstance(x, EmptyMolSpec) for x in variables.values() if isinstance(x, Spec)):
-            raise SyntaxError('All MolSpec are EmptyMolSpec.')
+            raise EmptyStateError('All MolSpec are EmptyMolSpec.')
 
         for var, val in variables.items():
             if isinstance(val, MolSpec):
@@ -138,7 +136,6 @@ STATE_DEFS = [
             '$x': [MolSpec, LocusResolution.domain],  # variables definition
             '$y': [MolSpec, LocusResolution.domain]
         },
-        '$x~$y',                                      # target spec
         ['$x--0', '$y--0']                            # neutral states
     ),
     StateDef(
@@ -148,7 +145,6 @@ STATE_DEFS = [
             '$x': [MolSpec, LocusResolution.domain],
             '$y': [Locus, LocusResolution.domain]
         },
-        '$x~$x.to_component_spec_[$y]',
         ['$x--0', '$x.to_component_spec_[$y]--0']
     ),
     StateDef(
@@ -157,7 +153,6 @@ STATE_DEFS = [
         {
             '$x': [MolSpec, LocusResolution.component]
         },
-        'global',
         []
     ),
     StateDef(
@@ -167,7 +162,6 @@ STATE_DEFS = [
             '$x': [MolSpec, LocusResolution.residue],
             '$y': [StateModifier]
         },
-        '$x',
         ['$x-{0}']
     )
 ]
@@ -175,10 +169,9 @@ STATE_DEFS = [
 
 class State:
     def __init__(self, definition: StateDef, variables: Dict[str, Any]):
-        # @todo fix ordering of variables
         self.definition = definition
         self.state_defs = STATE_DEFS
-        self.variables = OrderedDict((k, v) for k, v in sorted(variables.items()))
+        self.vars = OrderedDict((k, v) for k, v in sorted(variables.items()))
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -187,16 +180,16 @@ class State:
         return str(self)
 
     def __str__(self) -> str:
-        return self.definition.repr_from_variables(self.variables)
+        return self.definition.repr_from_vars(self.vars)
 
     def __eq__(self, other: 'State') -> bool:
-        return self.definition == other.definition and self.variables == other.variables
+        return self.definition == other.definition and self.vars == other.vars
 
     def __lt__(self, other: 'State'):
         return str(self) < str(other)
 
     def to_non_struct_state(self) -> 'State':
-        non_struct_vars = deepcopy(self.variables)
+        non_struct_vars = deepcopy(self.vars)
         for k, v in non_struct_vars.items():
             if isinstance(v, MolSpec):
                 non_struct_vars[k] = v.to_non_struct_spec()
@@ -206,10 +199,6 @@ class State:
     @property
     def is_struct_state(self) -> bool:
         return any(mol_spec.struct_index for mol_spec in self.mol_specs)
-
-    @property
-    def target(self) -> Spec:
-        return self.definition.target_from_variables(self.variables)
 
     @property
     def is_elemental(self) -> bool:
@@ -232,11 +221,11 @@ class State:
 
     @property
     def neutral_states(self) -> List['State']:
-        return self.definition.neutral_states_from_variables(self.variables)
+        return self.definition.neutral_states_from_vars(self.vars)
 
     @property
     def mol_specs(self) -> List[MolSpec]:
-        return [x for x in self.variables.values() if isinstance(x, MolSpec) and not isinstance(x, EmptyMolSpec)]
+        return [x for x in self.vars.values() if isinstance(x, MolSpec) and not isinstance(x, EmptyMolSpec)]
 
     @property
     def components(self) -> List[MolSpec]:
@@ -244,12 +233,12 @@ class State:
 
     @property
     def _elemental_resolutions(self) -> List[LocusResolution]:
-        return [self.definition.variables_def[var][1] for var, value in self.variables.items()
+        return [self.definition.variables_def[var][1] for var, value in self.vars.items()
                 if isinstance(value, MolSpec)]
 
     @property
     def _non_mol_spec_props(self):
-        return [x for x in self.variables.values() if not isinstance(x, MolSpec)]
+        return [x for x in self.vars.values() if not isinstance(x, MolSpec)]
 
 
 class FullyNeutralState(State):
@@ -320,7 +309,7 @@ def state_from_str(repr: str) -> State:
     if not state_def:
         raise SyntaxError('Could not match State {} with definition'.format(repr))
 
-    variables = state_def.variables_from_repr(repr)
-    state_def.validate_variables(variables)
+    variables = state_def.vars_from_repr(repr)
+    state_def.validate_vars(variables)
 
     return State(state_def, variables)

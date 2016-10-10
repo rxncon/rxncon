@@ -8,11 +8,7 @@ from rxncon.util.utils import OrderedEnum
 
 EMPTY_MOL_SPEC = '0'
 
-class Spec(metaclass=ABCMeta):
-    pass
-
-
-class MolSpec(Spec, metaclass=ABCMeta):
+class MolSpec(metaclass=ABCMeta):
     def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus'):
         self.component_name, self.struct_index, self.locus = component_name, struct_index, locus
         self._validate()
@@ -40,12 +36,11 @@ class MolSpec(Spec, metaclass=ABCMeta):
 
         return _string_from_spec(self)
 
-    def __eq__(self, other: Spec) -> bool:
+    def __eq__(self, other: 'MolSpec') -> bool:
         return isinstance(other, type(self)) and self.component_name == other.component_name and self.locus == other.locus \
             and self.struct_index == other.struct_index
 
-
-    def is_non_struct_equiv_to(self, other: Spec) -> bool:
+    def is_non_struct_equiv_to(self, other: 'MolSpec') -> bool:
         return isinstance(other, type(self)) and self.to_non_struct_spec() == other.to_non_struct_spec()
 
     def to_non_struct_spec(self):
@@ -99,7 +94,6 @@ class MolSpec(Spec, metaclass=ABCMeta):
         assert self.component_name is not None and re.match('\w+', self.component_name)
 
 
-
 class EmptyMolSpec(MolSpec):
     def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus'):
         super().__init__(EMPTY_MOL_SPEC, None, EmptyLocus())
@@ -114,7 +108,7 @@ class EmptyMolSpec(MolSpec):
     def __str__(self) -> str:
         return EMPTY_MOL_SPEC
 
-    def __eq__(self, other: Spec) -> bool:
+    def __eq__(self, other: MolSpec) -> bool:
         return isinstance(other, EmptyMolSpec)
 
     def __lt__(self, other: MolSpec) -> bool:
@@ -335,26 +329,6 @@ def locus_from_str(locus_str: str) -> Locus:
     return Locus(*locus_items_from_str(locus_str.strip('[]')))
 
 
-class BondSpec(Spec):
-    def __init__(self, first: MolSpec, second: MolSpec):
-        self.first, self.second = sorted([first, second])
-
-    def __eq__(self, other: Spec) -> bool:
-        return isinstance(other, BondSpec) and self.first == other.first and self.second == other.second
-
-    def __hash__(self) -> int:
-        return hash(str(self))
-
-    def __str__(self) -> str:
-        return 'BondSpec<{0}, {1}>'.format(str(self.first), str(self.second))
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def is_non_struct_equiv_to(self, other: Spec) -> bool:
-        return isinstance(other, BondSpec) and self.first.is_non_struct_equiv_to(other.first) and \
-            self.second.is_non_struct_equiv_to(other.second)
-
 def mol_spec_from_str(spec_str: str) -> MolSpec:
     def spec_from_suffixed_name_and_locus(name: str, struct_index: Optional[int], locus: Locus):
         for suffix in suffix_to_spec:
@@ -386,16 +360,3 @@ def mol_spec_from_str(spec_str: str) -> MolSpec:
         return spec_from_suffixed_name_and_locus(name, struct_index, locus_from_str(items[1]))
     else:
         raise SyntaxError('Could not parse spec string {}'.format(spec_str))
-
-
-def bond_spec_from_str(spec_str: str) -> Spec:
-    first, second = sorted([mol_spec_from_str(x) for x in spec_str.split('~')])
-
-    if isinstance(first, EmptyMolSpec):
-        return second
-    else:
-        return BondSpec(first, second)
-
-
-def spec_from_str(spec_str: str) -> Spec:
-    return bond_spec_from_str(spec_str) if '~' in spec_str else mol_spec_from_str(spec_str)

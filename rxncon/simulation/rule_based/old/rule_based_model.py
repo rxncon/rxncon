@@ -9,7 +9,7 @@ from rxncon.core.contingency import ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
 from rxncon.core.spec import MolSpec, LocusResolution, BondSpec
 from rxncon.core.state import StateDef, State
-from rxncon.core.reaction import Reaction, ReactionTerm, MoleculeReactionTerm, BondReactionTerm
+from rxncon.core.reaction import Reaction, ReactionTerm, ReactionTerm, BondReactionTerm
 from rxncon.util.utils import all_eq
 from rxncon.venntastic.sets import Set, ValueSet, Union, Intersection, Complement, MultiIntersection, MultiUnion
 
@@ -319,7 +319,7 @@ class RuleBuilder:
 
     @typecheck
     def _complex_from_rxn_term(self, rxn_term: ReactionTerm) -> Complex:
-        if isinstance(rxn_term, MoleculeReactionTerm):
+        if isinstance(rxn_term, ReactionTerm):
             mol = Mol(self.mol_defs[rxn_term.spec], {})
             for state in rxn_term.states:
                 mol.add_state(state.target, state)

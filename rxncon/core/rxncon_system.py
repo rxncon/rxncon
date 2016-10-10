@@ -2,7 +2,7 @@ from typing import List, Dict, Tuple
 from collections import defaultdict
 
 from rxncon.core.contingency import ContingencyType, Contingency
-from rxncon.core.reaction import Reaction, ReactionTerm, MoleculeReactionTerm
+from rxncon.core.reaction import Reaction, ReactionTerm, ReactionTerm
 from rxncon.core.state import State, StateDef
 from rxncon.core.spec import MolSpec, BondSpec
 
@@ -122,7 +122,7 @@ class RxnConSystem:
 
     def _expand_reaction_terms(self, terms: List[ReactionTerm]):
         for term in terms:
-            if isinstance(term, MoleculeReactionTerm) and term.is_fully_neutral:
+            if isinstance(term, ReactionTerm) and term.is_fully_neutral:
                 term.states = [x for x in self.states_for_component(term.spec) if x.is_neutral]
 
     def _assert_consistency(self):
