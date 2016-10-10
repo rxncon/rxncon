@@ -9,7 +9,7 @@ def test_simple_reaction():
 
 
 def test_ppi_reaction():
-    rxn = reaction_from_str('A_[x]_ppi_B_[y]')
+    rxn = reaction_from_str('A_[x]_ppi+_B_[y]')
 
     assert rxn.terms_lhs == [MoleculeReactionTerm(spec_from_str('A'), [state_from_str('A_[x]--0')], []),
                              MoleculeReactionTerm(spec_from_str('B'), [state_from_str('B_[y]--0')], [])]
@@ -30,7 +30,7 @@ def test_ipi_reaction():
 
 
 def test_wrong():
-    rxn = reaction_from_str('A_ppi_B')
+    rxn = reaction_from_str('A_ppi+_B')
     assert rxn.produced_states == [state_from_str('A_[B]--B_[A]')]
 
     rxn = reaction_from_str('A_trsl_B')

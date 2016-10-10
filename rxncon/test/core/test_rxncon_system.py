@@ -11,7 +11,7 @@ def test_translation():
     rxncon_sys = Quick('''A_trsl_BmRNA
                           C_p+_B_[(r1)]
                           D_p+_B_[(r2)] ; ! B@1_[(r1)]-{p}
-                          D_[x]_ppi_B_[y]
+                          D_[x]_ppi+_B_[y]
                           E_ub+_B_[(r1)]''').rxncon_system
 
     expected_rxns = {
@@ -34,7 +34,7 @@ def test_translation():
             [state_from_str('B_[(r2)]-{p}')],
             [state_from_str('B_[(r2)]-{0}')]
         ),
-        'D_[x]_ppi_B_[y]': ReactionTestCase(
+        'D_[x]_ppi+_B_[y]': ReactionTestCase(
             [],
             [state_from_str('D_[x]--B_[y]')],
             [state_from_str('D_[x]--0'), state_from_str('B_[y]--0')]
