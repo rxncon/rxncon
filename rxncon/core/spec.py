@@ -44,18 +44,6 @@ class MolSpec(Spec, metaclass=ABCMeta):
         return isinstance(other, type(self)) and self.component_name == other.component_name and self.locus == other.locus \
             and self.struct_index == other.struct_index
 
-    def __lt__(self, other: 'MolSpec') -> bool:
-        if self.component_name < other.component_name:
-            return True
-        elif self.struct_index is not None and self.component_name == other.component_name and self.locus == other.locus:
-            return self.struct_index < other.struct_index
-        elif self.component_name == other.component_name:
-            return self.locus < other.locus
-        else:
-            return False
-
-    def _validate(self):
-        assert self.component_name is not None and re.match('\w+', self.component_name)
 
     def is_non_struct_equiv_to(self, other: Spec) -> bool:
         return isinstance(other, type(self)) and self.to_non_struct_spec() == other.to_non_struct_spec()
@@ -106,6 +94,10 @@ class MolSpec(Spec, metaclass=ABCMeta):
 
     def has_resolution(self, resolution: 'LocusResolution') -> bool:
         return self.resolution == resolution
+
+    def _validate(self):
+        assert self.component_name is not None and re.match('\w+', self.component_name)
+
 
 
 class EmptyMolSpec(MolSpec):
@@ -226,22 +218,20 @@ class Locus:
         return self.domain == other.domain and self.subdomain == other.subdomain and self.residue == other.residue
 
     def __lt__(self, other: 'Locus') -> bool:
-        if self.domain is None and other.domain is not None:
+        if not self.domain and other.domain:
             return True
-        if other.domain is not None and other.domain is not None \
-                and self.domain < other.domain:
+        elif self.domain and other.domain and self.domain < other.domain:
             return True
-        if self.subdomain is None and other.subdomain is not None:
+        elif not self.subdomain and other.subdomain:
             return True
-        if self.subdomain is not None and other.subdomain is not None \
-                and self.subdomain < other.subdomain:
+        elif self.subdomain and other.subdomain and self.subdomain < other.subdomain:
             return True
-        if self.residue is None and other.residue is not None:
+        elif not self.residue and other.residue:
             return True
-        if self.residue is not None and other.residue is not None \
-                and self.residue < other.residue:
+        elif self.residue and other.residue and self.residue < other.residue:
             return True
-        return False
+        else:
+            return False
 
     def _validate(self):
         if self.domain:
@@ -409,4 +399,3 @@ def bond_spec_from_str(spec_str: str) -> Spec:
 
 def spec_from_str(spec_str: str) -> Spec:
     return bond_spec_from_str(spec_str) if '~' in spec_str else mol_spec_from_str(spec_str)
-
