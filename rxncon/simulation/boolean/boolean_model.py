@@ -155,7 +155,6 @@ class UpdateRule:
     def __init__(self, target: Target, factor: VennSet):
         self.target = target
         self.factor = factor
-        self._validate()
 
     def __str__(self):
         return "target: {0}, factors: {1}".format(self.target, self.factor)
@@ -164,12 +163,13 @@ class UpdateRule:
     def factor_targets(self) -> List[Target]:
         return self.factor.values
 
-    def _validate(self):
-        pass
-        # assert any(cls == Target for cls in self.factor.value_type.mro())
-
 
 def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
+    def stateless_component_targets(reaction_targets: List[ReactionTarget]):
+        all_components = [component for reaction_target in reaction_targets for component in reaction_target.components]
+        stateless_components = [component for component in all_components if naive_component_factor(component).is_equivalent_to(UniversalSet())]
+        return {x: ComponentStateTarget(x) for x in stateless_components}
+
     def naive_component_factor(component: Spec) -> VennSet:
         grouped_states = rxncon_sys.states_for_component_grouped(component)
         if not grouped_states.values():
@@ -177,7 +177,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
 
         return MultiIntersection(*(MultiUnion(*(ValueSet(StateTarget(x)) for x in group)) for group in grouped_states.values()))
 
-    def component_factor(component: Spec) -> VennSet:
+    def component_factor(component: Spec, stateless_targets: Dict[Spec, ComponentStateTarget]) -> VennSet:
         if component in stateless_targets.keys():
             return ValueSet(stateless_targets[component])
         else:
@@ -217,11 +217,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
 
         return BooleanModelConfig(conds)
 
-    def stateless_component_targets(reaction_targets: List[ReactionTarget]):
-        all_components = [component for reaction_target in reaction_targets for component in reaction_target.components]
-        stateless_components = [component for component in all_components if naive_component_factor(component) == UniversalSet()]
-        return {x: ComponentStateTarget(x) for x in stateless_components}
-
     reaction_targets  = [ReactionTarget(x) for x in rxncon_sys.reactions]
     stateless_targets = stateless_component_targets(reaction_targets)
     state_targets     = [StateTarget(x.to_non_structured_state()) for x in rxncon_sys.states] + list(stateless_targets.values())
@@ -233,14 +228,14 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     # components AND contingencies
     for reaction_target in reaction_targets:
         cont_fac = MultiIntersection(*(contingency_factor(x) for x in rxncon_sys.contingencies_for_reaction(reaction_target.reaction_parent)))
-        comp_fac = MultiIntersection(*(component_factor(x) for x in reaction_target.components))
+        comp_fac = MultiIntersection(*(component_factor(x, stateless_targets) for x in reaction_target.components))
         reaction_rules.append(UpdateRule(reaction_target, Intersection(cont_fac, comp_fac).to_simplified_set()))
 
     # Factor for a state target is of the form:
     # synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
     for state_target in state_targets:
         synt_fac = MultiUnion(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
-        comp_fac = MultiIntersection(*(component_factor(x) for x in state_target.components))
+        comp_fac = MultiIntersection(*(component_factor(x, stateless_targets) for x in state_target.components))
         degr_fac = Complement(MultiUnion(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
 
         prod_facs = []
