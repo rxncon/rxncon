@@ -58,6 +58,40 @@ def test_simple_system():
         assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
 
 
+def test_simple_system_with_input_state():
+    boolean_model = boolean_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p} ; ! [BLAAT]
+                                                        A_[b]_ppi-_B_[a]
+                                                        C_p+_A_[(r)]
+                                                        D_p-_A_[(r)]""").rxncon_system)
+
+    # Component expressions.
+    A = '(( A_[b]--0 | A_[b]--B_[a] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ))'
+    B = '( B_[a]--0 | A_[b]--B_[a] )'
+    C = 'C'
+    D = 'D'
+
+    expected_rules = {
+        'A_[b]_ppi+_B_[a]': '{0} & {1} & A_[(r)]-{{p}} & [BLAAT]'.format(A, B),
+        'A_[b]_ppi-_B_[a]': '{0} & {1}'.format(A, B),
+        'C_p+_A_[(r)]': '{0} & {1}'.format(A, C),
+        'D_p-_A_[(r)]': '{0} & {1}'.format(A, D),
+        'A_[(r)]-{p}': '{0} & (( C_p+_A_[(r)] & A_[(r)]-{{0}} ) | ( A_[(r)]-{{p}} & ~( D_p-_A_[(r)] & A_[(r)]-{{p}} )))'.format(A),
+        'A_[(r)]-{0}': '{0} & (( D_p-_A_[(r)] & A_[(r)]-{{p}} ) | ( A_[(r)]-{{0}} & ~( C_p+_A_[(r)] & A_[(r)]-{{0}} )))'.format(A),
+        'A_[b]--0': '{0} & (( A_[b]_ppi-_B_[a] & A_[b]--B_[a] ) | ( A_[b]--0 & ~( A_[b]_ppi+_B_[a] & A_[b]--0 & B_[a]--0 )))'.format(A),
+        'A_[b]--B_[a]': '{0} & {1} & (( A_[b]_ppi+_B_[a] & A_[b]--0 & B_[a]--0 ) | ( A_[b]--B_[a] & ~( A_[b]_ppi-_B_[a] & A_[b]--B_[a] )))'.format(A, B),
+        'B_[a]--0': '{0} & (( A_[b]_ppi-_B_[a] & A_[b]--B_[a] ) | ( B_[a]--0 & ~( A_[b]_ppi+_B_[a] & A_[b]--0 & B_[a]--0 )))'.format(B),
+        'C': '{0}'.format(C),
+        'D': '{0}'.format(D),
+        '[BLAAT]': '[BLAAT]'
+    }
+
+    assert len(boolean_model.update_rules) == len(expected_rules)
+
+    for update_rule in boolean_model.update_rules:
+        assert update_rule.factor.is_equivalent_to(
+            venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+
+
 def test_insulin_system():
     boolean_model = boolean_model_from_rxncon(Quick("""IR_[IRBD]_ppi+_IR_[IRBD]
                                                     IR_[IRBD]_ppi-_IR_[IRBD]

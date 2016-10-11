@@ -18,6 +18,7 @@ class StateModifier(OrderedEnum):
     gtp       = 'gtp'
     truncated = 'truncated'
 
+
 class EmptyStateError(Exception):
     pass
 

@@ -17,6 +17,7 @@ class RxnConSystem:
         self._produced_states    = []
         self._consumed_states    = []
         self._synthesised_states = []
+        self._global_states      = []
 
         self._expand_fully_neutral_states()
         self._assert_consistency()
@@ -61,6 +62,12 @@ class RxnConSystem:
             self._calculate_synthesised_states()
         return self._synthesised_states
 
+    @property
+    def global_states(self):
+        if not self._global_states:
+            self._calculate_global_states()
+        return self._global_states
+
     def states_for_component(self, component: Spec) -> List[State]:
         assert component.is_component_spec
         return [x for x in self.states if component.to_non_struct_spec() in x.components]
@@ -89,7 +96,7 @@ class RxnConSystem:
         self._components = list(set(components))
 
     def _calculate_states(self):
-        self._states = list(set(self.produced_states + self.consumed_states + self.synthesised_states))
+        self._states = list(set(self.produced_states + self.consumed_states + self.synthesised_states + self.global_states))
 
     def _calculate_produced_states(self):
         states = []
@@ -112,6 +119,13 @@ class RxnConSystem:
 
         self._synthesised_states = list(set(states))
 
+    def _calculate_global_states(self):
+        states = []
+        for contingency in self.contingencies:
+            states += [state for state in contingency.effector.states if state.is_global]
+
+        self._global_states = list(set(states))
+
     def _expand_fully_neutral_states(self):
         for reaction in self.reactions:
             self._expand_reaction_terms(reaction.terms_lhs)
@@ -125,7 +139,7 @@ class RxnConSystem:
     def _assert_consistency(self):
         required_states = []
         for contingency in self.contingencies:
-            required_states += [state.to_non_structured_state() for state in contingency.effector.states]
+            required_states += [state.to_non_structured_state() for state in contingency.effector.states if not state.is_global]
 
         for state in required_states:
             assert state in self.states, \
