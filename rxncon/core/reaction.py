@@ -1,13 +1,13 @@
 from typing import Dict, Any, List, Optional
 import re
 
-from rxncon.core.spec import Spec, BondSpec, MolSpec, MRNASpec, ProteinSpec, LocusResolution, DNASpec, mol_spec_from_str, spec_from_str
+from rxncon.core.spec import Spec, BondSpec, Spec, MRNASpec, ProteinSpec, LocusResolution, DNASpec, spec_from_str, spec_from_str
 from rxncon.core.state import StateDef, State, state_from_str, STATE_DEFS, FullyNeutralState
 from rxncon.util.utils import members
 
 
 class ReactionTerm:
-    def __init__(self, specs: List[MolSpec], states: List[State]):
+    def __init__(self, specs: List[Spec], states: List[State]):
         assert all(spec.is_component_spec for spec in specs)
         self.specs, self.states = specs, states
 
@@ -67,7 +67,7 @@ class ReactionDef:
                     var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)
 
             val_str = re.match(var_regex, representation).group(1)
-            val_spec = mol_spec_from_str(val_str)
+            val_spec = spec_from_str(val_str)
 
             variables[var] = val_spec
 
@@ -122,8 +122,8 @@ class ReactionDef:
 
             return state_from_str(state_str)
 
-        def parse_specs_str(specs_str: str) -> List[MolSpec]:
-            return [mol_spec_from_str(x) for x in specs_str.split(',')]
+        def parse_specs_str(specs_str: str) -> List[Spec]:
+            return [spec_from_str(x) for x in specs_str.split(',')]
 
         specs_str, states_str = definition.split('#')
 
@@ -216,8 +216,8 @@ REACTION_DEFS = [
         'interaction',
         '$x_i+_$y',
         {
-            '$x': (MolSpec, LocusResolution.domain),
-            '$y': (MolSpec, LocusResolution.domain)
+            '$x': (Spec, LocusResolution.domain),
+            '$y': (Spec, LocusResolution.domain)
         },
         '$x#$x--0 + $y#$y--0 -> $x#$x~$y + $y#$x~$y + $x~$y#$x--$y'
     ),
@@ -226,8 +226,8 @@ REACTION_DEFS = [
         'dissociation',
         '$x_i-_$y',
         {
-            '$x': (MolSpec, LocusResolution.domain),
-            '$y': (MolSpec, LocusResolution.domain)
+            '$x': (Spec, LocusResolution.domain),
+            '$y': (Spec, LocusResolution.domain)
         },
         '$x#$x~$y + $y#$x~$y + $x~$y#$x--$y -> $x#$x--0 + $y#$y--0'
     ),
@@ -277,7 +277,7 @@ REACTION_DEFS = [
         '$x_deg_$y',
         {
             '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (MolSpec, LocusResolution.component)
+            '$y': (Spec, LocusResolution.component)
         },
         '$x# + $y# -> $x#'
     ),
@@ -287,7 +287,7 @@ REACTION_DEFS = [
         '$x_syn_$y',
         {
             '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (MolSpec, LocusResolution.component)
+            '$y': (Spec, LocusResolution.component)
         },
         '$x# -> $x# + $y#0'
     )
@@ -314,11 +314,11 @@ class Reaction:
         return self.terms_lhs == other.terms_lhs and self.terms_rhs == other.terms_rhs and str(self) == str(other)
 
     @property
-    def components_lhs(self) -> List[MolSpec]:
+    def components_lhs(self) -> List[Spec]:
         return [spec for term in self.terms_lhs for spec in term]
 
     @property
-    def components_rhs(self) -> List[MolSpec]:
+    def components_rhs(self) -> List[Spec]:
         return [spec for term in self.terms_rhs for spec in term]
 
     @property
@@ -362,11 +362,11 @@ class Reaction:
         return states
 
     @property
-    def degraded_components(self) -> List[MolSpec]:
+    def degraded_components(self) -> List[Spec]:
         return [component for component in self.components_lhs if component not in self.components_rhs]
 
     @property
-    def synthesised_components(self) -> List[MolSpec]:
+    def synthesised_components(self) -> List[Spec]:
         return [component for component in self.components_rhs if component not in self.components_lhs]
 
 

@@ -6,9 +6,11 @@ import re
 
 from rxncon.util.utils import OrderedEnum
 
-EMPTY_MOL_SPEC = '0'
 
-class MolSpec(metaclass=ABCMeta):
+EMPTY_SPEC = '0'
+
+
+class Spec(metaclass=ABCMeta):
     def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus'):
         self.component_name, self.struct_index, self.locus = component_name, struct_index, locus
         self._validate()
@@ -20,8 +22,8 @@ class MolSpec(metaclass=ABCMeta):
         return str(self)
 
     def __str__(self) -> str:
-        def _string_from_spec(spec: MolSpec) -> str:
-            def struct_name(spec: MolSpec, suffix: 'SpecSuffix'):
+        def _string_from_spec(spec: Spec) -> str:
+            def struct_name(spec: Spec, suffix: 'SpecSuffix'):
                 if spec.struct_index:
                     return "{0}{1}@{2}".format(spec.component_name, suffix.value, spec.struct_index)
                 else:
@@ -36,17 +38,14 @@ class MolSpec(metaclass=ABCMeta):
 
         return _string_from_spec(self)
 
-    def __eq__(self, other: 'MolSpec') -> bool:
+    def __eq__(self, other: 'Spec') -> bool:
         return isinstance(other, type(self)) and self.component_name == other.component_name and self.locus == other.locus \
             and self.struct_index == other.struct_index
 
-    def is_non_struct_equiv_to(self, other: 'MolSpec') -> bool:
+    def is_non_struct_equiv_to(self, other: 'Spec') -> bool:
         return isinstance(other, type(self)) and self.to_non_struct_spec() == other.to_non_struct_spec()
 
-    def to_non_struct_spec(self):
-        return type(self)(self.component_name, None, self.locus)
-
-    def is_subspec_of(self, other: 'MolSpec') -> bool:
+    def is_subspec_of(self, other: 'Spec') -> bool:
         if self == other:
             return True
 
@@ -61,7 +60,7 @@ class MolSpec(metaclass=ABCMeta):
 
         return True
 
-    def is_superspec_of(self, other: 'MolSpec') -> bool:
+    def is_superspec_of(self, other: 'Spec') -> bool:
         if self == other:
             return True
 
@@ -71,7 +70,10 @@ class MolSpec(metaclass=ABCMeta):
     def is_component_spec(self) -> bool:
         return self.has_resolution(LocusResolution.component)
 
-    def to_component_spec(self) -> 'MolSpec':
+    def to_non_struct_spec(self):
+        return type(self)(self.component_name, None, self.locus)
+
+    def to_component_spec(self) -> 'Spec':
         return type(self)(self.component_name, self.struct_index, EmptyLocus())
 
     def to_protein_component_spec(self) -> 'ProteinSpec':
@@ -94,25 +96,25 @@ class MolSpec(metaclass=ABCMeta):
         assert self.component_name is not None and re.match('\w+', self.component_name)
 
 
-class EmptyMolSpec(MolSpec):
+class EmptySpec(Spec):
     def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus'):
-        super().__init__(EMPTY_MOL_SPEC, None, EmptyLocus())
+        super().__init__(EMPTY_SPEC, None, EmptyLocus())
 
     def _validate(self):
-        assert self.component_name == EMPTY_MOL_SPEC
+        assert self.component_name == EMPTY_SPEC
         assert self.locus.is_empty
 
     def __hash__(self) -> int:
         return hash(str(self))
 
     def __str__(self) -> str:
-        return EMPTY_MOL_SPEC
+        return EMPTY_SPEC
 
-    def __eq__(self, other: MolSpec) -> bool:
-        return isinstance(other, EmptyMolSpec)
+    def __eq__(self, other: Spec) -> bool:
+        return isinstance(other, EmptySpec)
 
-    def __lt__(self, other: MolSpec) -> bool:
-        if isinstance(other, EmptyMolSpec):
+    def __lt__(self, other: Spec) -> bool:
+        if isinstance(other, EmptySpec):
             return False
         elif isinstance(other, ProteinSpec):
             return True
@@ -130,52 +132,52 @@ class EmptyMolSpec(MolSpec):
         return True
 
 
-class ProteinSpec(MolSpec):
+class ProteinSpec(Spec):
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def __lt__(self, other: MolSpec) -> bool:
+    def __lt__(self, other: Spec) -> bool:
         if isinstance(other, ProteinSpec):
             return super().__lt__(other)
         elif isinstance(other, MRNASpec):
             return False
         elif isinstance(other, DNASpec):
             return False
-        elif isinstance(other, EmptyMolSpec):
+        elif isinstance(other, EmptySpec):
             return False
         else:
             raise NotImplementedError
 
 
-class MRNASpec(MolSpec):
+class MRNASpec(Spec):
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def __lt__(self, other: MolSpec) -> bool:
+    def __lt__(self, other: Spec) -> bool:
         if isinstance(other, MRNASpec):
             return super().__lt__(other)
         elif isinstance(other, DNASpec):
             return False
         elif isinstance(other, ProteinSpec):
             return True
-        elif isinstance(other, EmptyMolSpec):
+        elif isinstance(other, EmptySpec):
             return False
         else:
             raise NotImplementedError
 
 
-class DNASpec(MolSpec):
+class DNASpec(Spec):
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def __lt__(self, other: MolSpec):
+    def __lt__(self, other: Spec):
         if isinstance(other, DNASpec):
             return super().__lt__(other)
         elif isinstance(other, MRNASpec):
             return True
         elif isinstance(other, ProteinSpec):
             return True
-        elif isinstance(other, EmptyMolSpec):
+        elif isinstance(other, EmptySpec):
             return False
         else:
             raise NotImplementedError
@@ -329,7 +331,7 @@ def locus_from_str(locus_str: str) -> Locus:
     return Locus(*locus_items_from_str(locus_str.strip('[]')))
 
 
-def mol_spec_from_str(spec_str: str) -> MolSpec:
+def spec_from_str(spec_str: str) -> Spec:
     def spec_from_suffixed_name_and_locus(name: str, struct_index: Optional[int], locus: Locus):
         for suffix in suffix_to_spec:
             if name.endswith(suffix.value):
@@ -344,10 +346,10 @@ def mol_spec_from_str(spec_str: str) -> MolSpec:
     struct_index = None
     items = spec_str.split(DOMAIN_DELIMITER, maxsplit=1)
 
-    if items[0].startswith(EMPTY_MOL_SPEC):
-        if items[0] != EMPTY_MOL_SPEC:
-            raise SyntaxError('Only the EmptySpec can start with {}'.format(EMPTY_MOL_SPEC))
-        return EmptyMolSpec(EMPTY_MOL_SPEC, None, EmptyLocus())
+    if items[0].startswith(EMPTY_SPEC):
+        if items[0] != EMPTY_SPEC:
+            raise SyntaxError('Only the EmptySpec can start with {}'.format(EMPTY_SPEC))
+        return EmptySpec(EMPTY_SPEC, None, EmptyLocus())
     elif STRUCT_DELIMITER in items[0]:
         name, struct_index = items[0].split(STRUCT_DELIMITER)
         struct_index = int(struct_index)

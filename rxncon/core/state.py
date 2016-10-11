@@ -5,7 +5,7 @@ from typing import List, Dict, Optional, Any
 from copy import deepcopy
 
 from rxncon.util.utils import OrderedEnum, members
-from rxncon.core.spec import Spec, MolSpec, EmptyMolSpec, Locus, LocusResolution, locus_from_str, mol_spec_from_str, spec_from_str
+from rxncon.core.spec import Spec, Spec, EmptySpec, Locus, LocusResolution, locus_from_str, spec_from_str, spec_from_str
 
 FULLY_NEUTRAL_STATE_REPR = '0'
 
@@ -60,8 +60,8 @@ class StateDef:
                 value = state_modifier_from_str(val_str)
             elif self.variables_def[var][0] is Locus:
                 value = locus_from_str(val_str)
-            elif self.variables_def[var][0] is MolSpec:
-                value = mol_spec_from_str(val_str)
+            elif self.variables_def[var][0] is Spec:
+                value = spec_from_str(val_str)
             else:
                 raise Exception('Unknown variable type {}'.format(self.variables_def[var][0]))
 
@@ -94,11 +94,11 @@ class StateDef:
         return states
 
     def validate_vars(self, variables: Dict[str, Any]):
-        if all(isinstance(x, EmptyMolSpec) for x in variables.values() if isinstance(x, Spec)):
+        if all(isinstance(x, EmptySpec) for x in variables.values() if isinstance(x, Spec)):
             raise EmptyStateError('All MolSpec are EmptyMolSpec.')
 
         for var, val in variables.items():
-            if isinstance(val, MolSpec):
+            if isinstance(val, Spec):
                 if val.resolution > self.variables_def[var][1]:
                     raise SyntaxError('Resolution too high.')
 
@@ -133,8 +133,8 @@ STATE_DEFS = [
         'interaction-state',                          # name
         '$x--$y',                                     # representation definition
         {
-            '$x': [MolSpec, LocusResolution.domain],  # variables definition
-            '$y': [MolSpec, LocusResolution.domain]
+            '$x': [Spec, LocusResolution.domain],  # variables definition
+            '$y': [Spec, LocusResolution.domain]
         },
         ['$x--0', '$y--0']                            # neutral states
     ),
@@ -142,7 +142,7 @@ STATE_DEFS = [
         'self-interaction-state',
         '$x--[$y]',
         {
-            '$x': [MolSpec, LocusResolution.domain],
+            '$x': [Spec, LocusResolution.domain],
             '$y': [Locus, LocusResolution.domain]
         },
         ['$x--0', '$x.to_component_spec_[$y]--0']
@@ -151,7 +151,7 @@ STATE_DEFS = [
         'input-state',
         '[$x]',
         {
-            '$x': [MolSpec, LocusResolution.component]
+            '$x': [Spec, LocusResolution.component]
         },
         []
     ),
@@ -159,7 +159,7 @@ STATE_DEFS = [
         'covalent-modification-state',
         '$x-{$y}',
         {
-            '$x': [MolSpec, LocusResolution.residue],
+            '$x': [Spec, LocusResolution.residue],
             '$y': [StateModifier]
         },
         ['$x-{0}']
@@ -191,7 +191,7 @@ class State:
     def to_non_struct_state(self) -> 'State':
         non_struct_vars = deepcopy(self.vars)
         for k, v in non_struct_vars.items():
-            if isinstance(v, MolSpec):
+            if isinstance(v, Spec):
                 non_struct_vars[k] = v.to_non_struct_spec()
 
         return State(self.definition, non_struct_vars)
@@ -224,21 +224,21 @@ class State:
         return self.definition.neutral_states_from_vars(self.vars)
 
     @property
-    def mol_specs(self) -> List[MolSpec]:
-        return [x for x in self.vars.values() if isinstance(x, MolSpec) and not isinstance(x, EmptyMolSpec)]
+    def mol_specs(self) -> List[Spec]:
+        return [x for x in self.vars.values() if isinstance(x, Spec) and not isinstance(x, EmptySpec)]
 
     @property
-    def components(self) -> List[MolSpec]:
+    def components(self) -> List[Spec]:
         return [x.to_component_spec() for x in self.mol_specs]
 
     @property
     def _elemental_resolutions(self) -> List[LocusResolution]:
         return [self.definition.variables_def[var][1] for var, value in self.vars.items()
-                if isinstance(value, MolSpec)]
+                if isinstance(value, Spec)]
 
     @property
     def _non_mol_spec_props(self):
-        return [x for x in self.vars.values() if not isinstance(x, MolSpec)]
+        return [x for x in self.vars.values() if not isinstance(x, Spec)]
 
 
 class FullyNeutralState(State):
@@ -275,7 +275,7 @@ class FullyNeutralState(State):
         raise AssertionError
 
     @property
-    def components(self) -> List[MolSpec]:
+    def components(self) -> List[Spec]:
         return []
 
     @property

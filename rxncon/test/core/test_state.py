@@ -1,5 +1,5 @@
 from rxncon.core.state import state_from_str, FullyNeutralState
-from rxncon.core.spec import bond_spec_from_str, mol_spec_from_str
+from rxncon.core.spec import bond_spec_from_str, spec_from_str
 from rxncon.util.utils import elems_eq
 import pytest
 
@@ -11,32 +11,32 @@ def test_modification_props():
     # Elemental state, neutral.
     state = state_from_str('A_[(res)]-{0}')
     assert state.is_elemental
-    assert elems_eq(state.components, [mol_spec_from_str('A')])
-    assert state.target == mol_spec_from_str('A_[(res)]')
+    assert elems_eq(state.components, [spec_from_str('A')])
+    assert state.target == spec_from_str('A_[(res)]')
     assert state.is_neutral
     assert elems_eq(state.neutral_states, [state])
 
     # Elemental state, non-neutral.
     state = state_from_str('A_[(res)]-{p}')
     assert state.is_elemental
-    assert elems_eq(state.components, [mol_spec_from_str('A')])
-    assert state.target == mol_spec_from_str('A_[(res)]')
+    assert elems_eq(state.components, [spec_from_str('A')])
+    assert state.target == spec_from_str('A_[(res)]')
     assert not state.is_neutral
     assert elems_eq(state.neutral_states, [state_from_str('A_[(res)]-{0}')])
 
     # Non-elemental state, neutral.
     state = state_from_str('A_[dom]-{0}')
     assert not state.is_elemental
-    assert elems_eq(state.components, [mol_spec_from_str('A')])
-    assert state.target == mol_spec_from_str('A_[dom]')
+    assert elems_eq(state.components, [spec_from_str('A')])
+    assert state.target == spec_from_str('A_[dom]')
     assert state.is_neutral
     assert elems_eq(state.neutral_states, [state])
 
     # Non-elemental state, non-neutral.
     state = state_from_str('A_[dom]-{p}')
     assert not state.is_elemental
-    assert elems_eq(state.components, [mol_spec_from_str('A')])
-    assert state.target == mol_spec_from_str('A_[dom]')
+    assert elems_eq(state.components, [spec_from_str('A')])
+    assert state.target == spec_from_str('A_[dom]')
     assert not state.is_neutral
     assert elems_eq(state.neutral_states, [state_from_str('A_[dom]-{0}')])
 
@@ -81,15 +81,15 @@ def test_ppi_props():
     # Elemental state, free binding domain.
     state = state_from_str('A_[m]--0')
     assert state.is_elemental
-    assert elems_eq(state.components, [mol_spec_from_str('A')])
-    assert state.target == mol_spec_from_str('A_[m]')
+    assert elems_eq(state.components, [spec_from_str('A')])
+    assert state.target == spec_from_str('A_[m]')
     assert state.is_neutral
     assert elems_eq(state.neutral_states, [state])
 
     # Elemental state, bond.
     state = state_from_str('A_[m]--B_[n]')
     assert state.is_elemental
-    assert elems_eq(state.components, [mol_spec_from_str('A'), mol_spec_from_str('B')])
+    assert elems_eq(state.components, [spec_from_str('A'), spec_from_str('B')])
     assert state.target == bond_spec_from_str('A_[m]~B_[n]')
     assert not state.is_neutral
     assert elems_eq(state.neutral_states, [state_from_str('A_[m]--0'), state_from_str('B_[n]--0')])
@@ -97,15 +97,15 @@ def test_ppi_props():
     # Non-elemental state, free binding domain.
     state = state_from_str('A--0')
     assert not state.is_elemental
-    assert elems_eq(state.components, [mol_spec_from_str('A')])
-    assert state.target == mol_spec_from_str('A')
+    assert elems_eq(state.components, [spec_from_str('A')])
+    assert state.target == spec_from_str('A')
     assert state.is_neutral
     assert elems_eq(state.neutral_states, [state])
 
     # Non-elemental state, bond.
     state = state_from_str('A--B_[n]')
     assert not state.is_elemental
-    assert elems_eq(state.components, [mol_spec_from_str('A'), mol_spec_from_str('B')])
+    assert elems_eq(state.components, [spec_from_str('A'), spec_from_str('B')])
     assert state.target == bond_spec_from_str('A~B_[n]')
     assert not state.is_neutral
     # @todo JCR 20160920 This is not correct, the state A--0 should be replaced by the list of domains of A that
@@ -175,7 +175,7 @@ def test_ipi_props():
     # Elemental state, bond.
     state = state_from_str('A_[m]--[n]')
     assert state.is_elemental
-    assert elems_eq(state.components, [mol_spec_from_str('A')])
+    assert elems_eq(state.components, [spec_from_str('A')])
     assert state.target == bond_spec_from_str('A_[m]~A_[n]')
     assert not state.is_neutral
     assert elems_eq(state.neutral_states, [state_from_str('A_[m]--0'), state_from_str('A_[n]--0')])
@@ -183,7 +183,7 @@ def test_ipi_props():
     # Non-elemental state, bond.
     state = state_from_str('A--A_[n]')
     assert not state.is_elemental
-    assert elems_eq(state.components, [mol_spec_from_str('A')])
+    assert elems_eq(state.components, [spec_from_str('A')])
     assert state.target == bond_spec_from_str('A~A_[n]')
     assert not state.is_neutral
     # @todo JCR 20160920 This is not correct, the state A--0 should be replaced by the list of domains of A that

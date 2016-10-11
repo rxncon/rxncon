@@ -4,7 +4,7 @@ from collections import defaultdict
 from rxncon.core.contingency import ContingencyType, Contingency
 from rxncon.core.reaction import Reaction, ReactionTerm, ReactionTerm
 from rxncon.core.state import State, StateDef
-from rxncon.core.spec import MolSpec, BondSpec
+from rxncon.core.spec import Spec, BondSpec
 
 
 class RxnConSystem:
@@ -21,7 +21,7 @@ class RxnConSystem:
         self._expand_fully_neutral_states()
         self._assert_consistency()
 
-    def components(self) -> List[MolSpec]:
+    def components(self) -> List[Spec]:
         if not self._components:
             self._calculate_components()
         return self._components
@@ -61,17 +61,17 @@ class RxnConSystem:
             self._calculate_synthesised_states()
         return self._synthesised_states
 
-    def states_for_component(self, component: MolSpec) -> List[State]:
+    def states_for_component(self, component: Spec) -> List[State]:
         assert component.is_component_spec
         return [x for x in self.states if component.to_non_struct_spec() in x.components]
 
-    def states_for_component_grouped(self, component: MolSpec) -> Dict[Tuple[MolSpec, StateDef], List[State]]:
+    def states_for_component_grouped(self, component: Spec) -> Dict[Tuple[Spec, StateDef], List[State]]:
         states = self.states_for_component(component)
         grouped = defaultdict(list)
 
         while states:
             state = states.pop()
-            if isinstance(state.target, MolSpec):
+            if isinstance(state.target, Spec):
                 grouped[(state.target, state.definition)].append(state)
             elif isinstance(state.target, BondSpec):
                 if state.target.first.to_component_spec() == component:

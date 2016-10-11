@@ -4,8 +4,8 @@ from rxncon.core.reaction import *
 def test_simple_reaction():
     rxn = reaction_from_str('A_p+_B_[(r)]')
 
-    assert rxn.terms_rhs == [ReactionTerm(mol_spec_from_str('A'), [], []),
-                             ReactionTerm(mol_spec_from_str('B'), [state_from_str('B_[(r)]-{p}')], [])]
+    assert rxn.terms_rhs == [ReactionTerm(spec_from_str('A'), [], []),
+                             ReactionTerm(spec_from_str('B'), [state_from_str('B_[(r)]-{p}')], [])]
 
 
 def test_ppi_reaction():

@@ -4,7 +4,7 @@ from rxncon.venntastic.sets import venn_from_str
 from rxncon.input.quick.quick import Quick
 from rxncon.core.reaction import reaction_from_str
 from rxncon.core.state import state_from_str
-from rxncon.core.spec import mol_spec_from_str
+from rxncon.core.spec import spec_from_str
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, ReactionTarget, \
     StateTarget, ComponentStateTarget
 
@@ -21,7 +21,7 @@ def target_from_str(target_str):
         pass
 
     try:
-        return ComponentStateTarget(mol_spec_from_str(target_str))
+        return ComponentStateTarget(spec_from_str(target_str))
     except SyntaxError:
         raise SyntaxError('Could not parse target str {}'.format(target_str))
 

@@ -1,21 +1,25 @@
 from rxncon.venntastic.sets import Set as VennSet, MultiIntersection, MultiUnion, ValueSet, Intersection, Union, Complement, UniversalSet, venn_from_pyeda
 from rxncon.core.reaction import Reaction
 from rxncon.core.state import State
-from rxncon.core.spec import MolSpec
+from rxncon.core.spec import Spec
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
 from rxncon.core.rxncon_system import RxnConSystem
 
-from typing import List
+from typing import List, Dict
 
 
 class BooleanModel:
-    def __init__(self, update_rules: List['UpdateRule'], initial_conditions: List['InitialCondition']):
+    def __init__(self, update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig'):
         self.update_rules = update_rules
         self.initial_conditions = initial_conditions
-        self._validate()
+        self._validate_update_rules()
+        self._validate_initial_conditions()
 
-    def _validate(self):
+    def set_initial_condition(self, target: Target, value: bool):
+        self.initial_conditions.set_target(target, value)
+
+    def _validate_update_rules(self):
         all_lhs_targets = []
         all_rhs_targets = []
         for rule in self.update_rules:
@@ -24,20 +28,22 @@ class BooleanModel:
 
         assert all(x in all_lhs_targets for x in all_rhs_targets)
 
+    def _validate_initial_conditions(self):
+        self.initial_conditions.validate_by_model(self)
 
-class InitialCondition:
-    def __init__(self, target: 'Target', value: bool):
-        self.target = target
-        self.value = value
 
-    def __eq__(self, other: 'InitialCondition') -> bool:
-        return self.target == other.target and self.value == self.value
+class BooleanModelConfig:
+    def __init__(self, target_to_value: Dict[Target, bool]):
+        self.target_to_value = target_to_value
 
-    def __repr__(self) -> str:
-        return str(self)
+    def set_target(self, target: Target, value: bool):
+        self.target_to_value[target] = value
 
-    def __str__(self) -> str:
-        return "target: {0}, value: {1}".format(str(self.target), str(self.value))
+    def validate_by_model(self, model: BooleanModel):
+        model_targets  = [rule.target for rule in model.update_rules]
+        config_targets = self.target_to_value.keys()
+
+        assert set(model_targets) == set(config_targets)
 
 
 class Target:
@@ -82,7 +88,7 @@ class ReactionTarget(Target):
         return state_target in self.degraded_targets
 
     @property
-    def components(self) -> List[MolSpec]:
+    def components(self) -> List[Spec]:
         return list(set(self.reaction_parent.components_lhs + self.reaction_parent.components_rhs))
 
 
@@ -112,7 +118,7 @@ class StateTarget(Target):
         return reaction_target.degrades(self)
 
     @property
-    def components(self) -> List[MolSpec]:
+    def components(self) -> List[Spec]:
         return self._state_parent.components
 
     @property
@@ -121,7 +127,7 @@ class StateTarget(Target):
 
 
 class ComponentStateTarget(StateTarget):
-    def __init__(self, component: MolSpec):
+    def __init__(self, component: Spec):
         self.component = component
 
     def __eq__(self, other: Target):
@@ -137,7 +143,7 @@ class ComponentStateTarget(StateTarget):
         return hash(str(self))
 
     @property
-    def components(self) -> List[MolSpec]:
+    def components(self) -> List[Spec]:
         return [self.component]
 
     @property
@@ -164,14 +170,14 @@ class UpdateRule:
 
 
 def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
-    def naive_component_factor(component: MolSpec) -> VennSet:
+    def naive_component_factor(component: Spec) -> VennSet:
         grouped_states = rxncon_sys.states_for_component_grouped(component)
         if not grouped_states.values():
             return UniversalSet()
 
         return MultiIntersection(*(MultiUnion(*(ValueSet(StateTarget(x)) for x in group)) for group in grouped_states.values()))
 
-    def component_factor(component: MolSpec) -> VennSet:
+    def component_factor(component: Spec) -> VennSet:
         if component in stateless_targets.keys():
             return ValueSet(stateless_targets[component])
         else:
@@ -197,12 +203,19 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
         else:
             return UniversalSet()
 
-    def initial_conditions(reaction_targets: List[ReactionTarget], state_targets: List[StateTarget]) -> List[InitialCondition]:
-        conds = [InitialCondition(x, False) for x in reaction_targets]
-        conds += [InitialCondition(x, True) for x in state_targets if x.is_neutral]
-        conds += [InitialCondition(x, False) for x in state_targets if not x.is_neutral]
+    def initial_conditions(reaction_targets: List[ReactionTarget], state_targets: List[StateTarget]) -> BooleanModelConfig:
+        conds = {}
 
-        return conds
+        for target in reaction_targets:
+            conds[target] = False
+
+        for target in state_targets:
+            if target.is_neutral:
+                conds[target] = True
+            else:
+                conds[target] = False
+
+        return BooleanModelConfig(conds)
 
     def stateless_component_targets(reaction_targets: List[ReactionTarget]):
         all_components = [component for reaction_target in reaction_targets for component in reaction_target.components]
@@ -250,6 +263,9 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     return BooleanModel(reaction_rules + state_rules, initial_conditions(reaction_targets, state_targets))
 
 
+### SIMULATION STUFF ###
+
+
 def boolnet_str_from_boolean_model(boolean_model: BooleanModel) -> str:
     def clean_str(the_str: str) -> str:
         dirty_chars = {
@@ -289,7 +305,27 @@ def boolnet_str_from_boolean_model(boolean_model: BooleanModel) -> str:
     return 'targets, factors\n' + '\n'.join(str_from_update_rule(x) for x in boolean_model.update_rules) + '\n'
 
 
+class BooleanModelConfigPath:
+    pass
 
+
+class BooleanSimulator:
+    def __init__(self, boolean_model: BooleanModel):
+        self.boolean_model = boolean_model
+
+    @property
+    def update_rules(self):
+        return self.boolean_model.update_rules
+
+    @property
+    def initial_conditions(self):
+        return self.boolean_model.initial_conditions
+
+    def set_initian_condition(self, target: Target, value: bool):
+        self.boolean_model.set_initial_condition(target, value)
+
+    def calc_attractor_path(self) -> BooleanModelConfigPath:
+        return BooleanModelConfigPath()
 
 
 

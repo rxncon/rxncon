@@ -7,7 +7,7 @@ from typecheck import typecheck
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.contingency import ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
-from rxncon.core.spec import MolSpec, LocusResolution, BondSpec
+from rxncon.core.spec import Spec, LocusResolution, BondSpec
 from rxncon.core.state import StateDef, State
 from rxncon.core.reaction import Reaction, ReactionTerm, ReactionTerm, BondReactionTerm
 from rxncon.util.utils import all_eq
@@ -105,7 +105,7 @@ class InsufficientStructureError(Exception):
 
 class MolDef:
     @typecheck
-    def __init__(self, component: MolSpec, valid_states: Dict[Tuple[MolSpec, StateDef], List[State]]):
+    def __init__(self, component: Spec, valid_states: Dict[Tuple[Spec, StateDef], List[State]]):
         assert component.has_resolution(LocusResolution.component)
         assert not component.struct_index
 
@@ -124,11 +124,11 @@ class MolDef:
         return str(self)
 
     @typecheck
-    def valid_states_by_spec(self, spec: MolSpec) -> Dict[StateDef, List[State]]:
+    def valid_states_by_spec(self, spec: Spec) -> Dict[StateDef, List[State]]:
         return self._valid_states_nested[spec]
 
     @typecheck
-    def complementary_states(self, spec: MolSpec, state: State) -> List[State]:
+    def complementary_states(self, spec: Spec, state: State) -> List[State]:
         return [x for x in self.valid_states[(spec, state.definition)] if x != state]
 
     def _validate(self):
@@ -141,7 +141,7 @@ class MolDef:
 
 class Mol:
     @typecheck
-    def __init__(self, mol_def: MolDef, states: Dict[Tuple[MolSpec, StateDef], State]):
+    def __init__(self, mol_def: MolDef, states: Dict[Tuple[Spec, StateDef], State]):
         self.mol_def   = mol_def
         self.states    = states
         self.component = deepcopy(mol_def.component)
@@ -153,9 +153,9 @@ class Mol:
     def __repr__(self):
         return str(self)
 
-    def add_state(self, mol_spec: MolSpec, state: State):
+    def add_state(self, mol_spec: Spec, state: State):
         assert not mol_spec.struct_index
-        assert isinstance(state.target, MolSpec)
+        assert isinstance(state.target, Spec)
 
         if (mol_spec, state.definition) in self.states.keys() and self.states[(mol_spec, state.definition)] != state:
             raise MutualExclusivityError
@@ -194,7 +194,7 @@ class Mol:
 
 
 @typecheck
-def mol_def_for_component(rxncon_sys: RxnConSystem, component: MolSpec) -> MolDef:
+def mol_def_for_component(rxncon_sys: RxnConSystem, component: Spec) -> MolDef:
     return MolDef(component, rxncon_sys.states_for_component_grouped(component))
 
 
@@ -212,7 +212,7 @@ class Complex:
     def add_bond(self, bond: BondSpec):
         self.bonds.append(bond)
 
-    def contains_component(self, component: MolSpec) -> bool:
+    def contains_component(self, component: Spec) -> bool:
         return component in self.mols.keys()
 
     @property

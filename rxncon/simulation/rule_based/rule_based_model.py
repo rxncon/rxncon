@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional
 
 from rxncon.core.state import State
-from rxncon.core.spec import MolSpec
+from rxncon.core.spec import Spec
 
 SiteName      = str
 SiteModifier  = str
@@ -76,7 +76,7 @@ class Complex:
         self._mols[second_index].set_bond(second_site, self.bond_index)
 
 
-def str_from_spec(spec: MolSpec) -> str:
+def str_from_spec(spec: Spec) -> str:
     bad_chars = ['[', ']', '/', '(', ')']
     spec_str = str(spec.to_non_struct_spec())
     for bad_char in bad_chars:
