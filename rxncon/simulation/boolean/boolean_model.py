@@ -16,7 +16,7 @@ class BooleanModel:
         self._validate_update_rules()
         self._validate_initial_conditions()
 
-    def set_initial_condition(self, target: Target, value: bool):
+    def set_initial_condition(self, target: 'Target', value: bool):
         self.initial_conditions.set_target(target, value)
 
     def _validate_update_rules(self):
@@ -33,10 +33,10 @@ class BooleanModel:
 
 
 class BooleanModelConfig:
-    def __init__(self, target_to_value: Dict[Target, bool]):
+    def __init__(self, target_to_value: Dict['Target', bool]):
         self.target_to_value = target_to_value
 
-    def set_target(self, target: Target, value: bool):
+    def set_target(self, target: 'Target', value: bool):
         self.target_to_value[target] = value
 
     def validate_by_model(self, model: BooleanModel):
