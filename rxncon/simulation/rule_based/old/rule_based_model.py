@@ -133,10 +133,10 @@ class MolDef:
 
     def _validate(self):
         for (spec, state_def), states in self.valid_states.items():
-            assert all(spec in state.mol_specs for state in states)
+            assert all(spec in state.specs for state in states)
             assert all_eq([state_def] + [state.definition for state in states])
             assert not spec.struct_index
-            assert not any(state.is_struct_state for state in states)
+            assert not any(state.is_structured for state in states)
 
 
 class Mol:
@@ -190,7 +190,7 @@ class Mol:
 
     def _validate(self):
         for (spec, state_def), state in self.states.items():
-            assert state.to_non_struct_state() in self.mol_def.valid_states[(spec, state_def)]
+            assert state.to_non_structured_state() in self.mol_def.valid_states[(spec, state_def)]
 
 
 @typecheck
@@ -310,7 +310,7 @@ class RuleBuilder:
             elif isinstance(s.expr, ValueSet):
                 assert isinstance(s.expr.value, State)
                 terms = []
-                for spec in s.expr.value.mol_specs:
+                for spec in s.expr.value.specs:
                     component   = spec.to_non_struct_spec().to_component_spec()
                     complements = self.mol_defs[component].complementary_states(spec, s.expr.value)
                     terms.append(MultiUnion(*[ValueSet(x) for x in complements]))

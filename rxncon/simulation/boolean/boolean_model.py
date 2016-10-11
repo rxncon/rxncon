@@ -186,7 +186,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     def contingency_factor(contingency: Contingency) -> VennSet:
         def parse_effector(eff: Effector) -> VennSet:
             if isinstance(eff, StateEffector):
-                return ValueSet(StateTarget(eff.expr.to_non_struct_state()))
+                return ValueSet(StateTarget(eff.expr.to_non_structured_state()))
             elif isinstance(eff, NotEffector):
                 return Complement(parse_effector(eff.expr))
             elif isinstance(eff, OrEffector):
@@ -224,7 +224,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
 
     reaction_targets  = [ReactionTarget(x) for x in rxncon_sys.reactions]
     stateless_targets = stateless_component_targets(reaction_targets)
-    state_targets     = [StateTarget(x.to_non_struct_state()) for x in rxncon_sys.states] + list(stateless_targets.values())
+    state_targets     = [StateTarget(x.to_non_structured_state()) for x in rxncon_sys.states] + list(stateless_targets.values())
 
     reaction_rules  = []
     state_rules     = []

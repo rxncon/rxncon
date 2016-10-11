@@ -2,9 +2,9 @@ from typing import List, Dict, Tuple
 from collections import defaultdict
 
 from rxncon.core.contingency import ContingencyType, Contingency
-from rxncon.core.reaction import Reaction, ReactionTerm, ReactionTerm
+from rxncon.core.reaction import Reaction, ReactionTerm
 from rxncon.core.state import State, StateDef
-from rxncon.core.spec import Spec, BondSpec
+from rxncon.core.spec import Spec
 
 
 class RxnConSystem:
@@ -71,15 +71,12 @@ class RxnConSystem:
 
         while states:
             state = states.pop()
-            if isinstance(state.target, Spec):
-                grouped[(state.target, state.definition)].append(state)
-            elif isinstance(state.target, BondSpec):
-                if state.target.first.to_component_spec() == component:
-                    grouped[(state.target.first, state.definition)].append(state)
-                if state.target.second.to_component_spec() == component:
-                    grouped[(state.target.second, state.definition)].append(state)
-            else:
-                raise Exception('State target is neither MolSpec nor BondSpec')
+
+            for spec in state.specs:
+                if spec.to_component_spec() != component:
+                    continue
+
+                grouped[(spec, state.definition)].append(state)
 
         return grouped
 
@@ -97,21 +94,21 @@ class RxnConSystem:
     def _calculate_produced_states(self):
         states = []
         for reaction in self.reactions:
-            states += [state.to_non_struct_state() for state in reaction.produced_states]
+            states += [state.to_non_structured_state() for state in reaction.produced_states]
 
         self._produced_states = list(set(states))
 
     def _calculate_consumed_states(self):
         states = []
         for reaction in self.reactions:
-            states += [state.to_non_struct_state() for state in reaction.consumed_states]
+            states += [state.to_non_structured_state() for state in reaction.consumed_states]
 
         self._consumed_states = list(set(states))
 
     def _calculate_synthesised_states(self):
         states = []
         for reaction in self.reactions:
-            states += [state.to_non_struct_state() for state in reaction.synthesised_states]
+            states += [state.to_non_structured_state() for state in reaction.synthesised_states]
 
         self._synthesised_states = list(set(states))
 
@@ -122,13 +119,13 @@ class RxnConSystem:
 
     def _expand_reaction_terms(self, terms: List[ReactionTerm]):
         for term in terms:
-            if isinstance(term, ReactionTerm) and term.is_fully_neutral:
-                term.states = [x for x in self.states_for_component(term.spec) if x.is_neutral]
+            if term.is_fully_neutral:
+                term.states = [state for component in term.specs for state in self.states_for_component(component) if state.is_neutral]
 
     def _assert_consistency(self):
         required_states = []
         for contingency in self.contingencies:
-            required_states += [state.to_non_struct_state() for state in contingency.effector.states]
+            required_states += [state.to_non_structured_state() for state in contingency.effector.states]
 
         for state in required_states:
             assert state in self.states, \

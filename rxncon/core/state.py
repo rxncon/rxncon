@@ -5,9 +5,10 @@ from typing import List, Dict, Optional, Any
 from copy import deepcopy
 
 from rxncon.util.utils import OrderedEnum, members
-from rxncon.core.spec import Spec, Spec, EmptySpec, Locus, LocusResolution, locus_from_str, spec_from_str, spec_from_str
+from rxncon.core.spec import Spec, EmptySpec, Locus, LocusResolution, locus_from_str, spec_from_str
 
 FULLY_NEUTRAL_STATE_REPR = '0'
+GLOBAL_STATE_NAME = 'GLOBALSTATE'
 
 @unique
 class StateModifier(OrderedEnum):
@@ -62,6 +63,8 @@ class StateDef:
                 value = locus_from_str(val_str)
             elif self.variables_def[var][0] is Spec:
                 value = spec_from_str(val_str)
+            elif self.variables_def[var][0] is str:
+                value = val_str.strip()
             else:
                 raise Exception('Unknown variable type {}'.format(self.variables_def[var][0]))
 
@@ -94,14 +97,14 @@ class StateDef:
         return states
 
     def validate_vars(self, variables: Dict[str, Any]):
-        if all(isinstance(x, EmptySpec) for x in variables.values() if isinstance(x, Spec)):
-            raise EmptyStateError('All MolSpec are EmptyMolSpec.')
+        specs = [x for x in variables.values() if isinstance(x, Spec)]
+        if specs and all(isinstance(x, EmptySpec) for x in specs):
+            raise EmptyStateError('All Spec are EmptySpec.')
 
         for var, val in variables.items():
             if isinstance(val, Spec):
                 if val.resolution > self.variables_def[var][1]:
                     raise SyntaxError('Resolution too high.')
-
 
     def _to_base_regex(self) -> str:
         return '^{}$'.format(self.repr_def
@@ -133,7 +136,7 @@ STATE_DEFS = [
         'interaction-state',                          # name
         '$x--$y',                                     # representation definition
         {
-            '$x': [Spec, LocusResolution.domain],  # variables definition
+            '$x': [Spec, LocusResolution.domain],     # variables definition
             '$y': [Spec, LocusResolution.domain]
         },
         ['$x--0', '$y--0']                            # neutral states
@@ -148,10 +151,10 @@ STATE_DEFS = [
         ['$x--0', '$x.to_component_spec_[$y]--0']
     ),
     StateDef(
-        'input-state',
+        GLOBAL_STATE_NAME,
         '[$x]',
         {
-            '$x': [Spec, LocusResolution.component]
+            '$x': [str]
         },
         []
     ),
@@ -188,7 +191,21 @@ class State:
     def __lt__(self, other: 'State'):
         return str(self) < str(other)
 
-    def to_non_struct_state(self) -> 'State':
+    @property
+    def name(self):
+        return self.definition.name
+
+    def is_superset_of(self, other: 'State') -> bool:
+        return other.is_subset_of(self)
+
+    def is_subset_of(self, other: 'State') -> bool:
+        if self.definition == other.definition:
+            return all(x.is_subspec_of(y) for x, y in zip(self.specs, other.specs)) and \
+                   all(x == y for x, y in zip(self._non_spec_props, other._non_spec_props))
+        else:
+            return False
+
+    def to_non_structured_state(self) -> 'State':
         non_struct_vars = deepcopy(self.vars)
         for k, v in non_struct_vars.items():
             if isinstance(v, Spec):
@@ -197,23 +214,17 @@ class State:
         return State(self.definition, non_struct_vars)
 
     @property
-    def is_struct_state(self) -> bool:
-        return any(mol_spec.struct_index for mol_spec in self.mol_specs)
+    def is_structured(self) -> bool:
+        return any(mol_spec.struct_index for mol_spec in self.specs)
+
+    @property
+    def is_global(self) -> bool:
+        return self.name == GLOBAL_STATE_NAME
 
     @property
     def is_elemental(self) -> bool:
-        return all(spec.has_resolution(elemental_resolution) for spec, elemental_resolution
-                   in zip(self.mol_specs, self._elemental_resolutions))
-
-    def is_superset_of(self, other: 'State') -> bool:
-        return other.is_subset_of(self)
-
-    def is_subset_of(self, other: 'State') -> bool:
-        if self.definition == other.definition:
-            return all(x.is_subspec_of(y) for x, y in zip(self.mol_specs, other.mol_specs)) and \
-                   all(x == y for x, y in zip(self._non_mol_spec_props, other._non_mol_spec_props))
-        else:
-            return False
+        return self.is_global or all(spec.has_resolution(elemental_resolution) for spec, elemental_resolution
+                                     in zip(self.specs, self._elemental_resolutions))
 
     @property
     def is_neutral(self) -> bool:
@@ -224,12 +235,12 @@ class State:
         return self.definition.neutral_states_from_vars(self.vars)
 
     @property
-    def mol_specs(self) -> List[Spec]:
+    def specs(self) -> List[Spec]:
         return [x for x in self.vars.values() if isinstance(x, Spec) and not isinstance(x, EmptySpec)]
 
     @property
     def components(self) -> List[Spec]:
-        return [x.to_component_spec() for x in self.mol_specs]
+        return [x.to_component_spec() for x in self.specs]
 
     @property
     def _elemental_resolutions(self) -> List[LocusResolution]:
@@ -237,7 +248,7 @@ class State:
                 if isinstance(value, Spec)]
 
     @property
-    def _non_mol_spec_props(self):
+    def _non_spec_props(self):
         return [x for x in self.vars.values() if not isinstance(x, Spec)]
 
 
@@ -260,11 +271,11 @@ class FullyNeutralState(State):
     def __eq__(self, other: 'State') -> bool:
         return isinstance(other, FullyNeutralState)
 
-    def to_non_struct_state(self):
+    def to_non_structured_state(self):
         return self
 
     @property
-    def is_struct_state(self) -> bool:
+    def is_structured(self) -> bool:
         return False
 
     def is_subset_of(self, other: 'State') -> bool:
@@ -277,10 +288,6 @@ class FullyNeutralState(State):
     @property
     def components(self) -> List[Spec]:
         return []
-
-    @property
-    def target(self) -> Spec:
-        raise AssertionError
 
     @property
     def is_elemental(self) -> bool:
@@ -297,8 +304,10 @@ class FullyNeutralState(State):
 def state_modifier_from_str(modifier: str) -> StateModifier:
     return StateModifier(modifier.lower())
 
+
 def matching_state_def(repr: str) -> Optional[StateDef]:
     return next((x for x in STATE_DEFS if x.matches_repr(repr)), None)
+
 
 def state_from_str(repr: str) -> State:
     if repr == FULLY_NEUTRAL_STATE_REPR:

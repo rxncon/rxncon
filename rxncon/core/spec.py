@@ -43,7 +43,7 @@ class Spec(metaclass=ABCMeta):
             and self.struct_index == other.struct_index
 
     def is_non_struct_equiv_to(self, other: 'Spec') -> bool:
-        return isinstance(other, type(self)) and self.to_non_struct_spec() == other.to_non_struct_spec()
+        return self.to_non_struct_spec() == other.to_non_struct_spec()
 
     def is_subspec_of(self, other: 'Spec') -> bool:
         if self == other:

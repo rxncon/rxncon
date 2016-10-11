@@ -1,5 +1,5 @@
 from rxncon.core.state import state_from_str, FullyNeutralState
-from rxncon.core.spec import bond_spec_from_str, spec_from_str
+from rxncon.core.spec import spec_from_str
 from rxncon.util.utils import elems_eq
 import pytest
 
@@ -12,7 +12,6 @@ def test_modification_props():
     state = state_from_str('A_[(res)]-{0}')
     assert state.is_elemental
     assert elems_eq(state.components, [spec_from_str('A')])
-    assert state.target == spec_from_str('A_[(res)]')
     assert state.is_neutral
     assert elems_eq(state.neutral_states, [state])
 
@@ -20,7 +19,6 @@ def test_modification_props():
     state = state_from_str('A_[(res)]-{p}')
     assert state.is_elemental
     assert elems_eq(state.components, [spec_from_str('A')])
-    assert state.target == spec_from_str('A_[(res)]')
     assert not state.is_neutral
     assert elems_eq(state.neutral_states, [state_from_str('A_[(res)]-{0}')])
 
@@ -28,7 +26,6 @@ def test_modification_props():
     state = state_from_str('A_[dom]-{0}')
     assert not state.is_elemental
     assert elems_eq(state.components, [spec_from_str('A')])
-    assert state.target == spec_from_str('A_[dom]')
     assert state.is_neutral
     assert elems_eq(state.neutral_states, [state])
 
@@ -36,7 +33,6 @@ def test_modification_props():
     state = state_from_str('A_[dom]-{p}')
     assert not state.is_elemental
     assert elems_eq(state.components, [spec_from_str('A')])
-    assert state.target == spec_from_str('A_[dom]')
     assert not state.is_neutral
     assert elems_eq(state.neutral_states, [state_from_str('A_[dom]-{0}')])
 
@@ -82,7 +78,6 @@ def test_ppi_props():
     state = state_from_str('A_[m]--0')
     assert state.is_elemental
     assert elems_eq(state.components, [spec_from_str('A')])
-    assert state.target == spec_from_str('A_[m]')
     assert state.is_neutral
     assert elems_eq(state.neutral_states, [state])
 
@@ -90,7 +85,6 @@ def test_ppi_props():
     state = state_from_str('A_[m]--B_[n]')
     assert state.is_elemental
     assert elems_eq(state.components, [spec_from_str('A'), spec_from_str('B')])
-    assert state.target == bond_spec_from_str('A_[m]~B_[n]')
     assert not state.is_neutral
     assert elems_eq(state.neutral_states, [state_from_str('A_[m]--0'), state_from_str('B_[n]--0')])
 
@@ -98,7 +92,6 @@ def test_ppi_props():
     state = state_from_str('A--0')
     assert not state.is_elemental
     assert elems_eq(state.components, [spec_from_str('A')])
-    assert state.target == spec_from_str('A')
     assert state.is_neutral
     assert elems_eq(state.neutral_states, [state])
 
@@ -106,7 +99,6 @@ def test_ppi_props():
     state = state_from_str('A--B_[n]')
     assert not state.is_elemental
     assert elems_eq(state.components, [spec_from_str('A'), spec_from_str('B')])
-    assert state.target == bond_spec_from_str('A~B_[n]')
     assert not state.is_neutral
     # @todo JCR 20160920 This is not correct, the state A--0 should be replaced by the list of domains of A that
     # @todo              can bind to B. Perhaps we should invent a new notation for this, since this property cannot
@@ -163,7 +155,7 @@ def test_ppi_superset_subset():
 
 def test_ppi_structured_index():
     state = state_from_str('X@4--Z@3')
-    assert elems_eq([(spec.component_name, spec.struct_index) for spec in state.mol_specs], [('X', 4), ('Z', 3)])
+    assert elems_eq([(spec.component_name, spec.struct_index) for spec in state.specs], [('X', 4), ('Z', 3)])
 
 ###                          ###
 # Test self-interaction states #
@@ -176,7 +168,6 @@ def test_ipi_props():
     state = state_from_str('A_[m]--[n]')
     assert state.is_elemental
     assert elems_eq(state.components, [spec_from_str('A')])
-    assert state.target == bond_spec_from_str('A_[m]~A_[n]')
     assert not state.is_neutral
     assert elems_eq(state.neutral_states, [state_from_str('A_[m]--0'), state_from_str('A_[n]--0')])
 
@@ -184,7 +175,6 @@ def test_ipi_props():
     state = state_from_str('A--A_[n]')
     assert not state.is_elemental
     assert elems_eq(state.components, [spec_from_str('A')])
-    assert state.target == bond_spec_from_str('A~A_[n]')
     assert not state.is_neutral
     # @todo JCR 20160920 This is not correct, the state A--0 should be replaced by the list of domains of A that
     # @todo              can bind to B. Perhaps we should invent a new notation for this, since this property cannot
@@ -220,4 +210,4 @@ def test_fully_neutral():
 
 def test_global():
     x = state_from_str('[IN]')
-    print(x)
+    assert x.is_global

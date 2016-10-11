@@ -1,7 +1,7 @@
 from typing import Dict, Any, List, Optional
 import re
 
-from rxncon.core.spec import Spec, BondSpec, Spec, MRNASpec, ProteinSpec, LocusResolution, DNASpec, spec_from_str, spec_from_str
+from rxncon.core.spec import Spec, MRNASpec, ProteinSpec, LocusResolution, DNASpec, spec_from_str
 from rxncon.core.state import StateDef, State, state_from_str, STATE_DEFS, FullyNeutralState
 from rxncon.util.utils import members
 
@@ -104,26 +104,26 @@ class ReactionDef:
             if not states_str:
                 return []
             try:
-                return [parse_state_str(x) for x in states_str.split(',')]
+                return [parse_vars_str(x, state_from_str) for x in states_str.split(',')]
             except SyntaxError:
                 return []
 
-        def parse_state_str(state_str: str) -> State:
+        def parse_specs_str(specs_str: str) -> List[Spec]:
+            return [parse_vars_str(x, spec_from_str).to_component_spec() for x in specs_str.split(',')]
+
+        def parse_vars_str(vars_str: str, post_func):
             for var_symbol, var_val in variables.items():
                 for method in members(var_val):
                     var_with_method = '{0}.{1}'.format(var_symbol, method)
-                    if var_with_method in state_str:
+                    if var_with_method in vars_str:
                         method_res = getattr(var_val, method)
                         method_res = method_res if not callable(method_res) else method_res()
-                        state_str = state_str.replace(var_with_method, str(method_res))
+                        vars_str = vars_str.replace(var_with_method, str(method_res))
 
-                if var_symbol in state_str:
-                    state_str = state_str.replace(var_symbol, str(var_val))
+                if var_symbol in vars_str:
+                    vars_str = vars_str.replace(var_symbol, str(var_val))
 
-            return state_from_str(state_str)
-
-        def parse_specs_str(specs_str: str) -> List[Spec]:
-            return [spec_from_str(x) for x in specs_str.split(',')]
+            return post_func(vars_str)
 
         specs_str, states_str = definition.split('#')
 
@@ -199,7 +199,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (ProteinSpec, LocusResolution.domain)
         },
-        '$x#$x--0 + $y#$y--0 -> $x#$x~$y + $y#$x~$y + $x~$y#$x--$y'
+        '$x#$x--0 + $y#$y--0 -> $x,$y#$x--$y'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -209,7 +209,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (ProteinSpec, LocusResolution.domain)
         },
-        '$x#$x~$y + $y#$x~$y + $x~$y#$x--$y -> $x#$x--0 + $y#$y--0'
+        '$x,$y#$x--$y -> $x#$x--0 + $y#$y--0'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -219,7 +219,7 @@ REACTION_DEFS = [
             '$x': (Spec, LocusResolution.domain),
             '$y': (Spec, LocusResolution.domain)
         },
-        '$x#$x--0 + $y#$y--0 -> $x#$x~$y + $y#$x~$y + $x~$y#$x--$y'
+        '$x#$x--0 + $y#$y--0 -> $x,$y#$x--$y'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -229,7 +229,7 @@ REACTION_DEFS = [
             '$x': (Spec, LocusResolution.domain),
             '$y': (Spec, LocusResolution.domain)
         },
-        '$x#$x~$y + $y#$x~$y + $x~$y#$x--$y -> $x#$x--0 + $y#$y--0'
+        '$x,$y#$x--$y -> $x#$x--0 + $y#$y--0'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -253,13 +253,13 @@ REACTION_DEFS = [
     ),
     ReactionDef(
         STATE_DEFS,
-        'intra-protein-interaction',
-        '$x_ipi_$y',
+        'intra-protein-interaction-plus',
+        '$x_ipi+_$y',
         {
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (ProteinSpec, LocusResolution.domain)
         },
-        '$x#$x--0,$y--0 <-> $x#$x~$y + $x~$y#$x--[$y.locus]'
+        '$x#$x--0,$y--0 -> $x#$x--[$y.locus]'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -269,7 +269,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (DNASpec, LocusResolution.domain)
         },
-        '$x#$x--0 + $y#$y--0 -> $x#$x~$y + $y#$x~$y + $x~$y#$x--$y'
+        '$x#$x--0 + $y#$y--0 -> $x,$y#$x--$y'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -315,11 +315,11 @@ class Reaction:
 
     @property
     def components_lhs(self) -> List[Spec]:
-        return [spec for term in self.terms_lhs for spec in term]
+        return [spec for term in self.terms_lhs for spec in term.specs]
 
     @property
     def components_rhs(self) -> List[Spec]:
-        return [spec for term in self.terms_rhs for spec in term]
+        return [spec for term in self.terms_rhs for spec in term.specs]
 
     @property
     def consumed_states(self) -> List[State]:
@@ -371,7 +371,7 @@ class Reaction:
 
 
 def matching_reaction_def(representation: str) -> Optional[ReactionDef]:
-    return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_representation(representation)), None)
+    return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_repr(representation)), None)
 
 
 def reaction_from_str(representation: str, standardize=True) -> Reaction:
