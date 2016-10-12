@@ -1,6 +1,6 @@
 import pytest
 import rxncon.core.state as sta
-from rxncon.core.spec import RnaSpec, SpecificationResolution, ProteinSpec, DNASpec, Domain, Spec
+from rxncon.core.spec import RnaSpec, SpecificationResolution, ProteinSpec, GeneSpec, Domain, Spec
 from collections import namedtuple
 
 
@@ -146,10 +146,10 @@ def the_case_state():
     return [
 
         StateTestCase(state_from_string('Agene'),
-                      [DNASpec('A', None, Domain(None, None, None))],
+                      [GeneSpec('A', None, Domain(None, None, None))],
                       'Agene'),
         StateTestCase(state_from_string('Agene_[d/s(r)]'),
-                      [DNASpec('A', None, Domain('d', 's', 'r'))],
+                      [GeneSpec('A', None, Domain('d', 's', 'r'))],
                       'Agene_[d/s(r)]'),
         StateTestCase(state_from_string('AmRNA'),
                       [RnaSpec('A', None, Domain(None, None, None))],
@@ -170,10 +170,10 @@ def the_case_state():
 def the_case_state_structured():
     return [
         StateTestCase(state_from_string('Agene@0'),
-                      [DNASpec('A', 0, Domain(None, None, None))],
+                      [GeneSpec('A', 0, Domain(None, None, None))],
                       'Agene@0'),
         StateTestCase(state_from_string('Agene@0_[d/s(r)]'),
-                      [DNASpec('A', 0, Domain('d', 's', 'r'))],
+                      [GeneSpec('A', 0, Domain('d', 's', 'r'))],
                       'Agene@0_[d/s(r)]'),
         StateTestCase(state_from_string('AmRNA@0'),
                       [RnaSpec('A', 0, Domain(None, None, None))],
@@ -240,7 +240,7 @@ def test_case_resolution_and_neutral_modifier_structured():
                            True),
 
         ResolutionTestCase(state_from_string('Agene@0'),
-                           [(DNASpec('A', 0, Domain(None, None, None)),
+                           [(GeneSpec('A', 0, Domain(None, None, None)),
                              SpecificationResolution.component)],
                            None,
                            True),
@@ -277,7 +277,7 @@ def test_case_resolution_and_neutral_modifier_structured():
                            True),
 
         ResolutionTestCase(state_from_string('Agene@0_[d/s(r)]-{p}'),
-                           [(DNASpec('A', 0, Domain('d', 's', 'r')),
+                           [(GeneSpec('A', 0, Domain('d', 's', 'r')),
                              SpecificationResolution.residue)],
                            StateModifier.neutral,
                            True),

@@ -1,7 +1,7 @@
 from typing import Dict, Any, List, Optional
 import re
 
-from rxncon.core.spec import Spec, MRNASpec, ProteinSpec, LocusResolution, DNASpec, spec_from_str
+from rxncon.core.spec import Spec, MRNASpec, ProteinSpec, LocusResolution, GeneSpec, spec_from_str
 from rxncon.core.state import StateDef, State, state_from_str, STATE_DEFS, FullyNeutralState
 from rxncon.util.utils import members
 
@@ -9,7 +9,7 @@ SPEC_REGEX_GROUPED   = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0
 SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
 
 BIDIRECTIONAL_VERBS = [
-    'ppi'
+    'ppi', 'ipi', 'ap'
 ]
 
 class ReactionTerm:
@@ -256,7 +256,7 @@ REACTION_DEFS = [
         '$x_trsc_$y',
         {
             '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (DNASpec, LocusResolution.component)
+            '$y': (GeneSpec, LocusResolution.component)
         },
         '$x# + $y# -> $x# + $y# + $y.to_mrna_component_spec#0'
     ),
@@ -296,7 +296,7 @@ REACTION_DEFS = [
         '$x_bind_$y',
         {
             '$x': (ProteinSpec, LocusResolution.domain),
-            '$y': (DNASpec, LocusResolution.domain)
+            '$y': (GeneSpec, LocusResolution.domain)
         },
         '$x#$x--0 + $y#$y--0 -> $x,$y#$x--$y'
     ),
@@ -471,7 +471,7 @@ def reaction_from_str(representation: str, standardize=True) -> Reaction:
         for key in keys:
             required_type = rxn_def.vars_def[key][0]
             if not isinstance(variables[key], required_type):
-                if required_type is DNASpec:
+                if required_type is GeneSpec:
                     variables[key] = variables[key].to_dna_component_spec()
                 elif required_type is MRNASpec:
                     variables[key] = variables[key].to_mrna_component_spec()

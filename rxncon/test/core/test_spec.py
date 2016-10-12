@@ -1,7 +1,7 @@
 import pytest
 from collections import namedtuple
 
-from rxncon.core.spec import Locus, DNASpec, MRNASpec, ProteinSpec, EmptySpec, locus_from_str, LocusResolution, spec_from_str
+from rxncon.core.spec import Locus, GeneSpec, MRNASpec, ProteinSpec, EmptySpec, locus_from_str, LocusResolution, spec_from_str
 
 
 
@@ -28,7 +28,7 @@ def test_unstructured_specs():
     assert protein_spec.has_resolution(LocusResolution.residue)
     assert protein_spec.to_component_spec().has_resolution(LocusResolution.component)
     # DNA
-    assert isinstance(protein_spec.to_dna_component_spec(), DNASpec)
+    assert isinstance(protein_spec.to_dna_component_spec(), GeneSpec)
     assert protein_spec.to_dna_component_spec().has_resolution(LocusResolution.component)
     # mRNA
     assert isinstance(protein_spec.to_mrna_component_spec(), MRNASpec)
@@ -46,7 +46,7 @@ def test_structured_specs():
     assert protein_spec.to_component_spec().has_resolution(LocusResolution.component)
     assert protein_spec.struct_index == 0
     # DNA
-    assert isinstance(protein_spec.to_dna_component_spec(), DNASpec)
+    assert isinstance(protein_spec.to_dna_component_spec(), GeneSpec)
     assert protein_spec.to_dna_component_spec().has_resolution(LocusResolution.component)
     assert not protein_spec.to_dna_component_spec().struct_index
     # mRNA

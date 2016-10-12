@@ -79,8 +79,8 @@ class Spec(metaclass=ABCMeta):
     def to_protein_component_spec(self) -> 'ProteinSpec':
         return ProteinSpec(self.component_name, None, EmptyLocus())
 
-    def to_dna_component_spec(self) -> 'DNASpec':
-        return DNASpec(self.component_name, None, EmptyLocus())
+    def to_dna_component_spec(self) -> 'GeneSpec':
+        return GeneSpec(self.component_name, None, EmptyLocus())
 
     def to_mrna_component_spec(self) -> 'MRNASpec':
         return MRNASpec(self.component_name, None, EmptyLocus())
@@ -120,7 +120,7 @@ class EmptySpec(Spec):
             return True
         elif isinstance(other, MRNASpec):
             return True
-        elif isinstance(other, DNASpec):
+        elif isinstance(other, GeneSpec):
             return True
         else:
             raise NotImplementedError
@@ -141,7 +141,7 @@ class ProteinSpec(Spec):
             return super().__lt__(other)
         elif isinstance(other, MRNASpec):
             return False
-        elif isinstance(other, DNASpec):
+        elif isinstance(other, GeneSpec):
             return False
         elif isinstance(other, EmptySpec):
             return False
@@ -156,7 +156,7 @@ class MRNASpec(Spec):
     def __lt__(self, other: Spec) -> bool:
         if isinstance(other, MRNASpec):
             return super().__lt__(other)
-        elif isinstance(other, DNASpec):
+        elif isinstance(other, GeneSpec):
             return False
         elif isinstance(other, ProteinSpec):
             return True
@@ -166,12 +166,12 @@ class MRNASpec(Spec):
             raise NotImplementedError
 
 
-class DNASpec(Spec):
+class GeneSpec(Spec):
     def __hash__(self) -> int:
         return hash(str(self))
 
     def __lt__(self, other: Spec):
-        if isinstance(other, DNASpec):
+        if isinstance(other, GeneSpec):
             return super().__lt__(other)
         elif isinstance(other, MRNASpec):
             return True
@@ -280,14 +280,14 @@ class LocusResolution(Enum):
 @unique
 class SpecSuffix(OrderedEnum):
     mrna    = 'mRNA'
-    dna     = 'DNA'
+    dna     = 'Gene'
     protein = ''
 
 
 suffix_to_spec = OrderedDict(
     [
         (SpecSuffix.mrna, MRNASpec),
-        (SpecSuffix.dna, DNASpec),
+        (SpecSuffix.dna, GeneSpec),
         (SpecSuffix.protein, ProteinSpec)
     ]
 )

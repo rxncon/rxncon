@@ -5,7 +5,7 @@ import xlrd
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.input.shared.contingency_list import contingencies_from_contingency_list_entries, \
     contingency_list_entry_from_subject_verb_object_strings, ContingencyListEntry
-from rxncon.input.shared.reaction_preprocess import preprocessed_reaction_strs
+from rxncon.input.shared.reaction_preprocess import split_bidirectional_reaction_str
 from rxncon.core.reaction import Reaction, reaction_from_str
 from rxncon.core.contingency import Contingency
 
@@ -64,7 +64,7 @@ class ExcelBook:
         for row in reaction_rows:
             # When a verb such as 'ppi' is encountered, the function 'preprocessed_reaction_strs'
             # will split it into 'ppi+' and 'ppi-'.
-            reaction_strs = preprocessed_reaction_strs(row[REACTION_LIST_COLUMN_FULL_NAME].value)
+            reaction_strs = split_bidirectional_reaction_str(row[REACTION_LIST_COLUMN_FULL_NAME].value)
             self._reactions += [reaction_from_str(x) for x in reaction_strs]
 
     def _load_contingency_list_entries(self):
@@ -75,8 +75,8 @@ class ExcelBook:
             # When a reaction with a verb such as 'ppi' is encountered, we only apply the contingency to the
             # positive reaction.
             target = row[CONTINGENCY_LIST_COLUMN_TARGET].value
-            if preprocessed_reaction_strs(target) != [target]:
-                target = preprocessed_reaction_strs(target)[0]
+            if split_bidirectional_reaction_str(target) != [target]:
+                target = split_bidirectional_reaction_str(target)[0]
 
             entry = contingency_list_entry_from_subject_verb_object_strings(
                 target, row[CONTINGENCY_LIST_COLUMN_TYPE].value,
