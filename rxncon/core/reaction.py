@@ -15,7 +15,7 @@ class ReactionTerm:
         return isinstance(other, ReactionTerm) and self.states == other.states
 
     def __str__(self) -> str:
-        return 'ReactionTerm<{0}>states:{1}'.format(''.join(str(spec) for spec in self.specs), ''.join(str(x) for x in self.states))
+        return 'ReactionTerm<{0}>states:{1}'.format(','.join(str(spec) for spec in self.specs), ','.join(str(x) for x in self.states))
 
     def __repr__(self) -> str:
         return str(self)
@@ -253,13 +253,23 @@ REACTION_DEFS = [
     ),
     ReactionDef(
         STATE_DEFS,
-        'intra-protein-interaction-plus',
+        'intra-protein-interaction',
         '$x_ipi+_$y',
         {
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (ProteinSpec, LocusResolution.domain)
         },
         '$x#$x--0,$y--0 -> $x#$x--[$y.locus]'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'intra-protein-dissociation',
+        '$x_ipi-_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.domain),
+            '$y': (ProteinSpec, LocusResolution.domain)
+        },
+        '$x#$x--[$y.locus] -> $x#$x--0,$y--0'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -290,7 +300,27 @@ REACTION_DEFS = [
             '$y': (Spec, LocusResolution.component)
         },
         '$x# -> $x# + $y#0'
-    )
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'auto-GuanineNucleotideExchange',
+        '$x_aGEx_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{0} -> $y#$y-{GTP}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'auto-GTPHydrolysis',
+        '$x_aGHy_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{GTP} -> $y#$y-{0}'
+    ),
 ]
 
 

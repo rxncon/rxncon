@@ -338,7 +338,7 @@ def spec_from_str(spec_str: str) -> Spec:
                 name = name[:len(name) - len(suffix.value)]
                 return suffix_to_spec[suffix](name, struct_index, locus)
 
-        raise AssertionError('Could not parse spec component_name {}'.format(name))
+        raise SyntaxError('Could not parse spec component_name {}'.format(name))
 
     DOMAIN_DELIMITER = '_'
     STRUCT_DELIMITER = '@'
