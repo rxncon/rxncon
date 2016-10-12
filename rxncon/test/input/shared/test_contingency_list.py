@@ -44,21 +44,21 @@ def is_reaction_entry_correct(the_case):
 @pytest.fixture
 def the_case_contingency_list_entry_boolean_subject_state_agent():
     return [
-        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('<Ste11^{M/5}>', 'AND', 'Ste5_[MEKK]--Ste11'),
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_verb_object_strings('<Ste11^{M/5}>', 'AND', 'Ste5_[MEKK]--Ste11'),
                                 cli.BooleanContingencyName('<Ste11^{M/5}>'),
                                 cli.BooleanOperator.op_and,
                                 sta.InteractionState,
                                 fst.state_from_string('Ste5_[MEKK]--Ste11'),
                                 'Ste5_[MEKK]--Ste11'),
 
-        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('<Ste11^{M/5}>', 'NOT', 'Ste5_[MEKK]--Ste11'),
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_verb_object_strings('<Ste11^{M/5}>', 'NOT', 'Ste5_[MEKK]--Ste11'),
                                 cli.BooleanContingencyName('<Ste11^{M/5}>'),
                                 cli.BooleanOperator.op_not,
                                 sta.InteractionState,
                                 fst.state_from_string('Ste5_[MEKK]--Ste11'),
                                 'Ste5_[MEKK]--Ste11'),
 
-        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('<Cdc24^{M}>', 'OR', '<Cdc24^{M/4}>'),
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_verb_object_strings('<Cdc24^{M}>', 'OR', '<Cdc24^{M/4}>'),
                                 cli.BooleanContingencyName('<Cdc24^{M}>'),
                                 cli.BooleanOperator.op_or,
                                 cli.BooleanContingencyName,
@@ -70,42 +70,42 @@ def the_case_contingency_list_entry_boolean_subject_state_agent():
 @pytest.fixture
 def the_case_contingency_list_entry_reaction_subject_state_agent():
     return [
-        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_B', '!', 'A-{P}'),
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_verb_object_strings('A_ppi_B', '!', 'A-{P}'),
                                 fst.reaction_from_string('A_ppi_B'),
                                 con.ContingencyType.requirement,
                                 sta.CovalentModificationState,
                                 fst.state_from_string('A-{P}'),
                                 'A-{p}'),
 
-        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_B', 'x', 'A-{P}'),
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_verb_object_strings('A_ppi_B', 'x', 'A-{P}'),
                                 fst.reaction_from_string('A_ppi_B'),
                                 con.ContingencyType.inhibition,
                                 sta.CovalentModificationState,
                                 fst.state_from_string('A-{P}'),
                                 'A-{p}'),
 
-        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_B', 'k+', 'A-{P}'),
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_verb_object_strings('A_ppi_B', 'k+', 'A-{P}'),
                                 fst.reaction_from_string('A_ppi_B'),
                                 con.ContingencyType.positive,
                                 sta.CovalentModificationState,
                                 fst.state_from_string('A-{P}'),
                                 'A-{p}'),
 
-        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_B', 'k-', 'A-{P}'),
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_verb_object_strings('A_ppi_B', 'k-', 'A-{P}'),
                                 fst.reaction_from_string('A_ppi_B'),
                                 con.ContingencyType.negative,
                                 sta.CovalentModificationState,
                                 fst.state_from_string('A-{P}'),
                                 'A-{p}'),
 
-        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_B', '0', 'A-{P}'),
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_verb_object_strings('A_ppi_B', '0', 'A-{P}'),
                                 fst.reaction_from_string('A_ppi_B'),
                                 con.ContingencyType.no_effect,
                                 sta.CovalentModificationState,
                                 fst.state_from_string('A-{P}'),
                                 'A-{p}'),
 
-        ContingencyListTestCase(cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_B', '?', 'A-{P}'),
+        ContingencyListTestCase(cli.contingency_list_entry_from_subject_verb_object_strings('A_ppi_B', '?', 'A-{P}'),
                                 fst.reaction_from_string('A_ppi_B'),
                                 con.ContingencyType.unknown,
                                 sta.CovalentModificationState,
@@ -140,15 +140,15 @@ def the_case_lookup_table():
                             {},
                             0),
 
-        LookupTableTestCase(cli._create_boolean_contingency_lookup_table([cli.contingency_list_entry_from_subject_predicate_agent_strings('<X>', 'AND', 'A-{P}'),
-                                                                          cli.contingency_list_entry_from_subject_predicate_agent_strings('<X>', 'AND', 'A--B')]),
+        LookupTableTestCase(cli._create_boolean_contingency_lookup_table([cli.contingency_list_entry_from_subject_verb_object_strings('<X>', 'AND', 'A-{P}'),
+                                                                          cli.contingency_list_entry_from_subject_verb_object_strings('<X>', 'AND', 'A--B')]),
                             cli.BooleanContingencyName('<X>'),
                             eff.AndEffector(eff.StateEffector(fst.state_from_string('A-{P}')),
                                             eff.StateEffector(fst.state_from_string('A--B'))),
                             1),
 
-        LookupTableTestCase(cli._create_boolean_contingency_lookup_table([cli.contingency_list_entry_from_subject_predicate_agent_strings('<X>', 'AND', '<Y>'),
-                                                                          cli.contingency_list_entry_from_subject_predicate_agent_strings('<X>', 'AND', '<Z>')]),
+        LookupTableTestCase(cli._create_boolean_contingency_lookup_table([cli.contingency_list_entry_from_subject_verb_object_strings('<X>', 'AND', '<Y>'),
+                                                                          cli.contingency_list_entry_from_subject_verb_object_strings('<X>', 'AND', '<Z>')]),
                             cli.BooleanContingencyName('<X>'),
                             eff.AndEffector(cli._BooleanContingencyEffector(cli.BooleanContingencyName('<Y>')),
                                             cli._BooleanContingencyEffector(cli.BooleanContingencyName('<Z>'))),
@@ -168,25 +168,25 @@ def test_contingencies_from_contingency_list_entries(the_case_contingencies_from
 @pytest.fixture
 def the_case_contingencies_from_contingency_list_entries(boolean_contingencies):
     return [
-        ContingencyTestCase(cli.contingencies_from_contingency_list_entries([cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_B', '!', 'A-{P}')]),
+        ContingencyTestCase(cli.contingencies_from_contingency_list_entries([cli.contingency_list_entry_from_subject_verb_object_strings('A_ppi_B', '!', 'A-{P}')]),
                             [con.Contingency(fst.reaction_from_string('A_ppi_B'),
                                              con.ContingencyType.requirement,
                                              eff.StateEffector(fst.state_from_string('A-{P}')))]
                             ),
 
-        ContingencyTestCase(cli.contingencies_from_contingency_list_entries([cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_C', 'x', '<X>'),
-                                                                             cli.contingency_list_entry_from_subject_predicate_agent_strings('<X>', 'AND', 'A-{P}'),
-                                                                             cli.contingency_list_entry_from_subject_predicate_agent_strings('<X>', 'AND', 'A--B')]),
+        ContingencyTestCase(cli.contingencies_from_contingency_list_entries([cli.contingency_list_entry_from_subject_verb_object_strings('A_ppi_C', 'x', '<X>'),
+                                                                             cli.contingency_list_entry_from_subject_verb_object_strings('<X>', 'AND', 'A-{P}'),
+                                                                             cli.contingency_list_entry_from_subject_verb_object_strings('<X>', 'AND', 'A--B')]),
                             [con.Contingency(fst.reaction_from_string('A_ppi_C'),
                                              con.ContingencyType.inhibition,
                                              boolean_contingencies['expected_X'])]
                             ),
 
-        ContingencyTestCase(cli.contingencies_from_contingency_list_entries([cli.contingency_list_entry_from_subject_predicate_agent_strings('A_ppi_C', 'x', '<Z>'),
-                                                                             cli.contingency_list_entry_from_subject_predicate_agent_strings('<Z>', 'AND', 'A-{P}'),
-                                                                             cli.contingency_list_entry_from_subject_predicate_agent_strings('<Z>', 'AND', '<Y>'),
-                                                                             cli.contingency_list_entry_from_subject_predicate_agent_strings('<Y>', 'OR', 'A--B'),
-                                                                             cli.contingency_list_entry_from_subject_predicate_agent_strings('<Y>', 'OR', 'A--D')]),
+        ContingencyTestCase(cli.contingencies_from_contingency_list_entries([cli.contingency_list_entry_from_subject_verb_object_strings('A_ppi_C', 'x', '<Z>'),
+                                                                             cli.contingency_list_entry_from_subject_verb_object_strings('<Z>', 'AND', 'A-{P}'),
+                                                                             cli.contingency_list_entry_from_subject_verb_object_strings('<Z>', 'AND', '<Y>'),
+                                                                             cli.contingency_list_entry_from_subject_verb_object_strings('<Y>', 'OR', 'A--B'),
+                                                                             cli.contingency_list_entry_from_subject_verb_object_strings('<Y>', 'OR', 'A--D')]),
                             [con.Contingency(fst.reaction_from_string('A_ppi_C'),
                                              con.ContingencyType.inhibition,
                                              boolean_contingencies['expected_Z'])]

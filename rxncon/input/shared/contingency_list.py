@@ -21,12 +21,10 @@ class BooleanOperator(OrderedEnum):
 
 
 class BooleanContingencyName:
-    @typecheck
     def __init__(self, name: str):
         assert re.match(BOOLEAN_CONTINGENCY_REGEX, name)
         self.name = name
 
-    @typecheck
     def __eq__(self, other: 'BooleanContingencyName') -> bool:
         return self.name == other.name
 
@@ -41,23 +39,21 @@ class BooleanContingencyName:
 
 
 class ContingencyListEntry:
-    @typecheck
     def __init__(self, subject: Union[Reaction, BooleanContingencyName],
-                 predicate: Union[BooleanOperator, ContingencyType],
-                 agent: Union[State, BooleanContingencyName]):
+                 verb: Union[BooleanOperator, ContingencyType],
+                 object: Union[State, BooleanContingencyName]):
         self.subject = subject
-        self.predicate = predicate
-        self.agent = agent
+        self.verb = verb
+        self.object = object
 
-    @typecheck
     def __eq__(self, other: 'ContingencyListEntry') -> bool:
-        return self.subject == other.subject and self.predicate == other.predicate and self.agent == other.agent
+        return self.subject == other.subject and self.verb == other.verb and self.object == other.object
 
     def __repr__(self):
         return str(self)
 
     def __str__(self):
-        return "ContingencyListEntry<{}>".format(self.agent)
+        return "ContingencyListEntry<{}>".format(self.object)
 
     @property
     def is_boolean_entry(self) -> bool:
@@ -68,22 +64,22 @@ class ContingencyListEntry:
         return isinstance(self.subject, Reaction)
 
 
-def contingency_list_entry_from_subject_predicate_agent_strings(subject_str, predicate_str, agent_str) -> ContingencyListEntry:
-    predicate_str = predicate_str.lower()
+def contingency_list_entry_from_subject_verb_object_strings(subject_str, verb_str, object_str) -> ContingencyListEntry:
+    verb_str = verb_str.lower()
 
     if re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
         subject = BooleanContingencyName(subject_str)
-        predicate = BooleanOperator(predicate_str)
+        verb = BooleanOperator(verb_str)
     else:
         subject = reaction_from_str(subject_str)
-        predicate = ContingencyType(predicate_str)
+        verb = ContingencyType(verb_str)
 
-    if re.match(BOOLEAN_CONTINGENCY_REGEX, agent_str):
-        agent = BooleanContingencyName(agent_str)
+    if re.match(BOOLEAN_CONTINGENCY_REGEX, object_str):
+        object = BooleanContingencyName(object_str)
     else:
-        agent = state_from_str(agent_str)
+        object = state_from_str(object_str)
 
-    return ContingencyListEntry(subject, predicate, agent)
+    return ContingencyListEntry(subject, verb, object)
 
 
 @typecheck
@@ -97,7 +93,7 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
     while reaction_entries:
         entry = reaction_entries.pop()
         contingencies.append(Contingency(entry.subject,
-                                         ContingencyType(entry.predicate),
+                                         ContingencyType(entry.verb),
                                          _unary_effector_from_boolean_contingency_entry(entry)))
 
     Effector.dereference = _dereference_boolean_contingency_effectors
@@ -193,9 +189,9 @@ def _create_boolean_contingency_lookup_table(boolean_contingencies: List[Conting
 
 @typecheck
 def _unary_effector_from_boolean_contingency_entry(entry: ContingencyListEntry) -> Effector:
-    if isinstance(entry.agent, State):
-        return StateEffector(entry.agent)
-    elif isinstance(entry.agent, BooleanContingencyName):
-        return _BooleanContingencyEffector(entry.agent)
+    if isinstance(entry.object, State):
+        return StateEffector(entry.object)
+    elif isinstance(entry.object, BooleanContingencyName):
+        return _BooleanContingencyEffector(entry.object)
     else:
         raise AssertionError

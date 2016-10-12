@@ -3,7 +3,7 @@ from typing import List
 from typecheck import typecheck
 
 from rxncon.input.shared.contingency_list import contingencies_from_contingency_list_entries, \
-    contingency_list_entry_from_subject_predicate_agent_strings
+    contingency_list_entry_from_subject_verb_object_strings
 from rxncon.core.reaction import reaction_from_str
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reaction
@@ -45,7 +45,7 @@ class Quick:
             cont = cont.strip()
             cont_type = cont.split()[0]
             modifier = cont.split()[-1]
-            entry = contingency_list_entry_from_subject_predicate_agent_strings(reaction_string, cont_type, modifier)
+            entry = contingency_list_entry_from_subject_verb_object_strings(reaction_string, cont_type, modifier)
             self._contingency_list_entries.append(entry)
 
     def _construct_contingencies(self):
