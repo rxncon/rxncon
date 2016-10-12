@@ -17,6 +17,8 @@ class StateModifier(OrderedEnum):
     ubiquitin = 'ub'
     gtp       = 'gtp'
     truncated = 'truncated'
+    cytosol   = 'cytosol'  # @note: hack for localisation.
+    nucleus   = 'nucleus'  # @note: hack for localisation.
 
 
 class EmptyStateError(Exception):

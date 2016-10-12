@@ -5,6 +5,12 @@ from rxncon.core.spec import Spec, MRNASpec, ProteinSpec, LocusResolution, DNASp
 from rxncon.core.state import StateDef, State, state_from_str, STATE_DEFS, FullyNeutralState
 from rxncon.util.utils import members
 
+SPEC_REGEX_GROUPED   = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
+SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
+
+BIDIRECTIONAL_VERBS = [
+    'ppi'
+]
 
 class ReactionTerm:
     def __init__(self, specs: List[Spec], states: List[State]):
@@ -26,80 +32,72 @@ class ReactionTerm:
 
 
 class ReactionDef:
-    ARROW_TWO_HEADS = '<->'
-    ARROW_ONE_HEAD = '->'
-    SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
-    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
+    ARROW = '->'
 
     def __init__(self, state_defs: List[StateDef], name: str, repr_def: str, vars_def: Dict[str, Any], rule_def: str):
-        self.name, self.state_defs, self.repr_def, self.vars_def, self.rule_defs = name, state_defs, repr_def, vars_def, rule_def
+        self.name, self.state_defs, self.repr_def, self.vars_def, self.rule_def = name, state_defs, repr_def, vars_def, rule_def
         self._parse_reactants_def()
 
     def __eq__(self, other: 'ReactionDef') -> bool:
         return self.state_defs == other.state_defs and self.name == other.name and self.repr_def == other.repr_def \
-            and self.vars_def == other.vars_def and self.rule_defs == other.rule_defs
+            and self.vars_def == other.vars_def and self.rule_def == other.rule_def
 
     def __repr__(self) -> str:
         return str(self)
 
     def __str__(self) -> str:
-        return 'ReactionDef: {0}; representation_def: {1}; reactants_defs: {2} '\
-            .format(self.name, self.repr_def, self.rule_defs)
+        return 'ReactionDef: {0}; repr_def: {1}; rule_defs: {2} '\
+            .format(self.name, self.repr_def, self.rule_def)
 
-    def matches_repr(self, representation: str) -> bool:
-        return True if re.match(self._to_matching_regex(), representation) else False
+    def matches_repr(self, repr: str) -> bool:
+        return True if re.match(self._to_matching_regex(), repr) else False
 
-    def repr_from_vars(self, variables: Dict[str, Any]) -> str:
+    def repr_from_vars(self, vars: Dict[str, Any]) -> str:
         representation = self.repr_def
-        for var, val in variables.items():
+        for var, val in vars.items():
             representation = representation.replace(var, str(val))
 
         return representation
 
-    def vars_from_repr(self, representation: str) -> Dict[str, Any]:
-        assert self.matches_repr(representation)
+    def vars_from_repr(self, repr: str) -> Dict[str, Any]:
+        assert self.matches_repr(repr)
 
         variables = {}
         for var, var_def in self.vars_def.items():
-            var_regex = self._to_base_regex().replace(var, self.SPEC_REGEX_GROUPED)
+            var_regex = self._to_base_regex().replace(var, SPEC_REGEX_GROUPED)
             for other_var in self.vars_def.keys():
                 if other_var != var:
-                    var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)
+                    var_regex = var_regex.replace(other_var, SPEC_REGEX_UNGROUPED)
 
-            val_str = re.match(var_regex, representation).group(1)
+            val_str = re.match(var_regex, repr).group(1)
             val_spec = spec_from_str(val_str)
 
             variables[var] = val_spec
 
         return variables
 
-    def validate_vars(self, variables: Dict[str, Any]):
-        for var, val in variables.items():
+    def validate_vars(self, vars: Dict[str, Any]):
+        for var, val in vars.items():
             assert isinstance(val, self.vars_def[var][0]), \
                 '{0} is of type {1}, required to be of type {2}'.format(var, type(val), self.vars_def[var][0])
             assert val.has_resolution(self.vars_def[var][1]), \
                 '{0} is of resolution {1}, required to be of resolution {2}'.format(var, val.resolution, self.vars_def[var][1])
 
-    def terms_lhs_from_vars(self, variables: Dict[str, Any]) -> List[ReactionTerm]:
-        return [self._parse_term(x, variables) for x in self.reactant_defs_lhs]
+    def terms_lhs_from_vars(self, vars: Dict[str, Any]) -> List[ReactionTerm]:
+        return [self._parse_term(x, vars) for x in self.reactant_defs_lhs]
 
-    def terms_rhs_from_vars(self, variables: Dict[str, Any]) -> List[ReactionTerm]:
-        return [self._parse_term(x, variables) for x in self.reactant_defs_rhs]
+    def terms_rhs_from_vars(self, vars: Dict[str, Any]) -> List[ReactionTerm]:
+        return [self._parse_term(x, vars) for x in self.reactant_defs_rhs]
 
     def _parse_reactants_def(self):
-        if self.ARROW_TWO_HEADS in self.rule_defs:
-            arrow = self.ARROW_TWO_HEADS
-        elif self.ARROW_ONE_HEAD in self.rule_defs:
-            arrow = self.ARROW_ONE_HEAD
-        else:
-            raise AssertionError('Reaction definition requires presence of an arrow')
+        assert self.ARROW in self.rule_def
 
-        reactants_def_lhs_str, reactants_def_rhs_str = self.rule_defs.split(arrow)
+        reactants_def_lhs_str, reactants_def_rhs_str = self.rule_def.split(self.ARROW)
 
         self.reactant_defs_lhs = [x.strip() for x in reactants_def_lhs_str.split('+')]
         self.reactant_defs_rhs = [x.strip() for x in reactants_def_rhs_str.split('+')]
 
-    def _parse_term(self, definition: str, variables: Dict[str, Any]) -> ReactionTerm:
+    def _parse_term(self, definition: str, vars: Dict[str, Any]) -> ReactionTerm:
         def parse_states_str(states_str: str) -> List[State]:
             if not states_str:
                 return []
@@ -112,7 +110,7 @@ class ReactionDef:
             return [parse_vars_str(x, spec_from_str).to_component_spec() for x in specs_str.split(',')]
 
         def parse_vars_str(vars_str: str, post_func):
-            for var_symbol, var_val in variables.items():
+            for var_symbol, var_val in vars.items():
                 for method in members(var_val):
                     var_with_method = '{0}.{1}'.format(var_symbol, method)
                     if var_with_method in vars_str:
@@ -130,12 +128,13 @@ class ReactionDef:
         return ReactionTerm(parse_specs_str(specs_str), parse_states_str(states_str))
 
     def _to_base_regex(self) -> str:
-        return '^{}$'.format(self.repr_def.replace('+', '\+'))
+        # The (?i) makes the regex case insensitive.
+        return '(?i)^{}$'.format(self.repr_def.replace('+', '\+'))
 
     def _to_matching_regex(self) -> str:
         regex = self._to_base_regex()
         for var in self.vars_def.keys():
-            regex = regex.replace(var, self.SPEC_REGEX_GROUPED)
+            regex = regex.replace(var, SPEC_REGEX_GROUPED)
 
         return regex
 
@@ -173,6 +172,16 @@ REACTION_DEFS = [
     ),
     ReactionDef(
         STATE_DEFS,
+        'auto-dephosphorylation',
+        '$x_ap-_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{P} -> $y#$y-{0}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
         'ubiquitination',
         '$x_ub+_$y',
         {
@@ -180,6 +189,16 @@ REACTION_DEFS = [
             '$y': (ProteinSpec, LocusResolution.residue)
         },
         '$x# + $y#$y-{0} -> $x# + $y#$y-{ub}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'deubiquitination',
+        '$x_ub-_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$x# + $y#$y-{ub} -> $x# + $y#$y-{0}'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -304,7 +323,7 @@ REACTION_DEFS = [
     ReactionDef(
         STATE_DEFS,
         'auto-GuanineNucleotideExchange',
-        '$x_aGEx_$y',
+        '$x_agex_$y',
         {
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
@@ -314,13 +333,53 @@ REACTION_DEFS = [
     ReactionDef(
         STATE_DEFS,
         'auto-GTPHydrolysis',
-        '$x_aGHy_$y',
+        '$x_aghy_$y',
         {
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
         '$y#$y-{GTP} -> $y#$y-{0}'
     ),
+    ReactionDef(
+        STATE_DEFS,
+        'GTPase-activation',
+        '$x_gap_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$x# + $y#$y-{GTP} -> $x# + $y#$y-{0}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'guanine-nucleotide-exchange',
+        '$x_gef_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$x# + $y#$y-{0} -> $x# + $y#$y-{GTP}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'nuclear-export',
+        '$x_nexp_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.component)
+        },
+        '$x# + $y#$y_[loc]-{nucleus} -> $x# + $y#$y_[loc]-{cytosol}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'nuclear-import',
+        '$x_nimp_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.component)
+        },
+        '$x# + $y#$y_[loc]-{cytosol} -> $x# + $y#$y_[loc]-{nucleus}'
+    )
 ]
 
 

@@ -5,6 +5,7 @@ import xlrd
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.input.shared.contingency_list import contingencies_from_contingency_list_entries, \
     contingency_list_entry_from_subject_verb_object_strings, ContingencyListEntry
+from rxncon.input.shared.reaction_preprocess import preprocessed_reaction_strs
 from rxncon.core.reaction import Reaction, reaction_from_str
 from rxncon.core.contingency import Contingency
 
@@ -16,12 +17,12 @@ SHEET_REACTION_DEFINITION = 'ReactionDefinition'
 SHEET_REACTION_LIST = 'ReactionList'
 SHEET_CONTINGENCY_LIST = 'ContingencyList'
 
-REACTION_LIST_COLUMN_FULL_NAME = 1
+REACTION_LIST_COLUMN_FULL_NAME = 0
 REACTION_LIST_FIRST_ROW        = 2
 
-CONTINGENCY_LIST_COLUMN_TARGET   = 2
-CONTINGENCY_LIST_COLUMN_TYPE     = 3
-CONTINGENCY_LIST_COLUMN_MODIFIER = 4
+CONTINGENCY_LIST_COLUMN_TARGET   = 1
+CONTINGENCY_LIST_COLUMN_TYPE     = 2
+CONTINGENCY_LIST_COLUMN_MODIFIER = 3
 CONTINGENCY_LIST_FIRST_ROW       = 2
 
 class ExcelBook:
@@ -61,16 +62,24 @@ class ExcelBook:
         reaction_rows = [row for row in sheet.get_rows()][REACTION_LIST_FIRST_ROW:]
 
         for row in reaction_rows:
-            reaction = reaction_from_str(row[REACTION_LIST_COLUMN_FULL_NAME].value)
-            self._reactions.append(reaction)
+            # When a verb such as 'ppi' is encountered, the function 'preprocessed_reaction_strs'
+            # will split it into 'ppi+' and 'ppi-'.
+            reaction_strs = preprocessed_reaction_strs(row[REACTION_LIST_COLUMN_FULL_NAME].value)
+            self._reactions += [reaction_from_str(x) for x in reaction_strs]
 
     def _load_contingency_list_entries(self):
         sheet = self._xlrd_book.sheet_by_name(SHEET_CONTINGENCY_LIST)
         contingency_rows = [row for row in sheet.get_rows()][CONTINGENCY_LIST_FIRST_ROW:]
 
         for row in contingency_rows:
+            # When a reaction with a verb such as 'ppi' is encountered, we only apply the contingency to the
+            # positive reaction.
+            target = row[CONTINGENCY_LIST_COLUMN_TARGET].value
+            if preprocessed_reaction_strs(target) != [target]:
+                target = preprocessed_reaction_strs(target)[0]
+
             entry = contingency_list_entry_from_subject_verb_object_strings(
-                row[CONTINGENCY_LIST_COLUMN_TARGET].value, row[CONTINGENCY_LIST_COLUMN_TYPE].value,
+                target, row[CONTINGENCY_LIST_COLUMN_TYPE].value,
                 row[CONTINGENCY_LIST_COLUMN_MODIFIER].value
             )
             self._contingency_list_entries.append(entry)
