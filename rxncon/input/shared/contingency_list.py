@@ -65,7 +65,7 @@ class ContingencyListEntry:
 
 
 def contingency_list_entry_from_subject_verb_object_strings(subject_str, verb_str, object_str) -> ContingencyListEntry:
-    verb_str = verb_str.lower()
+    subject_str, verb_str, object_str = subject_str.strip(), verb_str.lower().strip(), object_str.strip()
 
     if re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
         subject = BooleanContingencyName(subject_str)
@@ -165,8 +165,8 @@ def _create_boolean_contingency_lookup_table(boolean_contingencies: List[Conting
         current_contingencies = [x for x in boolean_contingencies if x.subject == current_contingency.subject]
         boolean_contingencies = [x for x in boolean_contingencies if x.subject != current_contingency.subject]
 
-        boolean_operator = BooleanOperator(current_contingency.predicate)
-        assert all([BooleanOperator(x.predicate) == boolean_operator for x in current_contingencies])
+        boolean_operator = BooleanOperator(current_contingency.verb)
+        assert all([BooleanOperator(x.verb) == boolean_operator for x in current_contingencies])
 
         effector_terms = [_unary_effector_from_boolean_contingency_entry(x) for x in current_contingencies]
 

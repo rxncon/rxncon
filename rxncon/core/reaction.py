@@ -9,7 +9,7 @@ SPEC_REGEX_GROUPED   = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0
 SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
 
 BIDIRECTIONAL_VERBS = [
-    'ppi', 'ipi', 'ap'
+    'ppi', 'ipi', 'ap', 'i'
 ]
 
 class ReactionTerm:
