@@ -459,59 +459,59 @@ class Reaction:
         return [component for component in self.components_rhs if component not in self.components_lhs]
 
 
-def matching_reaction_def(representation: str) -> Optional[ReactionDef]:
-    return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_repr(representation)), None)
+def matching_reaction_def(repr: str) -> Optional[ReactionDef]:
+    return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_repr(repr)), None)
 
 
-def reaction_from_str(representation: str, standardize=True) -> Reaction:
-    def fixed_spec_types(rxn_def: ReactionDef, variables: Dict[str, Any]) -> Dict[str, Any]:
-        keys = variables.keys()
+def reaction_from_str(repr: str, standardize=True) -> Reaction:
+    def fixed_spec_types(reaction_def: ReactionDef, vars: Dict[str, Any]) -> Dict[str, Any]:
+        keys = vars.keys()
         assert len(list(keys)) == 2
 
         for key in keys:
-            required_type = rxn_def.vars_def[key][0]
-            if not isinstance(variables[key], required_type):
+            required_type = reaction_def.vars_def[key][0]
+            if not isinstance(vars[key], required_type):
                 if required_type is GeneSpec:
-                    variables[key] = variables[key].to_dna_component_spec()
+                    vars[key] = vars[key].to_dna_component_spec()
                 elif required_type is MRNASpec:
-                    variables[key] = variables[key].to_mrna_component_spec()
+                    vars[key] = vars[key].to_mrna_component_spec()
                 elif required_type is ProteinSpec:
-                    variables[key] = variables[key].to_protein_component_spec()
+                    vars[key] = vars[key].to_protein_component_spec()
                 else:
                     raise NotImplementedError
 
-        return variables
+        return vars
 
-    def fixed_resolutions(rxn_def: ReactionDef, variables: Dict[str, Any]) -> Dict[str, Any]:
-        keys = variables.keys()
+    def fixed_resolutions(reaction_def: ReactionDef, vars: Dict[str, Any]) -> Dict[str, Any]:
+        keys = vars.keys()
         assert len(list(keys)) == 2
 
         for key in keys:
-            if rxn_def.vars_def[key][1] < variables[key].resolution:
+            if reaction_def.vars_def[key][1] < vars[key].resolution:
                 raise SyntaxError('Specified resolution for variable {0} higher than required {1}'
-                                  .format(str(variables[key]), rxn_def.vars_def[key][1]))
+                                  .format(str(vars[key]), reaction_def.vars_def[key][1]))
 
             other = [x for x in keys if x != key][0]
-            if not variables[key].has_resolution(rxn_def.vars_def[key][1]):
-                if rxn_def.vars_def[key][1] == LocusResolution.domain:
-                    variables[key].locus.domain = variables[other].component_name
-                elif rxn_def.vars_def[key][1] == LocusResolution.residue:
-                    variables[key].locus.residue = variables[other].component_name
+            if not vars[key].has_resolution(reaction_def.vars_def[key][1]):
+                if reaction_def.vars_def[key][1] == LocusResolution.domain:
+                    vars[key].locus.domain = vars[other].component_name
+                elif reaction_def.vars_def[key][1] == LocusResolution.residue:
+                    vars[key].locus.residue = vars[other].component_name
                 else:
                     raise NotImplementedError
 
-        return variables
+        return vars
 
-    the_definition = matching_reaction_def(representation)
+    the_definition = matching_reaction_def(repr)
 
     if not the_definition:
-        raise SyntaxError('Could not match reaction {} with definition'.format(representation))
+        raise SyntaxError('Could not match reaction {} with definition'.format(repr))
 
-    variables = the_definition.vars_from_repr(representation)
+    vars = the_definition.vars_from_repr(repr)
 
     if standardize:
-        variables = fixed_spec_types(the_definition, variables)
-        variables = fixed_resolutions(the_definition, variables)
+        vars = fixed_spec_types(the_definition, vars)
+        vars = fixed_resolutions(the_definition, vars)
 
-    the_definition.validate_vars(variables)
-    return Reaction(the_definition, variables)
+    the_definition.validate_vars(vars)
+    return Reaction(the_definition, vars)
