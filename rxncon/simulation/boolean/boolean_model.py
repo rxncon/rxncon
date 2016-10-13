@@ -279,6 +279,7 @@ def boolnet_str_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Di
         return '{0} , {1}'.format(boolnet_name_from_target(update_rule.target),
                                   str_from_factor(update_rule.factor))
 
+
     def boolnet_name_from_target(target: Target) -> str:
         nonlocal reaction_index
         nonlocal state_index
@@ -299,6 +300,7 @@ def boolnet_str_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Di
             else:
                 return AssertionError
 
+    # boolnet_name_from_target closes over these variables.
     boolnet_names = {}
     reaction_index = 0
     state_index = 0

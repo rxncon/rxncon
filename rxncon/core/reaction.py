@@ -46,8 +46,7 @@ class ReactionDef:
         return str(self)
 
     def __str__(self) -> str:
-        return 'ReactionDef: {0}; repr_def: {1}; rule_defs: {2} '\
-            .format(self.name, self.repr_def, self.rule_def)
+        return 'ReactionDef: {0}; repr_def: {1}; rule_def: {2} '.format(self.name, self.repr_def, self.rule_def)
 
     def matches_repr(self, repr: str) -> bool:
         return True if re.match(self._to_matching_regex(), repr) else False
@@ -502,16 +501,16 @@ def reaction_from_str(repr: str, standardize=True) -> Reaction:
 
         return vars
 
-    the_definition = matching_reaction_def(repr)
+    reaction_def = matching_reaction_def(repr)
 
-    if not the_definition:
+    if not reaction_def:
         raise SyntaxError('Could not match reaction {} with definition'.format(repr))
 
-    vars = the_definition.vars_from_repr(repr)
+    vars = reaction_def.vars_from_repr(repr)
 
     if standardize:
-        vars = fixed_spec_types(the_definition, vars)
-        vars = fixed_resolutions(the_definition, vars)
+        vars = fixed_spec_types(reaction_def, vars)
+        vars = fixed_resolutions(reaction_def, vars)
 
-    the_definition.validate_vars(vars)
-    return Reaction(the_definition, vars)
+    reaction_def.validate_vars(vars)
+    return Reaction(reaction_def, vars)

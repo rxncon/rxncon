@@ -75,15 +75,15 @@ class StateDef:
 
         return variables
 
-    def repr_from_vars(self, variables: Dict[str, Any]) -> str:
-        representation = self.repr_def
-        for var, val in variables.items():
+    def repr_from_vars(self, vars: Dict[str, Any]) -> str:
+        repr = self.repr_def
+        for var, val in vars.items():
             if isinstance(val, StateModifier):
-                representation = representation.replace(var, str(val.value))
+                repr = repr.replace(var, str(val.value))
             else:
-                representation = representation.replace(var, str(val))
+                repr = repr.replace(var, str(val))
 
-        return representation
+        return repr
 
     def neutral_states_from_vars(self, variables: Dict[str, Any]) -> List['State']:
         states = []
@@ -99,12 +99,14 @@ class StateDef:
 
         return states
 
-    def validate_vars(self, variables: Dict[str, Any]):
-        specs = [x for x in variables.values() if isinstance(x, Spec)]
+    def validate_vars(self, vars: Dict[str, Any]):
+        specs = [x for x in vars.values() if isinstance(x, Spec)]
         if specs and all(isinstance(x, EmptySpec) for x in specs):
             raise EmptyStateError('All Spec are EmptySpec.')
 
-        for var, val in variables.items():
+        for var, val in vars.items():
+            assert isinstance(val, self.variables_def[var][0])
+
             if isinstance(val, Spec):
                 if val.resolution > self.variables_def[var][1]:
                     raise SyntaxError('Resolution too high.')
@@ -174,10 +176,10 @@ STATE_DEFS = [
 
 
 class State:
-    def __init__(self, definition: StateDef, variables: Dict[str, Any]):
+    def __init__(self, definition: StateDef, vars: Dict[str, Any]):
         self.definition = definition
         self.state_defs = STATE_DEFS
-        self.vars = OrderedDict((k, v) for k, v in sorted(variables.items()))
+        self.vars = OrderedDict((k, v) for k, v in sorted(vars.items()))
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -218,7 +220,7 @@ class State:
 
     @property
     def is_structured(self) -> bool:
-        return any(mol_spec.struct_index for mol_spec in self.specs)
+        return any(mol_spec.struct_index is not None for mol_spec in self.specs)
 
     @property
     def is_global(self) -> bool:
