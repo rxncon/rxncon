@@ -385,10 +385,10 @@ REACTION_DEFS = [
 
 class Reaction:
     def __init__(self, definition: ReactionDef, vars: Dict[str, Any]):
-        self.name            = definition.name
-        self.terms_lhs       = definition.terms_lhs_from_vars(vars)
-        self.terms_rhs       = definition.terms_rhs_from_vars(vars)
-        self._representation = definition.repr_from_vars(vars)
+        self.name      = definition.name
+        self.terms_lhs = definition.terms_lhs_from_vars(vars)
+        self.terms_rhs = definition.terms_rhs_from_vars(vars)
+        self._repr     = definition.repr_from_vars(vars)
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -397,7 +397,7 @@ class Reaction:
         return str(self)
 
     def __str__(self) -> str:
-        return self._representation
+        return self._repr
 
     def __eq__(self, other: 'Reaction') -> bool:
         return self.terms_lhs == other.terms_lhs and self.terms_rhs == other.terms_rhs and str(self) == str(other)

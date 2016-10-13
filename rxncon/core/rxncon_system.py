@@ -20,7 +20,14 @@ class RxnConSystem:
         self._global_states      = []
 
         self._expand_fully_neutral_states()
-        self._assert_consistency()
+        self.validate()
+
+    def validate(self):
+        missing_states = self._missing_states()
+
+        if missing_states:
+            raise AssertionError('State(s) {0} appear(s) in contingencies, but is not produced or consumed'
+                                 .format(', '.join(str(state) for state in missing_states)))
 
     def components(self) -> List[Spec]:
         if not self._components:
@@ -136,11 +143,9 @@ class RxnConSystem:
             if term.is_fully_neutral:
                 term.states = [state for component in term.specs for state in self.states_for_component(component) if state.is_neutral]
 
-    def _assert_consistency(self):
+    def _missing_states(self):
         required_states = []
         for contingency in self.contingencies:
             required_states += [state.to_non_structured_state() for state in contingency.effector.states if not state.is_global]
 
-        for state in required_states:
-            assert state in self.states, \
-                'State {0} appears in contingencies, but is neither produced nor consumed'.format(str(state))
+        return [state for state in required_states if state not in self.states]

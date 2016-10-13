@@ -43,9 +43,15 @@ def test_simplifies():
 
 def test_parser():
     assert venn_from_str('1 & 2', int).is_equivalent_to(Intersection(ValueSet(1), ValueSet(2)))
+    assert venn_from_str('1 & 2', str).is_equivalent_to(Intersection(ValueSet('1'), ValueSet('2')))
     assert venn_from_str('( 1 | 2 ) & 3', int).is_equivalent_to(Intersection(ValueSet(3), Union(ValueSet(1), ValueSet(2))))
     assert venn_from_str('~ 1', int).is_equivalent_to(Complement(ValueSet(1)))
     assert venn_from_str('~( 1 | 2 )', int).is_equivalent_to(Intersection(Complement(ValueSet(1)), Complement(ValueSet(2))))
+
+
+def test_satisfy():
+    x = venn_from_str('1 | 2 | 3 | 4', int).calc_solutions()
+    print()
 
 
 # Test the superset / subset relationships
