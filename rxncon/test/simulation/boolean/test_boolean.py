@@ -1,12 +1,10 @@
-from collections import namedtuple
-
 from rxncon.venntastic.sets import venn_from_str
 from rxncon.input.quick.quick import Quick
 from rxncon.core.reaction import reaction_from_str
 from rxncon.core.state import state_from_str
 from rxncon.core.spec import spec_from_str
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, ReactionTarget, \
-    StateTarget, ComponentStateTarget
+    StateTarget, ComponentStateTarget, boolnet_str_from_boolean_model
 
 
 def target_from_str(target_str):
@@ -90,6 +88,10 @@ def test_simple_system_with_input_state():
     for update_rule in boolean_model.update_rules:
         assert update_rule.factor.is_equivalent_to(
             venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+
+    x, y = boolnet_str_from_boolean_model(boolean_model)
+    print(x)
+    print(y)
 
 
 def test_insulin_system():

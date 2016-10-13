@@ -1,3 +1,5 @@
+from typing import List, Dict, Tuple
+
 from rxncon.venntastic.sets import Set as VennSet, MultiIntersection, MultiUnion, ValueSet, Intersection, Union, Complement, UniversalSet, venn_from_pyeda
 from rxncon.core.reaction import Reaction
 from rxncon.core.state import State
@@ -6,7 +8,6 @@ from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
 from rxncon.core.rxncon_system import RxnConSystem
 
-from typing import List, Dict
 
 
 class BooleanModel:
@@ -261,29 +262,10 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
 ### SIMULATION STUFF ###
 
 
-def boolnet_str_from_boolean_model(boolean_model: BooleanModel) -> str:
-    def clean_str(the_str: str) -> str:
-        dirty_chars = {
-            '[': 'DOM',
-            ']': 'DOM',
-            '/': '',
-            '@': '',
-            '{': 'MOD',
-            '}': 'MOD',
-            ' ': '',
-            '(': 'RES',
-            ')': 'RES',
-            '<': '',
-            '>': ''
-        }
-        for dirty_char, clean_char in dirty_chars.items():
-            the_str = the_str.replace(dirty_char, clean_char)
-
-        return the_str
-
+def boolnet_str_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[str, str]]:
     def str_from_factor(factor: VennSet) -> str:
         if isinstance(factor, ValueSet):
-            return clean_str(str(factor.value))
+            return boolnet_name_from_target(factor.value)
         elif isinstance(factor, Complement):
             return '!({})'.format(str_from_factor(factor.expr))
         elif isinstance(factor, Intersection):
@@ -294,10 +276,35 @@ def boolnet_str_from_boolean_model(boolean_model: BooleanModel) -> str:
             raise AssertionError
 
     def str_from_update_rule(update_rule: UpdateRule) -> str:
-        return '{0} , {1}'.format(clean_str(str(update_rule.target)),
+        return '{0} , {1}'.format(boolnet_name_from_target(update_rule.target),
                                   str_from_factor(update_rule.factor))
 
-    return 'targets, factors\n' + '\n'.join(str_from_update_rule(x) for x in boolean_model.update_rules) + '\n'
+    def boolnet_name_from_target(target: Target) -> str:
+        nonlocal reaction_index
+        nonlocal state_index
+
+        try:
+            return boolnet_names[target]
+        except KeyError:
+            if isinstance(target, ReactionTarget):
+                name = 'R{}'.format(reaction_index)
+                boolnet_names[target] = name
+                reaction_index += 1
+                return name
+            elif isinstance(target, StateTarget):
+                name = 'S{}'.format(state_index)
+                boolnet_names[target] = name
+                state_index += 1
+                return name
+            else:
+                return AssertionError
+
+    boolnet_names = {}
+    reaction_index = 0
+    state_index = 0
+
+    return 'targets, factors\n' + '\n'.join(str_from_update_rule(x) for x in boolean_model.update_rules) + '\n', \
+           {name: str(target) for target, name in boolnet_names.items()}
 
 
 class BooleanModelConfigPath:
