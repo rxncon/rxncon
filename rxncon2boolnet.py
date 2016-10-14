@@ -1,5 +1,6 @@
 from typing import Tuple, Optional
-import os, sys
+import os
+import sys
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.input.excel_book.excel_book import ExcelBook
@@ -14,9 +15,9 @@ def boolnet_strs_from_rxncon(rxncon: RxnConSystem) -> Tuple[str, str, str]:
     model_str, symbol_dict, initial_val_dict = boolnet_from_boolean_model(boolean_model_from_rxncon(rxncon))
 
     symbol_str      = '\n'.join('{0}, {1}'.format(boolnet_sym, rxncon_sym) for boolnet_sym, rxncon_sym
-                                in sorted(symbol_dict.items(), key=sort_key))
+                                in sorted(symbol_dict.items(), key=sort_key)) + '\n'
     initial_val_str = '\n'.join('{0}, {1}'.format(sym, '1' if val else '0') for sym, val
-                                in sorted(initial_val_dict.items(), key=sort_key))
+                                in sorted(initial_val_dict.items(), key=sort_key)) + '\n'
 
     return model_str, symbol_str, initial_val_str
 

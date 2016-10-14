@@ -62,6 +62,9 @@ class ExcelBook:
         reaction_rows = [row for row in sheet.get_rows()][REACTION_LIST_FIRST_ROW:]
 
         for row in reaction_rows:
+            if not row[REACTION_LIST_COLUMN_FULL_NAME].value:
+                continue
+
             # When a verb such as 'ppi' is encountered, the function 'preprocessed_reaction_strs'
             # will split it into 'ppi+' and 'ppi-'.
             reaction_strs = split_bidirectional_reaction_str(row[REACTION_LIST_COLUMN_FULL_NAME].value)
@@ -72,6 +75,9 @@ class ExcelBook:
         contingency_rows = [row for row in sheet.get_rows()][CONTINGENCY_LIST_FIRST_ROW:]
 
         for row in contingency_rows:
+            if not row[CONTINGENCY_LIST_COLUMN_TARGET].value:
+                continue
+
             # When a reaction with a verb such as 'ppi' is encountered, we only apply the contingency to the
             # positive reaction.
             target = row[CONTINGENCY_LIST_COLUMN_TARGET].value
