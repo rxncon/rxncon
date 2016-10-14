@@ -19,6 +19,8 @@ class StateModifier(OrderedEnum):
     truncated = 'truncated'
     cytosol   = 'cytosol'  # @note: hack for localisation.
     nucleus   = 'nucleus'  # @note: hack for localisation.
+    cyt       = 'cyt'      # @note: hack for SPS
+    out       = 'out'      # @note: hack for SPS
 
 
 class EmptyStateError(Exception):

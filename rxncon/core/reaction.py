@@ -122,6 +122,11 @@ class ReactionDef:
 
             return post_func(vars_str)
 
+        if len(definition.split('#')) != 2:
+            raise SyntaxError('ReactionDef syntax error: each term should be of the form Specs#States,\n'
+                              'where Specs is one or more Specs separated by commas and States is zero or\n'
+                              'more States separated by commas.\nThe given definition was: {}'.format(definition))
+
         specs_str, states_str = definition.split('#')
 
         return ReactionTerm(parse_specs_str(specs_str), parse_states_str(states_str))
@@ -367,7 +372,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.component)
         },
-        '$x# + $y#$y_[loc]-{nucleus} -> $x# + $y#$y_[loc]-{cytosol}'
+        '$x# + $y#$y_[(loc)]-{nucleus} -> $x# + $y#$y_[(loc)]-{0}'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -377,8 +382,58 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.component)
         },
-        '$x# + $y#$y_[loc]-{cytosol} -> $x# + $y#$y_[loc]-{nucleus}'
-    )
+        '$x# + $y#$y_[(loc)]-{0} -> $x# + $y#$y_[(loc)]-{nucleus}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'flip-out',
+        '$x_FlipOut_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.component)
+        },
+        '$y#$y_[(direction)]-{0} -> $y#$y_[(direction)]-{out}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'flip-in',
+        '$x_FlipIn_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.component)
+        },
+        '$y#$y_[(direction)]-{out} -> $y#$y_[(direction)]-{0}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'facilitated-uptake-extracellular-cytoplasmic',
+        '$x_FDExtCyt_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (Spec, LocusResolution.component)
+        },
+        '$x# + $y#$y_[(loc)]-{0} -> $x# + $y#$y_[(loc)]-{cyt}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'facilitated-uptake-cytoplasmic-extracellular',
+        '$x_FDCytExt_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (Spec, LocusResolution.residue)
+        },
+        '$x# + $y#$y_[(loc)]-{cyt} -> $x# + $y#$y_[(loc)]-{0}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'truncation',
+        '$x_CUT_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (Spec, LocusResolution.residue)
+        },
+        '$x# + $y#$y-{0} -> $x# + $y#$y-{truncated}'
+    ),
 ]
 
 
@@ -487,8 +542,8 @@ def reaction_from_str(repr: str, standardize=True) -> Reaction:
 
         for key in keys:
             if reaction_def.vars_def[key][1] < vars[key].resolution:
-                raise SyntaxError('Specified resolution for variable {0} higher than required {1}'
-                                  .format(str(vars[key]), reaction_def.vars_def[key][1]))
+                raise SyntaxError('In reaction {0}, the specified resolution for variable {1}\n is higher than the required {2}'
+                                  .format(repr, str(vars[key]), reaction_def.vars_def[key][1]))
 
             other = [x for x in keys if x != key][0]
             if not vars[key].has_resolution(reaction_def.vars_def[key][1]):
