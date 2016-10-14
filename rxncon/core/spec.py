@@ -46,7 +46,9 @@ class Spec(metaclass=ABCMeta):
         return self.to_non_struct_spec() == other.to_non_struct_spec()
 
     def is_subspec_of(self, other: 'Spec') -> bool:
-        if self == other:
+        if isinstance(self, EmptySpec) or isinstance(other, EmptySpec):
+            return False
+        elif self == other:
             return True
 
         spec_pairs = zip([self.component_name, self.locus.domain, self.locus.subdomain, self.locus.residue],
@@ -61,7 +63,9 @@ class Spec(metaclass=ABCMeta):
         return True
 
     def is_superspec_of(self, other: 'Spec') -> bool:
-        if self == other:
+        if isinstance(self, EmptySpec) or isinstance(other, EmptySpec):
+            return False
+        elif self == other:
             return True
 
         return other.is_subspec_of(self)

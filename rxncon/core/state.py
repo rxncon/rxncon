@@ -207,7 +207,8 @@ class State:
 
     def is_subset_of(self, other: 'State') -> bool:
         if self.definition == other.definition:
-            return all(x.is_subspec_of(y) for x, y in zip(self.specs, other.specs)) and \
+            return len(self.specs) == len(other.specs) and \
+                   all(x.is_subspec_of(y) for x, y in zip(self.specs, other.specs)) and \
                    all(x == y for x, y in zip(self._non_spec_props, other._non_spec_props))
         else:
             return False
