@@ -262,7 +262,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
 ### SIMULATION STUFF ###
 
 
-def boolnet_str_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[str, str]]:
+def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[str, str], Dict[str, bool]]:
     def str_from_factor(factor: VennSet) -> str:
         if isinstance(factor, ValueSet):
             return boolnet_name_from_target(factor.value)
@@ -276,9 +276,8 @@ def boolnet_str_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Di
             raise AssertionError
 
     def str_from_update_rule(update_rule: UpdateRule) -> str:
-        return '{0} , {1}'.format(boolnet_name_from_target(update_rule.target),
+        return '{0}, {1}'.format(boolnet_name_from_target(update_rule.target),
                                   str_from_factor(update_rule.factor))
-
 
     def boolnet_name_from_target(target: Target) -> str:
         nonlocal reaction_index
@@ -305,8 +304,16 @@ def boolnet_str_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Di
     reaction_index = 0
     state_index = 0
 
-    return 'targets, factors\n' + '\n'.join(str_from_update_rule(x) for x in boolean_model.update_rules) + '\n', \
-           {name: str(target) for target, name in boolnet_names.items()}
+    def sort_key(rule_str):
+        target = rule_str.split(',')[0].strip()
+        return target[0], int(target[1:])
+
+    rule_strs = sorted([str_from_update_rule(x) for x in boolean_model.update_rules], key=sort_key)
+
+    return 'targets, factors\n' + '\n'.join(rule for rule in rule_strs) + '\n', \
+           {name: str(target) for target, name in boolnet_names.items()}, \
+           {boolnet_names[target]: value for target, value in boolean_model.initial_conditions.target_to_value.items()}
+
 
 
 class BooleanModelConfigPath:

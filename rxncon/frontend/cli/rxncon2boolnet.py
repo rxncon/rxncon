@@ -1,0 +1,42 @@
+from typing import Tuple, Optional
+import os
+
+from rxncon.core.rxncon_system import RxnConSystem
+from rxncon.input.excel_book.excel_book import ExcelBook
+from rxncon.simulation.boolean.boolean_model import boolnet_from_boolean_model, boolean_model_from_rxncon
+
+
+def boolnet_strs_from_rxncon(rxncon: RxnConSystem) -> Tuple[str, str, str]:
+    model_str, symbol_dict, initial_val_dict = boolnet_from_boolean_model(boolean_model_from_rxncon(rxncon))
+
+    symbol_str      = '\n'.join('{0}, {1}'.format(boolnet_sym, rxncon_sym) for boolnet_sym, rxncon_sym in sorted(symbol_dict.items()))
+    initial_val_str = '\n'.join('{0}, {1}'.format(sym, '1' if val else '0') for sym, val in sorted(initial_val_dict.items()))
+
+    return model_str, symbol_str, initial_val_str
+
+
+def write_boolnet(excel_filename: str, boolnet_model_filename: Optional[str]=None, boolnet_symbol_filename: Optional[str]=None,
+                  boolnet_initial_val_filename: Optional[str]=None):
+    base_name = os.path.splitext(os.path.basename(excel_filename))[0]
+    base_path = os.path.dirname(excel_filename)
+
+    if not boolnet_model_filename:
+        boolnet_model_filename = os.path.join(base_path, '{0}.boolnet'.format(base_name))
+    if not boolnet_symbol_filename:
+        boolnet_symbol_filename = os.path.join(base_path, '{0}_symbols.csv'.format(base_name))
+    if not boolnet_initial_val_filename:
+        boolnet_initial_val_filename = os.path.join(base_path, '{0}_initial_vals.csv'.format(base_name))
+
+    excel_book = ExcelBook(excel_filename)
+    model_str, symbol_str, initial_val_str = boolnet_strs_from_rxncon(excel_book.rxncon_system)
+
+    with open(boolnet_model_filename, mode='w') as f:
+        f.write(model_str)
+
+    with open(boolnet_symbol_filename, mode='w') as f:
+        f.write(symbol_str)
+
+    with open(boolnet_initial_val_filename, mode='w') as f:
+        f.write(initial_val_str)
+
+

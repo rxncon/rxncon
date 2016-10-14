@@ -21,7 +21,6 @@ def test_ipi_reaction():
     rxn = reaction_from_str('A_[n]_ipi+_A_[m]')
 
     assert rxn.terms_lhs == [ReactionTerm([spec_from_str('A')], [state_from_str('A_[n]--0'), state_from_str('A_[m]--0')])]
-
     assert rxn.terms_rhs == [ReactionTerm([spec_from_str('A')], [state_from_str('A_[n]--[m]')])]
 
 
