@@ -2,6 +2,7 @@ from typing import List, Dict, Tuple
 from collections import defaultdict
 
 from rxncon.core.contingency import ContingencyType, Contingency
+from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
 from rxncon.core.reaction import Reaction, ReactionTerm
 from rxncon.core.state import State, StateDef, FullyNeutralState
 from rxncon.core.spec import Spec
@@ -25,6 +26,8 @@ class RxnConSystem:
         self._calculate_synthesised_states()
         self._calculate_global_states()
         self._calculate_states()
+
+        self._expand_non_elemental_contingencies()
 
         self.validate()
 
@@ -149,6 +152,33 @@ class RxnConSystem:
             if term.is_fully_neutral:
                 term.states = [state for component in term.specs for state in self.states_for_component(component) if state.is_neutral and
                                not state == FullyNeutralState()]
+
+    def _expand_non_elemental_contingencies(self):
+        def expanded_effector(effector: Effector):
+            def MultiOrEffector(state_list: List[State]):
+                if len(state_list) == 1:
+                    return StateEffector(state_list[0])
+                else:
+                    return OrEffector(MultiOrEffector(state_list[1:]), StateEffector(state_list[0]))
+
+            if isinstance(effector, StateEffector):
+                if effector.expr.is_elemental:
+                    return effector
+                else:
+                    elemental_states = [state for state in self.states if state.is_subset_of(effector.expr)]
+                    assert all(state.is_elemental for state in elemental_states)
+                    return MultiOrEffector(elemental_states)
+            elif isinstance(effector, AndEffector):
+                return AndEffector(expanded_effector(effector.left_expr), expanded_effector(effector.right_expr))
+            elif isinstance(effector, OrEffector):
+                return OrEffector(expanded_effector(effector.left_expr), expanded_effector(effector.right_expr))
+            elif isinstance(effector, NotEffector):
+                return NotEffector(expanded_effector(effector.expr))
+            else:
+                raise AssertionError
+
+        for contingency in self.contingencies:
+            contingency.effector = expanded_effector(contingency.effector)
 
     def _missing_states(self):
         required_states = []
