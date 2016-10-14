@@ -1,5 +1,5 @@
 from typing import Tuple, Optional
-import os
+import os, sys
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.input.excel_book.excel_book import ExcelBook
@@ -7,10 +7,16 @@ from rxncon.simulation.boolean.boolean_model import boolnet_from_boolean_model, 
 
 
 def boolnet_strs_from_rxncon(rxncon: RxnConSystem) -> Tuple[str, str, str]:
+    def sort_key(key_val_pair):
+        k, v = key_val_pair
+        return k[0], int(k[1:])
+
     model_str, symbol_dict, initial_val_dict = boolnet_from_boolean_model(boolean_model_from_rxncon(rxncon))
 
-    symbol_str      = '\n'.join('{0}, {1}'.format(boolnet_sym, rxncon_sym) for boolnet_sym, rxncon_sym in sorted(symbol_dict.items()))
-    initial_val_str = '\n'.join('{0}, {1}'.format(sym, '1' if val else '0') for sym, val in sorted(initial_val_dict.items()))
+    symbol_str      = '\n'.join('{0}, {1}'.format(boolnet_sym, rxncon_sym) for boolnet_sym, rxncon_sym
+                                in sorted(symbol_dict.items(), key=sort_key))
+    initial_val_str = '\n'.join('{0}, {1}'.format(sym, '1' if val else '0') for sym, val
+                                in sorted(initial_val_dict.items(), key=sort_key))
 
     return model_str, symbol_str, initial_val_str
 
@@ -40,3 +46,6 @@ def write_boolnet(excel_filename: str, boolnet_model_filename: Optional[str]=Non
         f.write(initial_val_str)
 
 
+if __name__ == '__main__':
+    excel_file = sys.argv[1]
+    write_boolnet(excel_file)
