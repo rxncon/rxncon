@@ -3,7 +3,7 @@ from collections import defaultdict
 
 from rxncon.core.contingency import ContingencyType, Contingency
 from rxncon.core.reaction import Reaction, ReactionTerm
-from rxncon.core.state import State, StateDef
+from rxncon.core.state import State, StateDef, FullyNeutralState
 from rxncon.core.spec import Spec
 
 
@@ -20,6 +20,12 @@ class RxnConSystem:
         self._global_states      = []
 
         self._expand_fully_neutral_states()
+        self._calculate_produced_states()
+        self._calculate_consumed_states()
+        self._calculate_synthesised_states()
+        self._calculate_global_states()
+        self._calculate_states()
+
         self.validate()
 
     def validate(self):
@@ -141,7 +147,8 @@ class RxnConSystem:
     def _expand_reaction_terms(self, terms: List[ReactionTerm]):
         for term in terms:
             if term.is_fully_neutral:
-                term.states = [state for component in term.specs for state in self.states_for_component(component) if state.is_neutral]
+                term.states = [state for component in term.specs for state in self.states_for_component(component) if state.is_neutral and
+                               not state == FullyNeutralState()]
 
     def _missing_states(self):
         required_states = []

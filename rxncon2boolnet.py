@@ -48,5 +48,7 @@ def write_boolnet(excel_filename: str, boolnet_model_filename: Optional[str]=Non
 
 
 if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        raise SyntaxError('Please provide the name of the Excel file as an argument.')
     excel_file = sys.argv[1]
     write_boolnet(excel_file)
