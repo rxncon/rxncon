@@ -1,4 +1,5 @@
 import functools
+import operator
 from typing import Dict, List, Any, Optional
 from collections import OrderedDict
 from itertools import product
@@ -185,54 +186,53 @@ class Complement(UnarySet):
         return Not(self.expr._to_pyeda_expr(val_to_sym))
 
 
-class BinarySet(Set):
-    def __init__(self, left_expr: Set, right_expr: Set):
-        self.left_expr = left_expr
-        self.right_expr = right_expr
+class NarySet(Set):
+    def __init__(self, *exprs: Set):
+        self.exprs = exprs
 
     @property
     def values(self):
-        return self.left_expr.values + self.right_expr.values
+        return functools.reduce(operator.add, [expr.values for expr in self.exprs], [])
 
 
-class Intersection(BinarySet):
+class Intersection(NarySet):
     def __eq__(self, other: Set) -> bool:
         if isinstance(other, Intersection):
-            return self.left_expr == other.left_expr and self.right_expr == other.right_expr
+            return all(my_expr == other_expr for my_expr, other_expr in zip(self.exprs, other.exprs))
         else:
             return False
 
     def __hash__(self) -> int:
-        return hash('*intersection-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
+        return hash(str(self))
 
     def __repr__(self) -> str:
         return str(self)
 
     def __str__(self) -> str:
-        return '({0} & {1})'.format(self.left_expr, self.right_expr)
+        return '({})'.format(' & '.join(expr for expr in self.exprs))
 
     def _to_pyeda_expr(self, val_to_sym: OrderedDict) -> Expression:
-        return And(self.left_expr._to_pyeda_expr(val_to_sym), self.right_expr._to_pyeda_expr(val_to_sym))
+        return And(*(expr._to_pyeda_expr(val_to_sym) for expr in self.exprs))
 
 
-class Union(BinarySet):
+class Union(NarySet):
     def __eq__(self, other: Set) -> bool:
         if isinstance(other, Union):
-            return self.left_expr == other.left_expr and self.right_expr == other.right_expr
+            return all(my_expr == other_expr for my_expr, other_expr in zip(self.exprs, other.exprs))
         else:
             return False
 
     def __hash__(self) -> int:
-        return hash('*union-{0}{1}*'.format(hash(self.left_expr), hash(self.right_expr)))
+        return hash(str(self))
 
     def __repr__(self) -> str:
         return str(self)
 
     def __str__(self) -> str:
-        return '({0} | {1})'.format(self.left_expr, self.right_expr)
+        return '({})'.format(' | '.join(expr for expr in self.exprs))
 
     def _to_pyeda_expr(self, val_to_sym: OrderedDict) -> Expression:
-        return Or(self.left_expr._to_pyeda_expr(val_to_sym), self.right_expr._to_pyeda_expr(val_to_sym))
+        return Or(*(expr._to_pyeda_expr(val_to_sym) for expr in self.exprs))
 
 
 class Difference(Set):
@@ -245,38 +245,13 @@ def UniversalSet() -> Set:
     return ValueSet(None)
 
 
-def MultiUnion(*args):
-    return nested_expression_from_list_and_binary_op(list(args), Union)
-
-
-def MultiIntersection(*args):
-    return nested_expression_from_list_and_binary_op(list(args), Intersection)
-
-
-### PUBLIC FUNCTIONS ###
-def nested_expression_from_list_and_binary_op(xs: List[Set], binary_op) -> Set:
-    if binary_op == Intersection:
-        unit = UniversalSet()
-    elif binary_op == Union:
-        unit = EmptySet()
-    else:
-        raise TypeError
-
-    if len(xs) == 0:
-        return unit
-    elif len(xs) == 1:
-        return xs[0]
-    else:
-        return functools.reduce(binary_op, xs[1:], xs[0])
-
-
 def venn_from_pyeda(pyeda_expr, sym_to_val):
     if isinstance(pyeda_expr, Variable):
         return ValueSet(sym_to_val[pyeda_expr.name])
     elif isinstance(pyeda_expr, AndOp):
-        return MultiIntersection(*(venn_from_pyeda(x, sym_to_val) for x in pyeda_expr.xs))
+        return Intersection(*(venn_from_pyeda(x, sym_to_val) for x in pyeda_expr.xs))
     elif isinstance(pyeda_expr, OrOp):
-        return MultiUnion(*(venn_from_pyeda(x, sym_to_val) for x in pyeda_expr.xs))
+        return Union(*(venn_from_pyeda(x, sym_to_val) for x in pyeda_expr.xs))
     elif isinstance(pyeda_expr, NotOp):
         return Complement(venn_from_pyeda(pyeda_expr.x, sym_to_val))
     elif isinstance(pyeda_expr, pyedaComplement):

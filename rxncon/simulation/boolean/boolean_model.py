@@ -1,6 +1,6 @@
 from typing import List, Dict, Tuple
 
-from rxncon.venntastic.sets import Set as VennSet, MultiIntersection, MultiUnion, ValueSet, Intersection, Union, Complement, UniversalSet, venn_from_pyeda
+from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union, Complement, UniversalSet
 from rxncon.core.reaction import Reaction
 from rxncon.core.state import State
 from rxncon.core.spec import Spec
@@ -176,7 +176,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
         if not grouped_states.values():
             return UniversalSet()
 
-        return MultiIntersection(*(MultiUnion(*(ValueSet(StateTarget(x)) for x in group)) for group in grouped_states.values()))
+        return Intersection(*(Union(*(ValueSet(StateTarget(x)) for x in group)) for group in grouped_states.values()))
 
     def component_factor(component: Spec, stateless_targets: Dict[Spec, ComponentStateTarget]) -> VennSet:
         if component in stateless_targets.keys():
@@ -228,33 +228,33 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     # Factor for a reaction target is of the form:
     # components AND contingencies
     for reaction_target in reaction_targets:
-        cont_fac = MultiIntersection(*(contingency_factor(x) for x in rxncon_sys.contingencies_for_reaction(reaction_target.reaction_parent)))
-        comp_fac = MultiIntersection(*(component_factor(x, stateless_targets) for x in reaction_target.components))
+        cont_fac = Intersection(*(contingency_factor(x) for x in rxncon_sys.contingencies_for_reaction(reaction_target.reaction_parent)))
+        comp_fac = Intersection(*(component_factor(x, stateless_targets) for x in reaction_target.components))
         reaction_rules.append(UpdateRule(reaction_target, Intersection(cont_fac, comp_fac).to_simplified_set()))
 
     # Factor for a state target is of the form:
     # synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
     for state_target in state_targets:
-        synt_fac = MultiUnion(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
-        comp_fac = MultiIntersection(*(component_factor(x, stateless_targets) for x in state_target.components))
-        degr_fac = Complement(MultiUnion(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
+        synt_fac = Union(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
+        comp_fac = Intersection(*(component_factor(x, stateless_targets) for x in state_target.components))
+        degr_fac = Complement(Union(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
 
         prod_facs = []
         cons_facs = []
 
         for reaction_target in reaction_targets:
             if reaction_target.produces(state_target):
-                sources = MultiIntersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
+                sources = Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
                 prod_facs.append(Intersection(ValueSet(reaction_target), sources))
 
             if reaction_target.consumes(state_target):
-                sources = MultiIntersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
+                sources = Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
                 cons_facs.append(Complement(Intersection(ValueSet(reaction_target), sources)))
 
-        prod_cons_fac = Union(MultiUnion(*prod_facs), Intersection(ValueSet(state_target), MultiIntersection(*cons_facs)))
+        prod_cons_fac = Union(Union(*prod_facs), Intersection(ValueSet(state_target), Intersection(*cons_facs)))
 
         state_rules.append(UpdateRule(state_target,
-                                      Union(synt_fac, MultiIntersection(comp_fac, degr_fac, prod_cons_fac)).to_simplified_set()))
+                                      Union(synt_fac, Intersection(comp_fac, degr_fac, prod_cons_fac)).to_simplified_set()))
 
     return BooleanModel(reaction_rules + state_rules, initial_conditions(reaction_targets, state_targets))
 
@@ -269,15 +269,15 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
         elif isinstance(factor, Complement):
             return '!({})'.format(str_from_factor(factor.expr))
         elif isinstance(factor, Intersection):
-            return '({0} & {1})'.format(str_from_factor(factor.left_expr), str_from_factor(factor.right_expr))
+            return '({})'.format(' & '.join(str_from_factor(x) for x in factor.exprs))
         elif isinstance(factor, Union):
-            return '({0} | {1})'.format(str_from_factor(factor.left_expr), str_from_factor(factor.right_expr))
+            return '({})'.format(' | '.join(str_from_factor(x) for x in factor.exprs))
         else:
             raise AssertionError
 
     def str_from_update_rule(update_rule: UpdateRule) -> str:
         return '{0}, {1}'.format(boolnet_name_from_target(update_rule.target),
-                                  str_from_factor(update_rule.factor))
+                                 str_from_factor(update_rule.factor))
 
     def boolnet_name_from_target(target: Target) -> str:
         nonlocal reaction_index
