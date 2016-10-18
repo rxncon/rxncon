@@ -5,10 +5,16 @@ from typing import List, Dict, Optional, Any
 from copy import deepcopy
 
 from rxncon.util.utils import OrderedEnum, members
-from rxncon.core.spec import Spec, EmptySpec, Locus, LocusResolution, locus_from_str, spec_from_str
+from rxncon.core.spec import Spec, Locus, LocusResolution, locus_from_str, spec_from_str
 
-FULLY_NEUTRAL_STATE_REPR = '0'
-GLOBAL_STATE_NAME = 'GLOBALSTATE'
+
+FULLY_NEUTRAL_STATE = '0'
+GLOBAL_STATE_NAME   = 'GLOBALSTATE'
+SPEC_REGEX          = '([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
+STR_REGEX           = '[\w]+'
+LOCUS_REGEX         = '[\w\/\(\)]+'
+MATCHING_REGEX      = '([\w@\(\)\[\]]+)'
+NON_MATCHING_REGEX  = '(?:[\w@\(\)\[\]]+)'
 
 @unique
 class StateModifier(OrderedEnum):
@@ -23,14 +29,22 @@ class StateModifier(OrderedEnum):
     out       = 'out'      # @note: hack for SPS
 
 
-class EmptyStateError(Exception):
-    pass
+TYPE_TO_REGEX = {
+    Spec:          SPEC_REGEX,
+    str:           STR_REGEX,
+    StateModifier: STR_REGEX,
+    Locus:         LOCUS_REGEX
+}
+
+TYPE_TO_CONSTRUCTOR = {
+    Spec:          spec_from_str,
+    str:           lambda x: x.strip(),
+    StateModifier: lambda x: StateModifier(x.lower()),
+    Locus:         locus_from_str
+}
 
 
 class StateDef:
-    SPEC_REGEX_GROUPED = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
-    SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
-
     def __init__(self, name: str, repr_def: str, variables_def: Dict[str, Any], neutral_states_def: List[str]):
         self.name, self.repr_def, self.variables_def, self.neutral_states_def = name, repr_def, variables_def, neutral_states_def
 
@@ -50,30 +64,18 @@ class StateDef:
     def matches_repr(self, repr: str) -> bool:
         return True if re.match(self._to_matching_regex(), repr) else False
 
-    def vars_from_repr(self, representation: str) -> Dict[str, Any]:
-        assert self.matches_repr(representation)
+    def vars_from_repr(self, repr: str) -> Dict[str, Any]:
+        assert self.matches_repr(repr)
 
         variables = {}
         for var, var_def in self.variables_def.items():
-            var_regex = self._to_base_regex().replace(var, self.SPEC_REGEX_GROUPED)
+            var_regex = self._to_base_regex().replace(var, MATCHING_REGEX)
             for other_var in self.variables_def.keys():
                 if other_var != var:
-                    var_regex = var_regex.replace(other_var, self.SPEC_REGEX_UNGROUPED)
+                    var_regex = var_regex.replace(other_var, NON_MATCHING_REGEX)
 
-            val_str = re.match(var_regex, representation).group(1)
-
-            if self.variables_def[var][0] is StateModifier:
-                value = state_modifier_from_str(val_str)
-            elif self.variables_def[var][0] is Locus:
-                value = locus_from_str(val_str)
-            elif self.variables_def[var][0] is Spec:
-                value = spec_from_str(val_str)
-            elif self.variables_def[var][0] is str:
-                value = val_str.strip()
-            else:
-                raise Exception('Unknown variable type {}'.format(self.variables_def[var][0]))
-
-            variables[var] = value
+            val_str = re.match(var_regex, repr).group(1)
+            variables[var] = TYPE_TO_CONSTRUCTOR[var_def[0]](val_str)
 
         return variables
 
@@ -93,7 +95,7 @@ class StateDef:
         for state_def in self.neutral_states_def:
             try:
                 the_state = state_from_str(self._fill_vals_into_vars(state_def, variables))
-            except EmptyStateError:
+            except SyntaxError:
                 the_state = None
 
             if the_state:
@@ -102,10 +104,6 @@ class StateDef:
         return states
 
     def validate_vars(self, vars: Dict[str, Any]):
-        specs = [x for x in vars.values() if isinstance(x, Spec)]
-        if specs and all(isinstance(x, EmptySpec) for x in specs):
-            raise EmptyStateError('All Spec are EmptySpec.')
-
         for var, val in vars.items():
             assert isinstance(val, self.variables_def[var][0])
 
@@ -133,8 +131,8 @@ class StateDef:
 
     def _to_matching_regex(self) -> str:
         regex = self._to_base_regex()
-        for var in self.variables_def.keys():
-            regex = regex.replace(var, self.SPEC_REGEX_GROUPED)
+        for var, var_def in self.variables_def.items():
+            regex = regex.replace(var, TYPE_TO_REGEX[var_def[0]])
         return regex
 
 
@@ -147,6 +145,14 @@ STATE_DEFS = [
             '$y': [Spec, LocusResolution.domain]
         },
         ['$x--0', '$y--0']                            # neutral states
+    ),
+    StateDef(
+        'empty-binding-domain',
+        '$x--0',
+        {
+            '$x': [Spec, LocusResolution.domain]
+        },
+        ['$x--0']
     ),
     StateDef(
         'self-interaction-state',
@@ -244,7 +250,7 @@ class State:
 
     @property
     def specs(self) -> List[Spec]:
-        return [x for x in self.vars.values() if isinstance(x, Spec) and not isinstance(x, EmptySpec)]
+        return [x for x in self.vars.values() if isinstance(x, Spec)]
 
     @property
     def components(self) -> List[Spec]:
@@ -318,7 +324,7 @@ def matching_state_def(repr: str) -> Optional[StateDef]:
 
 
 def state_from_str(repr: str) -> State:
-    if repr == FULLY_NEUTRAL_STATE_REPR:
+    if repr == FULLY_NEUTRAL_STATE:
         return FullyNeutralState()
 
     state_def = matching_state_def(repr)

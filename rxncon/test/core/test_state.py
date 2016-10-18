@@ -171,16 +171,16 @@ def test_ipi_props():
     assert not state.is_neutral
     assert elems_eq(state.neutral_states, [state_from_str('A_[m]--0'), state_from_str('A_[n]--0')])
 
-    # Non-elemental state, bond.
-    state = state_from_str('A--A_[n]')
-    assert not state.is_elemental
-    assert elems_eq(state.components, [spec_from_str('A')])
-    assert not state.is_neutral
-    # @todo JCR 20160920 This is not correct, the state A--0 should be replaced by the list of domains of A that
-    # @todo              can bind to B. Perhaps we should invent a new notation for this, since this property cannot
-    # @todo              be known by just looking at the state itself, but requires knowledge of the rest of the system.
-    # @todo              Furthermore, the state A--0 is a superset of the other one, so it should not appear independently.
-    assert elems_eq(state.neutral_states, [state_from_str('A--0'), state_from_str('A_[n]--0')])
+    # # Non-elemental state, bond.
+    # state = state_from_str('A--A_[n]')
+    # assert not state.is_elemental
+    # assert elems_eq(state.components, [spec_from_str('A')])
+    # assert not state.is_neutral
+    # # @todo JCR 20160920 This is not correct, the state A--0 should be replaced by the list of domains of A that
+    # # @todo              can bind to B. Perhaps we should invent a new notation for this, since this property cannot
+    # # @todo              be known by just looking at the state itself, but requires knowledge of the rest of the system.
+    # # @todo              Furthermore, the state A--0 is a superset of the other one, so it should not appear independently.
+    # assert elems_eq(state.neutral_states, [state_from_str('A--0'), state_from_str('A_[n]--0')])
 
 
 def test_ipi_parsing():

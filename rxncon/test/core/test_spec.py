@@ -1,7 +1,7 @@
 import pytest
 from collections import namedtuple
 
-from rxncon.core.spec import Locus, GeneSpec, MRNASpec, ProteinSpec, EmptySpec, locus_from_str, LocusResolution, spec_from_str
+from rxncon.core.spec import Locus, GeneSpec, MRNASpec, ProteinSpec, locus_from_str, LocusResolution, spec_from_str
 
 
 
@@ -34,8 +34,8 @@ def test_unstructured_specs():
     assert isinstance(protein_spec.to_mrna_component_spec(), MRNASpec)
     assert protein_spec.to_mrna_component_spec().has_resolution(LocusResolution.component)
 
-    empty_spec = spec_from_str('0')
-    assert isinstance(empty_spec, EmptySpec)
+    with pytest.raises(SyntaxError):
+        spec_from_str('0')
 
 
 def test_structured_specs():

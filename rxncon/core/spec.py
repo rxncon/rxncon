@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from abc import ABCMeta
+from abc import ABC
 from typing import Optional
 from enum import Enum, unique
 import re
@@ -7,10 +7,7 @@ import re
 from rxncon.util.utils import OrderedEnum
 
 
-EMPTY_SPEC = '0'
-
-
-class Spec(metaclass=ABCMeta):
+class Spec(ABC):
     def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus'):
         self.component_name, self.struct_index, self.locus = component_name, struct_index, locus
         self._validate()
@@ -46,9 +43,7 @@ class Spec(metaclass=ABCMeta):
         return self.to_non_struct_spec() == other.to_non_struct_spec()
 
     def is_subspec_of(self, other: 'Spec') -> bool:
-        if isinstance(self, EmptySpec) or isinstance(other, EmptySpec):
-            return False
-        elif self == other:
+        if self == other:
             return True
 
         spec_pairs = zip([self.component_name, self.locus.domain, self.locus.subdomain, self.locus.residue],
@@ -63,9 +58,7 @@ class Spec(metaclass=ABCMeta):
         return True
 
     def is_superspec_of(self, other: 'Spec') -> bool:
-        if isinstance(self, EmptySpec) or isinstance(other, EmptySpec):
-            return False
-        elif self == other:
+        if self == other:
             return True
 
         return other.is_subspec_of(self)
@@ -100,42 +93,6 @@ class Spec(metaclass=ABCMeta):
         assert self.component_name is not None and re.match('\w+', self.component_name)
 
 
-class EmptySpec(Spec):
-    def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus'):
-        super().__init__(EMPTY_SPEC, None, EmptyLocus())
-
-    def _validate(self):
-        assert self.component_name == EMPTY_SPEC
-        assert self.locus.is_empty
-
-    def __hash__(self) -> int:
-        return hash(str(self))
-
-    def __str__(self) -> str:
-        return EMPTY_SPEC
-
-    def __eq__(self, other: Spec) -> bool:
-        return isinstance(other, EmptySpec)
-
-    def __lt__(self, other: Spec) -> bool:
-        if isinstance(other, EmptySpec):
-            return False
-        elif isinstance(other, ProteinSpec):
-            return True
-        elif isinstance(other, MRNASpec):
-            return True
-        elif isinstance(other, GeneSpec):
-            return True
-        else:
-            raise NotImplementedError
-
-    def to_component_spec(self):
-        return self
-
-    def has_resolution(self, resolution: 'LocusResolution'):
-        return True
-
-
 class ProteinSpec(Spec):
     def __hash__(self) -> int:
         return hash(str(self))
@@ -146,8 +103,6 @@ class ProteinSpec(Spec):
         elif isinstance(other, MRNASpec):
             return False
         elif isinstance(other, GeneSpec):
-            return False
-        elif isinstance(other, EmptySpec):
             return False
         else:
             raise NotImplementedError
@@ -164,8 +119,6 @@ class MRNASpec(Spec):
             return False
         elif isinstance(other, ProteinSpec):
             return True
-        elif isinstance(other, EmptySpec):
-            return False
         else:
             raise NotImplementedError
 
@@ -181,8 +134,6 @@ class GeneSpec(Spec):
             return True
         elif isinstance(other, ProteinSpec):
             return True
-        elif isinstance(other, EmptySpec):
-            return False
         else:
             raise NotImplementedError
 
@@ -344,16 +295,17 @@ def spec_from_str(spec_str: str) -> Spec:
 
         raise SyntaxError('Could not parse spec component_name {}'.format(name))
 
+    if not re.match('[A-Za-z][A-Za-z0-9]*(@[\d]+)*(_\[[\w\/\(\)]+\])*', spec_str):
+        raise SyntaxError('Spec str {} does not match validating regex.'.format(spec_str))
+
     DOMAIN_DELIMITER = '_'
     STRUCT_DELIMITER = '@'
 
     struct_index = None
     items = spec_str.split(DOMAIN_DELIMITER, maxsplit=1)
 
-    if items[0].startswith(EMPTY_SPEC):
-        if items[0] != EMPTY_SPEC:
-            raise SyntaxError('Only the EmptySpec can start with {}'.format(EMPTY_SPEC))
-        return EmptySpec(EMPTY_SPEC, None, EmptyLocus())
+    if not re.match('[a-zA-Z]', items[0]):
+        raise SyntaxError('Spec has to start with letter character.')
     elif STRUCT_DELIMITER in items[0]:
         name, struct_index = items[0].split(STRUCT_DELIMITER)
         struct_index = int(struct_index)

@@ -88,7 +88,7 @@ class RxnConSystem:
         assert component.is_component_spec
         return [x for x in self.states if component.to_non_struct_spec() in x.components]
 
-    def states_for_component_grouped(self, component: Spec) -> Dict[Tuple[Spec, StateDef], List[State]]:
+    def states_for_component_grouped(self, component: Spec) -> Dict[Spec, List[State]]:
         states = self.states_for_component(component)
         grouped = defaultdict(list)
 
@@ -99,7 +99,7 @@ class RxnConSystem:
                 if spec.to_component_spec() != component:
                     continue
 
-                grouped[(spec, state.definition)].append(state)
+                grouped[spec].append(state)
 
         return grouped
 
