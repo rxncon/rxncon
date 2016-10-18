@@ -4,7 +4,7 @@ from rxncon.core.reaction import reaction_from_str
 from rxncon.core.state import state_from_str
 from rxncon.core.spec import spec_from_str
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, ReactionTarget, \
-    StateTarget, ComponentStateTarget, boolnet_from_boolean_model
+    StateTarget, ComponentStateTarget
 
 
 def target_from_str(target_str):
@@ -155,15 +155,15 @@ def test_insulin_system():
         'IR_[IRBD]_ppi-_IR_[IRBD]':        '{0}'.format(IR),
         'IR_[lig]_i+_insulin_[IR]':        '{0} & {1} & IR_[IRBD]--IR_[IRBD] & IR_[lig]--0'.format(IR, insulin),
         'IR_[lig]_i-_insulin_[IR]':        '{0} & {1}'.format(IR, insulin),
-        'IR_p+_IR_[TK(Y1158)]':            '{0} & IR_[IRBD]--IR_[IRBD] & IR_lig]--insulin_[IR]'.format(IR),
-        'IR_p+_IR_[TK(Y1162)]':            '{0} & IR_[IRBD]--IR_[IRBD] & IR_lig]--insulin_[IR]'.format(IR),
-        'IR_p+_IR_[TK(Y1163)]':            '{0} & IR_[IRBD]--IR_[IRBD] & IR_lig]--insulin_[IR]'.format(IR),
+        'IR_p+_IR_[TK(Y1158)]':            '{0} & IR_[IRBD]--IR_[IRBD] & IR_[lig]--insulin_[IR]'.format(IR),
+        'IR_p+_IR_[TK(Y1162)]':            '{0} & IR_[IRBD]--IR_[IRBD] & IR_[lig]--insulin_[IR]'.format(IR),
+        'IR_p+_IR_[TK(Y1163)]':            '{0} & IR_[IRBD]--IR_[IRBD] & IR_[lig]--insulin_[IR]'.format(IR),
         'IR_ap+_IR_[JM(Y972)]':            '{0} & IR_[TK(Y1158)]-{{p}} & IR_[TK(Y1162)]-{{p}} & IR_[TK(Y1163)]-{{p}} & IR_[IRBD]--IR_[IRBD] & IR_[lig]--insulin_[IR]'.format(IR),
         'IR_[JMY972]_ppi+_IRS_[PTB]':      '{0} & {1} & IR_[JM(Y972)]-{{p}} & IRS_[PH]--Phospholipids_[IRS]'.format(IR, IRS),
         'IR_[JMY972]_ppi-_IRS_[PTB]':      '{0} & {1}'.format(IR, IRS),
         'IRS_[PH]_i+_Phospholipids_[IRS]': '{0} & {1}'.format(IRS, Phospholipids),
         'IRS_[PH]_i-_Phospholipids_[IRS]': '{0} & {1}'.format(IRS, Phospholipids),
-        'IR_p+_IRS_[(Y)]':                 '{0} & {1} & IR_[JMY972]--IRS_[PTB] & IR_[TK(Y1158)]-{{p}} & IR_[TK(Y1162)]-{{p}} & IR_[TK(Y1163)]-{{p}} & IR_[IRBD]--IR_[IRBD] & IR_lig]--insulin_[IR]'.format(IR, IRS),
+        'IR_p+_IRS_[(Y)]':                 '{0} & {1} & IR_[JMY972]--IRS_[PTB] & IR_[TK(Y1158)]-{{p}} & IR_[TK(Y1162)]-{{p}} & IR_[TK(Y1163)]-{{p}} & IR_[IRBD]--IR_[IRBD] & IR_[lig]--insulin_[IR]'.format(IR, IRS),
         'Grb2_[SOS]_ppi+_SOS_[Grb2]':      '{0} & {1}'.format(Grb2, SOS),
         'Grb2_[SOS]_ppi-_SOS_[Grb2]':      '{0} & {1}'.format(Grb2, SOS),
         'Grb2_[SH2]_ppi+_IRS_[Y]':         '{0} & {1} & IRS_[(Y)]-{{p}}'.format(Grb2, IRS),

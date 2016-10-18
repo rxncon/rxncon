@@ -45,8 +45,8 @@ TYPE_TO_CONSTRUCTOR = {
 
 
 class StateDef:
-    def __init__(self, name: str, repr_def: str, variables_def: Dict[str, Any], neutral_states_def: List[str]):
-        self.name, self.repr_def, self.variables_def, self.neutral_states_def = name, repr_def, variables_def, neutral_states_def
+    def __init__(self, name: str, repr_def: str, vars_def: Dict[str, Any], neutral_states_def: List[str]):
+        self.name, self.repr_def, self.vars_def, self.neutral_states_def = name, repr_def, vars_def, neutral_states_def
 
     def __hash__(self):
         return hash(str(self))
@@ -58,7 +58,7 @@ class StateDef:
         return str(self)
 
     def __eq__(self, other: 'StateDef'):
-        return self.name == other.name and self.repr_def == other.repr_def and self.variables_def == other.variables_def  and \
+        return self.name == other.name and self.repr_def == other.repr_def and self.vars_def == other.vars_def and \
             self.neutral_states_def == other.neutral_states_def
 
     def matches_repr(self, repr: str) -> bool:
@@ -68,9 +68,9 @@ class StateDef:
         assert self.matches_repr(repr)
 
         variables = {}
-        for var, var_def in self.variables_def.items():
+        for var, var_def in self.vars_def.items():
             var_regex = self._to_base_regex().replace(var, MATCHING_REGEX)
-            for other_var in self.variables_def.keys():
+            for other_var in self.vars_def.keys():
                 if other_var != var:
                     var_regex = var_regex.replace(other_var, NON_MATCHING_REGEX)
 
@@ -93,22 +93,16 @@ class StateDef:
         states = []
 
         for state_def in self.neutral_states_def:
-            try:
-                the_state = state_from_str(self._fill_vals_into_vars(state_def, variables))
-            except SyntaxError:
-                the_state = None
-
-            if the_state:
-                states.append(the_state)
+            states.append(state_from_str(self._fill_vals_into_vars(state_def, variables)))
 
         return states
 
     def validate_vars(self, vars: Dict[str, Any]):
         for var, val in vars.items():
-            assert isinstance(val, self.variables_def[var][0])
+            assert isinstance(val, self.vars_def[var][0])
 
             if isinstance(val, Spec):
-                if val.resolution > self.variables_def[var][1]:
+                if val.resolution > self.vars_def[var][1]:
                     raise SyntaxError('Resolution too high.')
 
     def _to_base_regex(self) -> str:
@@ -131,7 +125,7 @@ class StateDef:
 
     def _to_matching_regex(self) -> str:
         regex = self._to_base_regex()
-        for var, var_def in self.variables_def.items():
+        for var, var_def in self.vars_def.items():
             regex = regex.replace(var, TYPE_TO_REGEX[var_def[0]])
         return regex
 
@@ -258,7 +252,7 @@ class State:
 
     @property
     def _elemental_resolutions(self) -> List[LocusResolution]:
-        return [self.definition.variables_def[var][1] for var, value in self.vars.items()
+        return [self.definition.vars_def[var][1] for var, value in self.vars.items()
                 if isinstance(value, Spec)]
 
     @property
