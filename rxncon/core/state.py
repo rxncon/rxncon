@@ -309,10 +309,6 @@ class FullyNeutralState(State):
         raise AssertionError
 
 
-def state_modifier_from_str(modifier: str) -> StateModifier:
-    return StateModifier(modifier.lower())
-
-
 def matching_state_def(repr: str) -> Optional[StateDef]:
     return next((x for x in STATE_DEFS if x.matches_repr(repr)), None)
 

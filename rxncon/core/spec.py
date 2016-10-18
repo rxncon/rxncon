@@ -19,28 +19,25 @@ class Spec(ABC):
         return str(self)
 
     def __str__(self) -> str:
-        def _string_from_spec(spec: Spec) -> str:
-            def struct_name(spec: Spec, suffix: 'SpecSuffix'):
-                if spec.struct_index:
-                    return "{0}{1}@{2}".format(spec.component_name, suffix.value, spec.struct_index)
-                else:
-                    return "{0}{1}".format(spec.component_name, suffix.value)
-
-            suffix = spec_to_suffix[type(spec)]
-
-            if str(spec.locus):
-                return '{0}_[{1}]'.format(struct_name(spec, suffix), str(spec.locus))
+        def struct_name(spec: Spec, suffix: 'SpecSuffix'):
+            if spec.struct_index:
+                return "{0}{1}@{2}".format(spec.component_name, suffix.value, spec.struct_index)
             else:
-                return '{0}'.format(struct_name(spec, suffix))
+                return "{0}{1}".format(spec.component_name, suffix.value)
 
-        return _string_from_spec(self)
+        suffix = spec_to_suffix[type(self)]
+
+        if str(self.locus):
+            return '{0}_[{1}]'.format(struct_name(self, suffix), str(self.locus))
+        else:
+            return '{0}'.format(struct_name(self, suffix))
 
     def __eq__(self, other: 'Spec') -> bool:
         return isinstance(other, type(self)) and self.component_name == other.component_name and self.locus == other.locus \
             and self.struct_index == other.struct_index
 
-    def is_non_struct_equiv_to(self, other: 'Spec') -> bool:
-        return self.to_non_struct_spec() == other.to_non_struct_spec()
+    def __lt__(self, other: 'Spec') -> bool:
+        return str(self) < str(other)
 
     def is_subspec_of(self, other: 'Spec') -> bool:
         if self == other:
@@ -97,45 +94,15 @@ class ProteinSpec(Spec):
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def __lt__(self, other: Spec) -> bool:
-        if isinstance(other, ProteinSpec):
-            return super().__lt__(other)
-        elif isinstance(other, MRNASpec):
-            return False
-        elif isinstance(other, GeneSpec):
-            return False
-        else:
-            raise NotImplementedError
-
 
 class MRNASpec(Spec):
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def __lt__(self, other: Spec) -> bool:
-        if isinstance(other, MRNASpec):
-            return super().__lt__(other)
-        elif isinstance(other, GeneSpec):
-            return False
-        elif isinstance(other, ProteinSpec):
-            return True
-        else:
-            raise NotImplementedError
-
 
 class GeneSpec(Spec):
     def __hash__(self) -> int:
         return hash(str(self))
-
-    def __lt__(self, other: Spec):
-        if isinstance(other, GeneSpec):
-            return super().__lt__(other)
-        elif isinstance(other, MRNASpec):
-            return True
-        elif isinstance(other, ProteinSpec):
-            return True
-        else:
-            raise NotImplementedError
 
 
 class Locus:
@@ -167,22 +134,6 @@ class Locus:
 
     def __eq__(self, other: 'Locus') -> bool:
         return self.domain == other.domain and self.subdomain == other.subdomain and self.residue == other.residue
-
-    def __lt__(self, other: 'Locus') -> bool:
-        if not self.domain and other.domain:
-            return True
-        elif self.domain and other.domain and self.domain < other.domain:
-            return True
-        elif not self.subdomain and other.subdomain:
-            return True
-        elif self.subdomain and other.subdomain and self.subdomain < other.subdomain:
-            return True
-        elif not self.residue and other.residue:
-            return True
-        elif self.residue and other.residue and self.residue < other.residue:
-            return True
-        else:
-            return False
 
     def _validate(self):
         if self.domain:

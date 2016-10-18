@@ -49,6 +49,10 @@ def test_parser():
     assert venn_from_str('~( 1 | 2 )', int).is_equivalent_to(Intersection(Complement(ValueSet(1)), Complement(ValueSet(2))))
 
 
+def test_values():
+    assert set(venn_from_str('1 | 2 | 3 | 4 | 2', int).values) == {1, 2, 3, 4}
+
+
 # Test the superset / subset relationships
 def test_superset_subset_for_unary_sets():
     assert UniversalSet() == ValueSet(None)

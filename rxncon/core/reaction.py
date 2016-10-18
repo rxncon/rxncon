@@ -5,8 +5,8 @@ from rxncon.core.spec import Spec, MRNASpec, ProteinSpec, LocusResolution, GeneS
 from rxncon.core.state import StateDef, State, state_from_str, STATE_DEFS, FullyNeutralState
 from rxncon.util.utils import members
 
-SPEC_REGEX_GROUPED   = '([\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
-SPEC_REGEX_UNGROUPED = '(?:[\\w]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?|[\w]+?|[\\w]+?@[0-9]+?_[\\w\\/\\[\\]\\(\\)]+?|[\w]+?@[0-9]+?|[\w]+?)'
+SPEC_REGEX_MATCHING     = '([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
+SPEC_REGEX_NON_MATCHING = '(?:[A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
 
 BIDIRECTIONAL_VERBS = [
     'ppi', 'ipi', 'ap', 'i'
@@ -63,10 +63,10 @@ class ReactionDef:
 
         variables = {}
         for var, var_def in self.vars_def.items():
-            var_regex = self._to_base_regex().replace(var, SPEC_REGEX_GROUPED)
+            var_regex = self._to_base_regex().replace(var, SPEC_REGEX_MATCHING)
             for other_var in self.vars_def.keys():
                 if other_var != var:
-                    var_regex = var_regex.replace(other_var, SPEC_REGEX_UNGROUPED)
+                    var_regex = var_regex.replace(other_var, SPEC_REGEX_NON_MATCHING)
 
             val_str = re.match(var_regex, repr).group(1)
             val_spec = spec_from_str(val_str)
@@ -138,7 +138,7 @@ class ReactionDef:
     def _to_matching_regex(self) -> str:
         regex = self._to_base_regex()
         for var in self.vars_def.keys():
-            regex = regex.replace(var, SPEC_REGEX_GROUPED)
+            regex = regex.replace(var, SPEC_REGEX_MATCHING)
 
         return regex
 

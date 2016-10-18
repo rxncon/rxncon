@@ -70,7 +70,6 @@ def test_equality():
     non_struct = spec_from_str('A_[d/s(r)]')
     struct     = spec_from_str('A@5_[d/s(r)]')
 
-    assert struct.is_non_struct_equiv_to(non_struct)
-    assert non_struct.is_non_struct_equiv_to(struct)
+    assert struct.to_non_struct_spec() == non_struct
     assert not struct == non_struct
     assert not non_struct == struct
