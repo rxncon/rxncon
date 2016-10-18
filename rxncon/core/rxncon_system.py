@@ -10,15 +10,15 @@ from rxncon.core.spec import Spec
 
 class RxnConSystem:
     def __init__(self, reactions: List[Reaction], contingencies: List[Contingency]):
-        self.reactions = reactions
+        self.reactions     = reactions
         self.contingencies = contingencies
 
-        self._components         = []
-        self._states             = []
-        self._produced_states    = []
-        self._consumed_states    = []
-        self._synthesised_states = []
-        self._global_states      = []
+        self._components         = []  # type: List[Spec]
+        self._states             = []  # type: List[State]
+        self._produced_states    = []  # type: List[State]
+        self._consumed_states    = []  # type: List[State]
+        self._synthesised_states = []  # type: List[State]
+        self._global_states      = []  # type: List[State]
 
         self._expand_fully_neutral_states()
         self._calculate_produced_states()
@@ -150,8 +150,8 @@ class RxnConSystem:
     def _expand_reaction_terms(self, terms: List[ReactionTerm]):
         for term in terms:
             if term.is_fully_neutral:
-                term.states = [state for component in term.specs for state in self.states_for_component(component) if state.is_neutral and
-                               not state == FullyNeutralState()]
+                term.states = [state for component in term.specs for state in self.states_for_component(component)
+                               if state.is_neutral and state != FullyNeutralState()]
 
     def _expand_non_elemental_contingencies(self):
         def expanded_effector(effector: Effector):
