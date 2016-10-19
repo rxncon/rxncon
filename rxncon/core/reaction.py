@@ -9,7 +9,7 @@ SPEC_REGEX_MATCHING     = '([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*
 SPEC_REGEX_NON_MATCHING = '(?:[A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
 
 BIDIRECTIONAL_VERBS = [
-    'ppi', 'ipi', 'ap', 'i'
+    'ppi', 'ipi', 'i'
 ]
 
 class ReactionTerm:
