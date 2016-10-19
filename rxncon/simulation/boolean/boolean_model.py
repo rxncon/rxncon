@@ -89,9 +89,12 @@ class ReactionTarget(Target):
         return state_target in self.degraded_targets
 
     @property
-    def components(self) -> List[Spec]:
-        return list(set(self.reaction_parent.components_lhs + self.reaction_parent.components_rhs))
+    def components_lhs(self) -> List[Spec]:
+        return self.reaction_parent.components_lhs
 
+    @property
+    def components_rhs(self) -> List[Spec]:
+        return self.reaction_parent.components_rhs
 
 class StateTarget(Target):
     def __init__(self, state_parent: State):
@@ -167,7 +170,8 @@ class UpdateRule:
 
 def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     def stateless_component_targets(reaction_targets: List[ReactionTarget]):
-        all_components = [component for reaction_target in reaction_targets for component in reaction_target.components]
+        all_components = [component for reaction_target in reaction_targets
+                          for component in reaction_target.components_lhs + reaction_target.components_rhs]
         stateless_components = [component for component in all_components if naive_component_factor(component).is_equivalent_to(UniversalSet())]
         return {x: ComponentStateTarget(x) for x in stateless_components}
 
@@ -229,7 +233,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     # components AND contingencies
     for reaction_target in reaction_targets:
         cont_fac = Intersection(*(contingency_factor(x) for x in rxncon_sys.contingencies_for_reaction(reaction_target.reaction_parent)))
-        comp_fac = Intersection(*(component_factor(x, stateless_targets) for x in reaction_target.components))
+        comp_fac = Intersection(*(component_factor(x, stateless_targets) for x in reaction_target.components_lhs))
         reaction_rules.append(UpdateRule(reaction_target, Intersection(cont_fac, comp_fac).to_simplified_set()))
 
     # Factor for a state target is of the form:
@@ -313,7 +317,6 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
     return 'targets, factors\n' + '\n'.join(rule for rule in rule_strs) + '\n', \
            {name: str(target) for target, name in boolnet_names.items()}, \
            {boolnet_names[target]: value for target, value in boolean_model.initial_conditions.target_to_value.items()}
-
 
 
 class BooleanModelConfigPath:

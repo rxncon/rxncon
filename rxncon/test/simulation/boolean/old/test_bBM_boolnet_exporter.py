@@ -123,8 +123,8 @@ def rule_A__B():
 
 @pytest.fixture
 def rule_A_ppi_B():
-    value_A_ppi_B = venn.Intersection(venn.Intersection(venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[0].to_component_spec()))),
-                                                        venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[1].to_component_spec())))),
+    value_A_ppi_B = venn.Intersection(venn.Intersection(venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components_lhs[0].to_component_spec()))),
+                                                        venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components_lhs[1].to_component_spec())))),
                                       venn.ValueSet(bbm.Node(rfs.state_from_string("A-{P}"))))
     return bbm.Rule(bbm.Node(rfs.reaction_from_string("A_ppi_B")), bbm.Factor(value_A_ppi_B))
 
@@ -153,48 +153,48 @@ def rule_A_p_deg():
 
 @pytest.fixture
 def rule_C_pplus_A():
-    value_C_pplus_A = venn.Intersection(venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components[0].to_component_spec()))),
-                                        venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components[1].to_component_spec()))))
+    value_C_pplus_A = venn.Intersection(venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components_lhs[0].to_component_spec()))),
+                                        venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components_lhs[1].to_component_spec()))))
     return bbm.Rule(bbm.Node(rfs.reaction_from_string("C_p+_A")), bbm.Factor(value_C_pplus_A))
 
 
 @pytest.fixture
 def rule_D_pminus_A():
-    value_D_pminus_A = venn.Intersection(venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("D_p-_A").components[0].to_component_spec()))),
-                                         venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("D_p-_A").components[1].to_component_spec()))))
+    value_D_pminus_A = venn.Intersection(venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("D_p-_A").components_lhs[0].to_component_spec()))),
+                                         venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("D_p-_A").components_lhs[1].to_component_spec()))))
     return bbm.Rule(bbm.Node(rfs.reaction_from_string("D_p-_A")), bbm.Factor(value_D_pminus_A))
 
 
 @pytest.fixture
 def rule_E_pminus_A():
-    value_E_pminus_A = venn.Intersection(venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("E_p-_A").components[0].to_component_spec()))),
-                                         venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("E_p-_A").components[1].to_component_spec()))))
+    value_E_pminus_A = venn.Intersection(venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("E_p-_A").components_lhs[0].to_component_spec()))),
+                                         venn.ValueSet(bbm.Node(sta.ComponentState(rfs.reaction_from_string("E_p-_A").components_lhs[1].to_component_spec()))))
 
     return bbm.Rule(bbm.Node(rfs.reaction_from_string("E_p-_A")), bbm.Factor(value_E_pminus_A))
 
 @pytest.fixture
 def initial_conditions_boolnet_input_output_string():
-    return [bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[0].to_component_spec())), None),
-            bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[1].to_component_spec())), None),
-            bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components[0].to_component_spec())), None),
+    return [bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components_lhs[0].to_component_spec())), None),
+            bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components_lhs[1].to_component_spec())), None),
+            bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components_lhs[0].to_component_spec())), None),
             bbm.InitCondition(bbm.Node(rfs.state_from_string("[Input]")),None)
             ]
 
 @pytest.fixture
 def initialConditions_boolnet_string():
-    return [bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[0].to_component_spec())), None),
-            bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[1].to_component_spec())), None),
-            bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components[0].to_component_spec())), None)
+    return [bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components_lhs[0].to_component_spec())), None),
+            bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components_lhs[1].to_component_spec())), None),
+            bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components_lhs[0].to_component_spec())), None)
             ]
 
 
 @pytest.fixture
 def initialConditions():
-    return [bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[0].to_component_spec())), None),
-                      bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components[1].to_component_spec())), None),
-                      bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components[0].to_component_spec())), None),
-                      bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("D_p-_A").components[0].to_component_spec())), None),
-                      bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("E_p-_A").components[0].to_component_spec())), None)
+    return [bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components_lhs[0].to_component_spec())), None),
+                      bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("A_ppi_B").components_lhs[1].to_component_spec())), None),
+                      bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("C_p+_A").components_lhs[0].to_component_spec())), None),
+                      bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("D_p-_A").components_lhs[0].to_component_spec())), None),
+                      bbm.InitCondition(bbm.Node(sta.ComponentState(rfs.reaction_from_string("E_p-_A").components_lhs[0].to_component_spec())), None)
            ]
 
 
