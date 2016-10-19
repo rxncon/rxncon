@@ -251,3 +251,11 @@ def test_trsl_trsc_deg():
     for update_rule in boolean_model.update_rules:
         if str(update_rule.target) in expected_rules.keys():
             assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+
+def test_deg_with_contingency():
+    boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(res)]
+                                                       D_ub+_A_[(res)]
+                                                       D_p+_A_[(other)]
+                                                       C_deg_A; ! A_[(res)]-{p}""").rxncon_system)
+
+    print('hallo')

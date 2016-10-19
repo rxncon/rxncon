@@ -61,8 +61,8 @@ class ReactionTarget(Target):
         self.reaction_parent     = reaction_parent
         self.produced_targets    = [StateTarget(x) for x in reaction_parent.produced_states]
         self.consumed_targets    = [StateTarget(x) for x in reaction_parent.consumed_states]
-        self.synthesised_targets = [StateTarget(x) for x in reaction_parent.synthesised_states] + [ComponentStateTarget(x) for x in reaction_parent.synthesised_components]
-        self.degraded_targets    = [StateTarget(x) for x in reaction_parent.degraded_states] + [ComponentStateTarget(x) for x in reaction_parent.degraded_components]
+        self.synthesised_targets = [StateTarget(x) for x in reaction_parent.synthesised_states]
+        self.degraded_targets    = [StateTarget(x) for x in reaction_parent.degraded_states]
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -92,6 +92,34 @@ class ReactionTarget(Target):
     @property
     def components_rhs(self) -> List[Spec]:
         return self.reaction_parent.components_rhs
+
+    def fix_synthesis(self, component_state_targets: List['ComponentStateTarget']):
+        for component in self.reaction_parent.synthesised_components:
+            if ComponentStateTarget(component) in component_state_targets:
+                self.synthesised_targets.append(ComponentStateTarget(component))
+
+
+    def fix_degradation(self, component_state_targets: List['ComponentStateTarget'], rxncon_sys: RxnConSystem):
+        for component in self.reaction_parent.degraded_components:
+            if ComponentStateTarget(component) in component_state_targets:
+                self.degraded_targets.append(ComponentStateTarget(component))
+            else:
+                explicitly_degraded_states = [state for state in self.reaction_parent.degraded_states if component in state.components]
+                contingency_solutions = \
+                    Intersection(*(contingency_factor(x) for x in rxncon_sys.contingencies_for_reaction(self.reaction_parent))).calc_solutions()
+
+                for soln in contingency_solutions:
+                    assert all(soln.values())
+                    explicitly_degraded_states += [state_target._state_parent for state_target in soln.keys()]
+
+                for _, group in rxncon_sys.states_for_component_grouped(component).items():
+                    if any(explicitly_degraded_state in group for explicitly_degraded_state in explicitly_degraded_states):
+                        pass
+                    else:
+                        explicitly_degraded_states += group
+
+                self.degraded_targets += [StateTarget(x) for x in explicitly_degraded_states]
+
 
 class StateTarget(Target):
     def __init__(self, state_parent: State):
@@ -165,8 +193,29 @@ class UpdateRule:
         return self.factor.values
 
 
+def contingency_factor(contingency: Contingency) -> VennSet:
+    def parse_effector(eff: Effector) -> VennSet:
+        if isinstance(eff, StateEffector):
+            return ValueSet(StateTarget(eff.expr.to_non_structured_state()))
+        elif isinstance(eff, NotEffector):
+            return Complement(parse_effector(eff.expr))
+        elif isinstance(eff, OrEffector):
+            return Union(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
+        elif isinstance(eff, AndEffector):
+            return Intersection(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
+        else:
+            raise AssertionError
+
+    if contingency.type in [ContingencyType.requirement, ContingencyType.positive]:
+        return parse_effector(contingency.effector)
+    elif contingency.type in [ContingencyType.inhibition, ContingencyType.negative]:
+        return Complement(parse_effector(contingency.effector))
+    else:
+        return UniversalSet()
+
+
 def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
-    def stateless_component_targets(reaction_targets: List[ReactionTarget]):
+    def component_state_targets(reaction_targets: List[ReactionTarget]):
         all_components = [component for reaction_target in reaction_targets
                           for component in reaction_target.components_lhs + reaction_target.components_rhs]
         stateless_components = [component for component in all_components if naive_component_factor(component).is_equivalent_to(UniversalSet())]
@@ -185,26 +234,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
         else:
             return naive_component_factor(component)
 
-    def contingency_factor(contingency: Contingency) -> VennSet:
-        def parse_effector(eff: Effector) -> VennSet:
-            if isinstance(eff, StateEffector):
-                return ValueSet(StateTarget(eff.expr.to_non_structured_state()))
-            elif isinstance(eff, NotEffector):
-                return Complement(parse_effector(eff.expr))
-            elif isinstance(eff, OrEffector):
-                return Union(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
-            elif isinstance(eff, AndEffector):
-                return Intersection(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
-            else:
-                raise AssertionError
-
-        if contingency.type in [ContingencyType.requirement, ContingencyType.positive]:
-            return parse_effector(contingency.effector)
-        elif contingency.type in [ContingencyType.inhibition, ContingencyType.negative]:
-            return Complement(parse_effector(contingency.effector))
-        else:
-            return UniversalSet()
-
     def initial_conditions(reaction_targets: List[ReactionTarget], state_targets: List[StateTarget]) -> BooleanModelConfig:
         conds = {}
 
@@ -219,9 +248,13 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
 
         return BooleanModelConfig(conds)
 
-    reaction_targets  = [ReactionTarget(x) for x in rxncon_sys.reactions]
-    stateless_targets = stateless_component_targets(reaction_targets)
-    state_targets     = [StateTarget(x.to_non_structured_state()) for x in rxncon_sys.states] + list(stateless_targets.values())
+    reaction_targets        = [ReactionTarget(x) for x in rxncon_sys.reactions]
+    component_state_targets = component_state_targets(reaction_targets)
+    state_targets           = [StateTarget(x.to_non_structured_state()) for x in rxncon_sys.states] + list(component_state_targets.values())
+
+    for reaction_target in reaction_targets:
+        reaction_target.fix_degradation(list(component_state_targets.values()), rxncon_sys)
+        reaction_target.fix_synthesis(list(component_state_targets.values()))
 
     reaction_rules  = []
     state_rules     = []
@@ -230,14 +263,14 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     # components AND contingencies
     for reaction_target in reaction_targets:
         cont_fac = Intersection(*(contingency_factor(x) for x in rxncon_sys.contingencies_for_reaction(reaction_target.reaction_parent)))
-        comp_fac = Intersection(*(component_factor(x, stateless_targets) for x in reaction_target.components_lhs))
+        comp_fac = Intersection(*(component_factor(x, component_state_targets) for x in reaction_target.components_lhs))
         reaction_rules.append(UpdateRule(reaction_target, Intersection(cont_fac, comp_fac).to_simplified_set()))
 
     # Factor for a state target is of the form:
     # synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
     for state_target in state_targets:
         synt_fac = Union(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
-        comp_fac = Intersection(*(component_factor(x, stateless_targets) for x in state_target.components))
+        comp_fac = Intersection(*(component_factor(x, component_state_targets) for x in state_target.components))
         degr_fac = Complement(Union(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
 
         prod_facs = []

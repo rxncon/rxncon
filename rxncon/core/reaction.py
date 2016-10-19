@@ -441,10 +441,16 @@ class Reaction:
     def __init__(self, definition: ReactionDef, vars: Dict[str, Any]):
         self._definition = definition
         self._vars       = vars
+
         self.name        = definition.name
         self.terms_lhs   = definition.terms_lhs_from_vars(vars)
         self.terms_rhs   = definition.terms_rhs_from_vars(vars)
         self._repr       = definition.repr_from_vars(vars)
+
+        self._consumed_states    = None
+        self._produced_states    = None
+        self._synthesised_states = None
+        self._degraded_states    = None
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -458,6 +464,12 @@ class Reaction:
     def __eq__(self, other: 'Reaction') -> bool:
         return self._definition == other._definition and self._vars == other._vars
 
+    def invalidate_state_cache(self):
+        self._consumed_states    = None
+        self._produced_states    = None
+        self._synthesised_states = None
+        self._degraded_states    = None
+
     @property
     def components_lhs(self) -> List[Spec]:
         return [spec for term in self.terms_lhs for spec in term.specs]
@@ -468,43 +480,47 @@ class Reaction:
 
     @property
     def consumed_states(self) -> List[State]:
-        states = []
+        if self._consumed_states is None:
+            self._consumed_states = []
 
-        for term in self.terms_lhs:
-            if all(spec in self.components_rhs for spec in term.specs):
-                states += term.states
+            for term in self.terms_lhs:
+                if all(spec in self.components_rhs for spec in term.specs):
+                    self._consumed_states += term.states
 
-        return states
+        return self._consumed_states
 
     @property
     def produced_states(self) -> List[State]:
-        states = []
+        if self._produced_states  is None:
+            self._produced_states = []
 
-        for term in self.terms_rhs:
-            if all(spec in self.components_lhs for spec in term.specs):
-                states += term.states
+            for term in self.terms_rhs:
+                if all(spec in self.components_lhs for spec in term.specs):
+                    self._produced_states += term.states
 
-        return states
+        return self._produced_states
 
     @property
     def degraded_states(self) -> List[State]:
-        states = []
+        if self._degraded_states is None:
+            self._degraded_states = []
 
-        for term in self.terms_lhs:
-            if not any(spec in self.components_rhs for spec in term.specs):
-                states += term.states
+            for term in self.terms_lhs:
+                if not any(spec in self.components_rhs for spec in term.specs):
+                    self._degraded_states += term.states
 
-        return states
+        return self._degraded_states
 
     @property
     def synthesised_states(self) -> List[State]:
-        states = []
+        if self._synthesised_states is None:
+            self._synthesised_states = []
 
-        for term in self.terms_rhs:
-            if not any(spec in self.components_lhs for spec in term.specs):
-                states += term.states
+            for term in self.terms_rhs:
+                if not any(spec in self.components_lhs for spec in term.specs):
+                    self._synthesised_states += term.states
 
-        return states
+        return self._synthesised_states
 
     @property
     def degraded_components(self) -> List[Spec]:

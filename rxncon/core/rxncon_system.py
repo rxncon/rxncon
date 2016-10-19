@@ -146,6 +146,7 @@ class RxnConSystem:
         for reaction in self.reactions:
             self._expand_reaction_terms(reaction.terms_lhs)
             self._expand_reaction_terms(reaction.terms_rhs)
+            reaction.invalidate_state_cache()
 
     def _expand_reaction_terms(self, terms: List[ReactionTerm]):
         for term in terms:
