@@ -112,11 +112,8 @@ class ReactionTarget(Target):
                     assert all(soln.values())
                     explicitly_degraded_states += [state_target._state_parent for state_target in soln.keys()]
 
-                for _, group in rxncon_sys.states_for_component_grouped(component).items():
-                    if any(explicitly_degraded_state in group for explicitly_degraded_state in explicitly_degraded_states):
-                        pass
-                    else:
-                        explicitly_degraded_states += group
+                if not explicitly_degraded_states:
+                    explicitly_degraded_states = rxncon_sys.states_for_component(component)
 
                 self.degraded_targets += [StateTarget(x) for x in explicitly_degraded_states]
 
