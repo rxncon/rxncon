@@ -68,10 +68,7 @@ class ReactionTarget(Target):
         return hash(str(self))
 
     def __eq__(self, other: Target):
-        #  Possibly more than one ReactionTarget from a single reaction_parent, so also check all its targets.
-        return isinstance(other, ReactionTarget) and self.reaction_parent == other.reaction_parent and self.produced_targets == other.produced_targets and \
-            self.consumed_targets == other.consumed_targets and self.synthesised_targets == other.synthesised_targets and \
-            self.degraded_targets == other.degraded_targets
+        return isinstance(other, ReactionTarget) and self.reaction_parent == other.reaction_parent
 
     def __str__(self) -> str:
         return str(self.reaction_parent)

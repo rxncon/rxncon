@@ -224,3 +224,30 @@ def test_insulin_system():
 
     for update_rule in boolean_model.update_rules:
         assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+
+
+def test_trsl_trsc_deg():
+    boolean_model = boolean_model_from_rxncon(Quick("""PolII_trsc_TargetGene
+                                                       Ribo_trsl_TargetmRNA
+                                                       Nuclease_deg_TargetmRNA
+                                                       Protease_deg_Target""").rxncon_system)
+
+    expected_rules = {
+        'PolII_trsc_TargetGene':   '( PolII & TargetGene )',
+        'Ribo_trsl_TargetmRNA':    '( Ribo & TargetmRNA )',
+        'Nuclease_deg_TargetmRNA': '( Nuclease & TargetmRNA )',
+        'Protease_deg_Target':     '( Protease & Target )',
+        'PolII':                   '( PolII )',
+        'TargetGene':              '( TargetGene )',
+        'Ribo':                    '( Ribo )',
+        'TargetmRNA':              '( PolII_trsc_TargetGene | ( TargetmRNA & ~( Nuclease_deg_TargetmRNA )))',
+        'Nuclease':                '( Nuclease )',
+        'Protease':                '( Protease )',
+        'Target':                  '( Ribo_trsl_TargetmRNA | ( Target & ~( Protease_deg_Target )))'
+    }
+
+    assert len(boolean_model.update_rules) == len(expected_rules)
+
+    for update_rule in boolean_model.update_rules:
+        if str(update_rule.target) in expected_rules.keys():
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))

@@ -127,7 +127,7 @@ class ValueSet(UnarySet):
 
     def __str__(self) -> str:
         if self.value:
-            return '({})'.format(self.value)
+            return '({})'.format(str(self.value))
         else:
             return 'UniversalSet'
 
@@ -176,7 +176,7 @@ class Complement(UnarySet):
         return str(self)
 
     def __str__(self) -> str:
-        return '!({})'.format(self.expr)
+        return '!({})'.format(str(self.expr))
 
     @property
     def values(self):
@@ -209,7 +209,7 @@ class Intersection(NarySet):
         return str(self)
 
     def __str__(self) -> str:
-        return '({})'.format(' & '.join(expr for expr in self.exprs))
+        return '({})'.format(' & '.join(str(expr) for expr in self.exprs))
 
     def _to_pyeda_expr(self, val_to_sym: OrderedDict) -> Expression:
         return And(*(expr._to_pyeda_expr(val_to_sym) for expr in self.exprs))
@@ -229,7 +229,7 @@ class Union(NarySet):
         return str(self)
 
     def __str__(self) -> str:
-        return '({})'.format(' | '.join(expr for expr in self.exprs))
+        return '({})'.format(' | '.join(str(expr) for expr in self.exprs))
 
     def _to_pyeda_expr(self, val_to_sym: OrderedDict) -> Expression:
         return Or(*(expr._to_pyeda_expr(val_to_sym) for expr in self.exprs))
