@@ -574,6 +574,7 @@ def reaction_from_str(repr: str, standardize=True) -> Reaction:
 
         return vars
 
+    repr = repr.strip()
     reaction_def = matching_reaction_def(repr)
 
     if not reaction_def:

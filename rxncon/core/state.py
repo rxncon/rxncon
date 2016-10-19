@@ -314,6 +314,8 @@ def matching_state_def(repr: str) -> Optional[StateDef]:
 
 
 def state_from_str(repr: str) -> State:
+    repr = repr.strip()
+
     if repr == FULLY_NEUTRAL_STATE:
         return FullyNeutralState()
 
