@@ -249,8 +249,7 @@ def test_trsl_trsc_deg():
     assert len(boolean_model.update_rules) == len(expected_rules)
 
     for update_rule in boolean_model.update_rules:
-        if str(update_rule.target) in expected_rules.keys():
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+        assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
 
 def test_deg_with_contingency():
     boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(res)]
@@ -258,4 +257,25 @@ def test_deg_with_contingency():
                                                        D_p+_A_[(other)]
                                                        C_deg_A; ! A_[(res)]-{p}""").rxncon_system)
 
-    print('hallo')
+    # Component expression.
+    A = '(( A_[(res)]-{0} | A_[(res)]-{p} | A_[(res)]-{ub} ) & ( A_[(other)]-{0} | A_[(other)]-{p} ))'
+
+    expected_rules = {
+        'B_p+_A_[(res)]':   '( B & {} )'.format(A),
+        'D_ub+_A_[(res)]':  '( D & {} )'.format(A),
+        'D_p+_A_[(other)]': '( D & {} )'.format(A),
+        'C_deg_A':          '( C & {} & A_[(res)]-{{p}} )'.format(A),
+        'A_[(res)]-{0}':    '( {} & A_[(res)]-{{0}} & ~( B_p+_A_[(res)] & A_[(res)]-{{0}} ) & ~( D_ub+_A_[(res)] & A_[(res)]-{{0}} ))'.format(A),
+        'A_[(res)]-{p}':    '( {} & ~( C_deg_A ) & (( B_p+_A_[(res)] & A_[(res)]-{{0}} ) | A_[(res)]-{{p}} ))'.format(A),
+        'A_[(res)]-{ub}':   '( {} & (( D_ub+_A_[(res)] & A_[(res)]-{{0}} ) | A_[(res)]-{{ub}} ))'.format(A),
+        'A_[(other)]-{0}':  '( {} & A_[(other)]-{{0}} & ~( D_p+_A_[(other)] & A_[(other)]-{{0}} ))'.format(A),
+        'A_[(other)]-{p}':  '( {} & (( D_p+_A_[(other)] & A_[(other)]-{{0}} ) | A_[(other)]-{{p}} ))'.format(A),
+        'B':                'B',
+        'C':                'C',
+        'D':                'D'
+    }
+
+    assert len(boolean_model.update_rules) == len(expected_rules)
+
+    for update_rule in boolean_model.update_rules:
+        assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
