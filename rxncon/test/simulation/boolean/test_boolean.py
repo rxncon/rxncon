@@ -7,9 +7,15 @@ from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, R
     StateTarget, ComponentStateTarget
 
 
-def target_from_str(target_str):
+def target_from_str(target_str: str):
     try:
-        return ReactionTarget(reaction_from_str(target_str))
+        if '#' in target_str:
+            rxn_str, index_str = target_str.split('#')
+            target = ReactionTarget(reaction_from_str(rxn_str))
+            target.variant_index = int(index_str)
+            return target
+        else:
+            return ReactionTarget(reaction_from_str(target_str))
     except SyntaxError:
         pass
 
@@ -279,3 +285,31 @@ def test_deg_with_contingency():
 
     for update_rule in boolean_model.update_rules:
         assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+
+
+def test_deg_with_boolean_contingency():
+    boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(r1)]
+                                                       D_p+_A_[(r2)]
+                                                       C_deg_A; ! <X>
+                                                       <X>; OR A_[(r1)]-{p}
+                                                       <X>; OR A_[(r2)]-{p}""").rxncon_system)
+
+    # Component factor
+    A = '(( A_[(r1)]-{0} | A_[(r1)]-{p} ) & ( A_[(r2)]-{0} | A_[(r2)]-{p} ))'
+
+    target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
+
+    if target_to_factor[target_from_str('C_deg_A')].is_equivalent_to(venn_from_str('( {} & C & A_[(r1)]-{{p}} )'.format(A), target_from_str)):
+        # C_deg_A reaction describes the degradation of A_[(r1)]-{p}
+        expected_rule = '( {} & ~( C_deg_A ) & ( A_[(r1)]-{{p}} | ( B_p+_A_[(r1)] & A_[(r1)]-{{0}} )))'.format(A)
+        print(target_to_factor[target_from_str('A_[(r1)]-{p}')])
+        print(expected_rule)
+        assert target_to_factor[target_from_str('A_[(r1)]-{p}')].is_equivalent_to(venn_from_str(expected_rule, target_from_str))
+    else:
+        raise AssertionError
+
+
+
+
+
+

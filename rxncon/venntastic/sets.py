@@ -7,7 +7,7 @@ import re
 
 from pyeda.inter import And, Or, Not, expr
 from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies, Expression, Literal, NaryOp, \
-    Complement as pyedaComplement
+    Complement as pyedaComplement, One, Zero
 
 SYMS = [''.join(tup) for tup in product('ABCDEFGHIJKLMNOPQRSTUVWXYZ', repeat=2)]
 
@@ -37,7 +37,11 @@ class Set:
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
         dnf_set = self._to_pyeda_expr(val_to_sym).to_dnf()
 
-        if isinstance(dnf_set, Literal):
+        if dnf_set is One:
+            return [UniversalSet()]
+        elif dnf_set is Zero:
+            return [EmptySet()]
+        elif isinstance(dnf_set, Literal):
             return [venn_from_pyeda(dnf_set, sym_to_val)]
         elif isinstance(dnf_set, NaryOp):
             return [venn_from_pyeda(x, sym_to_val) for x in dnf_set.xs]
@@ -246,7 +250,11 @@ def UniversalSet() -> Set:
 
 
 def venn_from_pyeda(pyeda_expr, sym_to_val):
-    if isinstance(pyeda_expr, Variable):
+    if pyeda_expr is One:
+        return UniversalSet()
+    elif pyeda_expr is Zero:
+        return EmptySet()
+    elif isinstance(pyeda_expr, Variable):
         return ValueSet(sym_to_val[pyeda_expr.name])
     elif isinstance(pyeda_expr, AndOp):
         return Intersection(*(venn_from_pyeda(x, sym_to_val) for x in pyeda_expr.xs))
