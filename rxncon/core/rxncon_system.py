@@ -167,6 +167,8 @@ class RxnConSystem:
                     return effector
                 else:
                     elemental_states = [state for state in self.states if state.is_subset_of(effector.expr)]
+                    assert elemental_states, 'Could not find elemental states which are subset of the non-elemental ' \
+                                             'state {}'.format(effector.expr)
                     assert all(state.is_elemental for state in elemental_states)
                     return MultiOrEffector(elemental_states)
             elif isinstance(effector, AndEffector):

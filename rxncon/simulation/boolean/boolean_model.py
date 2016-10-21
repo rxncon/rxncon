@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Union
 
 from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union, Complement, UniversalSet
 from rxncon.core.reaction import Reaction
@@ -213,10 +213,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
 
         return BooleanModelConfig(conds)
 
-    component_to_factor       = {}  # type: Dict[Spec, VennSet]
-    reaction_target_to_factor = {}  # type: Dict[ReactionTarget, VennSet]
-    component_state_targets   = []  # type: List[ComponentStateTarget]
-
     def calc_component_factors():
         for component in rxncon_sys.components():
             grouped_states = rxncon_sys.states_for_component_grouped(component)
@@ -239,29 +235,73 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
                     target.variant_index = index
                     reaction_target_to_factor[target] = factor
 
-    def add_degradations():
+    def calc_degradation_targets():
         for reaction_target, contingency_factor in reaction_target_to_factor.items():
+            # First: reaction with a non-trivial contingency.
             if reaction_target.degraded_components and not contingency_factor.is_equivalent_to(UniversalSet()):
-                degraded_components = reaction_target.degraded_components
-                degraded_state_targets = [state_target for state_target in contingency_factor.values
-                                          if any(state_component in degraded_components for state_component in state_target.components)]
+                for degraded_component in reaction_target.degraded_components:
+                    if ComponentStateTarget(degraded_component) in component_state_targets:
+                        reaction_target.degraded_targets.append(ComponentStateTarget(degraded_component))
+                    else:
+                        reaction_target.degraded_targets += [state_target for state_target in contingency_factor.values
+                                                             if degraded_component in state_target.components]
 
-                reaction_target.degraded_targets += degraded_state_targets
+            # Second: reaction with a trivial contingency.
+            elif reaction_target.degraded_components and contingency_factor.is_equivalent_to(UniversalSet()):
+                for degraded_component in reaction_target.degraded_components:
+                    if ComponentStateTarget(degraded_component) in component_state_targets:
+                        reaction_target.degraded_targets.append(ComponentStateTarget(degraded_component))
+                    else:
+                        reaction_target.degraded_targets += \
+                            [StateTarget(x) for x in rxncon_sys.states_for_component(degraded_component)]
 
-            for component in reaction_target.degraded_components:
-                if ComponentStateTarget(component) in component_state_targets:
-                    reaction_target.degraded_targets.append(ComponentStateTarget(component))
-
-    def add_syntheses():
+    def calc_synthesis_targets():
         for reaction_target, _ in reaction_target_to_factor.items():
             for component in reaction_target.synthesised_components:
                 if ComponentStateTarget(component) in component_state_targets:
                     reaction_target.synthesised_targets.append(ComponentStateTarget(component))
 
+    def calc_reaction_rules():
+        # Factor for a reaction target is of the form:
+        # components AND contingencies
+        for reaction_target, contingency_factor in reaction_target_to_factor.items():
+            component_factor = Intersection(*(component_to_factor[x] for x in reaction_target.components_lhs))
+            reaction_rules.append(UpdateRule(reaction_target, Intersection(component_factor, contingency_factor).to_simplified_set()))
+
+    def calc_state_rules():
+        # Factor for a state target is of the form:
+        # synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
+        for state_target in state_targets:
+            synt_fac = Union(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
+            comp_fac = Intersection(*(component_to_factor[x] for x in state_target.components))
+            degr_fac = Complement(Union(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
+
+            prod_facs = []
+            cons_facs = []
+
+            for reaction_target in reaction_targets:
+                if reaction_target.produces(state_target):
+                    sources = Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
+                    prod_facs.append(Intersection(ValueSet(reaction_target), sources))
+
+                if reaction_target.consumes(state_target):
+                    sources = Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
+                    cons_facs.append(Complement(Intersection(ValueSet(reaction_target), sources)))
+
+            prod_cons_fac = Union(Union(*prod_facs), Intersection(ValueSet(state_target), Intersection(*cons_facs)))
+
+            state_rules.append(UpdateRule(state_target,
+                                          Union(synt_fac,
+                                                Intersection(comp_fac, degr_fac, prod_cons_fac)).to_simplified_set()))
+
+    component_to_factor       = {}  # type: Dict[Spec, VennSet]
+    reaction_target_to_factor = {}  # type: Dict[ReactionTarget, VennSet]
+    component_state_targets   = []  # type: List[ComponentStateTarget]
+
     calc_component_factors()
     calc_contingency_factors()
-    add_degradations()
-    add_syntheses()
+    calc_degradation_targets()
+    calc_synthesis_targets()
 
     state_targets    = component_state_targets + [StateTarget(x) for x in rxncon_sys.states]
     reaction_targets = list(reaction_target_to_factor.keys())
@@ -269,36 +309,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
     reaction_rules = []
     state_rules    = []
 
-    # Factor for a reaction target is of the form:
-    # components AND contingencies
-    for reaction_target, contingency_factor in reaction_target_to_factor.items():
-        component_factor = Intersection(*(component_to_factor[x] for x in reaction_target.components_lhs))
-        reaction_rules.append(UpdateRule(reaction_target, Intersection(component_factor, contingency_factor).to_simplified_set()))
-
-
-    # Factor for a state target is of the form:
-    # synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
-    for state_target in state_targets:
-        synt_fac = Union(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
-        comp_fac = Intersection(*(component_to_factor[x] for x in state_target.components))
-        degr_fac = Complement(Union(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
-
-        prod_facs = []
-        cons_facs = []
-
-        for reaction_target in reaction_targets:
-            if reaction_target.produces(state_target):
-                sources = Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
-                prod_facs.append(Intersection(ValueSet(reaction_target), sources))
-
-            if reaction_target.consumes(state_target):
-                sources = Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
-                cons_facs.append(Complement(Intersection(ValueSet(reaction_target), sources)))
-
-        prod_cons_fac = Union(Union(*prod_facs), Intersection(ValueSet(state_target), Intersection(*cons_facs)))
-
-        state_rules.append(UpdateRule(state_target,
-                                      Union(synt_fac, Intersection(comp_fac, degr_fac, prod_cons_fac)).to_simplified_set()))
+    calc_reaction_rules()
+    calc_state_rules()
 
     return BooleanModel(reaction_rules + state_rules, initial_conditions(reaction_targets, state_targets))
 
