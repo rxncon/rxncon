@@ -10,9 +10,16 @@ from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, R
 def target_from_str(target_str: str):
     try:
         if '#' in target_str:
-            rxn_str, index_str = target_str.split('#')
+            rxn_str, index_strs = target_str.split('#')
+
+            try:
+                contingency_variant_index, interaction_variant_index = index_strs.split(',')
+            except ValueError:
+                contingency_variant_index, interaction_variant_index = index_strs.split(',')[0], 0
+
             target = ReactionTarget(reaction_from_str(rxn_str))
-            target.variant_index = int(index_str)
+            target.contingency_variant_index = int(contingency_variant_index)
+            target.interaction_variant_index = int(interaction_variant_index)
             return target
         else:
             return ReactionTarget(reaction_from_str(target_str))
@@ -356,8 +363,12 @@ def test_deg_with_boolean_contingency():
     else:
         raise AssertionError
 
+def test_deg_with_interaction():
+    boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
+                                                       C_deg_A""").rxncon_system)
 
 
-
-
+    for rule in boolean_model.update_rules:
+        print()
+        print(rule)
 

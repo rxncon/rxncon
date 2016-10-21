@@ -1,4 +1,5 @@
 from typing import List, Dict, Tuple, Union
+from copy import deepcopy
 
 from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union, Complement, UniversalSet
 from rxncon.core.reaction import Reaction
@@ -62,20 +63,29 @@ class ReactionTarget(Target):
         self.consumed_targets    = [StateTarget(x) for x in reaction_parent.consumed_states]
         self.synthesised_targets = [StateTarget(x) for x in reaction_parent.synthesised_states]
         self.degraded_targets    = [StateTarget(x) for x in reaction_parent.degraded_states]
-        self.variant_index       = 0
+
+        self.contingency_variant_index = 0
+        self.interaction_variant_index = 0
 
     def __hash__(self) -> int:
         return hash(str(self))
 
     def __eq__(self, other: Target):
         return isinstance(other, ReactionTarget) and self.reaction_parent == other.reaction_parent and \
-            self.variant_index == other.variant_index
+            self.contingency_variant_index == other.contingency_variant_index and \
+            self.interaction_variant_index == other.interaction_variant_index
 
     def __str__(self) -> str:
-        if self.variant_index != 0:
-            return str(self.reaction_parent) + '#{}'.format(self.variant_index)
-        else:
-            return str(self.reaction_parent)
+        suffix = ''
+        if self.interaction_variant_index != 0:
+            suffix = '#{},{}'.format(self.contingency_variant_index, self.interaction_variant_index)
+        elif self.contingency_variant_index != 0 and self.interaction_variant_index == 0:
+            suffix = '#{}'.format(self.contingency_variant_index)
+
+        return str(self.reaction_parent) + suffix
+
+    def __repr__(self) -> str:
+        return str(self)
 
     def produces(self, state_target: 'StateTarget') -> bool:
         return state_target in self.produced_targets
@@ -138,6 +148,10 @@ class StateTarget(Target):
     @property
     def is_neutral(self) -> bool:
         return self._state_parent.is_neutral
+
+    @property
+    def neutral_targets(self) -> List['StateTarget']:
+        return [StateTarget(x) for x in self._state_parent.neutral_states]
 
 
 class ComponentStateTarget(StateTarget):
@@ -232,12 +246,13 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
             else:
                 for index, factor in enumerate(cont.to_dnf_list()):
                     target = ReactionTarget(reaction)
-                    target.variant_index = index
+                    target.contingency_variant_index = index
                     reaction_target_to_factor[target] = factor
 
-    def calc_degradation_targets():
+    def update_degradations_with_contingencies():
         for reaction_target, contingency_factor in reaction_target_to_factor.items():
-            # First: reaction with a non-trivial contingency.
+            # First case: reaction with a non-trivial contingency should degrade only the states appearing
+            # in the contingency that are connected to the degraded component.
             if reaction_target.degraded_components and not contingency_factor.is_equivalent_to(UniversalSet()):
                 for degraded_component in reaction_target.degraded_components:
                     if ComponentStateTarget(degraded_component) in component_state_targets:
@@ -246,7 +261,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
                         reaction_target.degraded_targets += [state_target for state_target in contingency_factor.values
                                                              if degraded_component in state_target.components]
 
-            # Second: reaction with a trivial contingency.
+            # Second case: reaction with a trivial contingency should degrade all states for the degraded component.
             elif reaction_target.degraded_components and contingency_factor.is_equivalent_to(UniversalSet()):
                 for degraded_component in reaction_target.degraded_components:
                     if ComponentStateTarget(degraded_component) in component_state_targets:
@@ -255,7 +270,23 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
                         reaction_target.degraded_targets += \
                             [StateTarget(x) for x in rxncon_sys.states_for_component(degraded_component)]
 
-    def calc_synthesis_targets():
+    def update_degradations_for_interaction_states():
+        new_reactions = {}
+
+        for reaction_target, contingency_factor in reaction_target_to_factor.items():
+            for num, interaction_state in enumerate(state for state in rxncon_sys.states if len(state.components) > 1
+                                                    and reaction_target.degrades(StateTarget(state))):
+                neutral_targets = StateTarget(interaction_state).neutral_targets
+                new_reaction_target = deepcopy(reaction_target)
+                new_reaction_target.synthesised_targets += \
+                    [x for x in neutral_targets if not any(component in new_reaction_target.degraded_components for component in x.components)]
+                new_reaction_target.interaction_variant_index = num + 1
+
+                new_reactions[new_reaction_target] = Intersection(contingency_factor, ValueSet(StateTarget(interaction_state)))
+
+        reaction_target_to_factor.update(new_reactions)
+
+    def update_syntheses_with_component_states():
         for reaction_target, _ in reaction_target_to_factor.items():
             for component in reaction_target.synthesised_components:
                 if ComponentStateTarget(component) in component_state_targets:
@@ -300,14 +331,15 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
 
     calc_component_factors()
     calc_contingency_factors()
-    calc_degradation_targets()
-    calc_synthesis_targets()
+    update_degradations_with_contingencies()
+    update_degradations_for_interaction_states()
+    update_syntheses_with_component_states()
 
     state_targets    = component_state_targets + [StateTarget(x) for x in rxncon_sys.states]
     reaction_targets = list(reaction_target_to_factor.keys())
 
-    reaction_rules = []
-    state_rules    = []
+    reaction_rules = []  # type: List[UpdateRule]
+    state_rules    = []  # type: List[UpdateRule]
 
     calc_reaction_rules()
     calc_state_rules()
@@ -356,9 +388,9 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
                 return AssertionError
 
     # boolnet_name_from_target closes over these variables.
-    boolnet_names = {}
+    boolnet_names  = {}
     reaction_index = 0
-    state_index = 0
+    state_index    = 0
 
     def sort_key(rule_str):
         target = rule_str.split(',')[0].strip()
@@ -369,29 +401,3 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
     return 'targets, factors\n' + '\n'.join(rule for rule in rule_strs) + '\n', \
            {name: str(target) for target, name in boolnet_names.items()}, \
            {boolnet_names[target]: value for target, value in boolean_model.initial_conditions.target_to_value.items()}
-
-
-class BooleanModelConfigPath:
-    pass
-
-
-class BooleanSimulator:
-    def __init__(self, boolean_model: BooleanModel):
-        self.boolean_model = boolean_model
-
-    @property
-    def update_rules(self):
-        return self.boolean_model.update_rules
-
-    @property
-    def initial_conditions(self):
-        return self.boolean_model.initial_conditions
-
-    def set_initian_condition(self, target: Target, value: bool):
-        self.boolean_model.set_initial_condition(target, value)
-
-    def calc_attractor_path(self) -> BooleanModelConfigPath:
-        return BooleanModelConfigPath()
-
-
-
