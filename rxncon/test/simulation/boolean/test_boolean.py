@@ -257,6 +257,37 @@ def test_trsl_trsc_deg():
     for update_rule in boolean_model.update_rules:
         assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
 
+
+def test_deg_without_contingency():
+    boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(res)]
+                                                       D_ub+_A_[(res)]
+                                                       D_p+_A_[(other)]
+                                                       C_deg_A""").rxncon_system)
+
+    # Component expression.
+    A = '(( A_[(res)]-{0} | A_[(res)]-{p} | A_[(res)]-{ub} ) & ( A_[(other)]-{0} | A_[(other)]-{p} ))'
+
+    expected_rules = {
+        'B_p+_A_[(res)]':   '( B & {} )'.format(A),
+        'D_ub+_A_[(res)]':  '( D & {} )'.format(A),
+        'D_p+_A_[(other)]': '( D & {} )'.format(A),
+        'C_deg_A':          '( C & {} )'.format(A),
+        'A_[(res)]-{0}':    '( {} & ~( C_deg_A ) & A_[(res)]-{{0}} & ~( B_p+_A_[(res)] & A_[(res)]-{{0}} ) & ~( D_ub+_A_[(res)] & A_[(res)]-{{0}} ))'.format(A),
+        'A_[(res)]-{p}':    '( {} & ~( C_deg_A ) & (( B_p+_A_[(res)] & A_[(res)]-{{0}} ) | A_[(res)]-{{p}} ))'.format(A),
+        'A_[(res)]-{ub}':   '( {} & ~( C_deg_A ) & (( D_ub+_A_[(res)] & A_[(res)]-{{0}} ) | A_[(res)]-{{ub}} ))'.format(A),
+        'A_[(other)]-{0}':  '( {} & ~( C_deg_A ) & A_[(other)]-{{0}} & ~( D_p+_A_[(other)] & A_[(other)]-{{0}} ))'.format(A),
+        'A_[(other)]-{p}':  '( {} & ~( C_deg_A ) & (( D_p+_A_[(other)] & A_[(other)]-{{0}} ) | A_[(other)]-{{p}} ))'.format(A),
+        'B':                'B',
+        'C':                'C',
+        'D':                'D'
+    }
+
+    assert len(boolean_model.update_rules) == len(expected_rules)
+
+    for update_rule in boolean_model.update_rules:
+        assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+
+
 def test_deg_with_contingency():
     boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(res)]
                                                        D_ub+_A_[(res)]
@@ -294,17 +325,34 @@ def test_deg_with_boolean_contingency():
                                                        <X>; OR A_[(r1)]-{p}
                                                        <X>; OR A_[(r2)]-{p}""").rxncon_system)
 
-    # Component factor
     A = '(( A_[(r1)]-{0} | A_[(r1)]-{p} ) & ( A_[(r2)]-{0} | A_[(r2)]-{p} ))'
 
     target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
 
+    # The C_deg_A reaction will be split into two ReactionTargets, one degrading A_[(r1)]-{p}, the other
+    # degrading A_[(r2)]-{p}. This choice is not deterministic, so the test splits into two branches here.
     if target_to_factor[target_from_str('C_deg_A')].is_equivalent_to(venn_from_str('( {} & C & A_[(r1)]-{{p}} )'.format(A), target_from_str)):
-        # C_deg_A reaction describes the degradation of A_[(r1)]-{p}
-        expected_rule = '( {} & ~( C_deg_A ) & ( A_[(r1)]-{{p}} | ( B_p+_A_[(r1)] & A_[(r1)]-{{0}} )))'.format(A)
-        print(target_to_factor[target_from_str('A_[(r1)]-{p}')])
-        print(expected_rule)
-        assert target_to_factor[target_from_str('A_[(r1)]-{p}')].is_equivalent_to(venn_from_str(expected_rule, target_from_str))
+        # C_deg_A degrades of A_[(r1)]-{p}, C_deg_A#1 degrades A_[(r2)]-{p}
+        expected_rules = {
+            'C_deg_A':      '( {} & C & A_[(r1)]-{{p}} )'.format(A),
+            'C_deg_A#1':    '( {} & C & A_[(r2)]-{{p}} )'.format(A),
+            'A_[(r1)]-{p}': '( {} & ~( C_deg_A ) & ( A_[(r1)]-{{p}} | ( B_p+_A_[(r1)] & A_[(r1)]-{{0}} )))'.format(A),
+            'A_[(r2)]-{p}': '( {} & ~( C_deg_A#1 ) & ( A_[(r2)]-{{p}} | ( D_p+_A_[(r2)] & A_[(r2)]-{{0}} )))'.format(A),
+        }
+
+        for target_str, factor_str in expected_rules.items():
+            assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
+    elif target_to_factor[target_from_str('C_deg_A')].is_equivalent_to(venn_from_str('( {} & C & A_[(r2)]-{{p}} )'.format(A), target_from_str)):
+        # C_deg_A degrades of A_[(r2)]-{p}, C_deg_A#1 degrades A_[(r1)]-{p}
+        expected_rules = {
+            'C_deg_A':      '( {} & C & A_[(r2)]-{{p}} )'.format(A),
+            'C_deg_A#1':    '( {} & C & A_[(r1)]-{{p}} )'.format(A),
+            'A_[(r1)]-{p}': '( {} & ~( C_deg_A#1 ) & ( A_[(r1)]-{{p}} | ( B_p+_A_[(r1)] & A_[(r1)]-{{0}} )))'.format(A),
+            'A_[(r2)]-{p}': '( {} & ~( C_deg_A ) & ( A_[(r2)]-{{p}} | ( D_p+_A_[(r2)] & A_[(r2)]-{{0}} )))'.format(A),
+        }
+
+        for target_str, factor_str in expected_rules.items():
+            assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
     else:
         raise AssertionError
 
