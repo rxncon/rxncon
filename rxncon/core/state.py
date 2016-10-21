@@ -25,8 +25,16 @@ class StateModifier(OrderedEnum):
     truncated = 'truncated'
     cytosol   = 'cytosol'  # @note: hack for localisation.
     nucleus   = 'nucleus'  # @note: hack for localisation.
-    cyt       = 'cyt'      # @note: hack for SPS
     out       = 'out'      # @note: hack for SPS
+
+
+def state_modifier_from_str(modifier_str: str) -> StateModifier:
+    try:
+        return StateModifier(modifier_str.lower())
+    except ValueError:
+        valid_modifiers = [modifier.value for modifier in StateModifier.__members__.values()]
+        raise ValueError('Invalid StateModifier {}, valid modifiers are {}'
+                         .format(modifier_str, ', '.join(valid_modifiers)))
 
 
 TYPE_TO_REGEX = {
@@ -39,7 +47,7 @@ TYPE_TO_REGEX = {
 TYPE_TO_CONSTRUCTOR = {
     Spec:          spec_from_str,
     str:           lambda x: x.strip(),
-    StateModifier: lambda x: StateModifier(x.lower()),
+    StateModifier: state_modifier_from_str,
     Locus:         locus_from_str
 }
 
