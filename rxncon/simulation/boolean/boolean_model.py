@@ -1,5 +1,6 @@
 from typing import List, Dict, Tuple, Union
 from copy import deepcopy
+from enum import Enum
 
 from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union, Complement, UniversalSet
 from rxncon.core.reaction import Reaction
@@ -192,7 +193,13 @@ class UpdateRule:
         return self.factor.values
 
 
-def boolean_model_from_rxncon(rxncon_sys: RxnConSystem) -> BooleanModel:
+class SmoothingStrategy(Enum):
+    no_smoothing              = 'no_smoothing'
+    smooth_production_sources = 'smooth_production_sources'
+
+
+def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
+                              smoothing_strategy: SmoothingStrategy=SmoothingStrategy.no_smoothing) -> BooleanModel:
     def factor_from_contingency(contingency: Contingency) -> VennSet:
         def parse_effector(eff: Effector) -> VennSet:
             if isinstance(eff, StateEffector):
