@@ -1,6 +1,5 @@
-from typing import Tuple, Optional
+from typing import Tuple
 import os
-import sys
 import click
 
 from rxncon.core.rxncon_system import RxnConSystem
