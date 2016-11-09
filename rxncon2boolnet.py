@@ -52,7 +52,9 @@ def write_boolnet(excel_filename: str, smoothing_strategy: SmoothingStrategy):
     with open(boolnet_initial_val_filename, mode='w') as f:
         f.write(initial_val_str)
 
+
 valid_strategies = [strategy.value for strategy in SmoothingStrategy.__members__.values()]
+
 
 def validate_smoothing_strategy(ctx, param, value):
     try:
@@ -65,7 +67,7 @@ def validate_smoothing_strategy(ctx, param, value):
 @click.command()
 @click.option('--smoothing', default='no_smoothing',
               help='Smoothing strategy. Default: no_smoothing. Choices: {}'.format(', '.join(valid_strategies)),
-              callback=validate_smoothing_strategy, type=SmoothingStrategy)
+              callback=validate_smoothing_strategy)
 @click.argument('excel_file')
 def run(smoothing, excel_file):
     smoothing_strategy = SmoothingStrategy(smoothing)
