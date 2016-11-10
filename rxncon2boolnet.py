@@ -36,8 +36,12 @@ def write_boolnet(excel_filename: str, smoothing_strategy: SmoothingStrategy):
     print('Reading in Excel file {} ...'.format(excel_filename))
     excel_book = ExcelBook(excel_filename)
 
+    rxncon_system = excel_book.rxncon_system
+    print('Constructed rxncon system: {} reactions, {} contingencies'
+          .format(len(rxncon_system.reactions), len(rxncon_system.contingencies)))
+
     print('Generating BoolNet output using smoothing strategy {} ...'.format(smoothing_strategy.name))
-    model_str, symbol_str, initial_val_str = boolnet_strs_from_rxncon(excel_book.rxncon_system, smoothing_strategy)
+    model_str, symbol_str, initial_val_str = boolnet_strs_from_rxncon(rxncon_system, smoothing_strategy)
 
     print('Writing BoolNet model file {} ...'.format(boolnet_model_filename))
     with open(boolnet_model_filename, mode='w') as f:
