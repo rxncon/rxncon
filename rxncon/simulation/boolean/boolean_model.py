@@ -46,7 +46,7 @@ class BooleanModelConfig:
         model_targets  = [rule.target for rule in model.update_rules]
         config_targets = self.target_to_value.keys()
 
-        assert set(model_targets) == set(config_targets)
+        assert set(model_targets) == set(config_targets) and len(model_targets) == len(config_targets)
 
 
 class Target:
@@ -285,7 +285,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                                                     and reaction_target.degrades(StateTarget(state))):
                 neutral_targets = StateTarget(interaction_state).neutral_targets
                 new_reaction_target = deepcopy(reaction_target)
-                new_reaction_target.synthesised_targets += \
+                new_reaction_target.produced_targets += \
                     [x for x in neutral_targets if not any(component in new_reaction_target.degraded_components for component in x.components)]
                 new_reaction_target.interaction_variant_index = num + 1
 
@@ -307,6 +307,10 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             reaction_rules.append(UpdateRule(reaction_target, Intersection(component_factor, contingency_factor).to_simplified_set()))
 
     def calc_state_rules():
+        def reaction_with_sources(reaction_target: ReactionTarget) -> VennSet:
+            return Intersection(ValueSet(reaction_target),
+                                Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets)))
+
         # Factor for a state target is of the form:
         # synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
         for state_target in state_targets:
@@ -317,14 +321,18 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             prod_facs = []
             cons_facs = []
 
-            for reaction_target in reaction_targets:
-                if reaction_target.produces(state_target):
-                    sources = Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
-                    prod_facs.append(Intersection(ValueSet(reaction_target), sources))
+            for reaction_target in (target for target in reaction_targets if target.produces(state_target)):
+                if smoothing_strategy == SmoothingStrategy.no_smoothing:
+                    prod_facs.append(reaction_with_sources(reaction_target))
+                elif smoothing_strategy == SmoothingStrategy.smooth_production_sources:
+                    prod_facs.append(Intersection(Union(ValueSet(primary_source),
+                                     *(reaction_with_sources(rxn) for rxn in reaction_targets if rxn.produces(primary_source)))
+                                     for primary_source in reaction_target.consumed_targets))
+                else:
+                    raise AssertionError
 
-                if reaction_target.consumes(state_target):
-                    sources = Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
-                    cons_facs.append(Complement(Intersection(ValueSet(reaction_target), sources)))
+            for reaction_target in (target for target in reaction_targets if target.consumes(state_target)):
+                cons_facs.append(Complement(reaction_with_sources(reaction_target)))
 
             prod_cons_fac = Union(Union(*prod_facs), Intersection(ValueSet(state_target), Intersection(*cons_facs)))
 
