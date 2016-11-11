@@ -1,5 +1,0 @@
-Create methods for states that checks is_subset_of(other), is_superset_of(other).
-
-Create property for RxnConSystem.implicit_contingencies
-
-Create property for RxnConSystem.implicit_reactions
