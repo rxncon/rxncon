@@ -325,9 +325,11 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 if smoothing_strategy == SmoothingStrategy.no_smoothing:
                     prod_facs.append(reaction_with_sources(reaction_target))
                 elif smoothing_strategy == SmoothingStrategy.smooth_production_sources:
-                    prod_facs.append(Intersection(Union(ValueSet(primary_source),
-                                     *(reaction_with_sources(rxn) for rxn in reaction_targets if rxn.produces(primary_source)))
-                                     for primary_source in reaction_target.consumed_targets))
+                    smoothed_prod_facs = []
+                    for primary_source in reaction_target.consumed_targets:
+                        smoothed_prod_facs.append(Union(ValueSet(primary_source),
+                                                        *(reaction_with_sources(rxn) for rxn in reaction_targets if rxn.produces(primary_source))))
+                    prod_facs.append(Intersection(ValueSet(reaction_target), *smoothed_prod_facs))
                 else:
                     raise AssertionError
 

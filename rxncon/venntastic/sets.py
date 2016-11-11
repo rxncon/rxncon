@@ -131,7 +131,7 @@ class ValueSet(UnarySet):
 
     def __str__(self) -> str:
         if self.value:
-            return '({})'.format(str(self.value))
+            return '{}'.format(str(self.value))
         else:
             return 'UniversalSet'
 

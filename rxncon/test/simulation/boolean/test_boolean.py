@@ -4,7 +4,7 @@ from rxncon.core.reaction import reaction_from_str
 from rxncon.core.state import state_from_str
 from rxncon.core.spec import spec_from_str
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, ReactionTarget, \
-    StateTarget, ComponentStateTarget
+    StateTarget, ComponentStateTarget, SmoothingStrategy
 
 
 def target_from_str(target_str: str):
@@ -363,12 +363,24 @@ def test_deg_with_boolean_contingency():
     else:
         raise AssertionError
 
+
 def test_deg_with_interaction():
     boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
                                                        C_deg_A""").rxncon_system)
 
+    for rule in boolean_model.update_rules:
+        print()
+        print(rule)
+
+
+def test_smooth_production_sources():
+    boolean_model = boolean_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p}
+                                                    A_[b]_ppi-_B_[a]
+                                                    C_p+_A_[(r)]
+                                                    D_p-_A_[(r)]""").rxncon_system, SmoothingStrategy.smooth_production_sources)
 
     for rule in boolean_model.update_rules:
         print()
         print(rule)
+
 
