@@ -33,25 +33,25 @@ def write_boolnet(excel_filename: str, smoothing_strategy: SmoothingStrategy):
     boolnet_symbol_filename = os.path.join(base_path, '{0}_symbols.csv'.format(base_name))
     boolnet_initial_val_filename = os.path.join(base_path, '{0}_initial_vals.csv'.format(base_name))
 
-    print('Reading in Excel file {} ...'.format(excel_filename))
+    print('Reading in Excel file [{}] ...'.format(excel_filename))
     excel_book = ExcelBook(excel_filename)
 
     rxncon_system = excel_book.rxncon_system
-    print('Constructed rxncon system: {} reactions, {} contingencies'
+    print('Constructed rxncon system: [{} reactions], [{} contingencies]'
           .format(len(rxncon_system.reactions), len(rxncon_system.contingencies)))
 
-    print('Generating BoolNet output using smoothing strategy {} ...'.format(smoothing_strategy.name))
+    print('Generating BoolNet output using smoothing strategy [{}] ...'.format(smoothing_strategy.name))
     model_str, symbol_str, initial_val_str = boolnet_strs_from_rxncon(rxncon_system, smoothing_strategy)
 
-    print('Writing BoolNet model file {} ...'.format(boolnet_model_filename))
+    print('Writing BoolNet model file [{}] ...'.format(boolnet_model_filename))
     with open(boolnet_model_filename, mode='w') as f:
         f.write(model_str)
 
-    print('Writing BoolNet symbol file {} ...'.format(boolnet_symbol_filename))
+    print('Writing BoolNet symbol file [{}] ...'.format(boolnet_symbol_filename))
     with open(boolnet_symbol_filename, mode='w') as f:
         f.write(symbol_str)
 
-    print('Writing BoolBet initial value file {} ...'.format(boolnet_initial_val_filename))
+    print('Writing BoolBet initial value file [{}] ...'.format(boolnet_initial_val_filename))
     with open(boolnet_initial_val_filename, mode='w') as f:
         f.write(initial_val_str)
 
