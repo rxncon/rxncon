@@ -379,8 +379,13 @@ def test_smooth_production_sources():
                                                     C_p+_A_[(r)]
                                                     D_p-_A_[(r)]""").rxncon_system, SmoothingStrategy.smooth_production_sources)
 
+    # Just check the update rule for 'A_[b]--0'.
+    expected = '(( A_[(r)]-{p} | A_[(r)]-{0} ) & ( A_[b]--0 | A_[b]--B_[a] )) & ' \
+               '( A_[b]_ppi-_B_[a] & ( A_[b]--B_[a] | ( A_[b]_ppi+_B_[a] & A_[b]--0 & B_[a]--0 )) | ' \
+               '( A_[b]--0 & ~( A_[b]_ppi+_B_[a] & A_[b]--0 & B_[a]--0 )))'
+
     for rule in boolean_model.update_rules:
-        print()
-        print(rule)
+        if rule.target == target_from_str('A_[b]--0'):
+            assert rule.factor.is_equivalent_to(venn_from_str(expected, target_from_str))
 
 
