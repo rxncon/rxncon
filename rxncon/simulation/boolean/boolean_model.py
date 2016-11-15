@@ -285,10 +285,12 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                                                     and reaction_target.degrades(StateTarget(state))):
                 neutral_targets = StateTarget(interaction_state).neutral_targets
                 new_reaction_target = deepcopy(reaction_target)
+
+                new_reaction_target.consumed_targets.append(StateTarget(interaction_state))
                 new_reaction_target.produced_targets += \
                     [x for x in neutral_targets if not any(component in new_reaction_target.degraded_components for component in x.components)]
-                new_reaction_target.interaction_variant_index = num + 1
 
+                new_reaction_target.interaction_variant_index = num + 1
                 new_reactions[new_reaction_target] = Intersection(contingency_factor, ValueSet(StateTarget(interaction_state)))
 
         reaction_target_to_factor.update(new_reactions)
