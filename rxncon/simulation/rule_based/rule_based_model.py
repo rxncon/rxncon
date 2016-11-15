@@ -1,35 +1,29 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from rxncon.core.state import State
 from rxncon.core.spec import Spec
 
-SiteName      = str
-SiteModifier  = str
-MolIndex      = int
 
 class MolDef:
-    def __init__(self, name: str, site_defs: Dict[SiteName, List[SiteModifier]]):
+    def __init__(self, name: str, site_defs: Dict[str, List[str]]):
         self.name, self.site_defs = name, site_defs
 
-    def valid_modifiers(self, site: SiteName):
+    def values_for_site(self, site: str):
         return self.site_defs[site]
 
     @property
     def sites(self):
         return self.site_defs.keys()
 
+
 class Mol:
-    def __init__(self, mol_def: MolDef, site_to_modifier: Dict[SiteName, SiteModifier], site_to_bond: Dict[SiteName, int]):
+    def __init__(self, mol_def: MolDef, site_to_value: Dict[str, str]):
         self.mol_def = mol_def
         self.sites   = mol_def.site_defs.keys()
 
-        self.site_to_modifier = {site: None for site in self.sites}
-        for site, modifier in site_to_modifier.items():
-            self.site_to_modifier[site] = modifier
-
-        self.site_to_bond = {site: None for site in self.sites}
-        for site, bond in site_to_bond.items():
-            self.site_to_bond[site] = bond
+        self.site_to_value = {site: None for site in self.sites}
+        for site, modifier in site_to_value.items():
+            self.site_to_value[site] = modifier
 
         self._validate()
 
@@ -37,43 +31,9 @@ class Mol:
     def name(self):
         return self.mol_def.name
 
-    def site_has_state(self, site: SiteName) -> bool:
-        return self.site_to_bond[site] or self.site_to_modifier[site]
-
-    def set_bond(self, site: SiteName, bond_num: int):
-        assert not self.site_to_bond[site]
-        self.site_to_bond[site] = bond_num
-
-    def set_modifier(self, site: SiteName, modifier: SiteModifier):
-        assert not self.site_to_modifier[site]
-        assert modifier in self.mol_def.valid_modifiers(site)
-        self.site_to_modifier[site] = modifier
-
     def _validate(self):
-        for site, modifier in self.site_to_modifier.items():
-            assert modifier in self.mol_def.valid_modifiers(site)
-
-
-class Complex:
-    def __init__(self):
-        self._mols       = {}  # type: Dict[MolIndex, Mol]
-        self.bond_index = 0
-
-    @property
-    def mols(self):
-        return self._mols.values()
-
-    def apply_state(self, state: State):
-        assert state.is_elemental
-
-    def set_mol_at_index(self, mol: Mol, index: MolIndex):
-        assert not self._mols[index]
-        self._mols[index] = mol
-
-    def set_bond(self, first_index: MolIndex, first_site: SiteName, second_index: MolIndex, second_site: SiteName):
-        self.bond_index += 1
-        self._mols[first_index].set_bond(first_site, self.bond_index)
-        self._mols[second_index].set_bond(second_site, self.bond_index)
+        for site, state in self.site_to_value.items():
+            assert state in self.mol_def.values_for_site(site)
 
 
 def str_from_spec(spec: Spec) -> str:
@@ -83,6 +43,46 @@ def str_from_spec(spec: Spec) -> str:
         spec_str = spec_str.replace(bad_char, '')
 
     return spec_str
+
+
+class BuildingArea:
+    pass
+
+
+STATE_TO_THING = {
+    # Covalent modification state.
+    '$x-{$y}': [
+        lambda state, building: building.ensure_mol(state, '$x'),
+        lambda state, building: building.set_site_to_value(state, '$x', site_value(state))
+    ],
+    # Interaction state.
+    '$x--$y': [
+        lambda state, building: ensure_mol(state, building, '$x'),
+        lambda state, building: ensure_mol(state, building, '$y'),
+        lambda state, building: set_bond(state, building, '$x', '$y')
+    ],
+    # Self-interaction state.
+    '$x--[$y]': [
+        lambda state, building: ensure_mol(state, building, '$x'),
+        lambda state, building: set_bond(state, building, '$x', '$x.to_component_spec_[$y]')
+    ],
+    # Empty binding state.
+    '$x--0': [
+        lambda state, building: ensure_mol(state, building, '$x'),
+        lambda state, building: set_site_to_state()
+    ]
+
+}
+
+
+class Complex:
+    def __init__(self, mols: List[Mol], bonds: List[Tuple[Spec, Spec]]):
+        self.mols  = mols
+        self.bonds = bonds
+        self._validate()
+
+    def _validate(self):
+        pass
 
 
 class Parameter:

@@ -387,5 +387,3 @@ def test_smooth_production_sources():
     for rule in boolean_model.update_rules:
         if rule.target == target_from_str('A_[b]--0'):
             assert rule.factor.is_equivalent_to(venn_from_str(expected, target_from_str))
-
-
