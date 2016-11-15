@@ -72,8 +72,8 @@ def str_from_mol_def(mol_def: MolDef) -> str:
 def str_from_mol(mol: Mol) -> str:
     def site_str(site: SiteName) -> str:
         s = site
-        if mol.site_to_value[site]:
-            s += '~{}'.format(mol.site_to_value[site])
+        if mol.site_to_mod[site]:
+            s += '~{}'.format(mol.site_to_mod[site])
         if mol.site_to_bond[site]:
             s += '!{}'.format(mol.site_to_bond[site])
 

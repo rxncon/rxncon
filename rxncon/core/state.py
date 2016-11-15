@@ -206,9 +206,16 @@ class State:
     def __lt__(self, other: 'State'):
         return str(self) < str(other)
 
+    def __getitem__(self, item):
+        return self.vars[item]
+
     @property
     def name(self):
         return self.definition.name
+
+    @property
+    def repr_def(self):
+        return self.definition.repr_def
 
     def is_superset_of(self, other: 'State') -> bool:
         return other.is_subset_of(self)

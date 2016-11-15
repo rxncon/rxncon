@@ -8,7 +8,7 @@ class MolDef:
     def __init__(self, name: str, site_defs: Dict[str, List[str]]):
         self.name, self.site_defs = name, site_defs
 
-    def values_for_site(self, site: str):
+    def mods_for_site(self, site: str):
         return self.site_defs[site]
 
     @property
@@ -17,13 +17,11 @@ class MolDef:
 
 
 class Mol:
-    def __init__(self, mol_def: MolDef, site_to_value: Dict[str, str]):
+    def __init__(self, mol_def: MolDef, site_to_mod: Dict[str, str], site_to_bond: Dict[str, int]):
         self.mol_def = mol_def
         self.sites   = mol_def.site_defs.keys()
-
-        self.site_to_value = {site: None for site in self.sites}
-        for site, modifier in site_to_value.items():
-            self.site_to_value[site] = modifier
+        self.site_to_mod  = site_to_mod
+        self.site_to_bond = site_to_bond
 
         self._validate()
 
@@ -32,11 +30,11 @@ class Mol:
         return self.mol_def.name
 
     def _validate(self):
-        for site, state in self.site_to_value.items():
-            assert state in self.mol_def.values_for_site(site)
+        for site, state in self.site_to_mod.items():
+            assert state in self.mol_def.mods_for_site(site)
 
 
-def str_from_spec(spec: Spec) -> str:
+def site_name(spec: Spec) -> str:
     bad_chars = ['[', ']', '/', '(', ')']
     spec_str = str(spec.to_non_struct_spec())
     for bad_char in bad_chars:
@@ -45,33 +43,36 @@ def str_from_spec(spec: Spec) -> str:
     return spec_str
 
 
-class BuildingArea:
-    pass
+class Building:
+    def __init__(self):
+        self._current_bond = 0
+
+    def add_mol(self, spec: Spec):
 
 
-STATE_TO_THING = {
+
+STATE_TO_BUILDING_FN = {
     # Covalent modification state.
     '$x-{$y}': [
-        lambda state, building: building.ensure_mol(state, '$x'),
-        lambda state, building: building.set_site_to_value(state, '$x', site_value(state))
+        lambda state, building: building.add_mol(state['$x']),
+        lambda state, building: building.set_mod(state['$x'], str(state['$y']))
     ],
     # Interaction state.
     '$x--$y': [
-        lambda state, building: ensure_mol(state, building, '$x'),
-        lambda state, building: ensure_mol(state, building, '$y'),
-        lambda state, building: set_bond(state, building, '$x', '$y')
+        lambda state, building: building.add_mol(state['$x']),
+        lambda state, building: building.add_mol(state['$y']),
+        lambda state, building: building.set_bond(state['$x'], state['$y'])
     ],
     # Self-interaction state.
     '$x--[$y]': [
-        lambda state, building: ensure_mol(state, building, '$x'),
-        lambda state, building: set_bond(state, building, '$x', '$x.to_component_spec_[$y]')
+        lambda state, building: building.add_mol(state['$x']),
+        lambda state, building: building.set_bond(state.specs[0], state.specs[1])
     ],
     # Empty binding state.
     '$x--0': [
-        lambda state, building: ensure_mol(state, building, '$x'),
-        lambda state, building: set_site_to_state()
+        lambda state, building: building.add_mol(state['$x']),
+        lambda state, building: building.set_mod(state['$x'], None)
     ]
-
 }
 
 
