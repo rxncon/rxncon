@@ -19,14 +19,16 @@ def boolnet_strs_from_rxncon(rxncon: RxnConSystem, smoothing_strategy: Smoothing
     symbol_str      = '\n'.join('{0}, {1}'.format(boolnet_sym, rxncon_sym) for boolnet_sym, rxncon_sym
                                 in sorted(symbol_dict.items(), key=sort_key)) + '\n'
 
-    initial_val_str = '\n'.join('{0}, {1: <5}  #  {2}'.format(boolnet_sym, initial_val, symbol_dict[boolnet_sym])
+    initial_val_str = '\n'.join('{0}, {1: <5}  , #  {2}'.format(boolnet_sym, initial_val, symbol_dict[boolnet_sym])
                                 for boolnet_sym, initial_val in sorted(initial_val_dict.items(), key=sort_key)) + '\n'
 
     return model_str, symbol_str, initial_val_str
 
 
-def write_boolnet(excel_filename: str, smoothing_strategy: SmoothingStrategy):
-    base_name = os.path.splitext(os.path.basename(excel_filename))[0]
+def write_boolnet(excel_filename: str, smoothing_strategy: SmoothingStrategy, base_name=None):
+    if not base_name:
+        base_name = os.path.splitext(os.path.basename(excel_filename))[0]
+
     base_path = os.path.dirname(excel_filename)
 
     boolnet_model_filename = os.path.join(base_path, '{0}.boolnet'.format(base_name))
@@ -71,11 +73,12 @@ def validate_smoothing_strategy(ctx, param, value):
 @click.option('--smoothing', default='no_smoothing',
               help='Smoothing strategy. Default: no_smoothing. Choices: {}'.format(', '.join(valid_strategies)),
               callback=validate_smoothing_strategy)
+@click.option('--output', default=None,
+              help='Base name for output files. Default: \'fn\' for input file \'fn.xls\'')
 @click.argument('excel_file')
-def run(smoothing, excel_file):
+def run(smoothing, output, excel_file):
     smoothing_strategy = SmoothingStrategy(smoothing)
-    write_boolnet(excel_file, smoothing_strategy)
-
+    write_boolnet(excel_file, smoothing_strategy, output)
 
 if __name__ == '__main__':
     run()
