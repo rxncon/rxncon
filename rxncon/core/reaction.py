@@ -9,7 +9,7 @@ SPEC_REGEX_MATCHING     = '([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*
 SPEC_REGEX_NON_MATCHING = '(?:[A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
 
 BIDIRECTIONAL_VERBS = [
-    'ppi', 'ipi', 'i'
+    'ppi', 'ipi', 'i', 'bind'
 ]
 
 class ReactionTerm:
@@ -297,12 +297,22 @@ REACTION_DEFS = [
     ReactionDef(
         STATE_DEFS,
         'gene-protein-interaction',
-        '$x_bind_$y',
+        '$x_bind+_$y',
         {
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (GeneSpec, LocusResolution.domain)
         },
         '$x#$x--0 + $y#$y--0 -> $x,$y#$x--$y'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'gene-protein-dissociation',
+        '$x_bind-_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.domain),
+            '$y': (GeneSpec, LocusResolution.domain)
+        },
+        '$x,$y#$x--$y -> $x#$x--0 + $y#$y--0'
     ),
     ReactionDef(
         STATE_DEFS,
