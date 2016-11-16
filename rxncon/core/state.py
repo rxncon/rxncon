@@ -267,7 +267,15 @@ class State:
                                      in zip(self.specs, self._elemental_resolutions))
 
     def is_mutually_exclusive_with(self, state: 'State') -> bool:
-        pass
+        assert self.is_elemental
+        assert state.is_elemental
+        assert self.is_structured
+        assert state.is_structured
+
+        if self == state:
+            return False
+
+        return any(spec in state.specs for spec in self.specs)
 
     @property
     def is_neutral(self) -> bool:
