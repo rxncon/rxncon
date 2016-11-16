@@ -1,13 +1,26 @@
 from typing import Dict, List, Optional, Tuple
 
 from rxncon.core.rxncon_system import RxnConSystem
+from rxncon.core.reaction import Reaction, ReactionTerm
 from rxncon.core.state import State, StateModifier
 from rxncon.core.spec import Spec
+from rxncon.core.contingency import Contingency, ContingencyType
+from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
+from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet
 
 
 class MolDef:
     def __init__(self, name: str, site_defs: Dict[str, List[str]]):
         self.name, self.site_defs = name, site_defs
+
+    def __str__(self):
+        site_strs = []
+        for site_name, site_def in self.site_defs.items():
+            site_strs.append('{0}:{1}'.format(site_name, '~'.join(x for x in site_def))) if site_def else site_strs.append(site_name)
+        return '{0}({1})'.format(self.name, ','.join(site_strs))
+
+    def __repr__(self):
+        return str(self)
 
     def mods_for_site(self, site: str):
         return self.site_defs[site]
@@ -25,20 +38,35 @@ class MolDefBuilder:
     def build(self):
         return MolDef(self.name, self.site_defs)
 
-    def add_site(self, site: str):
-        if site not in self.site_defs:
-            self.site_defs[site] = []
+    def add_site(self, site: Spec):
+        if site_name(site) not in self.site_defs:
+            self.site_defs[site_name(site)] = []
 
-    def add_mod_for_site(self, site: str, mod: str):
-        self.site_defs[site] += mod
+    def add_mod(self, site: Spec, mod: StateModifier):
+        self.site_defs[site_name(site)].append(str(mod.value))
 
 
 class Mol:
-    def __init__(self, spec: Spec, site_to_mod: Dict[str, str], site_to_bond: Dict[str, int]):
+    def __init__(self, spec: Spec, site_to_mod: Dict[str, Optional[str]], site_to_bond: Dict[str, int]):
         assert spec.is_component_spec
         self.spec         = spec
         self.site_to_mod  = site_to_mod
         self.site_to_bond = site_to_bond
+
+    def __str__(self):
+        mod_str  = ','.join('{}{}'.format(site, '~' + mod if mod else '') for site, mod in self.site_to_mod.items())
+        bond_str = ','.join('{}!{}'.format(site, bond) for site, bond in self.site_to_bond.items())
+
+        strs = []
+        if mod_str:
+            strs.append(mod_str)
+        if bond_str:
+            strs.append(bond_str)
+
+        return '{}({})'.format(self.spec.component_name, ','.join(strs))
+
+    def __repr__(self):
+        return str(self)
 
     @property
     def name(self):
@@ -67,7 +95,15 @@ class MolBuilder:
         self.site_to_bond[site_name(spec)] = bond_index
 
     def set_mod(self, spec: Spec, mod: Optional[StateModifier]):
-        self.site_to_mod[site_name(spec)] = str(mod) if mod else None
+        self.site_to_mod[site_name(spec)] = str(mod.value) if mod else None
+
+
+class Complex:
+    def __init__(self, mols: List[Mol]):
+        self.mols  = mols
+
+    def __str__(self):
+        return '.'.join(str(mol) for mol in self.mols)
 
 
 class ComplexExprBuilder:
@@ -89,10 +125,12 @@ class ComplexExprBuilder:
             self._mol_builders[spec.to_component_spec()] = MolBuilder(spec.to_component_spec())
 
     def set_bond(self, first: Spec, second: Spec):
-        self._bonds.append((first.to_component_spec(), second.to_component_spec()))
-        self._current_bond += 1
-        self._mol_builders[first.to_component_spec()].set_bond_index(first, self._current_bond)
-        self._mol_builders[second.to_component_spec()].set_bond_index(second, self._current_bond)
+        if (first.to_component_spec(), second.to_component_spec()) not in self._bonds and \
+           (second.to_component_spec(), first.to_component_spec()) not in self._bonds:
+            self._bonds.append((first.to_component_spec(), second.to_component_spec()))
+            self._current_bond += 1
+            self._mol_builders[first.to_component_spec()].set_bond_index(first, self._current_bond)
+            self._mol_builders[second.to_component_spec()].set_bond_index(second, self._current_bond)
 
     def set_mod(self, spec: Spec, mod: Optional[StateModifier]):
         self._mol_builders[spec.to_component_spec()].set_mod(spec, mod)
@@ -159,21 +197,21 @@ STATE_TO_MOL_DEF_BUILDER_FN = {
 }
 
 
-
-class Complex:
-    def __init__(self, mols: List[Mol]):
-        self.mols  = mols
-        self._validate()
-
-    def _validate(self):
-        pass
-
-
 class Parameter:
     def __init__(self, name: Optional[str], value: Optional[str]):
         assert name or value
         self.name, self.value = name, value
 
+    def __str__(self):
+        if not self.value:
+            return self.name
+        elif not self.name:
+            return self.value
+        else:
+            return '{} = {}'.format(self.name, self.value)
+
+    def __repr__(self):
+        return str(self)
 
 class InitialCondition:
     def __init__(self, complex: Complex, value: Parameter):
@@ -189,6 +227,12 @@ class Rule:
     def __init__(self, lhs: List[Complex], rhs: List[Complex], rate: Parameter):
         self.lhs, self.rhs, self.rate = lhs, rhs, rate
 
+    def __str__(self):
+        return ' + '.join(str(x) for x in self.lhs) + ' -> ' + ' + '.join(str(x) for x in self.rhs) + ' ' + str(self.rate)
+
+    def __repr__(self):
+        return str(self)
+
 
 class RuleBasedModel:
     def __init__(self, mol_defs: List[MolDef], initial_conditions: List[InitialCondition], parameters: List[Parameter],
@@ -203,13 +247,67 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         for spec in rxncon_sys.components():
             builder = MolDefBuilder(spec.component_name)
             for state in rxncon_sys.states_for_component(spec):
-                STATE_TO_MOL_DEF_BUILDER_FN[state.repr_def](state, builder)
+                for func in STATE_TO_MOL_DEF_BUILDER_FN[state.repr_def]:
+                    func(state, builder)
 
             mol_defs[spec] = builder.build()
 
         return mol_defs
 
-    mol_defs = mol_defs_from_rxncon(rxncon_sys)
+    def venn_from_contingency(contingency: Contingency) -> VennSet:
+        def parse_effector(eff: Effector) -> VennSet:
+            if isinstance(eff, StateEffector):
+                return ValueSet(eff.expr)
+            elif isinstance(eff, NotEffector):
+                return Complement(parse_effector(eff.expr))
+            elif isinstance(eff, OrEffector):
+                return Union(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
+            elif isinstance(eff, AndEffector):
+                return Intersection(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
+            else:
+                raise AssertionError
 
+        if contingency.type in [ContingencyType.requirement, ContingencyType.positive]:
+            return parse_effector(contingency.effector)
+        elif contingency.type in [ContingencyType.inhibition, ContingencyType.negative]:
+            return Complement(parse_effector(contingency.effector))
+        else:
+            return UniversalSet()
+
+    def calc_rule(reaction: Reaction, cont_soln: Dict[State, bool]) -> Rule:
+        def calc_complexes(terms: List[ReactionTerm], states: List[State]) -> List[Complex]:
+            builder = ComplexExprBuilder()
+            for term in terms:
+                for spec in term.specs:
+                    builder.add_mol(spec)
+
+                states += term.states
+
+            for state in states:
+                for func in STATE_TO_COMPLEX_BUILDER_FN[state.repr_def]:
+                    func(state, builder)
+
+            return builder.build()
+
+        # @todo implement negative contingencies.
+        assert all(cont_soln.values())
+        lhs = calc_complexes(reaction.terms_lhs, list(cont_soln.keys()))
+        rhs = calc_complexes(reaction.terms_rhs, list(cont_soln.keys()))
+
+        return Rule(lhs, rhs, Parameter('k', None))
+
+
+    mol_defs = list(mol_defs_from_rxncon(rxncon_sys).values())
+
+    rules = []
+
+    for reaction in rxncon_sys.reactions:
+        solutions = Intersection(*[venn_from_contingency(x) for x
+                                   in rxncon_sys.contingencies_for_reaction(reaction)]).calc_solutions()
+
+        for solution in solutions:
+            rules.append(calc_rule(reaction, solution))
+
+    return RuleBasedModel(mol_defs, [], [], [], rules)
 
 

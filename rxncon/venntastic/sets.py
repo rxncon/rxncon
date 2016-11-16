@@ -12,7 +12,7 @@ from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies, Expression
 SYMS = [''.join(tup) for tup in product('ABCDEFGHIJKLMNOPQRSTUVWXYZ', repeat=2)]
 
 class Set:
-    def calc_solutions(self) -> List[Dict['Set', bool]]:
+    def calc_solutions(self) -> List[Dict[Any, bool]]:
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
 
