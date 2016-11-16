@@ -1,4 +1,5 @@
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Iterable
+from itertools import combinations, product, chain
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reaction, ReactionTerm
@@ -241,6 +242,32 @@ class RuleBasedModel:
             parameters, observables, rules
 
 
+def calc_positive_solutions(rxncon_sys: RxnConSystem, solution: Dict[State, bool]) -> List[List[State]]:
+    def is_satisfiable(states: Iterable[State]) -> bool:
+        for pair in combinations(states, 2):
+            if pair[0].is_mutually_exclusive_with(pair[1]):
+                return False
+
+        return True
+
+    def complementary_state_combos(state: State) -> List[List[State]]:
+        combos = product(rxncon_sys.complementary_states_for_component(spec, state) for spec in state.specs)
+        return [list(combo) for combo in combos if is_satisfiable(combo)]
+
+    trues  = [state for state, val in solution.items() if val]
+    falses = [state for state, val in solution.items() if not val]
+    positivized_falses = [chain(*x) for x in product(complementary_state_combos(state) for state in falses)]
+
+    solutions = []
+
+    for positivized_false in positivized_falses:
+        possible_solution = trues + positivized_false
+        if is_satisfiable(possible_solution):
+            solutions.append(possible_solution)
+
+    return solutions
+
+
 def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
     def mol_defs_from_rxncon(rxncon_sys: RxnConSystem) -> Dict[Spec, MolDef]:
         mol_defs = {}
@@ -273,9 +300,6 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             return Complement(parse_effector(contingency.effector))
         else:
             return UniversalSet()
-
-    def calc_positive_solutions(rxncon_sys: RxnConSystem, solution: Dict[State, bool]) -> List[List[State]]:
-        return [list(solution.keys())]
 
     def calc_rule(reaction: Reaction, cont_soln: List[State]) -> Rule:
         def calc_complexes(terms: List[ReactionTerm], states: List[State]) -> List[Complex]:
