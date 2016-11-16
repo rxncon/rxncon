@@ -11,3 +11,16 @@ def test_simple_system():
     print()
     for rule in rbm.rules:
         print(rule)
+
+
+def test_2():
+    rbm = rule_based_model_from_rxncon(Quick("""E_p+_C
+                                             D_p+_C
+                                             A_ppi+_C
+                                             C_p+_B_[(r)]; ! C-{p}
+                                             C_ub+_B_[(r)]; ! A--C; ! C-{P}""").rxncon_system)
+
+    print()
+    for rule in rbm.rules:
+        print(rule)
+

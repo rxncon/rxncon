@@ -236,9 +236,26 @@ class State:
 
         return State(self.definition, non_struct_vars)
 
+    def to_structured_state(self, state: 'State') -> 'State':
+        other_vars = deepcopy(state.vars)
+        struct_vars = deepcopy(self.vars)
+
+        for k, v in struct_vars.items():
+            if isinstance(v, Spec):
+                if v.struct_index is not None:
+                    continue
+
+                for kp, vp in other_vars.items():
+                    if isinstance(vp, Spec) and vp.struct_index is not None and vp.to_non_struct_spec() == v:
+                        v.struct_index = vp.struct_index
+                        other_vars[kp] = vp.to_non_struct_spec()
+                        break
+
+        return State(self.definition, struct_vars)
+
     @property
     def is_structured(self) -> bool:
-        return any(mol_spec.struct_index is not None for mol_spec in self.specs)
+        return all(mol_spec.struct_index is not None for mol_spec in self.specs)
 
     @property
     def is_global(self) -> bool:
@@ -248,6 +265,9 @@ class State:
     def is_elemental(self) -> bool:
         return self.is_global or all(spec.has_resolution(elemental_resolution) for spec, elemental_resolution
                                      in zip(self.specs, self._elemental_resolutions))
+
+    def is_mutually_exclusive_with(self, state: 'State') -> bool:
+        pass
 
     @property
     def is_neutral(self) -> bool:

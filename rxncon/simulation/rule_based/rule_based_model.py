@@ -274,7 +274,10 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         else:
             return UniversalSet()
 
-    def calc_rule(reaction: Reaction, cont_soln: Dict[State, bool]) -> Rule:
+    def calc_positive_solutions(rxncon_sys: RxnConSystem, solution: Dict[State, bool]) -> List[List[State]]:
+        return [list(solution.keys())]
+
+    def calc_rule(reaction: Reaction, cont_soln: List[State]) -> Rule:
         def calc_complexes(terms: List[ReactionTerm], states: List[State]) -> List[Complex]:
             builder = ComplexExprBuilder()
             for term in terms:
@@ -289,10 +292,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
 
             return builder.build()
 
-        # @todo implement negative contingencies.
-        assert all(cont_soln.values())
-        lhs = calc_complexes(reaction.terms_lhs, list(cont_soln.keys()))
-        rhs = calc_complexes(reaction.terms_rhs, list(cont_soln.keys()))
+        lhs = calc_complexes(reaction.terms_lhs, cont_soln)
+        rhs = calc_complexes(reaction.terms_rhs, cont_soln)
 
         return Rule(lhs, rhs, Parameter('k', None))
 
@@ -305,9 +306,11 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         solutions = Intersection(*[venn_from_contingency(x) for x
                                    in rxncon_sys.contingencies_for_reaction(reaction)]).calc_solutions()
 
+        positive_solutions = []
         for solution in solutions:
-            rules.append(calc_rule(reaction, solution))
+            positive_solutions += calc_positive_solutions(rxncon_sys, solution)
+
+        for positive_solution in positive_solutions:
+            rules.append(calc_rule(reaction, positive_solution))
 
     return RuleBasedModel(mol_defs, [], [], [], rules)
-
-
