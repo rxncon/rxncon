@@ -20,7 +20,7 @@ class Spec(ABC):
 
     def __str__(self) -> str:
         def struct_name(spec: Spec, suffix: 'SpecSuffix'):
-            if spec.struct_index:
+            if spec.struct_index is not None:
                 return "{0}{1}@{2}".format(spec.component_name, suffix.value, spec.struct_index)
             else:
                 return "{0}{1}".format(spec.component_name, suffix.value)

@@ -236,7 +236,19 @@ class State:
 
         return State(self.definition, non_struct_vars)
 
-    def to_structured_state(self, state: 'State') -> 'State':
+    def to_structured_from_spec(self, spec: Spec) -> 'State':
+        struct_vars = deepcopy(self.vars)
+        for k, v in struct_vars.items():
+            if isinstance(v, Spec):
+                if v.struct_index is not None:
+                    continue
+                elif spec.to_non_struct_spec().to_component_spec() == v.to_component_spec():
+                    v.struct_index = spec.struct_index
+                    break
+
+        return State(self.definition, struct_vars)
+
+    def to_structured_from_state(self, state: 'State') -> 'State':
         other_vars = deepcopy(state.vars)
         struct_vars = deepcopy(self.vars)
 

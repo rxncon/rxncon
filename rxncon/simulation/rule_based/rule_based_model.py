@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional, Tuple, Iterable
 from itertools import combinations, product, chain
+from copy import copy, deepcopy
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reaction, ReactionTerm
@@ -77,7 +78,10 @@ class Mol:
 
 def site_name(spec: Spec) -> str:
     bad_chars = ['[', ']', '/', '(', ')']
-    spec_str = str(spec.locus)
+    spec_str = (spec.locus.domain + 'D' if spec.locus.domain else '') + \
+               (spec.locus.subdomain + 'S' if spec.locus.subdomain else '') + \
+               (spec.locus.residue + 'R' if spec.locus.residue else '')
+
     for bad_char in bad_chars:
         spec_str = spec_str.replace(bad_char, '')
 
@@ -237,11 +241,13 @@ class Observable:
 
 
 class Rule:
-    def __init__(self, lhs: List[Complex], rhs: List[Complex], rate: Parameter):
+    def __init__(self, lhs: List[Complex], rhs: List[Complex], rate: Parameter, parent_reaction: Reaction=None):
         self.lhs, self.rhs, self.rate = lhs, rhs, rate
+        self.parent_reaction = parent_reaction
 
     def __str__(self):
-        return ' + '.join(str(x) for x in self.lhs) + ' -> ' + ' + '.join(str(x) for x in self.rhs) + ' ' + str(self.rate)
+        return ' + '.join(str(x) for x in self.lhs) + ' -> ' + ' + '.join(str(x) for x in self.rhs) + \
+               ' ' + str(self.rate) + ' ' + str(self.parent_reaction)
 
     def __repr__(self):
         return str(self)
@@ -319,12 +325,19 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
 
     def calc_rule(reaction: Reaction, cont_soln: List[State]) -> Rule:
         def calc_complexes(terms: List[ReactionTerm], states: List[State]) -> List[Complex]:
+            states = copy(states)
             builder = ComplexExprBuilder()
+            struct_index = 0
             for term in terms:
+                struct_states = deepcopy(term.states)
                 for spec in term.specs:
-                    builder.add_mol(spec, is_reactant=True)
+                    struct_spec = copy(spec)
+                    struct_spec.struct_index = struct_index
+                    builder.add_mol(struct_spec, is_reactant=True)
+                    struct_states = [state.to_structured_from_spec(struct_spec) for state in struct_states]
+                    struct_index += 1
 
-                states += term.states
+                states += struct_states
 
             for state in states:
                 for func in STATE_TO_COMPLEX_BUILDER_FN[state.repr_def]:
@@ -335,7 +348,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         lhs = calc_complexes(reaction.terms_lhs, cont_soln)
         rhs = calc_complexes(reaction.terms_rhs, cont_soln)
 
-        return Rule(lhs, rhs, Parameter('k', None))
+        return Rule(lhs, rhs, Parameter('k', None), parent_reaction=reaction)
 
     mol_defs = list(mol_defs_from_rxncon(rxncon_sys).values())
 
