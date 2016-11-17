@@ -269,8 +269,6 @@ class State:
     def is_mutually_exclusive_with(self, state: 'State') -> bool:
         assert self.is_elemental
         assert state.is_elemental
-        assert self.is_structured
-        assert state.is_structured
 
         if self == state:
             return False

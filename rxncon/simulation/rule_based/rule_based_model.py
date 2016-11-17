@@ -48,15 +48,16 @@ class MolDefBuilder:
 
 
 class Mol:
-    def __init__(self, spec: Spec, site_to_mod: Dict[str, Optional[str]], site_to_bond: Dict[str, int]):
+    def __init__(self, spec: Spec, site_to_mod: Dict[str, Optional[str]], site_to_bond: Dict[str, int], is_reactant: bool):
         assert spec.is_component_spec
         self.spec         = spec
         self.site_to_mod  = site_to_mod
         self.site_to_bond = site_to_bond
+        self.is_reactant  = is_reactant
 
     def __str__(self):
         mod_str  = ','.join('{}{}'.format(site, '~' + mod if mod else '') for site, mod in self.site_to_mod.items())
-        bond_str = ','.join('{}!{}'.format(site, bond) for site, bond in self.site_to_bond.items())
+        bond_str = ','.join('{}{}'.format(site, '!' + str(bond) if bond else '') for site, bond in self.site_to_bond.items())
 
         strs = []
         if mod_str:
@@ -84,15 +85,16 @@ def site_name(spec: Spec) -> str:
 
 
 class MolBuilder:
-    def __init__(self, spec: Spec):
+    def __init__(self, spec: Spec, is_reactant: bool=False):
         self.spec         = spec
         self.site_to_mod  = {}  # type: Dict[str, str]
         self.site_to_bond = {}  # type: Dict[str, int]
+        self.is_reactant  = is_reactant
 
     def build(self) -> Mol:
-        return Mol(self.spec, self.site_to_mod, self.site_to_bond)
+        return Mol(self.spec, self.site_to_mod, self.site_to_bond, self.is_reactant)
 
-    def set_bond_index(self, spec: Spec, bond_index: int):
+    def set_bond_index(self, spec: Spec, bond_index: Optional[int]):
         self.site_to_bond[site_name(spec)] = bond_index
 
     def set_mod(self, spec: Spec, mod: Optional[StateModifier]):
@@ -106,6 +108,10 @@ class Complex:
     def __str__(self):
         return '.'.join(str(mol) for mol in self.mols)
 
+    @property
+    def is_reactant(self):
+        return any(mol.is_reactant for mol in self.mols)
+
 
 class ComplexExprBuilder:
     def __init__(self):
@@ -117,21 +123,27 @@ class ComplexExprBuilder:
         complexes = []
 
         for group in self._grouped_specs():
-            complexes.append(Complex([self._mol_builders[spec].build() for spec in group]))
+            possible_complex = Complex([self._mol_builders[spec].build() for spec in group])
+
+            if possible_complex.is_reactant:
+                complexes.append(possible_complex)
 
         return complexes
 
-    def add_mol(self, spec: Spec):
+    def add_mol(self, spec: Spec, is_reactant: bool=False):
         if spec.to_component_spec() not in self._mol_builders:
-            self._mol_builders[spec.to_component_spec()] = MolBuilder(spec.to_component_spec())
+            self._mol_builders[spec.to_component_spec()] = MolBuilder(spec.to_component_spec(), is_reactant)
 
     def set_bond(self, first: Spec, second: Spec):
         if (first.to_component_spec(), second.to_component_spec()) not in self._bonds and \
            (second.to_component_spec(), first.to_component_spec()) not in self._bonds:
             self._bonds.append((first.to_component_spec(), second.to_component_spec()))
             self._current_bond += 1
-            self._mol_builders[first.to_component_spec()].set_bond_index(first, self._current_bond)
-            self._mol_builders[second.to_component_spec()].set_bond_index(second, self._current_bond)
+            self.set_half_bond(first, self._current_bond)
+            self.set_half_bond(second, self._current_bond)
+
+    def set_half_bond(self, spec: Spec, value: Optional[int]):
+        self._mol_builders[spec.to_component_spec()].set_bond_index(spec, value)
 
     def set_mod(self, spec: Spec, mod: Optional[StateModifier]):
         self._mol_builders[spec.to_component_spec()].set_mod(spec, mod)
@@ -170,7 +182,7 @@ STATE_TO_COMPLEX_BUILDER_FN = {
     # Empty binding state.
     '$x--0': [
         lambda state, builder: builder.add_mol(state['$x']),
-        lambda state, builder: builder.set_mod(state['$x'], None)
+        lambda state, builder: builder.set_half_bond(state['$x'], None)
     ]
 }
 
@@ -251,12 +263,16 @@ def calc_positive_solutions(rxncon_sys: RxnConSystem, solution: Dict[State, bool
         return True
 
     def complementary_state_combos(state: State) -> List[List[State]]:
-        combos = product(rxncon_sys.complementary_states_for_component(spec, state) for spec in state.specs)
+        combos = product(*(rxncon_sys.complementary_states_for_component(spec.to_component_spec(), state) for spec in state.specs))
         return [list(combo) for combo in combos if is_satisfiable(combo)]
 
     trues  = [state for state, val in solution.items() if val]
     falses = [state for state, val in solution.items() if not val]
-    positivized_falses = [chain(*x) for x in product(complementary_state_combos(state) for state in falses)]
+
+    if not falses:
+        return [trues]
+
+    positivized_falses = [list(chain(*x)) for x in product(*(complementary_state_combos(state) for state in falses))]
 
     solutions = []
 
@@ -306,7 +322,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             builder = ComplexExprBuilder()
             for term in terms:
                 for spec in term.specs:
-                    builder.add_mol(spec)
+                    builder.add_mol(spec, is_reactant=True)
 
                 states += term.states
 
@@ -320,7 +336,6 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         rhs = calc_complexes(reaction.terms_rhs, cont_soln)
 
         return Rule(lhs, rhs, Parameter('k', None))
-
 
     mol_defs = list(mol_defs_from_rxncon(rxncon_sys).values())
 

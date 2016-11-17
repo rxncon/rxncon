@@ -104,7 +104,7 @@ class RxnConSystem:
         return grouped
 
     def complementary_states_for_component(self, component: Spec, state: State) -> List[State]:
-        for group in self.states_for_component_grouped(component):
+        for group in self.states_for_component_grouped(component.to_non_struct_spec()).values():
             if state.to_non_structured_state() in group:
                 complements = [x for x in group if x != state.to_non_structured_state()]
                 return [x.to_structured_state(state) for x in complements]
