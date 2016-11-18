@@ -178,9 +178,9 @@ class RxnConSystem:
                     assert all(state.is_elemental for state in elemental_states)
                     return MultiOrEffector(elemental_states)
             elif isinstance(effector, AndEffector):
-                return AndEffector(expanded_effector(effector.left_expr), expanded_effector(effector.right_expr))
+                return AndEffector(*(expanded_effector(x) for x in effector.exprs))
             elif isinstance(effector, OrEffector):
-                return OrEffector(expanded_effector(effector.left_expr), expanded_effector(effector.right_expr))
+                return OrEffector(*(expanded_effector(x) for x in effector.exprs))
             elif isinstance(effector, NotEffector):
                 return NotEffector(expanded_effector(effector.expr))
             else:
