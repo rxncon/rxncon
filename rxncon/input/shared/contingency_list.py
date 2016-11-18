@@ -6,7 +6,7 @@ from typecheck import typecheck
 from rxncon.core.reaction import reaction_from_str
 from rxncon.util.utils import OrderedEnum
 from rxncon.core.contingency import ContingencyType, Contingency
-from rxncon.core.effector import StateEffector, NotEffector, BinaryEffector, OrEffector, Effector, AndEffector
+from rxncon.core.effector import StateEffector, NotEffector, OrEffector, Effector, AndEffector
 from rxncon.core.reaction import Reaction
 from rxncon.core.state import state_from_str, State
 
@@ -64,7 +64,7 @@ class ContingencyListEntry:
         return isinstance(self.subject, Reaction)
 
 
-def contingency_list_entry_from_subject_verb_object_strings(subject_str, verb_str, object_str) -> ContingencyListEntry:
+def contingency_list_entry_from_strs(subject_str, verb_str, object_str) -> ContingencyListEntry:
     subject_str, verb_str, object_str = subject_str.strip(), verb_str.lower().strip(), object_str.strip()
 
     if re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
@@ -99,7 +99,7 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
     Effector.dereference = _dereference_boolean_contingency_effectors
     Effector.contains_booleans = _contains_boolean_contingency_effectors
 
-    while any([x.effector.contains_booleans() for x in contingencies]):
+    while any(x.effector.contains_booleans() for x in contingencies):
         for contingency in contingencies:
             contingency.effector.dereference(lookup_table)
 
@@ -131,9 +131,9 @@ def _dereference_boolean_contingency_effectors(self: Effector, lookup_table: Dic
         pass
     elif isinstance(self, NotEffector):
         _dereference_boolean_contingency_effectors(self.expr, lookup_table)
-    elif isinstance(self, BinaryEffector):
-        _dereference_boolean_contingency_effectors(self.left_expr, lookup_table)
-        _dereference_boolean_contingency_effectors(self.right_expr, lookup_table)
+    elif isinstance(self, OrEffector) or isinstance(self, AndEffector):
+        for expr in self.exprs:
+            _dereference_boolean_contingency_effectors(expr, lookup_table)
     else:
         raise AssertionError
 
@@ -145,8 +145,8 @@ def _contains_boolean_contingency_effectors(self: Effector) -> bool:
         return False
     elif isinstance(self, NotEffector):
         return _contains_boolean_contingency_effectors(self.expr)
-    elif isinstance(self, BinaryEffector):
-        return _contains_boolean_contingency_effectors(self.left_expr) or _contains_boolean_contingency_effectors(self.right_expr)
+    elif isinstance(self, AndEffector) or isinstance(self, OrEffector):
+        return any(_contains_boolean_contingency_effectors(expr) for expr in self.exprs)
     else:
         raise AssertionError
 

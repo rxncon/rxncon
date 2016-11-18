@@ -211,9 +211,9 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             elif isinstance(eff, NotEffector):
                 return Complement(parse_effector(eff.expr))
             elif isinstance(eff, OrEffector):
-                return Union(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
+                return Union(*(parse_effector(x) for x in eff.exprs))
             elif isinstance(eff, AndEffector):
-                return Intersection(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
+                return Intersection(*(parse_effector(x) for x in eff.exprs))
             else:
                 raise AssertionError
 
