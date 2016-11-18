@@ -172,10 +172,10 @@ def _create_boolean_contingency_lookup_table(boolean_contingencies: List[Conting
 
         if boolean_operator == BooleanOperator.op_and:
             assert len(effector_terms) > 1
-            effector = reduce(AndEffector, effector_terms)
+            effector = AndEffector(*effector_terms)
         elif boolean_operator == BooleanOperator.op_or:
             assert len(effector_terms) > 1
-            effector = reduce(OrEffector, effector_terms)
+            effector = OrEffector(*effector_terms)
         elif boolean_operator == BooleanOperator.op_not:
             assert len(effector_terms) == 1
             effector = NotEffector(effector_terms[0])
