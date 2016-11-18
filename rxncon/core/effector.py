@@ -57,31 +57,39 @@ class NotEffector(Effector):
         return self.expr.states
 
 
-class BinaryEffector(Effector, metaclass=ABCMeta):
-    def __init__(self, left_expr: Effector, right_expr: Effector):
-        self.left_expr = left_expr
-        self.right_expr = right_expr
+class AndEffector(Effector):
+    def __init__(self, *exprs):
+        self.exprs = exprs
+
+    def __str__(self) -> str:
+        if self.name:
+            return 'AndEffector{0}({1})'.format(self.name, ','.join(str(x) for x in self.exprs))
+        else:
+            return 'AndEffector({0})'.format(','.join(str(x) for x in self.exprs))
 
     def __eq__(self, other: Effector) -> bool:
-        return type(self) == type(other) and self.name == other.name and \
-            self.left_expr == other.left_expr and self.right_expr == other.right_expr
+        return isinstance(other, AndEffector) and self.name == other.name and \
+               self.exprs == other.exprs
 
     @property
-    def states(self) -> List[State]:
-        return self.left_expr.states + self.right_expr.states
+    def states(self):
+        return [state for x in self.exprs for state in x.states]
 
 
-class AndEffector(BinaryEffector):
+class OrEffector(Effector):
+    def __init__(self, *exprs):
+        self.exprs = exprs
+
     def __str__(self) -> str:
         if self.name:
-            return 'AndEffector{0}({1}, {2})'.format(self.name, self.left_expr, self.right_expr)
+            return 'OrEffector{0}({1})'.format(self.name, ','.join(str(x) for x in self.exprs))
         else:
-            return 'AndEffector({0}, {1})'.format(self.left_expr, self.right_expr)
+            return 'OrEffector({0})'.format(','.join(str(x) for x in self.exprs))
 
+    def __eq__(self, other: Effector) -> bool:
+        return isinstance(other, OrEffector) and self.name == other.name and \
+               self.exprs == other.exprs
 
-class OrEffector(BinaryEffector):
-    def __str__(self) -> str:
-        if self.name:
-            return 'OrEffector{0}({1}, {2})'.format(self.name, self.left_expr, self.right_expr)
-        else:
-            return 'OrEffector({0}, {1})'.format(self.left_expr, self.right_expr)
+    @property
+    def states(self):
+        return [state for x in self.exprs for state in x.states]

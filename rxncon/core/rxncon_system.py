@@ -180,11 +180,11 @@ class RxnConSystem:
                     multi_or_effector.name = effector.name
                     return multi_or_effector
             elif isinstance(effector, AndEffector):
-                and_effector = AndEffector(expanded_effector(effector.left_expr), expanded_effector(effector.right_expr))
+                and_effector = AndEffector(*(expanded_effector(x) for x in effector.exprs))
                 and_effector.name = effector.name
                 return and_effector
             elif isinstance(effector, OrEffector):
-                or_effector = OrEffector(expanded_effector(effector.left_expr), expanded_effector(effector.right_expr))
+                or_effector = OrEffector(*(expanded_effector(x) for x in effector.exprs))
                 or_effector.name = effector.name
                 return or_effector
             elif isinstance(effector, NotEffector):

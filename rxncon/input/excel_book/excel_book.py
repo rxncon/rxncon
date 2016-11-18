@@ -4,7 +4,7 @@ import xlrd
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.input.shared.contingency_list import contingencies_from_contingency_list_entries, \
-    contingency_list_entry_from_subject_verb_object_strings, ContingencyListEntry
+    contingency_list_entry_from_strs, ContingencyListEntry
 from rxncon.input.shared.reaction_preprocess import split_bidirectional_reaction_str
 from rxncon.core.reaction import Reaction, reaction_from_str
 from rxncon.core.contingency import Contingency
@@ -84,7 +84,7 @@ class ExcelBook:
             if split_bidirectional_reaction_str(target) != [target]:
                 target = split_bidirectional_reaction_str(target)[0]
 
-            entry = contingency_list_entry_from_subject_verb_object_strings(
+            entry = contingency_list_entry_from_strs(
                 target, row[CONTINGENCY_LIST_COLUMN_TYPE].value,
                 row[CONTINGENCY_LIST_COLUMN_MODIFIER].value
             )
