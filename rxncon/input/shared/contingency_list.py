@@ -158,7 +158,7 @@ def _create_boolean_contingency_lookup_table(boolean_contingencies: List[Conting
     if not boolean_contingencies:
         return lookup_table
 
-    assert all([x.is_boolean_entry for x in boolean_contingencies])
+    assert all(x.is_boolean_entry for x in boolean_contingencies)
 
     while boolean_contingencies:
         current_contingency = boolean_contingencies[0]
