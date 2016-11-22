@@ -630,7 +630,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             None
 
         """
-
         for component in rxncon_sys.components():
             grouped_states = rxncon_sys.states_for_component_grouped(component)
             # component is not part of any state
@@ -656,7 +655,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         Returns:
             None
-
         """
         for reaction in rxncon_sys.reactions:
             cont = Intersection(*(factor_from_contingency(x) for x in rxncon_sys.contingencies_for_reaction(reaction))).to_simplified_set()
