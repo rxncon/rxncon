@@ -11,7 +11,6 @@ from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector,
 from rxncon.core.rxncon_system import RxnConSystem
 
 
-
 class BooleanModel:
     def __init__(self, state_targets: List['StateTarget'], reaction_targets: List['ReactionTarget'],
                  update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig'):
@@ -227,6 +226,16 @@ class SmoothingStrategy(Enum):
 
 def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                               smoothing_strategy: SmoothingStrategy=SmoothingStrategy.no_smoothing) -> BooleanModel:
+    """
+    Constructs a boolean model from a rxncon system and a smoothing strategy.
+
+    Args:
+          rxncon_sys: The rxncon system.
+          smoothing_strategy: The smoothing strategy. Defaults to no smoothing.
+
+    Returns:
+          The boolean model.
+    """
     def factor_from_contingency(contingency: Contingency) -> VennSet:
         def parse_effector(eff: Effector) -> VennSet:
             if isinstance(eff, StateEffector):
