@@ -14,6 +14,7 @@ from rxncon.core.rxncon_system import RxnConSystem
 
 class BooleanModel:
     def __init__(self, update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig'):
+
         self.update_rules = update_rules
         self.initial_conditions = initial_conditions
         self._validate_update_rules()
