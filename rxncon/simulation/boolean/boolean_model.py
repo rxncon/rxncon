@@ -250,6 +250,16 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         return BooleanModelConfig(conds)
 
     def calc_component_factors():
+
+        """
+        Calculates the factors of components from rxncon system.
+
+        Changes a dictionary containing keys: component; values: vennset of StateTargets.
+        If a component has no states, the component will hold itself as ValueSet of ComponentStateTarget.
+
+        Returns:
+            None
+        """
         for component in rxncon_sys.components():
             grouped_states = rxncon_sys.states_for_component_grouped(component)
             if not grouped_states.values():
@@ -260,6 +270,15 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                     Intersection(*(Union(*(ValueSet(StateTarget(x)) for x in group)) for group in grouped_states.values()))
 
     def calc_contingency_factors():
+        """
+        Calculates contingency factors for reaction targets from reactions of the rxncon system.
+
+        If the reaction is a degradation reaction it is split into separated entities and the minterms of the disjunctive normal
+        form are assigned to each respectively.
+
+        Returns:
+            None
+        """
         for reaction in rxncon_sys.reactions:
             cont = Intersection(*(factor_from_contingency(x) for x in rxncon_sys.contingencies_for_reaction(reaction))).to_simplified_set()
 
