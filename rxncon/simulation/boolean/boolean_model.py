@@ -88,6 +88,7 @@ class BooleanModelConfig:
 
     """
     def __init__(self, target_to_value: Dict['Target', bool]) -> None:
+
         self.target_to_value = target_to_value
 
     def set_target(self, target: 'Target', value: bool):
@@ -130,6 +131,7 @@ class BooleanModelConfig:
 class Target:
     """
     Parent class: a ReactionTarget or a StateTarget of the boolean model
+
     """
     def __hash__(self) -> int:
         return hash(str(self))
@@ -585,6 +587,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Note:
             As default all the neutral state targets are set to True. All other state targets as well as all
             reaction targets are set to False.
+
 
         Args:
             reaction_targets: Reactions of the boolean model producing or consuming state targets.
