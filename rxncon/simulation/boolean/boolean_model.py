@@ -489,6 +489,7 @@ class UpdateRule:
 
     """
     def __init__(self, target: Target, factor: VennSet) -> None:
+
         self.target = target
         self.factor = factor
 
