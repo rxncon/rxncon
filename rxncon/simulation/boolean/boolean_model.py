@@ -89,6 +89,7 @@ class BooleanModelConfig:
 
     """
     def __init__(self, target_to_value: Dict['Target', bool]) -> None:
+
         self.target_to_value = target_to_value
 
     def set_target(self, target: 'Target', value: bool):
@@ -111,7 +112,7 @@ class BooleanModelConfig:
     def validate_by_model(self, model: BooleanModel):
         """
         Validating the boolean model.
-l
+
         Args:
             model: boolean model
 
@@ -120,7 +121,7 @@ l
 
         Raises:
             AssertionError: A error will be raised if there are not the same targets in the model and the configuration.
-l
+
         """
         model_targets  = [rule.target for rule in model.update_rules]
         config_targets = self.target_to_value.keys()
@@ -154,6 +155,7 @@ class ReactionTarget(Target):
         self.consumed_targets    = [StateTarget(x) for x in reaction_parent.consumed_states]  # type: List[StateTarget]
         self.synthesised_targets = [StateTarget(x) for x in reaction_parent.synthesised_states]  # type: List[StateTarget]
         self.degraded_targets    = [StateTarget(x) for x in reaction_parent.degraded_states]  # type: List[StateTarget]
+
 
         self.contingency_variant_index = 0
         self.interaction_variant_index = 0
@@ -440,6 +442,7 @@ class ComponentStateTarget(StateTarget):
 
     """
     def __init__(self, component: Spec) -> None:
+
         self.component = component
 
     def __eq__(self, other: Target):
@@ -797,7 +800,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
             Returns:
                 VennSet of the reaction target and its source states
-l
+
             """
             return Intersection(ValueSet(reaction_target),
                                 Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets)))
