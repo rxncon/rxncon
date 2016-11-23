@@ -182,8 +182,12 @@ class ReactionTarget(Target):
             state_target: State of the boolean model consumed, produced, degraded or synthesised by reaction targets or regulating reaction targets.
 
         Returns:
+<<<<<<< 1c1d3342cc1cadf08da6dfe5063e52692f354032
             bool: True if the state target is in the list of produced targets, False otherwise.
 
+=======
+            bool
+>>>>>>> more comments on boolean model
         """
         return state_target in self.produced_targets
 
@@ -195,8 +199,12 @@ class ReactionTarget(Target):
             state_target: State of the boolean model consumed, produced, degraded or synthesised by reaction targets or regulating reaction targets.
 
         Returns:
+<<<<<<< 1c1d3342cc1cadf08da6dfe5063e52692f354032
             bool: True if the state target is in the list of consumed targets, False otherwise.
 
+=======
+            bool
+>>>>>>> more comments on boolean model
         """
         return state_target in self.consumed_targets
 
@@ -208,13 +216,18 @@ class ReactionTarget(Target):
             state_target: State of the boolean model consumed, produced, degraded or synthesised by reaction targets or regulating reaction targets.
 
         Returns:
+<<<<<<< 1c1d3342cc1cadf08da6dfe5063e52692f354032
             bool: True if the state target is in the list of synthesised targets, False otherwise.
 
+=======
+            bool
+>>>>>>> more comments on boolean model
         """
         return state_target in self.synthesised_targets
 
     def degrades(self, state_target: 'StateTarget') -> bool:
         """
+<<<<<<< 1c1d3342cc1cadf08da6dfe5063e52692f354032
         Checks if the reaction degrades this particular state target.
 
         Args:
@@ -224,6 +237,15 @@ class ReactionTarget(Target):
         Returns:
             bool: True if the state target is in the list of degraded targets, False otherwise.
 
+=======
+        Checks if the reaction degrades this particular state.
+
+        Args:
+            state_target: State of the boolean model consumed, produced, degraded or synthesised by reaction targets or regulating reaction targets.
+
+        Returns:
+            bool
+>>>>>>> more comments on boolean model
         """
         return state_target in self.degraded_targets
 
@@ -455,6 +477,7 @@ class UpdateRule:
 
     """
     def __init__(self, target: Target, factor: VennSet) -> None:
+
         self.target = target
         self.factor = factor
 
@@ -657,6 +680,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 reaction_target.degraded_targets += degraded_state_targets(degraded_component, soln)
 
     def update_degradations_for_interaction_states():
+
         def state_exclusive_with_contingency(state: StateTarget, contingency_factor: VennSet) -> bool:
             solns = contingency_factor.calc_solutions()
             assert len(solns) == 1
@@ -918,6 +942,7 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
                 return AssertionError
 
     boolnet_names  = {}  # type: Dict[Target, str]
+
     reaction_index = 0
     state_index    = 0
 
