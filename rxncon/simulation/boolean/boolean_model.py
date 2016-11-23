@@ -111,7 +111,7 @@ class BooleanModelConfig:
     def validate_by_model(self, model: BooleanModel):
         """
         Validating the boolean model.
-
+l
         Args:
             model: boolean model
 
@@ -120,7 +120,7 @@ class BooleanModelConfig:
 
         Raises:
             AssertionError: A error will be raised if there are not the same targets in the model and the configuration.
-
+l
         """
         model_targets  = [rule.target for rule in model.update_rules]
         config_targets = self.target_to_value.keys()
@@ -313,6 +313,7 @@ class StateTarget(Target):
 
     """
     def __init__(self, state_parent: State) -> None:
+
         self._state_parent = state_parent
 
     def __hash__(self) -> int:
@@ -489,6 +490,7 @@ class UpdateRule:
 
     """
     def __init__(self, target: Target, factor: VennSet) -> None:
+
         self.target = target
         self.factor = factor
 
@@ -709,6 +711,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             None
 
         """
+
         def state_exclusive_with_contingency(state: StateTarget, contingency_factor: VennSet) -> bool:
             solns = contingency_factor.calc_solutions()
             assert len(solns) == 1
@@ -794,7 +797,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
             Returns:
                 VennSet of the reaction target and its source states
-
+l
             """
             return Intersection(ValueSet(reaction_target),
                                 Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets)))
