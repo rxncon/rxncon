@@ -204,7 +204,7 @@ class StateTarget(Target):
     """
     An elemental state of the boolean model.
     """
-    def __init__(self, state_parent: State):
+    def __init__(self, state_parent: State) -> None:
         """
         Args:
             state_parent: A state of the rxncon system.
@@ -225,7 +225,7 @@ class StateTarget(Target):
         Checks if the state is degraded by the respective reaction.
 
         Args:
-            reaction_target: Reactions of the boolean model producing or consuming state targets
+            reaction_target: Reactions of the boolean model producing, consuming, degrading or synthesising state targets.
 
         Returns:
             bool
@@ -237,7 +237,7 @@ class StateTarget(Target):
         Checks if the state is consumed by the respective reaction.
 
         Args:
-            reaction_target: Reactions of the boolean model producing or consuming state targets
+            reaction_target: Reactions of the boolean model producing, consuming, degrading or synthesising state targets.
 
         Returns:
             bool
@@ -249,7 +249,7 @@ class StateTarget(Target):
         Checks if the state is synthesised by the respective reaction.
 
         Args:
-            reaction_target: Reactions of the boolean model producing or consuming state targets
+            reaction_target: Reactions of the boolean model producing, consuming, degrading or synthesising state targets.
 
         Returns:
             bool
@@ -261,7 +261,7 @@ class StateTarget(Target):
         Checks if the state is degraded by the respective reaction.
 
         Args:
-            reaction_target: Reactions of the boolean model producing or consuming state targets
+            reaction_target: Reactions of the boolean model producing, consuming, degrading or synthesising state targets.
 
         Returns:
             bool
@@ -282,7 +282,7 @@ class StateTarget(Target):
     @property
     def neutral_targets(self) -> List['StateTarget']:
         """
-        Calculates the neutral target states.
+        Calculates neutral states of state targets.
 
         Returns:
             List of neutral StateTargets.
@@ -301,19 +301,19 @@ class ComponentStateTarget(StateTarget):
     """
     Components corresponding to no states in the boolean model.
     """
-    def __init__(self, component: Spec):
+    def __init__(self, component: Spec) -> None:
         self.component = component
 
     def __eq__(self, other: Target):
         return isinstance(other, type(self)) and self.component == other.component
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.component)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __hash__(self):
+    def __hash__(self) -> hash:
         return hash(str(self))
 
     @property
@@ -329,7 +329,7 @@ class UpdateRule:
     """
     Updating rule of the boolean model.
     """
-    def __init__(self, target: Target, factor: VennSet):
+    def __init__(self, target: Target, factor: VennSet) -> None:
         """
         Args:
             target: ReactionTarget or StateTarget.
@@ -338,7 +338,7 @@ class UpdateRule:
         self.target = target
         self.factor = factor
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "target: {0}, factors: {1}".format(self.target, self.factor)
 
     @property
@@ -370,15 +370,11 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
         Calculates factors from contingency.
 
-        First case: The contingency is required or a positive quantitative contingency (handled as required).
-        Second case: The contingency is inhibiting or a negative quantitative contingency (handled as inhibiting).
-
         Args:
             contingency: rxncon system contingency (contextual constraint defined on a reaction)
 
         Returns:
             VennSet of StateTargets or UniversalSet.
-
         """
         def parse_effector(eff: Effector) -> VennSet:
             """
@@ -403,8 +399,10 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 raise AssertionError
 
         if contingency.type in [ContingencyType.requirement, ContingencyType.positive]:
+            # Positive quantitative contingencies are handled like required contingencies
             return parse_effector(contingency.effector)
         elif contingency.type in [ContingencyType.inhibition, ContingencyType.negative]:
+            # Negative quantitative contingencies are handled like inhibitions
             return Complement(parse_effector(contingency.effector))
         else:
             return UniversalSet()
@@ -413,16 +411,12 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
         Calculates default initial conditions of the boolean model.
 
-        First case: Neutral states are True
-        Second case: all reactions and non-neutral states are False
-
         Args:
             reaction_targets: Reactions of the boolean model producing or consuming state targets.
             state_targets: States of the boolean model consumed, produced by reaction targets or regulating reaction targets.
 
         Returns:
             Boolean model initial conditions.
-
         """
         conds = {}  # type: Dict[Union[ReactionTarget, StateTarget], bool]
 
@@ -430,8 +424,10 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             conds[target] = False
 
         for target in state_targets:
+            # Neutral state targets are True.
             if target.is_neutral:
                 conds[target] = True
+            # All reaction targets and non-neutral state targets are False.
             else:
                 conds[target] = False
 
@@ -445,15 +441,22 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Changes a dictionary containing keys: component; values: vennset of StateTargets.
         If a component has no states, the component will hold itself as ValueSet of ComponentStateTarget.
 
+        Mutates:
+            component_to_factor: Mapping of components and of VennSets containing all the states the component is involved in.
+
         Returns:
             None
         """
+
         for component in rxncon_sys.components():
             grouped_states = rxncon_sys.states_for_component_grouped(component)
+            # component is not part of any states
             if not grouped_states.values():
                 component_state_targets.append(ComponentStateTarget(component))
                 component_to_factor[component] = ValueSet(ComponentStateTarget(component))
+            # component is part of at least one state
             else:
+                # mutually exclusive states are combined by OR
                 component_to_factor[component] = \
                     Intersection(*(Union(*(ValueSet(StateTarget(x)) for x in group)) for group in grouped_states.values()))
 
@@ -461,20 +464,26 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
         Calculates contingency factors for reaction targets.
 
-        First case: reaction is not a degradation reaction
+        First case:
         Second case: reaction is a degradation reaction. Reaction is split into separated entities according to the number of
                      minterms of the disjunctive normal from (dnf). Each minterm will be assigned to a entity of the
                      degradation reaction.
+
+        Mutates:
+            reaction_target_to_factor: Mapping of target reactions and their corresponding contingencies.
 
         Returns:
             None
         """
         for reaction in rxncon_sys.reactions:
             cont = Intersection(*(factor_from_contingency(x) for x in rxncon_sys.contingencies_for_reaction(reaction))).to_simplified_set()
-
+            # The reaction is not a degradation reaction
             if not reaction.degraded_components:
                 reaction_target_to_factor[ReactionTarget(reaction)] = cont
+            # The reaction is a degradation reaction
             else:
+                # The reaction is split into separated entities according to the number of minterms of the
+                # disjunctive normal from (dnf). Each minterm will be assigned to a entity of the degradation reaction.
                 for index, factor in enumerate(cont.to_dnf_list()):
                     target = ReactionTarget(reaction)
                     target.contingency_variant_index = index
@@ -492,7 +501,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 falses = [target for target, val in soln.items() if not val]
                 for target in falses:
                     trues += target.complementary_state_targets(rxncon_sys, component)
-
                 return trues
 
         for reaction_target, contingency_factor in reaction_target_to_factor.items():
@@ -538,6 +546,9 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
         Update synthesis reaction with component states.
 
+        Mutates:
+            reaction_target: Reaction of the boolean model producing, consuming, degrading or synthesising state targets.
+
         Returns:
             None
         """
@@ -550,10 +561,10 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
         Calculate reaction rules.
 
-        The factor of a reaction target is of the form: components AND contingencies
+        The factor of a reaction target is of the form: components AND contingencies.
 
-        Mutate:
-            reaction_rules
+        Mutates:
+            reaction_rules: Containing the rules of the boolean model
 
         Returns:
             None
@@ -569,8 +580,9 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         The factor for a state target is of the from:
             synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
-        Returns:
 
+        Returns:
+            A list of updateing rules for states.
         """
         def reaction_with_sources(reaction_target: ReactionTarget) -> VennSet:
             """
@@ -598,8 +610,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             comp_fac = Intersection(*(component_to_factor[x] for x in state_target.components))
             degr_fac = degradation_factor(state_target)
 
-            prod_facs = []
-            cons_facs = []
+            prod_facs = []  # type: List[VennSet]
+            cons_facs = []  # type: List[VennSet]
 
             for reaction_target in (target for target in reaction_targets if target.produces(state_target)):
                 if smoothing_strategy == SmoothingStrategy.no_smoothing:
