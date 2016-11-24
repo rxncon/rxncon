@@ -2,7 +2,7 @@ from typing import List, Dict, Tuple, Union
 from copy import deepcopy
 from enum import Enum
 
-from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union, Complement, UniversalSet
+from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union as VennUnion, Complement, UniversalSet
 from rxncon.core.reaction import Reaction
 from rxncon.core.state import State
 from rxncon.core.spec import Spec
@@ -12,7 +12,7 @@ from rxncon.core.rxncon_system import RxnConSystem
 
 
 class BooleanModel:
-    def __init__(self, update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig'):
+    def __init__(self, update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig') -> None:
         """
         Definition of the boolean model.
         Args:
@@ -45,7 +45,7 @@ class BooleanModelConfig:
     """
     Configuration of the boolean model
     """
-    def __init__(self, target_to_value: Dict['Target', bool]):
+    def __init__(self, target_to_value: Dict['Target', bool]) -> None:
         self.target_to_value = target_to_value
 
     def set_target(self, target: 'Target', value: bool):
@@ -81,7 +81,7 @@ class ReactionTarget(Target):
     """
     Reaction of the boolean model.
     """
-    def __init__(self, reaction_parent: Reaction):
+    def __init__(self, reaction_parent: Reaction) -> None:
         """
         Defining the properties of the reaction.
 
@@ -368,7 +368,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             elif isinstance(eff, NotEffector):
                 return Complement(parse_effector(eff.expr))
             elif isinstance(eff, OrEffector):
-                return Union(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
+                return VennUnion(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
             elif isinstance(eff, AndEffector):
                 return Intersection(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
             else:
@@ -427,7 +427,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 component_to_factor[component] = ValueSet(ComponentStateTarget(component))
             else:
                 component_to_factor[component] = \
-                    Intersection(*(Union(*(ValueSet(StateTarget(x)) for x in group)) for group in grouped_states.values()))
+                    Intersection(*(VennUnion(*(ValueSet(StateTarget(x)) for x in group)) for group in grouped_states.values()))
 
     def calc_contingency_factors():
         """
@@ -523,6 +523,9 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         The factor of a reaction target is of the form: components AND contingencies
 
+        Mutate:
+            reaction_rules
+
         Returns:
             None
         """
@@ -536,7 +539,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Calculates state rules.
 
         The factor for a state target is of the from:
-            synthesis OR (components AND NOT degradations AND ((productions AND sources) OR (state AND NOT (consumptions AND sources) AND NOT degradations
+            synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
         Returns:
 
         """
@@ -552,12 +555,10 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             return Intersection(ValueSet(reaction_target),
                                 Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets)))
 
-        # Factor for a state target is of the form:
-        # synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
         for state_target in state_targets:
-            synt_fac = Union(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
+            synt_fac = VennUnion(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
             comp_fac = Intersection(*(component_to_factor[x] for x in state_target.components))
-            degr_fac = Complement(Union(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
+            degr_fac = Complement(VennUnion(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
 
             prod_facs = []
             cons_facs = []
@@ -568,7 +569,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 elif smoothing_strategy == SmoothingStrategy.smooth_production_sources:
                     smoothed_prod_facs = []
                     for primary_source in reaction_target.consumed_targets:
-                        smoothed_prod_facs.append(Union(ValueSet(primary_source),
+                        smoothed_prod_facs.append(VennUnion(ValueSet(primary_source),
                                                         *(reaction_with_sources(rxn) for rxn in reaction_targets if rxn.produces(primary_source))))
                     prod_facs.append(Intersection(ValueSet(reaction_target), *smoothed_prod_facs))
                 else:
@@ -577,10 +578,10 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             for reaction_target in (target for target in reaction_targets if target.consumes(state_target)):
                 cons_facs.append(Complement(reaction_with_sources(reaction_target)))
 
-            prod_cons_fac = Union(Union(*prod_facs), Intersection(ValueSet(state_target), Intersection(*cons_facs)))
+            prod_cons_fac = VennUnion(VennUnion(*prod_facs), Intersection(ValueSet(state_target), Intersection(*cons_facs)))
 
             state_rules.append(UpdateRule(state_target,
-                                          Union(synt_fac,
+                                          VennUnion(synt_fac,
                                                 Intersection(comp_fac, degr_fac, prod_cons_fac)).to_simplified_set()))
 
     component_to_factor       = {}  # type: Dict[Spec, VennSet]
@@ -609,6 +610,18 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
 
 def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[str, str], Dict[str, bool]]:
+    """
+    Translates the boolean model into the BoolNet syntax.
+
+    Args:
+        boolean_model: The boolean model.
+
+    Returns:
+        1. boolean model in BooleNet syntax
+        2. abbreviation, target mappin
+        3. initial condition mapping
+
+    """
     def str_from_factor(factor: VennSet) -> str:
         if isinstance(factor, ValueSet):
             return boolnet_name_from_target(factor.value)
@@ -616,7 +629,7 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
             return '!({})'.format(str_from_factor(factor.expr))
         elif isinstance(factor, Intersection):
             return '({})'.format(' & '.join(str_from_factor(x) for x in factor.exprs))
-        elif isinstance(factor, Union):
+        elif isinstance(factor, VennUnion):
             return '({})'.format(' | '.join(str_from_factor(x) for x in factor.exprs))
         else:
             raise AssertionError
@@ -646,7 +659,7 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
                 return AssertionError
 
     # boolnet_name_from_target closes over these variables.
-    boolnet_names  = {}  # type: Dict[str, str]
+    boolnet_names  = {}  # type: Dict[Target, str]
     reaction_index = 0
     state_index    = 0
 
