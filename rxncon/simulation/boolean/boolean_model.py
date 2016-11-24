@@ -313,7 +313,6 @@ class StateTarget(Target):
 
     """
     def __init__(self, state_parent: State) -> None:
-
         self._state_parent = state_parent
 
     def __hash__(self) -> int:
@@ -405,7 +404,11 @@ class StateTarget(Target):
     @property
     def neutral_targets(self) -> List['StateTarget']:
         """
+<<<<<<< 94d2b3f6b9af2b74b902be95ce0de5f731eae396
         Asking for the neutral states of state target.
+=======
+        Calculates neutral states of state targets.
+>>>>>>> improving comments.
 
         Returns:
             List of neutral StateTargets.
@@ -440,7 +443,6 @@ class ComponentStateTarget(StateTarget):
 
     """
     def __init__(self, component: Spec) -> None:
-
         self.component = component
 
     def __eq__(self, other: Target):
@@ -491,7 +493,6 @@ class UpdateRule:
 
     """
     def __init__(self, target: Target, factor: VennSet) -> None:
-
         self.target = target
         self.factor = factor
 
@@ -576,8 +577,10 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 raise AssertionError
 
         if contingency.type in [ContingencyType.requirement, ContingencyType.positive]:
+            # Positive quantitative contingencies are handled like required contingencies
             return parse_effector(contingency.effector)
         elif contingency.type in [ContingencyType.inhibition, ContingencyType.negative]:
+            # Negative quantitative contingencies are handled like inhibitions
             return Complement(parse_effector(contingency.effector))
         else:
             return UniversalSet()
@@ -628,6 +631,9 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Mutates:
             component_to_factor: Mapping of components and VennSets, containing all the states the component is
                 involved in.
+
+        Mutates:
+            component_to_factor: Mapping of components and of VennSets containing all the states the component is involved in.
 
         Returns:
             None
@@ -768,9 +774,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Mutates:
             reaction_rules: Containing the rules of the boolean model
 
-        Mutate:
-            reaction_rules
-
         Returns:
             None
 
@@ -791,7 +794,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Returns:
             A list of updating rules for states.
 
-        """
+      """
         def reaction_with_sources(reaction_target: ReactionTarget) -> VennSet:
             """
             Calculates the source states of the respective reaction target
