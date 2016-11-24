@@ -403,7 +403,11 @@ class StateTarget(Target):
     @property
     def neutral_targets(self) -> List['StateTarget']:
         """
+<<<<<<< d8b349e5efb7156398e525f01c1ba5a04c38f07a
         Asking for the neutral states of state target.
+=======
+        Calculates neutral states of state targets.
+>>>>>>> improving comments.
 
         Returns:
             List of neutral StateTargets.
@@ -572,8 +576,10 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 raise AssertionError
 
         if contingency.type in [ContingencyType.requirement, ContingencyType.positive]:
+            # Positive quantitative contingencies are handled like required contingencies
             return parse_effector(contingency.effector)
         elif contingency.type in [ContingencyType.inhibition, ContingencyType.negative]:
+            # Negative quantitative contingencies are handled like inhibitions
             return Complement(parse_effector(contingency.effector))
         else:
             return UniversalSet()
@@ -585,7 +591,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Note:
             As default all the neutral state targets are set to True. All other state targets as well as all
             reaction targets are set to False.
-
 
         Args:
             reaction_targets: Reactions of the boolean model producing or consuming state targets.
@@ -626,10 +631,14 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             component_to_factor: Mapping of components and VennSets, containing all the states the component is
                 involved in.
 
+        Mutates:
+            component_to_factor: Mapping of components and of VennSets containing all the states the component is involved in.
+
         Returns:
             None
 
         """
+
         for component in rxncon_sys.components():
             grouped_states = rxncon_sys.states_for_component_grouped(component)
             # component is not part of any state
@@ -684,6 +693,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 for target in falses:
                     trues += target.complementary_state_targets(rxncon_sys, component)
                 return trues
+
 
         for reaction_target, contingency_factor in reaction_target_to_factor.items():
             if not reaction_target.degraded_components:
@@ -750,9 +760,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Mutates:
             reaction_rules: Containing the rules of the boolean model
 
-        Mutate:
-            reaction_rules
-
         Returns:
             None
 
@@ -773,6 +780,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Returns:
             A list of updating rules for states.
 
+        Returns:
+            A list of updateing rules for states.
         """
         def reaction_with_sources(reaction_target: ReactionTarget) -> VennSet:
             """
