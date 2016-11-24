@@ -15,6 +15,7 @@ class BooleanModel:
 
     def __init__(self, state_targets: List['StateTarget'], reaction_targets: List['ReactionTarget'],
                  update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig'):
+
         """
         Definition of the boolean model.
         Args:
@@ -54,7 +55,7 @@ class BooleanModelConfig:
     """
     Configuration of the boolean model
     """
-    def __init__(self, target_to_value: Dict['Target', bool]):
+    def __init__(self, target_to_value: Dict['Target', bool]) -> None:
         self.target_to_value = target_to_value
 
     def set_target(self, target: 'Target', value: bool):
@@ -90,7 +91,7 @@ class ReactionTarget(Target):
     """
     Reaction of the boolean model.
     """
-    def __init__(self, reaction_parent: Reaction):
+    def __init__(self, reaction_parent: Reaction) -> None:
         """
         Defining the properties of the reaction.
 
@@ -551,6 +552,9 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         The factor of a reaction target is of the form: components AND contingencies
 
+        Mutate:
+            reaction_rules
+
         Returns:
             None
         """
@@ -564,7 +568,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Calculates state rules.
 
         The factor for a state target is of the from:
-            synthesis OR (components AND NOT degradations AND ((productions AND sources) OR (state AND NOT (consumptions AND sources) AND NOT degradations
+            synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
         Returns:
 
         """
@@ -650,6 +654,18 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
 
 def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[str, str], Dict[str, bool]]:
+    """
+    Translates the boolean model into the BoolNet syntax.
+
+    Args:
+        boolean_model: The boolean model.
+
+    Returns:
+        1. boolean model in BooleNet syntax
+        2. abbreviation, target mappin
+        3. initial condition mapping
+
+    """
     def str_from_factor(factor: VennSet) -> str:
         if isinstance(factor, ValueSet):
             return boolnet_name_from_target(factor.value)
@@ -687,7 +703,7 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
                 return AssertionError
 
     # boolnet_name_from_target closes over these variables.
-    boolnet_names  = {}  # type: Dict[str, str]
+    boolnet_names  = {}  # type: Dict[Target, str]
     reaction_index = 0
     state_index    = 0
 
