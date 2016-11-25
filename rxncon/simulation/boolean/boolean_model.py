@@ -12,15 +12,16 @@ from rxncon.core.rxncon_system import RxnConSystem
 
 
 class BooleanModel:
+    """
+    Definition of the boolean model.
+
+    Args:
+        update_rules: Rules for updating the system.
+        initial_conditions: Initial conditions of the system.
+    """
+
     def __init__(self, state_targets: List['StateTarget'], reaction_targets: List['ReactionTarget'],
                  update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig'):
-
-        """
-        Definition of the boolean model.
-        Args:
-            update_rules: Rules for updating the system.
-            initial_conditions: Initial conditions of the system.
-        """
 
         self.update_rules       = update_rules
         self.initial_conditions = initial_conditions
@@ -29,8 +30,8 @@ class BooleanModel:
         self._validate_update_rules()
         self._validate_initial_conditions()
 
-
     def set_initial_condition(self, target: 'Target', value: bool) -> None:
+
         """
         Assigning initial values to the boolean model.
 
@@ -403,11 +404,7 @@ class StateTarget(Target):
     @property
     def neutral_targets(self) -> List['StateTarget']:
         """
-<<<<<<< d8b349e5efb7156398e525f01c1ba5a04c38f07a
         Asking for the neutral states of state target.
-=======
-        Calculates neutral states of state targets.
->>>>>>> improving comments.
 
         Returns:
             List of neutral StateTargets.
@@ -576,10 +573,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 raise AssertionError
 
         if contingency.type in [ContingencyType.requirement, ContingencyType.positive]:
-            # Positive quantitative contingencies are handled like required contingencies
             return parse_effector(contingency.effector)
         elif contingency.type in [ContingencyType.inhibition, ContingencyType.negative]:
-            # Negative quantitative contingencies are handled like inhibitions
             return Complement(parse_effector(contingency.effector))
         else:
             return UniversalSet()
@@ -630,9 +625,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Mutates:
             component_to_factor: Mapping of components and VennSets, containing all the states the component is
                 involved in.
-
-        Mutates:
-            component_to_factor: Mapping of components and of VennSets containing all the states the component is involved in.
 
         Returns:
             None
@@ -693,7 +685,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 for target in falses:
                     trues += target.complementary_state_targets(rxncon_sys, component)
                 return trues
-
 
         for reaction_target, contingency_factor in reaction_target_to_factor.items():
             if not reaction_target.degraded_components:
@@ -780,8 +771,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Returns:
             A list of updating rules for states.
 
-        Returns:
-            A list of updateing rules for states.
         """
         def reaction_with_sources(reaction_target: ReactionTarget) -> VennSet:
             """
