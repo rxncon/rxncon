@@ -375,7 +375,7 @@ class StateTarget(Target):
 
 class ComponentStateTarget(StateTarget):
     """
-    Components corresponding to no states in the boolean model.
+    ComponentStateTarget corresponding to Components which have no states in the boolean model.
 
     Args:
         component (Specification): A reaction partner or part of state.
@@ -479,7 +479,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
         Calculates factors from contingency.
 
-        Notes:
+        Note:
             Positive quantitative contingencies are handled like required contingencies.
             Negative quantitative contingencies are handled like inhibitions.
 
@@ -523,7 +523,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
         Calculates default initial conditions of the boolean model.
 
-        Notes:
+        Note:
             As default all the neutral state targets are set to True. All other state targets as well as all
             reaction targets are set to False.
 
@@ -555,13 +555,13 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
         Calculates the factors for components.
 
-        Notes:
-            The form is: component = (state_a1 | ... | state_an) & (state_b1 | ... | state_bm) & ...
+        Note:
+            The form is: (state_a1 | ... | state_an) & (state_b1 | ... | state_bm) & ...
 
             Non-mutually exclusive states are combined by boolean AND (state_a and state_b).
             Mutually exclusive states are combined by boolean OR (state_a1 to state_an as well as state_b1 to state_bm).
 
-            If a component is not part of any state in the system, the component will hold itself as ValueSet of a ComponentStateTarget.
+            If a component is not part of any state of the system, the component will hold itself as ValueSet of a ComponentStateTarget.
 
         Mutates:
             component_to_factor: Mapping of components and VennSets, containing all the states the component is
@@ -588,7 +588,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
         Calculates contingency factors for reaction targets.
 
-        Notes: Degradation reactions are handled differently then other reactions. An OR contingency will lead to a
+        Note: Degradation reactions are handled differently then other reactions. An OR contingency will lead to a
             split of the degradation reaction in as many reactions as OR statements. Each OR will be assigned to one
             instance of the reaction.
 
@@ -649,7 +649,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
         Update degradation reactions for interaction states.
 
-        Notes: Interaction states are composed out of to components. A degradation reaction degrading an interaction
+        Note: Interaction states are composed out of two components. A degradation reaction degrading an interaction
             state will degrade one of these components. The other component is assigned as unbound (neutral form).
 
         Mutates:
@@ -696,7 +696,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
         Calculate the rules of reaction targets.
 
-        Notes:
+        Note:
             The factor of a reaction target has the form: components AND contingencies.
 
         Mutates:
@@ -715,7 +715,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
         Calculates the rules of state targets.
 
-        Notes:
+        Note:
             The factor for a state target has the from:
             synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
 
@@ -795,7 +795,7 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
     """
     Translates the boolean model into the BoolNet syntax.
 
-    Notes:
+    Note:
         BoolNet is an R package that provides tools for assembling, analyzing and visualizing Boolean networks.
 
     Args:
@@ -811,7 +811,7 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
         """
         Translates a factor into a string.
 
-        Notes:
+        Note:
             During this process the names of the targets are replaced by abbreviations. Reaction targets are replaced
             by R{} and states are replaced by S{} where {} is a continuous numerating for state and reaction targets
             respectively.
@@ -855,7 +855,7 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
         """
         Creates a valid BoolNet name from the respective target.
 
-        Notes:
+        Note:
             The target name is replaced by a abbreviation, which is a valid BoolNet name. Reaction targets are replaced
             by R{} and states are replaced by S{} where {} is a continuous numerating for state and reaction targets
             respectively. The replacement is tracked by boolnet_names.
