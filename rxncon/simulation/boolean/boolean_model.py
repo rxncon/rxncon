@@ -404,11 +404,7 @@ class StateTarget(Target):
     @property
     def neutral_targets(self) -> List['StateTarget']:
         """
-<<<<<<< 94d2b3f6b9af2b74b902be95ce0de5f731eae396
         Asking for the neutral states of state target.
-=======
-        Calculates neutral states of state targets.
->>>>>>> improving comments.
 
         Returns:
             List of neutral StateTargets.
@@ -577,10 +573,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 raise AssertionError
 
         if contingency.type in [ContingencyType.requirement, ContingencyType.positive]:
-            # Positive quantitative contingencies are handled like required contingencies
             return parse_effector(contingency.effector)
         elif contingency.type in [ContingencyType.inhibition, ContingencyType.negative]:
-            # Negative quantitative contingencies are handled like inhibitions
             return Complement(parse_effector(contingency.effector))
         else:
             return UniversalSet()
@@ -632,9 +626,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             component_to_factor: Mapping of components and VennSets, containing all the states the component is
                 involved in.
 
-        Mutates:
-            component_to_factor: Mapping of components and of VennSets containing all the states the component is involved in.
-
         Returns:
             None
 
@@ -657,6 +648,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Calculates contingency factors for reaction targets.
 
         Note: Degradation reactions are handled differently then other reactions. An OR contingency will lead to a
+
             split of the degradation reaction in as many reactions as OR statements. Each OR will be assigned to one
             instance of the reaction.
 
@@ -795,6 +787,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             A list of updating rules for states.
 
       """
+
         def reaction_with_sources(reaction_target: ReactionTarget) -> VennSet:
             """
             Calculates the source states of the respective reaction target
