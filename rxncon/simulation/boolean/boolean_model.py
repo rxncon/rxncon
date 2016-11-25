@@ -696,6 +696,19 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 reaction_target.degraded_targets += degraded_state_targets(degraded_component, soln)
 
     def update_degradations_for_interaction_states():
+        """
+        Update degradation reactions for interaction states.
+
+        Note: Interaction states are composed out of two components. A degradation reaction degrading an interaction
+            state will degrade one of these components. The other component is assigned as unbound (neutral form).
+
+        Mutates:
+            reaction_target_to_factor: Mapping of target reactions and their corresponding contingencies.
+
+        Returns:
+            None
+
+        """
         def state_exclusive_with_contingency(state: StateTarget, contingency_factor: VennSet) -> bool:
             solns = contingency_factor.calc_solutions()
             assert len(solns) == 1
