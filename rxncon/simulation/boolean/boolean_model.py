@@ -648,7 +648,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Calculates contingency factors for reaction targets.
 
         Note: Degradation reactions are handled differently then other reactions. An OR contingency will lead to a
-
             split of the degradation reaction in as many reactions as OR statements. Each OR will be assigned to one
             instance of the reaction.
 
