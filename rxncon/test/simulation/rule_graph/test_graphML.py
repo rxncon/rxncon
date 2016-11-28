@@ -5,7 +5,7 @@ import time
 import tempfile
 
 import rxncon.input.quick.quick as qui
-import rxncon.simulation.rule_graph.regulatory_graph as reg
+import rxncon.simulation.rule_graph.old_regulatory_graph as reg
 import rxncon.simulation.rule_graph.graphML as gml
 
 RuleTestCase = namedtuple('RuleTestCase', ['quick_string', 'expected_xgmml'])

@@ -176,13 +176,21 @@ class RxnConSystem:
                     assert elemental_states, 'Could not find elemental states which are subset of the non-elemental ' \
                                              'state {}'.format(effector.expr)
                     assert all(state.is_elemental for state in elemental_states)
-                    return MultiOrEffector(elemental_states)
+                    multi_or_effector = MultiOrEffector(elemental_states)
+                    multi_or_effector.name = effector.name
+                    return multi_or_effector
             elif isinstance(effector, AndEffector):
-                return AndEffector(expanded_effector(effector.left_expr), expanded_effector(effector.right_expr))
+                and_effector = AndEffector(expanded_effector(effector.left_expr), expanded_effector(effector.right_expr))
+                and_effector.name = effector.name
+                return and_effector
             elif isinstance(effector, OrEffector):
-                return OrEffector(expanded_effector(effector.left_expr), expanded_effector(effector.right_expr))
+                or_effector = OrEffector(expanded_effector(effector.left_expr), expanded_effector(effector.right_expr))
+                or_effector.name = effector.name
+                return or_effector
             elif isinstance(effector, NotEffector):
-                return NotEffector(expanded_effector(effector.expr))
+                not_effector = NotEffector(expanded_effector(effector.expr))
+                not_effector.name = effector.name
+                return not_effector
             else:
                 raise AssertionError
 
