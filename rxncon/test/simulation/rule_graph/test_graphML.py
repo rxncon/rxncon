@@ -1,141 +1,35 @@
-import pytest
-from collections import namedtuple
 import os
 import time
 import tempfile
+from xml.dom import minidom
 
-import rxncon.input.quick.quick as qui
-import rxncon.simulation.rule_graph.old_regulatory_graph as reg
-import rxncon.simulation.rule_graph.graphML as gml
+from rxncon.input.quick.quick import Quick
+from rxncon.simulation.rule_graph.regulatory_graph import RegulatoryGraph
+from rxncon.simulation.rule_graph.graphML import map_layout2xgmml, XGMML
+from rxncon.input.excel_book.excel_book import ExcelBook
 
-RuleTestCase = namedtuple('RuleTestCase', ['quick_string', 'expected_xgmml'])
-
-def test_graph_generation(the_cases):
-   for test_case in the_cases:
-       assert is_xgmml_export_test_case_correct(test_case)
-
-def test_graph_writing(the_cases):
-    for test_case in the_cases:
-        assert can_xgmml_be_written_to_file(test_case)
+PHEROMONE_XLS   = os.path.join(os.path.dirname(__file__), 'pheromone.xls')
+PHEROMONE_XGMML = os.path.join(os.path.dirname(__file__), 'pheromone_layout.xgmml')
 
 
-@pytest.fixture
-def the_cases(case_and_expected_graph):
-    return case_and_expected_graph
+def _is_xgmml_export_test_case_correct(test_case_quick, expected_xgmml):
+    """
 
+    Args:
+        test_case_quick: rxncon system in quick format.
+        expected_xgmml: expected xgmml content.
 
-@pytest.fixture
-def case_and_expected_graph():
-    return [
-        # RuleTestCase('''A_[b]_ppi_B_[a]; ! A-{p}
-        #                 C_p+_A_[(x)]''',
-        #              '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-        #                 <graph directed="1"  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.cs.rpi.edu/XGMML">
-        #                 <att name="selected" value="1" type="boolean" />
-        #                 <att name="name" value="test_graph" type="string"/>
-        #                 <att name="shared name" value="test_graph" type="string"/>
-        #
-        #                 <node id="A--B" label="A--B"><att name="type" value="state" /></node>
-        #                 <node id="C_p+_A" label="C_p+_A"><att name="type" value="reaction" /></node>
-        #                 <node id="A_ppi_B" label="A_ppi_B"><att name="type" value="reaction" /></node>
-        #                 <node id="A-{p}" label="A-{p}"><att name="type" value="state" /></node>
-        #                 <edge source="C_p+_A" target="A-{p}"><att name="interaction" value="produce"/></edge>
-        #                 <edge source="A_ppi_B" target="A--B"><att name="interaction" value="produce"/></edge>
-        #                 <edge source="A-{p}" target="A_ppi_B"><att name="interaction" value="!"/></edge>
-        #                 </graph>'''),
+    Returns:
+        bool: True if the created xgmml is the same as the expected, False otherwise.
 
-        RuleTestCase('''A_[b]_ppi_B_[a]; ! <comp>; ! C-{p}
-                        <comp>; AND A-{p}; AND A--C; AND A--D
-                        A_[d]_ppi_D_[a]
-                        A_[c]_ppi_C_[a]
-                        C_p+_A_[(x)]
-                        D_p+_C_[(x)]''',
-                     '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-                        <graph directed="1"  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.cs.rpi.edu/XGMML">
-                        <att name="selected" value="1" type="boolean" />
-                        <att name="name" value="test_graph" type="string"/>
-                        <att name="shared name" value="test_graph" type="string"/>
-
-                        <node id="A_[c]--C_[a]" label="A_[c]--C_[a]"><att name="type" value="state" /></node>
-                        <node id="A_[c]_ppi_C_[a]" label="A_[c]_ppi_C_[a]"><att name="type" value="reaction" /></node>
-                        <node id="C_[(x)]-{p}" label="C_[(x)]-{p}"><att name="type" value="state" /></node>
-                        <node id="D_p+_C_[(x)]" label="D_p+_C_[(x)]"><att name="type" value="reaction" /></node>
-                        <node id="A_[b]_ppi_B_[a]" label="A_[b]_ppi_B_[a]"><att name="type" value="reaction" /></node>
-                        <node id="comp" label="comp"><att name="type" value="boolean_and" /></node>
-                        <node id="C_p+_A_[(x)]" label="C_p+_A_[(x)]"><att name="type" value="reaction" /></node>
-                        <node id="A_[(x)]-{p}" label="A_[(x)]-{p}"><att name="type" value="state" /></node>
-                        <node id="A_[b]--B_[a]" label="A_[b]--B_[a]"><att name="type" value="state" /></node>
-                        <node id="A_[d]--D_[a]" label="A_[d]--D_[a]"><att name="type" value="state" /></node>
-                        <node id="A_[d]_ppi_D_[a]" label="A_[d]_ppi_D_[a]"><att name="type" value="reaction" /></node>
-                        <edge source="A_[c]--C_[a]" target="comp"><att name="interaction" value="AND"/></edge>
-                        <edge source="A_[c]_ppi_C_[a]" target="A_[c]--C_[a]"><att name="interaction" value="produce"/></edge>
-                        <edge source="C_[(x)]-{p}" target="A_[b]_ppi_B_[a]"><att name="interaction" value="!"/></edge>
-                        <edge source="D_p+_C_[(x)]" target="C_[(x)]-{p}"><att name="interaction" value="produce"/></edge>
-                        <edge source="A_[b]_ppi_B_[a]" target="A_[b]--B_[a]"><att name="interaction" value="produce"/></edge>
-                        <edge source="comp" target="A_[b]_ppi_B_[a]"><att name="interaction" value="!"/></edge>
-                        <edge source="C_p+_A_[(x)]" target="A_[(x)]-{p}"><att name="interaction" value="produce"/></edge>
-                        <edge source="A_[(x)]-{p}" target="comp"><att name="interaction" value="AND"/></edge>
-                        <edge source="A_[d]--D_[a]" target="comp"><att name="interaction" value="AND"/></edge>
-                        <edge source="A_[d]_ppi_D_[a]" target="A_[d]--D_[a]"><att name="interaction" value="produce"/></edge>
-                        </graph> '''),
-        # RuleTestCase('''A_ppi_B; ! <comp>
-        #                 <comp>; AND <comp1>; AND <comp2>
-        #                 <comp1>; OR <comp3>; OR A--C
-        #                 <comp2>; AND A--D; AND A--E
-        #                 <comp3>; AND A--F; AND A--G
-        #                 A_ppi_C
-        #                 A_ppi_D
-        #                 A_ppi_E
-        #                 A_ppi_F
-        #                 A_ppi_G''',
-        #              '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-        #                     <graph directed="1"  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.cs.rpi.edu/XGMML">
-        #                     <att name="selected" value="1" type="boolean" />
-        #                     <att name="name" value="test_graph" type="string"/>
-        #                     <att name="shared name" value="test_graph" type="string"/>
-        #
-        #                 <node id="A--D" label="A--D"><att name="type" value="state" /></node>
-        #                 <node id="A--E" label="A--E"><att name="type" value="state" /></node>
-        #                 <node id="A_ppi_D" label="A_ppi_D"><att name="type" value="reaction" /></node>
-        #                 <node id="A--C" label="A--C"><att name="type" value="state" /></node>
-        #                 <node id="A--G" label="A--G"><att name="type" value="state" /></node>
-        #                 <node id="comp" label="comp"><att name="type" value="boolean_and" /></node>
-        #                 <node id="comp3" label="comp3"><att name="type" value="boolean_and" /></node>
-        #                 <node id="comp1" label="comp1"><att name="type" value="boolean_or" /></node>
-        #                 <node id="A_ppi_C" label="A_ppi_C"><att name="type" value="reaction" /></node>
-        #                 <node id="comp2" label="comp2"><att name="type" value="boolean_and" /></node>
-        #                 <node id="A_ppi_G" label="A_ppi_G"><att name="type" value="reaction" /></node>
-        #                 <node id="A_ppi_B" label="A_ppi_B"><att name="type" value="reaction" /></node>
-        #                 <node id="A--F" label="A--F"><att name="type" value="state" /></node>
-        #                 <node id="A_ppi_E" label="A_ppi_E"><att name="type" value="reaction" /></node>
-        #                 <node id="A_ppi_F" label="A_ppi_F"><att name="type" value="reaction" /></node>
-        #                 <node id="A--B" label="A--B"><att name="type" value="state" /></node>
-        #                 <edge source="A--D" target="comp2"><att name="interaction" value="AND"/></edge>
-        #                 <edge source="A--E" target="comp2"><att name="interaction" value="AND"/></edge>
-        #                 <edge source="A_ppi_D" target="A--D"><att name="interaction" value="produce"/></edge>
-        #                 <edge source="A--C" target="comp1"><att name="interaction" value="OR"/></edge>
-        #                 <edge source="A--G" target="comp3"><att name="interaction" value="AND"/></edge>
-        #                 <edge source="comp" target="A_ppi_B"><att name="interaction" value="!"/></edge>
-        #                 <edge source="comp3" target="comp1"><att name="interaction" value="OR"/></edge>
-        #                 <edge source="comp1" target="comp"><att name="interaction" value="AND"/></edge>
-        #                 <edge source="A_ppi_C" target="A--C"><att name="interaction" value="produce"/></edge>
-        #                 <edge source="comp2" target="comp"><att name="interaction" value="AND"/></edge>
-        #                 <edge source="A_ppi_G" target="A--G"><att name="interaction" value="produce"/></edge>
-        #                 <edge source="A_ppi_B" target="A--B"><att name="interaction" value="produce"/></edge>
-        #                 <edge source="A--F" target="comp3"><att name="interaction" value="AND"/></edge>
-        #                 <edge source="A_ppi_E" target="A--E"><att name="interaction" value="produce"/></edge>
-        #                 <edge source="A_ppi_F" target="A--F"><att name="interaction" value="produce"/></edge>
-        #                 </graph>''')
-    ]
-
-def is_xgmml_export_test_case_correct(test_case):
-    actual_system = qui.Quick(test_case.quick_string)
-    reg_system = reg.RegulatoryGraph(actual_system.rxncon_system)
+    """
+    actual_system = Quick(test_case_quick)
+    reg_system = RegulatoryGraph(actual_system.rxncon_system)
     actual_graph = reg_system.to_graph()
-    gml_system = gml.XGMML(actual_graph, "test_graph")
+    gml_system = XGMML(actual_graph, "test_graph")
 
-    expected_xgmml_lines= [line.strip() for line in test_case.expected_xgmml.split("\n")]
-    produced_xgmml_lines = [line.strip() for line in gml_system.to_string().split("\n")]
+    expected_xgmml_lines= [line.strip() for line in expected_xgmml.split("\n") if line.strip()]
+    produced_xgmml_lines = [line.strip() for line in gml_system.to_string().split("\n") if line.strip()]
 
     if not sorted(produced_xgmml_lines) == sorted(expected_xgmml_lines):
         for i, line in enumerate(produced_xgmml_lines):
@@ -145,120 +39,284 @@ def is_xgmml_export_test_case_correct(test_case):
 
     return sorted(produced_xgmml_lines) == sorted(expected_xgmml_lines)
 
-def can_xgmml_be_written_to_file(test_case):
-    actual_system = qui.Quick(test_case.quick_string)
-    reg_system = reg.RegulatoryGraph(actual_system.rxncon_system)
+
+def _can_xgmml_be_written_to_file(test_case_quick_string: str):
+    """
+    Writing xgmml.
+
+    Args:
+        test_case_quick_string: rxncon system in quick format.
+
+    Returns:
+        bool: True if file was written and is not empty, False otherwise.
+
+    """
+    actual_system = Quick(test_case_quick_string)
+    reg_system = RegulatoryGraph(actual_system.rxncon_system)
     actual_graph = reg_system.to_graph()
     name = "test{0}".format(time.time())
-    gml_system = gml.XGMML(actual_graph, "name")
+    gml_system = XGMML(actual_graph, "name")
 
     path = "{0}/{1}.xgmml".format(tempfile.gettempdir(), name)
     gml_system.to_file(path)
     file_exists = os.path.exists(path)
+    file_size = os.stat(path).st_size
     os.remove(path)
-    return file_exists
-
-def test_test():
-    quick_system = qui.Quick("""IR_[lig]_i_insulin_[IR]; ! <IR-empty>
-    <IR-empty>; AND IR@0--IR@2; AND IR@0_[lig]--0; AND IR@2_[lig]--0""")
-    reg_graph = reg.RegulatoryGraph(quick_system.rxncon_system)
-    actual_graph = reg_graph.to_graph()
-    gml_system = gml.XGMML(actual_graph, "name")
-    pass
-    #gml_system.to_file('/home/thiemese/data/reg_graph.xgmml')
-
-def test_insulin_reg_graph():
-    quick_system = qui.Quick("""IR_[IRBD]_ppi_IR_[IRBD]
-IR_[lig]_i_insulin_[IR]; ! <IR-empty>
-IR_p+_IR_[TK(Y1158)]; ! <IR0-IR1-Insulin2>
-IR_p+_IR_[TK(Y1162)]; ! <IR0-IR1-Insulin2>
-IR_p+_IR_[TK(Y1163)]; ! <IR0-IR1-Insulin2>
-IR_ap+_IR_[JM(Y972)]; ! <IR-IR-active>
-IR_[JMY972]_ppi_IRS_[PTB]; ! IR_[JM(Y972)]-{P}; ! IRS_[PH]--Phospholipids_[IRS]
-IRS_[PH]_i_Phospholipids_[IRS]
-IR_p+_IRS_[(Y)]; ! IR_[JMY972]--IRS_[PTB]; ! <IR-active>
-Grb2_[SOS]_ppi_SOS_[Grb2]
-Grb2_[SH2]_ppi_IRS_[Y]; ! IRS_[(Y)]-{P}
-IR_[JMY972]_ppi_Shc_[PTB]; ! IR_[JM(Y972)]-{P}
-IR_p+_Shc_[(YY239240)]; ! IR_[JMY972]--Shc_[PTB]; ! <IR-active>
-IR_p+_Shc_[(Y317)]; ! IR_[JMY972]--Shc_[PTB]; ! <IR-active>
-Grb2_[SH2]_ppi_Shc_[YY]; ! Shc_[(YY239240)]-{P}
-Grb2_[SH2]_ppi_Shc_[Y]; ! Shc_[(Y317)]-{P}
-IRS_[Y]_ppi_PI3K_[SH2]; ! IRS_[(Y)]-{P}
-
-<IR-empty>; AND IR@0_[IRBD]--IR@2_[IRBD]; AND IR@0_[lig]--0; AND IR@2_[lig]--0
-
-<IR-IR-active>; AND <IR-phos>; AND <IR0-IR1-Insulin2>
-<IR-phos>; AND IR_[TK(Y1158)]-{P}; AND IR_[TK(Y1162)]-{P}; AND IR_[TK(Y1163)]-{P}
-
-<IR0-IR1-Insulin2>; OR <IR0-insulin2>; OR <IR1-insulin2>
-<IR0-insulin2>; AND IR@0_[IRBD]--IR@1_[IRBD]; AND IR@0_[lig]--insulin@2_[IR]
-<IR1-insulin2>; AND IR@0_[IRBD]--IR@1_[IRBD]; AND IR@1_[lig]--insulin@2_[IR]
-
-<IR-active>; AND <IR-phos>; AND <IR0-IR2-Insulin3>
-<IR0-IR2-Insulin3>; OR <IR0-insulin3>; OR <IR2-insulin3>
-<IR0-insulin3>; AND IR@0_[IRBD]--IR@2_[IRBD]; AND IR@0_[lig]--insulin@3_[IR]
-<IR2-insulin3>; AND IR@0_[IRBD]--IR@2_[IRBD]; AND IR@2_[lig]--insulin@3_[IR]
-""")
-    reg_graph = reg.RegulatoryGraph(quick_system.rxncon_system)
-    actual_graph = reg_graph.to_graph()
-    gml_system = gml.XGMML(actual_graph, "name")
-    gml_system.to_file('/home/thiemese/data/reg_graph.xgmml')
+    return file_exists and file_size > 0
 
 
-"""[PI3KAkt signal]; ! IRS_[Y]--PI3K_[SH2]
+def test_simple_system():
+    """
+    Testing a simple system of 2 reactions and 1 contingency.
 
-[RasErk signalling]; ! <Grb2-SOS>
-<Grb2-SOS>; OR <Grb2-Shc-Sos>; OR <Grb2-IRS-Sos>
-<Grb2-Shc-Sos>; AND Grb2_[SH2]--Shc_[YY]; AND Grb2--SOS
-<Grb2-IRS-Sos>; AND Grb2_[SH2]--IRS_[Y]; AND Grb2--SOS"""
+    Returns:
+        None
+
+    Raises:
+        AsssertionError: If the created xgmml differes from the expected.
+
+    """
+    test_case_quick_str = '''A_[b]_ppi+_B_[a]; ! A_[(x)]-{p}
+                         C_p+_A_[(x)]'''
+    expected_xgmml = """
+                    <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                    <graph directed="1"  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.cs.rpi.edu/XGMML">
+                    <att name="selected" value="1" type="boolean" />
+                    <att name="name" value="test_graph" type="string"/>
+                    <att name="shared name" value="test_graph" type="string"/>
+                    <node id="A_[b]--0" label="A_[b]--0"><att name="type" value="state" /></node>
+                    <node id="A_[(x)]-{0}" label="A_[(x)]-{0}"><att name="type" value="state" /></node>
+                    <node id="A_[(x)]-{p}" label="A_[(x)]-{p}"><att name="type" value="state" /></node>
+                    <node id="A_[b]--B_[a]" label="A_[b]--B_[a]"><att name="type" value="state" /></node>
+                    <node id="C_p+_A_[(x)]" label="C_p+_A_[(x)]"><att name="type" value="reaction" /></node>
+                    <node id="B_[a]--0" label="B_[a]--0"><att name="type" value="state" /></node>
+                    <node id="A_[b]_ppi+_B_[a]" label="A_[b]_ppi+_B_[a]"><att name="type" value="reaction" /></node>
+                    <edge source="A_[b]--0" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="ss"/></edge>
+                    <edge source="A_[(x)]-{0}" target="C_p+_A_[(x)]"><att name="interaction" value="ss"/></edge>
+                    <edge source="A_[(x)]-{p}" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="!"/></edge>
+                    <edge source="C_p+_A_[(x)]" target="A_[(x)]-{0}"><att name="interaction" value="consume"/></edge>
+                    <edge source="C_p+_A_[(x)]" target="A_[(x)]-{p}"><att name="interaction" value="produce"/></edge>
+                    <edge source="B_[a]--0" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="ss"/></edge>
+                    <edge source="A_[b]_ppi+_B_[a]" target="A_[b]--0"><att name="interaction" value="consume"/></edge>
+                    <edge source="A_[b]_ppi+_B_[a]" target="B_[a]--0"><att name="interaction" value="consume"/></edge>
+                    <edge source="A_[b]_ppi+_B_[a]" target="A_[b]--B_[a]"><att name="interaction" value="produce"/></edge>
+                    </graph>"""
+
+    assert _is_xgmml_export_test_case_correct(test_case_quick_str, expected_xgmml)
+    assert _can_xgmml_be_written_to_file(test_case_quick_str)
 
 
+def  test_creating_writing_xgmml_from_regulatory_graph_simple_boolean():
+    """
+    Testing if a DiGraph can be written as xgmml and writen to file.
 
-def test_insulin_reg_graph_reactions_only():
-    quick_system = qui.Quick("""IR_[IRBD]_ppi_IR_[IRBD]
-IR_[lig]_i_insulin_[IR]
-IR_p+_IR_[TK(Y1158)]
-IR_p+_IR_[TK(Y1162)]
-IR_p+_IR_[TK(Y1163)]
-IR_ap+_IR_[JM(Y972)]
-IR_[JMY972]_ppi_IRS_[PTB]
-IRS_[PH]_i_Phospholipids_[IRS]
-IR_p+_IRS_[(Y)]
-Grb2_[SOS]_ppi_SOS_[Grb2]
-Grb2_[SH2]_ppi_IRS_[Y]
-IR_[JMY972]_ppi_Shc_[PTB]
-IR_p+_Shc_[(YY239240)]
-IR_p+_Shc_[(Y317)]
-Grb2_[SH2]_ppi_Shc_[YY]
-Grb2_[SH2]_ppi_Shc_[Y]
-IRS_[Y]_ppi_PI3K_[SH2]
-""")
-    reg_graph = reg.RegulatoryGraph(quick_system.rxncon_system)
-    actual_graph = reg_graph.to_graph()
-    gml_system = gml.XGMML(actual_graph, "reactions_only")
-    gml_system.to_file('/home/thiemese/data/ownCloud/Paper/geplante Paper/Bookchapter - rxncon/rxncon-to-rules-chapter/pics/reg_graph_reactions_only.xgmml')
+    Note:
+        A system of 5 reactions, 1 boolean contingency, 1 state contingency.
 
-def test_reg_graph_some_cont():
-    quick_system = qui.Quick("""IR_[IRBD]_ppi_IR_[IRBD]
-IR_[lig]_i_insulin_[IR]
-IR_p+_IR_[TK(Y1158)]
-IR_p+_IR_[TK(Y1162)]
-IR_p+_IR_[TK(Y1163)]
-IR_ap+_IR_[JM(Y972)]
-IR_[JMY972]_ppi_IRS_[PTB]; ! IR_[JM(Y972)]-{P}; ! IRS_[PH]--Phospholipids_[IRS]
-IRS_[PH]_i_Phospholipids_[IRS]
-IR_p+_IRS_[(Y)]; ! IR_[JMY972]--IRS_[PTB]
-Grb2_[SOS]_ppi_SOS_[Grb2]
-Grb2_[SH2]_ppi_IRS_[Y]; ! IRS_[(Y)]-{P}
-IR_[JMY972]_ppi_Shc_[PTB]; ! IR_[JM(Y972)]-{P}
-IR_p+_Shc_[(YY239240)]; ! IR_[JMY972]--Shc_[PTB]
-IR_p+_Shc_[(Y317)]; ! IR_[JMY972]--Shc_[PTB]
-Grb2_[SH2]_ppi_Shc_[YY]; ! Shc_[(YY239240)]-{P}
-Grb2_[SH2]_ppi_Shc_[Y]; ! Shc_[(Y317)]-{P}
-IRS_[Y]_ppi_PI3K_[SH2]; ! IRS_[(Y)]-{P}
-""")
-    reg_graph = reg.RegulatoryGraph(quick_system.rxncon_system)
-    actual_graph = reg_graph.to_graph()
-    gml_system = gml.XGMML(actual_graph, "reactions_only")
-    gml_system.to_file('/home/thiemese/data/ownCloud/Paper/geplante Paper/Bookchapter - rxncon/rxncon-to-rules-chapter/pics/reg_graph_some_cont.xgmml')
+    Returns:
+        None
+
+    Raises:
+        AsssertionError: If the created xgmml differes from the expected.
+
+    """
+    test_case_quick_str = '''A_[b]_ppi+_B_[a]; ! <comp>; ! C_[(x)]-{p}
+                        <comp>; AND A_[(x)]-{p}; AND A_[c]--C_[a]; AND A_[d]--D_[a]
+                        A_[d]_ppi+_D_[a]
+                        A_[c]_ppi+_C_[a]
+                        C_p+_A_[(x)]
+                        D_p+_C_[(x)]'''
+
+    expected_xgmml = '''
+                        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                        <graph directed="1"  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.cs.rpi.edu/XGMML">
+                        <att name="selected" value="1" type="boolean" />
+                        <att name="name" value="test_graph" type="string"/>
+                        <att name="shared name" value="test_graph" type="string"/>
+                        <node id="C_[(x)]-{p}" label="C_[(x)]-{p}"><att name="type" value="state" /></node>
+                        <node id="A_[(x)]-{p}" label="A_[(x)]-{p}"><att name="type" value="state" /></node>
+                        <node id="B_[a]--0" label="B_[a]--0"><att name="type" value="state" /></node>
+                        <node id="A_[c]--C_[a]" label="A_[c]--C_[a]"><att name="type" value="state" /></node>
+                        <node id="C_[a]--0" label="C_[a]--0"><att name="type" value="state" /></node>
+                        <node id="A_[(x)]-{0}" label="A_[(x)]-{0}"><att name="type" value="state" /></node>
+                        <node id="A_[d]_ppi+_D_[a]" label="A_[d]_ppi+_D_[a]"><att name="type" value="reaction" /></node>
+                        <node id="A_[c]_ppi+_C_[a]" label="A_[c]_ppi+_C_[a]"><att name="type" value="reaction" /></node>
+                        <node id="C_p+_A_[(x)]" label="C_p+_A_[(x)]"><att name="type" value="reaction" /></node>
+                        <node id="comp" label="comp"><att name="type" value="boolean_and" /></node>
+                        <node id="A_[d]--0" label="A_[d]--0"><att name="type" value="state" /></node>
+                        <node id="C_[(x)]-{0}" label="C_[(x)]-{0}"><att name="type" value="state" /></node>
+                        <node id="A_[b]--B_[a]" label="A_[b]--B_[a]"><att name="type" value="state" /></node>
+                        <node id="A_[b]--0" label="A_[b]--0"><att name="type" value="state" /></node>
+                        <node id="D_p+_C_[(x)]" label="D_p+_C_[(x)]"><att name="type" value="reaction" /></node>
+                        <node id="A_[d]--D_[a]" label="A_[d]--D_[a]"><att name="type" value="state" /></node>
+                        <node id="A_[c]--0" label="A_[c]--0"><att name="type" value="state" /></node>
+                        <node id="A_[b]_ppi+_B_[a]" label="A_[b]_ppi+_B_[a]"><att name="type" value="reaction" /></node>
+                        <node id="D_[a]--0" label="D_[a]--0"><att name="type" value="state" /></node>
+                        <edge source="C_[(x)]-{p}" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="!"/></edge>
+                        <edge source="A_[(x)]-{p}" target="comp"><att name="interaction" value="AND"/></edge>
+                        <edge source="B_[a]--0" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="ss"/></edge>
+                        <edge source="A_[c]--C_[a]" target="comp"><att name="interaction" value="AND"/></edge>
+                        <edge source="C_[a]--0" target="A_[c]_ppi+_C_[a]"><att name="interaction" value="ss"/></edge>
+                        <edge source="A_[(x)]-{0}" target="C_p+_A_[(x)]"><att name="interaction" value="ss"/></edge>
+                        <edge source="A_[d]_ppi+_D_[a]" target="A_[d]--D_[a]"><att name="interaction" value="produce"/></edge>
+                        <edge source="A_[d]_ppi+_D_[a]" target="A_[d]--0"><att name="interaction" value="consume"/></edge>
+                        <edge source="A_[d]_ppi+_D_[a]" target="D_[a]--0"><att name="interaction" value="consume"/></edge>
+                        <edge source="A_[c]_ppi+_C_[a]" target="C_[a]--0"><att name="interaction" value="consume"/></edge>
+                        <edge source="A_[c]_ppi+_C_[a]" target="A_[c]--0"><att name="interaction" value="consume"/></edge>
+                        <edge source="A_[c]_ppi+_C_[a]" target="A_[c]--C_[a]"><att name="interaction" value="produce"/></edge>
+                        <edge source="C_p+_A_[(x)]" target="A_[(x)]-{p}"><att name="interaction" value="produce"/></edge>
+                        <edge source="C_p+_A_[(x)]" target="A_[(x)]-{0}"><att name="interaction" value="consume"/></edge>
+                        <edge source="comp" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="!"/></edge>
+                        <edge source="A_[d]--0" target="A_[d]_ppi+_D_[a]"><att name="interaction" value="ss"/></edge>
+                        <edge source="C_[(x)]-{0}" target="D_p+_C_[(x)]"><att name="interaction" value="ss"/></edge>
+                        <edge source="A_[b]--0" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="ss"/></edge>
+                        <edge source="D_p+_C_[(x)]" target="C_[(x)]-{p}"><att name="interaction" value="produce"/></edge>
+                        <edge source="D_p+_C_[(x)]" target="C_[(x)]-{0}"><att name="interaction" value="consume"/></edge>
+                        <edge source="A_[d]--D_[a]" target="comp"><att name="interaction" value="AND"/></edge>
+                        <edge source="A_[c]--0" target="A_[c]_ppi+_C_[a]"><att name="interaction" value="ss"/></edge>
+                        <edge source="A_[b]_ppi+_B_[a]" target="B_[a]--0"><att name="interaction" value="consume"/></edge>
+                        <edge source="A_[b]_ppi+_B_[a]" target="A_[b]--B_[a]"><att name="interaction" value="produce"/></edge>
+                        <edge source="A_[b]_ppi+_B_[a]" target="A_[b]--0"><att name="interaction" value="consume"/></edge>
+                        <edge source="D_[a]--0" target="A_[d]_ppi+_D_[a]"><att name="interaction" value="ss"/></edge>
+                        </graph>'''
+
+    assert _is_xgmml_export_test_case_correct(test_case_quick_str, expected_xgmml)
+    assert _can_xgmml_be_written_to_file(test_case_quick_str)
+
+
+def test_creating_writing_xgmml_from_regulatory_graph_complex_boolean():
+    """
+    Testing a nested boolean.
+
+     Note:
+         A system of 6 reactions, 1 boolean contingency.
+
+    Returns:
+        None
+
+    Raises:
+        AsssertionError: If the created xgmml differes from the expected.
+
+    """
+    test_case_quick_str = """A_ppi+_B; ! <comp>
+                         <comp>; AND <comp1>; AND <comp2>
+                         <comp1>; OR <comp3>; OR A--C
+                         <comp2>; AND A--D; AND A--E
+                         <comp3>; AND A--F; AND A--G
+                         A_ppi+_C
+                         A_ppi+_D
+                         A_ppi+_E
+                         A_ppi+_F
+                         A_ppi+_G"""
+
+    expected_xgmml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+                    <graph directed="1"  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.cs.rpi.edu/XGMML">
+                    <att name="selected" value="1" type="boolean" />
+                    <att name="name" value="test_graph" type="string"/>
+                    <att name="shared name" value="test_graph" type="string"/>
+
+                    <node id="A_[B]--B_[A]" label="A_[B]--B_[A]"><att name="type" value="state" /></node>
+                    <node id="comp2" label="comp2"><att name="type" value="boolean_and" /></node>
+                    <node id="A_[C]--0" label="A_[C]--0"><att name="type" value="state" /></node>
+                    <node id="A_[E]--E_[A]" label="A_[E]--E_[A]"><att name="type" value="state" /></node>
+                    <node id="A_[D]--D_[A]" label="A_[D]--D_[A]"><att name="type" value="state" /></node>
+                    <node id="comp" label="comp"><att name="type" value="boolean_and" /></node>
+                    <node id="comp3" label="comp3"><att name="type" value="boolean_and" /></node>
+                    <node id="E_[A]--0" label="E_[A]--0"><att name="type" value="state" /></node>
+                    <node id="A_[C]_ppi+_C_[A]" label="A_[C]_ppi+_C_[A]"><att name="type" value="reaction" /></node>
+                    <node id="A_[E]_ppi+_E_[A]" label="A_[E]_ppi+_E_[A]"><att name="type" value="reaction" /></node>
+                    <node id="A_[E]--0" label="A_[E]--0"><att name="type" value="state" /></node>
+                    <node id="A_[G]_ppi+_G_[A]" label="A_[G]_ppi+_G_[A]"><att name="type" value="reaction" /></node>
+                    <node id="A_[D]_ppi+_D_[A]" label="A_[D]_ppi+_D_[A]"><att name="type" value="reaction" /></node>
+                    <node id="comp1" label="comp1"><att name="type" value="boolean_or" /></node>
+                    <node id="A_[G]--0" label="A_[G]--0"><att name="type" value="state" /></node>
+                    <node id="A_[C]--C_[A]" label="A_[C]--C_[A]"><att name="type" value="state" /></node>
+                    <node id="A_[F]_ppi+_F_[A]" label="A_[F]_ppi+_F_[A]"><att name="type" value="reaction" /></node>
+                    <node id="B_[A]--0" label="B_[A]--0"><att name="type" value="state" /></node>
+                    <node id="A_[G]--G_[A]" label="A_[G]--G_[A]"><att name="type" value="state" /></node>
+                    <node id="A_[D]--0" label="A_[D]--0"><att name="type" value="state" /></node>
+                    <node id="G_[A]--0" label="G_[A]--0"><att name="type" value="state" /></node>
+                    <node id="A_[B]--0" label="A_[B]--0"><att name="type" value="state" /></node>
+                    <node id="F_[A]--0" label="F_[A]--0"><att name="type" value="state" /></node>
+                    <node id="C_[A]--0" label="C_[A]--0"><att name="type" value="state" /></node>
+                    <node id="D_[A]--0" label="D_[A]--0"><att name="type" value="state" /></node>
+                    <node id="A_[F]--0" label="A_[F]--0"><att name="type" value="state" /></node>
+                    <node id="A_[B]_ppi+_B_[A]" label="A_[B]_ppi+_B_[A]"><att name="type" value="reaction" /></node>
+                    <node id="A_[F]--F_[A]" label="A_[F]--F_[A]"><att name="type" value="state" /></node>
+                    <edge source="comp2" target="comp"><att name="interaction" value="AND"/></edge>
+                    <edge source="A_[C]--0" target="A_[C]_ppi+_C_[A]"><att name="interaction" value="ss"/></edge>
+                    <edge source="A_[E]--E_[A]" target="comp2"><att name="interaction" value="AND"/></edge>
+                    <edge source="A_[D]--D_[A]" target="comp2"><att name="interaction" value="AND"/></edge>
+                    <edge source="comp" target="A_[B]_ppi+_B_[A]"><att name="interaction" value="!"/></edge>
+                    <edge source="comp3" target="comp1"><att name="interaction" value="OR"/></edge>
+                    <edge source="E_[A]--0" target="A_[E]_ppi+_E_[A]"><att name="interaction" value="ss"/></edge>
+                    <edge source="A_[C]_ppi+_C_[A]" target="C_[A]--0"><att name="interaction" value="consume"/></edge>
+                    <edge source="A_[C]_ppi+_C_[A]" target="A_[C]--C_[A]"><att name="interaction" value="produce"/></edge>
+                    <edge source="A_[C]_ppi+_C_[A]" target="A_[C]--0"><att name="interaction" value="consume"/></edge>
+                    <edge source="A_[E]_ppi+_E_[A]" target="A_[E]--0"><att name="interaction" value="consume"/></edge>
+                    <edge source="A_[E]_ppi+_E_[A]" target="E_[A]--0"><att name="interaction" value="consume"/></edge>
+                    <edge source="A_[E]_ppi+_E_[A]" target="A_[E]--E_[A]"><att name="interaction" value="produce"/></edge>
+                    <edge source="A_[E]--0" target="A_[E]_ppi+_E_[A]"><att name="interaction" value="ss"/></edge>
+                    <edge source="A_[G]_ppi+_G_[A]" target="A_[G]--G_[A]"><att name="interaction" value="produce"/></edge>
+                    <edge source="A_[G]_ppi+_G_[A]" target="G_[A]--0"><att name="interaction" value="consume"/></edge>
+                    <edge source="A_[G]_ppi+_G_[A]" target="A_[G]--0"><att name="interaction" value="consume"/></edge>
+                    <edge source="A_[D]_ppi+_D_[A]" target="A_[D]--0"><att name="interaction" value="consume"/></edge>
+                    <edge source="A_[D]_ppi+_D_[A]" target="D_[A]--0"><att name="interaction" value="consume"/></edge>
+                    <edge source="A_[D]_ppi+_D_[A]" target="A_[D]--D_[A]"><att name="interaction" value="produce"/></edge>
+                    <edge source="comp1" target="comp"><att name="interaction" value="AND"/></edge>
+                    <edge source="A_[G]--0" target="A_[G]_ppi+_G_[A]"><att name="interaction" value="ss"/></edge>
+                    <edge source="A_[C]--C_[A]" target="comp1"><att name="interaction" value="OR"/></edge>
+                    <edge source="A_[F]_ppi+_F_[A]" target="A_[F]--F_[A]"><att name="interaction" value="produce"/></edge>
+                    <edge source="A_[F]_ppi+_F_[A]" target="A_[F]--0"><att name="interaction" value="consume"/></edge>
+                    <edge source="A_[F]_ppi+_F_[A]" target="F_[A]--0"><att name="interaction" value="consume"/></edge>
+                    <edge source="B_[A]--0" target="A_[B]_ppi+_B_[A]"><att name="interaction" value="ss"/></edge>
+                    <edge source="A_[G]--G_[A]" target="comp3"><att name="interaction" value="AND"/></edge>
+                    <edge source="A_[D]--0" target="A_[D]_ppi+_D_[A]"><att name="interaction" value="ss"/></edge>
+                    <edge source="G_[A]--0" target="A_[G]_ppi+_G_[A]"><att name="interaction" value="ss"/></edge>
+                    <edge source="A_[B]--0" target="A_[B]_ppi+_B_[A]"><att name="interaction" value="ss"/></edge>
+                    <edge source="F_[A]--0" target="A_[F]_ppi+_F_[A]"><att name="interaction" value="ss"/></edge>
+                    <edge source="C_[A]--0" target="A_[C]_ppi+_C_[A]"><att name="interaction" value="ss"/></edge>
+                    <edge source="D_[A]--0" target="A_[D]_ppi+_D_[A]"><att name="interaction" value="ss"/></edge>
+                    <edge source="A_[F]--0" target="A_[F]_ppi+_F_[A]"><att name="interaction" value="ss"/></edge>
+                    <edge source="A_[B]_ppi+_B_[A]" target="A_[B]--B_[A]"><att name="interaction" value="produce"/></edge>
+                    <edge source="A_[B]_ppi+_B_[A]" target="B_[A]--0"><att name="interaction" value="consume"/></edge>
+                    <edge source="A_[B]_ppi+_B_[A]" target="A_[B]--0"><att name="interaction" value="consume"/></edge>
+                    <edge source="A_[F]--F_[A]" target="comp3"><att name="interaction" value="AND"/></edge>
+                    </graph>"""
+
+    assert _is_xgmml_export_test_case_correct(test_case_quick_str, expected_xgmml)
+    assert _can_xgmml_be_written_to_file(test_case_quick_str)
+
+
+def test_map_layout2xgmml():
+    """
+    Testing if the new graph gets the correct layout of the old graph.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If the node coordinates of the new graph differ from expected coordinates.
+
+    """
+    def _get_labels_and_coordinates_dict(xmldoc):
+        return {graphic.parentNode.getAttribute('label'): {"x": graphic.getAttribute('x'),
+                                                           "y": graphic.getAttribute('y'),
+                                                           "z": graphic.getAttribute('z')}
+                for graphic in xmldoc.getElementsByTagName('graphics') if graphic.attributes.values() and
+                graphic.parentNode.tagName == "node"}
+
+    book = ExcelBook(PHEROMONE_XLS)
+    reg_graph = RegulatoryGraph(book.rxncon_system)
+    gml_system = XGMML(reg_graph.to_graph(), "reactions_only")
+    mapped_layout = map_layout2xgmml(gml_system.to_string(), PHEROMONE_XGMML)
+
+    xmldoc_no_layout = minidom.parseString(mapped_layout)
+    xmldoc_no_layout_info = _get_labels_and_coordinates_dict(xmldoc_no_layout)
+    xmldoc_expected_layout = minidom.parse(PHEROMONE_XGMML)
+    xmldoc_expected_layout_info = _get_labels_and_coordinates_dict(xmldoc_expected_layout)
+    assert all(xmldoc_no_layout_info[no_layout_node] == xmldoc_expected_layout_info[no_layout_node]
+               for no_layout_node in xmldoc_no_layout_info)
+    assert all(xmldoc_no_layout_info[expected_layout_node] == xmldoc_expected_layout_info[expected_layout_node]
+               for expected_layout_node in xmldoc_expected_layout_info)
+
