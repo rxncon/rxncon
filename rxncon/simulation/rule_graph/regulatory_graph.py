@@ -1,12 +1,10 @@
-from typing import Union, List, Dict
+from typing import Union, List
 import re
-import os
-import copy
 from enum import Enum, unique
 from networkx import DiGraph
 from rxncon.core.rxncon_system import RxnConSystem, Reaction, ReactionTerm, Contingency
 from rxncon.core.effector import StateEffector, AndEffector, NotEffector, OrEffector, Effector
-from xml.dom import minidom
+
 
 @unique
 class NodeType(Enum):
@@ -161,74 +159,3 @@ class RegulatoryGraph():
             self._add_information_from_effector_to_graph(effector.right_expr, EdgeInteractionType.AND, target_name)
         else:
             raise AssertionError
-
-
-def layout2regulatory_graph(no_layout_str: str, template_file_str: str) -> str:
-    def check_filepath(file_path):
-        if not os.path.exists(file_path):
-            assert "File path {} does not exist!".format(file_path)
-
-    def apply_template_layout(no_layout_str: str, template_file_str: str) -> str:
-        #_get_node_information(no_layout_str)
-
-        pass
-
-    def _get_labels_and_coordinates_dict(xmldoc) -> Dict:
-
-        graphics_list = xmldoc.getElementsByTagName('graphics')
-        coordinates_dict = {graphic.parentNode.getAttribute('label'): {"x": graphic.getAttribute('x'),
-                                                                       "y": graphic.getAttribute('y'),
-                                                                       "z": graphic.getAttribute('z')}
-                            for graphic in graphics_list if graphic.attributes.values() and graphic.parentNode.tagName == "node"}
-
-        return coordinates_dict
-
-    check_filepath(template_file_str)
-    xmldoc_no_layout = minidom.parseString(no_layout_str)
-    node_list_no_layout = xmldoc_no_layout.getElementsByTagName('node')
-
-    xmldoc_template = minidom.parse(template_file_str)
-    node_list_template = xmldoc_template.getElementsByTagName('node')
-    template_coordinates = _get_labels_and_coordinates_dict(xmldoc_template)
-
-    for no_layout_node in node_list_no_layout:
-        if no_layout_node.getAttribute('label') in template_coordinates:
-            node_name = no_layout_node.getAttribute('label')
-            element = xmldoc_no_layout.createElement("graphics")
-            element.setAttribute("x", template_coordinates[node_name]["x"])
-            element.setAttribute("y", template_coordinates[node_name]["y"])
-            element.setAttribute("z", template_coordinates[node_name]["z"])
-            element.appendChild(xmldoc_no_layout.createTextNode(''))
-            no_layout_node.appendChild(element)
-
-    return xmldoc_no_layout.toprettyxml()
-
-
-
-# def insert_graphics_elements_into_graph(graph_data_unlayouted, graph_data_layouted, node_names_layouted):
-#     coordinates_dict = _get_labels_and_coordinates_dict(graph_data_layouted["xmldoc"])
-#     for item in graph_data_unlayouted["node_names_dicts"]:
-#         if item["name"] in node_names_layouted and item["name"] in coordinates_dict:
-#             element = graph_data_unlayouted["xmldoc"].createElement("graphics")
-#             element.setAttribute("x", coordinates_dict[item["name"]]["x"])
-#             element.setAttribute("y", coordinates_dict[item["name"]]["y"])
-#             element.setAttribute("z", coordinates_dict[item["name"]]["z"])
-#             element.appendChild(graph_data_unlayouted["xmldoc"].createTextNode(''))
-#             target_node = graph_data_unlayouted["node_list"].item(item["index"])
-#             target_node.appendChild(element)
-#     return graph_data_unlayouted
-#
-
-# def apply_template_layout(request, graph_file_path):
-#     template_file = request.FILES.get('template')
-#     graph_data_unlayouted = get_graph_nodes_and_lables_from_file(graph_file_path)
-#     graph_data_layouted = get_graph_nodes_and_lables_from_file(template_file)
-#     node_names_layouted = [d["name"] for d in graph_data_layouted["node_names_dicts"]]
-#     graph_data_now_layouted = insert_graphics_elements_into_graph(graph_data_unlayouted, graph_data_layouted, node_names_layouted)
-#     graph_file = open(graph_file_path, "w")
-#     graph_data_now_layouted["xmldoc"].writexml(graph_file)
-#     graph_string = graph_data_now_layouted["xmldoc"].toprettyxml()
-#     graph_file.close()
-#
-#     return graph_file, graph_string
-#
