@@ -11,6 +11,10 @@ from rxncon.input.excel_book.excel_book import ExcelBook
 PHEROMONE_XLS   = os.path.join(os.path.dirname(__file__), 'pheromone.xls')
 PHEROMONE_XGMML = os.path.join(os.path.dirname(__file__), 'pheromone_layout.xgmml')
 
+#System: A_[b]_ppi+_B_[a]; ! A_[(c)]-{p}
+#        C_p+_A_[(c)]
+NODE_LAYOUT_MANIPULATION = os.path.join(os.path.dirname(__file__), 'test_adding_node_layout.xgmml')
+
 
 def _is_xgmml_export_test_case_correct(test_case_quick, expected_xgmml):
     """
@@ -288,6 +292,14 @@ def test_creating_writing_xgmml_from_regulatory_graph_complex_boolean():
     assert _can_xgmml_be_written_to_file(test_case_quick_str)
 
 
+def _get_labels_and_coordinates_dict(xmldoc):
+    return {graphic.parentNode.getAttribute('label'): {"x": graphic.getAttribute('x'),
+                                                       "y": graphic.getAttribute('y'),
+                                                       "z": graphic.getAttribute('z')}
+            for graphic in xmldoc.getElementsByTagName('graphics') if graphic.attributes.values() and
+            graphic.parentNode.tagName == "node"}
+
+
 def test_map_layout2xgmml():
     """
     Testing if the new graph gets the correct layout of the old graph.
@@ -299,12 +311,6 @@ def test_map_layout2xgmml():
         AssertionError: If the node coordinates of the new graph differ from expected coordinates.
 
     """
-    def _get_labels_and_coordinates_dict(xmldoc):
-        return {graphic.parentNode.getAttribute('label'): {"x": graphic.getAttribute('x'),
-                                                           "y": graphic.getAttribute('y'),
-                                                           "z": graphic.getAttribute('z')}
-                for graphic in xmldoc.getElementsByTagName('graphics') if graphic.attributes.values() and
-                graphic.parentNode.tagName == "node"}
 
     book = ExcelBook(PHEROMONE_XLS)
     reg_graph = RegulatoryGraph(book.rxncon_system)
@@ -319,4 +325,58 @@ def test_map_layout2xgmml():
                for no_layout_node in xmldoc_no_layout_info)
     assert all(xmldoc_no_layout_info[expected_layout_node] == xmldoc_expected_layout_info[expected_layout_node]
                for expected_layout_node in xmldoc_expected_layout_info)
+
+
+def test_adding_node():
+    """
+    Testing if the new graph gets tie correct layout of the old graph if we add an additional node.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If the node coordinates of the new graph differ from expected coordinates.
+
+    """
+    test_case = Quick("""A_[b]_ppi+_B_[a]; ! A_[(c)]-{p}
+                         C_p+_A_[(c)]; ! C_[d]--D_[c]
+                         C_[d]_ppi+_D_[c]""")
+
+    reg_graph = RegulatoryGraph(test_case.rxncon_system)
+    gml_system = XGMML(reg_graph.to_graph(), "add_node")
+    mapped_layout = map_layout2xgmml(gml_system.to_string(), NODE_LAYOUT_MANIPULATION)
+    xmldoc_no_layout = minidom.parseString(mapped_layout)
+    xmldoc_no_layout_info = _get_labels_and_coordinates_dict(xmldoc_no_layout)
+    xmldoc_expected_layout = minidom.parse(NODE_LAYOUT_MANIPULATION)
+    xmldoc_expected_layout_info = _get_labels_and_coordinates_dict(xmldoc_expected_layout)
+
+    assert all(xmldoc_no_layout_info[no_layout_node] == xmldoc_expected_layout_info[no_layout_node]
+               for no_layout_node in xmldoc_no_layout_info)
+    assert all(xmldoc_no_layout_info[expected_layout_node] == xmldoc_expected_layout_info[expected_layout_node]
+               for expected_layout_node in xmldoc_expected_layout_info)
+
+
+def test_removing_node():
+    """
+    Testing if the new graph gets tie correct layout of the old graph if we remove a node.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If the node coordinates of the new graph differ from expected coordinates.
+
+    """
+    test_case = Quick("""A_[b]_ppi+_B_[a]""")
+
+    reg_graph = RegulatoryGraph(test_case.rxncon_system)
+    gml_system = XGMML(reg_graph.to_graph(), "remove_node")
+    mapped_layout = map_layout2xgmml(gml_system.to_string(), NODE_LAYOUT_MANIPULATION)
+    xmldoc_no_layout = minidom.parseString(mapped_layout)
+    xmldoc_no_layout_info = _get_labels_and_coordinates_dict(xmldoc_no_layout)
+    xmldoc_expected_layout = minidom.parse(NODE_LAYOUT_MANIPULATION)
+    xmldoc_expected_layout_info = _get_labels_and_coordinates_dict(xmldoc_expected_layout)
+
+    assert all(xmldoc_no_layout_info[no_layout_node] == xmldoc_expected_layout_info[no_layout_node]
+               for no_layout_node in xmldoc_no_layout_info)
 
