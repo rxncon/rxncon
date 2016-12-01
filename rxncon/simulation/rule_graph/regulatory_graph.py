@@ -76,6 +76,9 @@ class RegulatoryGraph():
             """
             Adds the reactants of a reaction to the graph.
 
+            Note:
+                Adds nodes and edges to the graph.
+
             Args:
                 reaction: A rxncon reaction.
                 reactants: The reactants of the respective reaction.
@@ -92,7 +95,24 @@ class RegulatoryGraph():
                 self.graph.add_node(str(reactant_state), dict(type=NodeType.state.value))
                 self.graph.add_edge(str(reaction), str(reactant_state), interaction=edge_type.value)
 
-        def _add_reaction_source_state_to_graph(reaction: Reaction, reactants: ReactionTerm):
+        def _add_reaction_source_state_edges_to_graph(reaction: Reaction, reactants: ReactionTerm):
+            """
+            Adds reaction source states edges to the graph.
+
+            Note:
+                Adds only edges.
+
+            Args:
+                reaction: A rxncon reaction.
+                reactants: The reactants of the respective reaction.
+
+            Mutates:
+                self.graph (DiGraph): The regulatory graph.
+
+            Returns:
+                None
+
+            """
             for reactant_state in reactants.states:
                 self.graph.add_edge(str(reactant_state), str(reaction), interaction=EdgeInteractionType.source_state.value)
 
@@ -103,18 +123,55 @@ class RegulatoryGraph():
 
         for reactant_pre in reaction.terms_lhs:
             _add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
-            _add_reaction_source_state_to_graph(reaction, reactant_pre)
+            _add_reaction_source_state_edges_to_graph(reaction, reactant_pre)
 
     def add_contingency_information_to_graph(self, contingencies: List[Contingency]) -> None:
+        """
+        Adds contingency information to the regulatory graph.
+
+        Args:
+            contingencies: Contextual constraints on reactions.
+
+        Returns:
+            None
+
+        """
         for contingency in contingencies:
             self._add_information_from_effector_to_graph(contingency.effector, contingency.type,
                                                          self._target_name_from_reaction_or_effector(contingency.target)
                                                          )
 
     def _replace_invalid_chars(self, name: str) -> str:
+        """
+        Replacing invalid characters.
+
+        Args:
+            name: String where the invalid characters should be replaced.
+
+        Returns:
+            Valid string for xgmml files.
+
+        """
         return re.sub('[<>]', '', name)
 
     def _add_node_and_edge(self, name: str, node_type: NodeType, edge_type: EdgeInteractionType, target_name: str) -> None:
+        """
+        Adds a node or edge to the regulatory graph.
+
+        Args:
+            name: Name of the node or edge source.
+
+            node_type: Type of the node e.g. reaction, state, input
+            edge_type: Type of the edge e.g. contingency type or source state, production, consumption
+            target_name: Name of the edge target.
+
+        Mutates:
+            self.graph (DiGraph): The regulatory graph.
+
+        Returns:
+            None
+
+        """
         self.graph.add_node(self._replace_invalid_chars(str(name)),
                             type=node_type.value)
 
@@ -122,6 +179,19 @@ class RegulatoryGraph():
                             interaction=edge_type.value)
 
     def _target_name_from_reaction_or_effector(self, target: Union[Effector, Reaction]) -> str:
+        """
+        Creates a valid target name, which can be used in xgmml files.
+
+        Args:
+            target: Either a reaction of a effector.
+
+        Returns:
+            A valid name of a reaction or effector.
+
+        Raises:
+            AssertionError if the target is neither of type Reaction or Effector.
+
+        """
         if isinstance(target, Reaction):
             return self._replace_invalid_chars(str(target))
         elif isinstance(target, Effector):
@@ -130,6 +200,24 @@ class RegulatoryGraph():
             raise AssertionError
 
     def _add_information_from_effector_to_graph(self, effector, edge_type, target_name) -> None:
+        """
+        Adds the effector information of the contingency to the graph.
+
+        Args:
+            effector: Modifier part of the contingency
+            edge_type: Type of connecting edge. The contingency type.
+            target_name: Either a reaction or a boolean node.
+
+        Mutates:
+            self.graph (DiGraph): The regulatory graph.
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: If the Effector type is not known, or if the object is not of type effector.
+
+        """
         if isinstance(effector, StateEffector):
             name = str(effector.expr.to_non_structured())
             if re.match("^\[[/w]*\]?", name):
