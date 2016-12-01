@@ -91,7 +91,7 @@ def _create_regulatory_graph(quick_string):
     """
     actual_system = qui.Quick(quick_string)
     reg_system = RegulatoryGraph(actual_system.rxncon_system)
-    return  reg_system.to_graph()
+    return reg_system.to_graph()
 
 
 def test_regulatory_graph_for_two_reactions_one_contingency():
@@ -457,6 +457,25 @@ def test_regulatory_graph_for_structured_boolean():
                              ('IR_[lig]--0', 'IR-empty', EdgeInteractionType.AND)])
 
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+
+def test_regulatory_graph_for_degradation():
+    test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
+                                C_p+_A_[(c)]
+                                D_deg_A''',
+                             ['A_[b]_ppi+_B_[a]', 'C_p+_A_[(c)]'],
+                             ['A_[b]--B_[a]', 'A_[(c)]-{p}', 'B_[a]--0', 'A_[b]--0', 'A_[(c)]-{0}'],
+                             [],
+                             [('A_[b]_ppi+_B_[a]', 'A_[b]--B_[a]', EdgeInteractionType.produce),
+                              ('A_[b]_ppi+_B_[a]', 'B_[a]--0', EdgeInteractionType.consume),
+                              ('A_[b]_ppi+_B_[a]', 'A_[b]--0', EdgeInteractionType.consume),
+                              ('B_[a]--0', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.source_state),
+                              ('A_[b]--0', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.source_state),
+                              ('C_p+_A_[(c)]', 'A_[(c)]-{p}', EdgeInteractionType.produce),
+                              ('C_p+_A_[(c)]', 'A_[(c)]-{0}', EdgeInteractionType.consume),
+                              ('A_[(c)]-{0}', 'C_p+_A_[(c)]', EdgeInteractionType.source_state),
+                              ('A_[(c)]-{p}', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.required)])
+
+    _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
 
