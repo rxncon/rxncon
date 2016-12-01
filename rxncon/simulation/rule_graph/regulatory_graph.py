@@ -309,6 +309,42 @@ class RegulatoryGraph():
             None
 
         """
+        def update_degradations_with_contingencies():
+            for reaction_target, contingency in reaction_target_to_factor.items():
+                # First case: reaction with a non-trivial contingency should degrade only the states appearing
+                # in the contingency that are connected to the degraded component.
+                if reaction_target.degraded_components and not contingency_factor.is_equivalent_to(UniversalSet()):
+                    for degraded_component in reaction_target.degraded_components:
+                        if ComponentStateTarget(degraded_component) in component_state_targets:
+                            reaction_target.degraded_targets.append(ComponentStateTarget(degraded_component))
+                        else:
+                            reaction_target.degraded_targets += [state_target for state_target in contingency_factor.values
+                                                                 if degraded_component in state_target.components]
+
+                # Second case: reaction with a trivial contingency should degrade all states for the degraded component.
+                elif reaction_target.degraded_components and contingency_factor.is_equivalent_to(UniversalSet()):
+                    for degraded_component in reaction_target.degraded_components:
+                        if ComponentStateTarget(degraded_component) in component_state_targets:
+                            reaction_target.degraded_targets.append(ComponentStateTarget(degraded_component))
+                        else:
+                            reaction_target.degraded_targets += \
+                                [StateTarget(x) for x in rxncon_sys.states_for_component(degraded_component)]
+        #
+        # def update_degradations_for_interaction_states():
+        #     new_reactions = {}
+        #
+        #     for reaction_target, contingency_factor in reaction_target_to_factor.items():
+        #         for num, interaction_state in enumerate(state for state in rxncon_sys.states if len(state.components) > 1
+        #                                                 and reaction_target.degrades(StateTarget(state))):
+        #             neutral_targets = StateTarget(interaction_state).neutral_targets
+        #             new_reaction_target = deepcopy(reaction_target)
+        #
+        #             new_reaction_target.consumed_targets.append(StateTarget(interaction_state))
+        #             new_reaction_target.produced_targets += \
+        #                 [x for x in neutral_targets if not any(component in new_reaction_target.degraded_components for component in x.components)]
+        #
+        #             new_reaction_target.interaction_variant_index = num + 1
+        #             new_reactions[new_reaction_target] = Intersection(contingency_factor, ValueSet(StateTarget(interaction_state)))
 
 
 
