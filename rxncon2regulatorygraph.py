@@ -37,26 +37,30 @@ def _file_path_existence(file_path):
         raise NotADirectoryError("Path {0} does not exists.".format(path))
 
 
-def write_xgmml(excel_filename: str, base_name=None, layout_template_file=None):
+def write_xgmml(excel_filename: str, output=None, layout_template_file=None):
     """
     creating the xgmml file from an excel input and writing it into a new file.
 
     Args:
         excel_filename: Name of the excel input file.
-        base_name: Name of the new output.
+        output: Name of the new output.
         layout_template_file: Name of the layout template file.
 
     Returns:
         None
 
     """
-    if not base_name:
-        base_name = os.path.splitext(os.path.basename(excel_filename))[0]
+    if not output:
+        output = os.path.splitext(os.path.basename(excel_filename))[0]
 
     base_path = os.path.dirname(excel_filename)
 
-    graph_filename = os.path.join(base_path, '{0}.xgmml'.format(base_name))
+    if not output.endswith('.xgmml'):
+        output =  '{0}.xgmml'.format(output)
 
+    graph_filename = os.path.join(base_path, '{0}'.format(output))
+
+    print('graph_filename: ', graph_filename)
     _file_path_existence(graph_filename)
 
 
@@ -73,7 +77,7 @@ def write_xgmml(excel_filename: str, base_name=None, layout_template_file=None):
 
     if layout_template_file:
         print('Writing layout information from [{0}] to graph file [{1}] ...'.format(layout_template_file, graph_filename))
-        gml_system = XGMML(graph, "{}".format(base_name))
+        gml_system = XGMML(graph, "{}".format(output))
         graph = map_layout2xgmml(gml_system.to_string(), layout_template_file)
         print('Writing regulatory graph file [{}] ...'.format(graph_filename))
 
@@ -81,7 +85,7 @@ def write_xgmml(excel_filename: str, base_name=None, layout_template_file=None):
             graph_handle.write(graph)
     else:
         print('Writing regulatory graph file [{}] ...'.format(graph_filename))
-        gml_system = XGMML(graph, "{}".format(base_name))
+        gml_system = XGMML(graph, "{}".format(output))
         gml_system.to_file(graph_filename)
 
 
