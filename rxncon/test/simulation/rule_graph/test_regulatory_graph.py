@@ -81,7 +81,9 @@ def _is_graph_test_case_correct(actual_graph, test_case) -> bool:
     """
 
     expected_graph = DiGraph()
+
     expected_graph = _get_reaction_nodes(test_case, expected_graph)
+
 
     expected_graph = _get_state_nodes(test_case, expected_graph)
     expected_graph = _get_boolean_complex_state_nodes(test_case, expected_graph)
@@ -475,7 +477,10 @@ def test_regulatory_graph_for_degradation_no_contingency():
     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
                                 C_p+_A_[(c)]
                                 D_deg_A''',
+<<<<<<< ffbf8228ef51283ed384c7258021bad0a79472b2
 
+=======
+>>>>>>> added first degradation reaction and added test.
                              ['A_[b]_ppi+_B_[a]', 'C_p+_A_[(c)]', 'D_deg_A'],
                              ['A_[b]--B_[a]', 'A_[(c)]-{p}', 'B_[a]--0', 'A_[b]--0', 'A_[(c)]-{0}'],
                              [('D_deg_A_AND_A_[b]--B_[a]', " ", 'AND')],
@@ -495,6 +500,7 @@ def test_regulatory_graph_for_degradation_no_contingency():
                               ('D_deg_A', 'D_deg_A_AND_A_[b]--B_[a]', EdgeInteractionType.AND),
                               ('A_[b]--B_[a]', 'D_deg_A_AND_A_[b]--B_[a]', EdgeInteractionType.AND),
                               ('D_deg_A_AND_A_[b]--B_[a]', 'B_[a]--0', EdgeInteractionType.produce)])
+
 
     reg_graph = _create_regulatory_graph(test_case.quick_string)
     gml_system = XGMML(reg_graph, "reactions_only")
@@ -559,6 +565,7 @@ def test_degradation_with_boolean_contingency_OR():
     gml_system = XGMML(reg_graph, "reactions_only")
     #gml_system.to_file("test_deg_bool_cont_OR.xgmml")
     #assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+
 
 
 def test_degradation_with_contingency2():
