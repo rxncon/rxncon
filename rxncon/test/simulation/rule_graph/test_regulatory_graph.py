@@ -4,8 +4,10 @@ from collections import namedtuple
 import rxncon.input.quick.quick as qui
 from rxncon.simulation.rule_graph.regulatory_graph import RegulatoryGraph, NodeType, EdgeInteractionType
 
+from rxncon.simulation.rule_graph.graphML import map_layout2xgmml, XGMML
+
 RuleTestCase = namedtuple('RuleTestCase', ['quick_string', 'reaction_node_strings', 'state_node_strings',
-                                           'boolean_state_node_strings', 'edge_tuples'])
+                                           'boolean_state_node_tuple', 'edge_tuples'])
 
 
 def _get_state_nodes(test_case, expected_graph):
@@ -21,12 +23,10 @@ def _get_state_nodes(test_case, expected_graph):
 
     """
     for node in test_case.state_node_strings:
-        if '#comp' in node:
-            expected_graph.add_node(node.split('#comp')[0], type=NodeType.componentstate.value)
-        elif '#in' in node:
-            expected_graph.add_node(node.split('#in')[0], type=NodeType.input.value)
+        if '#in' in node:
+            expected_graph.add_node(node.split('#in')[0], type=NodeType.input.value, label=node.split('#in')[0])
         else:
-            expected_graph.add_node(node, type=NodeType.state.value)
+            expected_graph.add_node(node, type=NodeType.state.value, label=node)
     return expected_graph
 
 
@@ -41,13 +41,17 @@ def _get_boolean_complex_state_nodes(test_case, expected_graph):
     Returns:
         Expected graph.
     """
-    for node in test_case.boolean_state_node_strings:
-        if '#AND' in node:
-            expected_graph.add_node(node.split('#AND')[0], type=NodeType.AND.value)
-        elif '#OR' in node:
-            expected_graph.add_node(node.split('#OR')[0], type=NodeType.OR.value)
-        elif '#NOT' in node:
-            expected_graph.add_node(node.split('#NOT')[0], type=NodeType.NOT.value)
+    if not test_case.boolean_state_node_tuple:
+        return expected_graph
+
+    for id, label, type in test_case.boolean_state_node_tuple:
+
+        if 'AND' == type:
+            expected_graph.add_node(id, type=NodeType.AND.value, label=label)
+        elif 'OR' == type:
+            expected_graph.add_node(id, type=NodeType.OR.value, label=label)
+        elif 'NOT' == type:
+            expected_graph.add_node(id, type=NodeType.NOT.value, label=label)
         else:
             raise AssertionError
     return expected_graph
@@ -67,7 +71,7 @@ def _is_graph_test_case_correct(actual_graph, test_case) -> bool:
     """
 
     expected_graph = DiGraph()
-    [expected_graph.add_node(node, type=NodeType.reaction.value) if '#out' not in node
+    [expected_graph.add_node(node, type=NodeType.reaction.value, label=node) if '#out' not in node
      else expected_graph.add_node(node.split('#out')[0], type=NodeType.output.value) for node in test_case.reaction_node_strings]
 
     expected_graph = _get_state_nodes(test_case, expected_graph)
@@ -171,7 +175,7 @@ def test_regulatory_graph_for_boolean_AND():
                              ['A_[b]_ppi+_B_[a]', 'A_[c]_ppi+_C_[a]', 'C_p+_A_[(c)]', 'D_p+_C_[(d)]'],
                              ['A_[b]--B_[a]', 'A_[b]--0', 'B_[a]--0', 'A_[c]--C_[a]', 'A_[c]--0', 'C_[a]--0', 'A_[(c)]-{p}',
                               'A_[(c)]-{0}', 'C_[(d)]-{p}', 'C_[(d)]-{0}'],
-                             ['comp#AND'],
+                             [('comp', 'comp', 'AND')],
                              [('A_[b]_ppi+_B_[a]', 'A_[b]--B_[a]', EdgeInteractionType.produce),
                               ('A_[b]_ppi+_B_[a]', 'A_[b]--0', EdgeInteractionType.consume),
                               ('A_[b]_ppi+_B_[a]', 'B_[a]--0', EdgeInteractionType.consume),
@@ -223,7 +227,7 @@ def test_regulatory_graph_for_boolean_AND_OR():
                               'A_[d]--0', 'D_[a]--0', 'A_[e]--E_[a]', 'A_[e]--0', 'E_[a]--0', 'A_[f]--F_[a]', 'A_[f]--0',
                               'F_[a]--0',
                               'A_[g]--G_[a]', 'A_[g]--0', 'G_[a]--0'],
-                             ['comp#AND', 'comp1#OR', 'comp2#AND', 'comp3#AND'],
+                             [('comp', 'comp', 'AND'), ('comp1', 'comp1', 'OR'), ('comp2','comp2', 'AND'), ('comp3','comp3', 'AND')],
                              [('A_[b]_ppi+_B_[a]', 'A_[b]--B_[a]', EdgeInteractionType.produce),
                               ('A_[b]_ppi+_B_[a]', 'A_[b]--0', EdgeInteractionType.consume),
                               ('A_[b]_ppi+_B_[a]', 'B_[a]--0', EdgeInteractionType.consume),
@@ -291,7 +295,7 @@ def test_regulatory_graph_for_boolean_AND_OR_NOT():
                              ['A_[b]--B_[a]', 'A_[b]--0', 'B_[a]--0', 'A_[c]--C_[a]', 'A_[c]--0', 'C_[a]--0', 'A_[d]--D_[a]',
                               'A_[d]--0', 'D_[a]--0', 'A_[f]--F_[a]', 'A_[f]--0', 'F_[a]--0', 'A_[g]--G_[a]', 'A_[g]--0',
                               'G_[a]--0'],
-                             ['comp#AND', 'comp1#OR', 'Notcomp2#NOT', 'comp3#AND'],
+                             [('comp', 'comp', 'AND'), ('comp1', 'comp1', 'OR'), ('Notcomp2', 'Notcomp2', 'NOT'), ('comp3', 'comp3', 'AND')],
                              [('A_[b]_ppi+_B_[a]', 'A_[b]--B_[a]', EdgeInteractionType.produce),
                               ('A_[b]_ppi+_B_[a]', 'A_[b]--0', EdgeInteractionType.consume),
                               ('A_[b]_ppi+_B_[a]', 'B_[a]--0', EdgeInteractionType.consume),
@@ -399,7 +403,7 @@ def test_regulatory_graph_for_boolean_with_INPUT():
                              ['A_[B]_ppi+_B_[A]', 'A_[C]_ppi+_C_[A]', 'A_[D]_ppi+_D_[A]'],
                              ['A_[B]--B_[A]', 'A_[B]--0', 'B_[A]--0', 'A_[C]--C_[A]', 'A_[C]--0', 'C_[A]--0', 'A_[D]--D_[A]',
                               'A_[D]--0', 'D_[A]--0', '[Input]#in'],
-                             ['comp#AND', 'comp1#OR'],
+                             [('comp', 'comp', 'AND'), ('comp1', 'comp1', 'OR')],
                              [('A_[B]_ppi+_B_[A]', 'A_[B]--B_[A]', EdgeInteractionType.produce),
                               ('A_[B]_ppi+_B_[A]', 'A_[B]--0', EdgeInteractionType.consume),
                               ('A_[B]_ppi+_B_[A]', 'B_[A]--0', EdgeInteractionType.consume),
@@ -442,7 +446,7 @@ def test_regulatory_graph_for_structured_boolean():
                              ['IR_[lig]_i+_insulin_[IR]', 'IR_[IR]_ppi+_IR_[IR]'],
                              ['IR_[IR]--IR_[IR]', 'IR_[IR]--0', 'IR_[lig]--insulin_[IR]', 'IR_[lig]--0',
                               'insulin_[IR]--0'],
-                             ['IR-empty#AND'],
+                             [('IR-empty', 'IR-empty', 'AND')],
                              [('IR_[IR]_ppi+_IR_[IR]', 'IR_[IR]--IR_[IR]', EdgeInteractionType.produce),
                               ('IR_[IR]_ppi+_IR_[IR]', 'IR_[IR]--0', EdgeInteractionType.consume),
                              ('IR_[IR]--0', 'IR_[IR]_ppi+_IR_[IR]', EdgeInteractionType.source_state),
@@ -462,9 +466,9 @@ def test_regulatory_graph_for_degradation():
     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
                                 C_p+_A_[(c)]
                                 D_deg_A''',
-                             ['A_[b]_ppi+_B_[a]', 'C_p+_A_[(c)]'],
+                             ['A_[b]_ppi+_B_[a]', 'C_p+_A_[(c)]', 'D_deg_A'],
                              ['A_[b]--B_[a]', 'A_[(c)]-{p}', 'B_[a]--0', 'A_[b]--0', 'A_[(c)]-{0}'],
-                             [],
+                             [('D_deg_A_AND_A_[b]--B_[a]', " ", 'AND')],
                              [('A_[b]_ppi+_B_[a]', 'A_[b]--B_[a]', EdgeInteractionType.produce),
                               ('A_[b]_ppi+_B_[a]', 'B_[a]--0', EdgeInteractionType.consume),
                               ('A_[b]_ppi+_B_[a]', 'A_[b]--0', EdgeInteractionType.consume),
@@ -473,9 +477,17 @@ def test_regulatory_graph_for_degradation():
                               ('C_p+_A_[(c)]', 'A_[(c)]-{p}', EdgeInteractionType.produce),
                               ('C_p+_A_[(c)]', 'A_[(c)]-{0}', EdgeInteractionType.consume),
                               ('A_[(c)]-{0}', 'C_p+_A_[(c)]', EdgeInteractionType.source_state),
-                              ('A_[(c)]-{p}', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.required)])
-
-    _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+                              ('D_deg_A', 'A_[b]--B_[a]', EdgeInteractionType.consume),
+                              ('D_deg_A', 'A_[b]--0', EdgeInteractionType.consume),
+                              ('D_deg_A', 'A_[(c)]-{p}', EdgeInteractionType.consume),
+                              ('D_deg_A', 'A_[(c)]-{0}', EdgeInteractionType.consume),
+                              ('D_deg_A', 'D_deg_A_AND_A_[b]--B_[a]', EdgeInteractionType.AND),
+                              ('A_[b]--B_[a]', 'D_deg_A_AND_A_[b]--B_[a]', EdgeInteractionType.AND),
+                              ('D_deg_A_AND_A_[b]--B_[a]', 'B_[a]--0', EdgeInteractionType.produce)])
+    #reg_graph = _create_regulatory_graph(test_case.quick_string)
+    #gml_system = XGMML(reg_graph, "reactions_only")
+    #gml_system.to_file("test_deg.xgmml")
+    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
 
