@@ -466,6 +466,7 @@ def test_regulatory_graph_for_degradation():
     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
                                 C_p+_A_[(c)]
                                 D_deg_A''',
+
                              ['A_[b]_ppi+_B_[a]', 'C_p+_A_[(c)]', 'D_deg_A'],
                              ['A_[b]--B_[a]', 'A_[(c)]-{p}', 'B_[a]--0', 'A_[b]--0', 'A_[(c)]-{0}'],
                              [('D_deg_A_AND_A_[b]--B_[a]', " ", 'AND')],
@@ -477,6 +478,7 @@ def test_regulatory_graph_for_degradation():
                               ('C_p+_A_[(c)]', 'A_[(c)]-{p}', EdgeInteractionType.produce),
                               ('C_p+_A_[(c)]', 'A_[(c)]-{0}', EdgeInteractionType.consume),
                               ('A_[(c)]-{0}', 'C_p+_A_[(c)]', EdgeInteractionType.source_state),
+
                               ('D_deg_A', 'A_[b]--B_[a]', EdgeInteractionType.consume),
                               ('D_deg_A', 'A_[b]--0', EdgeInteractionType.consume),
                               ('D_deg_A', 'A_[(c)]-{p}', EdgeInteractionType.consume),
@@ -505,6 +507,7 @@ def test_degradation_with_contingency():
     gml_system = XGMML(reg_graph, "reactions_only")
     gml_system.to_file("test_deg_bool_cont_AND.xgmml")
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+
 
 
 def test_degradation_with_boolean_contingency_OR():
