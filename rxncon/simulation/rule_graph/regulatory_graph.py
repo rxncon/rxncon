@@ -357,6 +357,26 @@ class RegulatoryGraph():
 
             """
 
+        def _add_reaction_source_state_edges_to_graph(reaction: Reaction, reactants: ReactionTerm):
+            """
+            Adds reaction source states edges to the graph.
+
+            Note:
+                Adds only edges.
+
+            Args:
+                reaction: A rxncon reaction.
+                reactants: The reactants of the respective reaction.
+
+            Mutates:
+                self.graph (DiGraph): The regulatory graph.
+
+            Returns:
+                None
+
+
+            """
+
             for reactant_state in reactants.states:
                 self._add_edge(source=str(reactant_state), target=str(reaction), interaction=EdgeInteractionType.source_state)
 
