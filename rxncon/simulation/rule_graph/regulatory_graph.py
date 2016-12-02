@@ -2,7 +2,10 @@ from typing import Union, List
 import re
 from enum import Enum, unique
 from networkx import DiGraph
+<<<<<<< f442b3fcf8d0794422354a03afabd43834d3a3f3
 
+=======
+>>>>>>> degradation in regulatory graph works so far. representation issues in cytoscape, because it maps the nodes by name not by id.
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.venntastic.sets import Intersection, Union as VennUnion, Complement, ValueSet, UniversalSet, Set as VennSet
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
@@ -10,10 +13,13 @@ from rxncon.core.reaction import ReactionTerm, Reaction
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.state import State
 
+<<<<<<< f442b3fcf8d0794422354a03afabd43834d3a3f3
 
 from rxncon.core.rxncon_system import RxnConSystem, Reaction, ReactionTerm, Contingency
 from rxncon.core.effector import StateEffector, AndEffector, NotEffector, OrEffector, Effector
 from rxncon.venntastic.sets import Intersection
+=======
+>>>>>>> degradation in regulatory graph works so far. representation issues in cytoscape, because it maps the nodes by name not by id.
 
 
 @unique
@@ -45,8 +51,12 @@ edge_type_mapping = {ContingencyType.requirement: EdgeInteractionType.required,
                      ContingencyType.negative: EdgeInteractionType.negative}
 
 class BooleanMemory():
+<<<<<<< f442b3fcf8d0794422354a03afabd43834d3a3f3
 
     def __init__(self, state, cont_type: ContingencyType, boolean_target: str):
+=======
+    def __init__(self, state, cont_type: ContingencyType, boolean_target: Effector):
+>>>>>>> degradation in regulatory graph works so far. representation issues in cytoscape, because it maps the nodes by name not by id.
         self.state = state
         self.boolean_target = boolean_target
         self.cont_type = cont_type
@@ -88,6 +98,7 @@ class RegulatoryGraph():
                 self.add_degradation_reaction_information_to_graph(reaction, self.rxncon_system.contingencies_for_reaction(reaction))
         return self.graph
 
+<<<<<<< f442b3fcf8d0794422354a03afabd43834d3a3f3
     def _add_node(self, id: str, label: str , type: NodeType):
         self.graph.add_node(self._replace_invalid_chars(id), dict(label=self._replace_invalid_chars(label), type=type.value))
 
@@ -195,6 +206,95 @@ class RegulatoryGraph():
     def add_reaction_information_to_graph(self, reaction: Reaction) -> None:
         """
         Adds reaction information to the graph.
+=======
+    def add_degradation_reaction_information_to_graph(self, reaction, contingencies):
+
+            def _factor_from_contingency(contingency: Contingency) -> VennSet:
+                def parse_effector(eff: Effector, cont_type: ContingencyType, target=None) -> VennSet:
+                    if isinstance(eff, StateEffector):
+                        return ValueSet(BooleanMemory(eff.expr.to_non_structured_state(), cont_type, target))
+                    elif isinstance(eff, NotEffector):
+                        return Complement(parse_effector(eff.expr, cont_type))
+                    elif isinstance(eff, OrEffector):
+                        return VennUnion(parse_effector(eff.left_expr, cont_type), parse_effector(eff.right_expr, cont_type))
+                    elif isinstance(eff, AndEffector):
+                        return Intersection(parse_effector(eff.left_expr, cont_type, eff), parse_effector(eff.right_expr, cont_type, eff))
+                    else:
+                        raise AssertionError
+>>>>>>> degradation in regulatory graph works so far. representation issues in cytoscape, because it maps the nodes by name not by id.
+
+                return parse_effector(contingency.effector, contingency.type)
+
+            def _interaction_state_degradation(state: State, reaction_id: str):
+                self.graph.add_edge(reaction_id, str(state), interaction=EdgeInteractionType.consume.value)
+                boolean_node_id = '{0}_AND_{1}'.format(reaction_id, str(state))
+
+                self.graph.add_node(boolean_node_id, dict(type=NodeType.AND.value, label=' '))
+                self.graph.add_edge(reaction_id, boolean_node_id, interaction=EdgeInteractionType.AND.value)
+                self.graph.add_edge(str(state), boolean_node_id, interaction=EdgeInteractionType.AND.value)
+
+                produced_neutral_states = [neutral_state for neutral_state in state.neutral_states
+                                           if not any(component in reaction.degraded_components
+                                                      for component in neutral_state.components)]
+                for neutral_state in produced_neutral_states:
+                    self.graph.add_edge(boolean_node_id, str(neutral_state), interaction=EdgeInteractionType.produce.value)
+
+            def _update_no_contingency_case():
+                degraded_states = [x for degraded_component in reaction.degraded_components
+                                   for x in self.rxncon_system.states_for_component(degraded_component)]
+                for state in degraded_states:
+                    if len(state.components) > 1:
+                        _interaction_state_degradation(state, reaction_id)
+                    else:
+                        self.graph.add_edge(str(reaction), str(state), interaction=EdgeInteractionType.consume.value)
+
+            def _update_contingency_information(valueset: ValueSet, reaction_id: str):
+                state = valueset.value.state
+                cont_type = valueset.value.cont_type
+                boolean_target = valueset.value.boolean_target
+
+                if boolean_target and boolean_target not in seen_boolean_target:
+                    seen_boolean_target.append(boolean_target)
+                    self._add_information_from_effector_to_graph(boolean_target, edge_type_mapping[cont_type], reaction_id)
+                elif not boolean_target:
+                    self.graph.add_edge(str(state), reaction_id, interaction=edge_type_mapping[cont_type].value)
+
+                for degraded_component in reaction.degraded_components:
+                    if degraded_component in state.components:
+                        if len(state.components) > 1:
+                            _interaction_state_degradation(state, reaction_id)
+                        else:
+                            self.graph.add_edge(reaction_id, str(state), interaction=EdgeInteractionType.consume.value)
+
+<<<<<<< f442b3fcf8d0794422354a03afabd43834d3a3f3
+        """
+
+        def update_degradations_with_contingencies(reaction, contingencies):
+=======
+>>>>>>> degradation in regulatory graph works so far. representation issues in cytoscape, because it maps the nodes by name not by id.
+            # First case: reaction with a non-trivial contingency should degrade only the states appearing
+            # in the contingency that are connected to the degraded component.
+            if contingencies:
+                cont = Intersection(*(_factor_from_contingency(cont) for cont in contingencies)).to_simplified_set()
+                for index, effector in enumerate(cont.to_dnf_list()):
+                    reaction_id = "{0}#{1}".format(str(reaction), str(index))
+                    self.graph.add_node(reaction_id, dict(type=NodeType.reaction.value, label=str(reaction)))
+                    seen_boolean_target = []
+
+                    if isinstance(effector, tuple):
+                        for valueset in effector:
+                            _update_contingency_information(valueset, reaction_id)
+                    else:
+                        _update_contingency_information(effector, reaction_id)
+
+            # Second case: reaction with a trivial contingency should degrade all states for the degraded component.
+            else:
+                self.graph.add_node(str(reaction), dict(type=NodeType.reaction.value, label=str(reaction)))
+                _update_no_contingency_case()
+
+    def add_reaction_information_to_graph(self, reaction: Reaction) -> None:
+        """
+        Adds reaction information to the graph.
 
         Args:
             reaction: A rxncon reaction.
@@ -207,56 +307,6 @@ class RegulatoryGraph():
 
         """
 
-        def update_degradations_with_contingencies(reaction, contingencies):
-            # First case: reaction with a non-trivial contingency should degrade only the states appearing
-            # in the contingency that are connected to the degraded component.
-            if contingencies:
-                cont = Intersection(*(x for x in self.rxncon_system.contingencies_for_reaction(reaction))).to_simplified_set()
-                for index, effector in enumerate(cont.to_dnf_list()):
-                    self.graph.add_node("{0}#{1}".format(str(reaction), str(index)), dict(type=NodeType.reaction.value, label=str(reaction)))
-                    #todo: have to add contingencies
-                    #self.add_contingency_information_to_graph()
-
-                test = [state_target for degraded_component in reaction.degraded_components for state_target in contingencies
-                        if degraded_component in state_target.components]
-            # Second case: reaction with a trivial contingency should degrade all states for the degraded component.
-            else:
-                self.graph.add_node(str(reaction), dict(type=NodeType.reaction.value, label=str(reaction)))
-                degraded_states = [x for degraded_component in reaction.degraded_components
-                                   for x in self.rxncon_system.states_for_component(degraded_component)]
-                for state in degraded_states:
-                    if len(state.components) > 1:
-                        self.graph.add_edge(str(reaction), str(state), interaction=EdgeInteractionType.consume.value)
-                        boolean_node_id = '{0}_AND_{1}'.format(str(reaction), str(state))
-
-                        self.graph.add_node(boolean_node_id, dict(type=NodeType.AND.value, label=' '))
-                        self.graph.add_edge(str(reaction), boolean_node_id, interaction=EdgeInteractionType.AND.value)
-                        self.graph.add_edge(str(state), boolean_node_id, interaction=EdgeInteractionType.AND.value)
-
-                        produced_neutral_states = [neutral_state for neutral_state in state.neutral_states
-                                                   if not any(component in reaction.degraded_components
-                                                              for component in neutral_state.components)]
-                        for neutral_state in produced_neutral_states:
-                            self.graph.add_edge(boolean_node_id, str(neutral_state), interaction=EdgeInteractionType.produce.value)
-                    else:
-                        self.graph.add_edge(str(reaction), str(state), interaction=EdgeInteractionType.consume.value)
-
-        #
-        # def update_degradations_for_interaction_states():
-        #     new_reactions = {}
-        #
-        #     for reaction_target, contingency_factor in reaction_target_to_factor.items():
-        #         for num, interaction_state in enumerate(state for state in rxncon_sys.states if len(state.components) > 1
-        #                                                 and reaction_target.degrades(StateTarget(state))):
-        #             neutral_targets = StateTarget(interaction_state).neutral_targets
-        #             new_reaction_target = deepcopy(reaction_target)
-        #
-        #             new_reaction_target.consumed_targets.append(StateTarget(interaction_state))
-        #             new_reaction_target.produced_targets += \
-        #                 [x for x in neutral_targets if not any(component in new_reaction_target.degraded_components for component in x.components)]
-        #
-        #             new_reaction_target.interaction_variant_index = num + 1
-        #             new_reactions[new_reaction_target] = Intersection(contingency_factor, ValueSet(StateTarget(interaction_state)))
 
 
         def _add_reaction_reactant_to_graph(reaction: Reaction, reactants: ReactionTerm,
@@ -280,11 +330,18 @@ class RegulatoryGraph():
                 None
 
             """
+<<<<<<< f442b3fcf8d0794422354a03afabd43834d3a3f3
 
             for reactant_state in reactants.states:
                 self._add_node(id=str(reactant_state), type=NodeType.state, label=str(reactant_state))
                 self._add_edge(source=str(reaction), target=str(reactant_state), interaction=edge_type)
 
+=======
+            for reactant_state in reactants.states:
+                self.graph.add_node(str(reactant_state), dict(type=NodeType.state.value, label=str(reactant_state)))
+                self.graph.add_edge(str(reaction), str(reactant_state), interaction=edge_type.value)
+
+>>>>>>> degradation in regulatory graph works so far. representation issues in cytoscape, because it maps the nodes by name not by id.
         def _add_reaction_source_state_edges_to_graph(reaction: Reaction, reactants: ReactionTerm):
             """
             Adds reaction source states edges to the graph.
@@ -363,6 +420,12 @@ class RegulatoryGraph():
             None
 
         """
+<<<<<<< f442b3fcf8d0794422354a03afabd43834d3a3f3
+=======
+
+        self.graph.add_node(self._replace_invalid_chars(str(name)), type=node_type.value,
+                            label=self._replace_invalid_chars(str(name)))
+>>>>>>> degradation in regulatory graph works so far. representation issues in cytoscape, because it maps the nodes by name not by id.
 
         self._add_node(str(name), type=node_type, label=str(name))
 
