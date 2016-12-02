@@ -46,6 +46,7 @@ edge_type_mapping = {ContingencyType.requirement: EdgeInteractionType.required,
                      ContingencyType.negative: EdgeInteractionType.negative}
 
 class BooleanMemory():
+
     def __init__(self, state, cont_type: ContingencyType, boolean_target: str):
         self.state = state
         self.boolean_target = boolean_target
@@ -207,56 +208,7 @@ class RegulatoryGraph():
             None
 
         """
-        def update_degradations_with_contingencies(reaction, contingencies):
-            # First case: reaction with a non-trivial contingency should degrade only the states appearing
-            # in the contingency that are connected to the degraded component.
-            if contingencies:
-                cont = Intersection(*(x for x in self.rxncon_system.contingencies_for_reaction(reaction))).to_simplified_set()
-                for index, effector in enumerate(cont.to_dnf_list()):
-                    self.graph.add_node("{0}#{1}".format(str(reaction), str(index)), dict(type=NodeType.reaction.value, label=str(reaction)))
-                    #todo: have to add contingencies
-                    #self.add_contingency_information_to_graph()
 
-                test = [state_target for degraded_component in reaction.degraded_components for state_target in contingencies
-                        if degraded_component in state_target.components]
-            # Second case: reaction with a trivial contingency should degrade all states for the degraded component.
-            else:
-                self.graph.add_node(str(reaction), dict(type=NodeType.reaction.value, label=str(reaction)))
-                degraded_states = [x for degraded_component in reaction.degraded_components
-                                   for x in self.rxncon_system.states_for_component(degraded_component)]
-                for state in degraded_states:
-                    if len(state.components) > 1:
-                        self.graph.add_edge(str(reaction), str(state), interaction=EdgeInteractionType.consume.value)
-                        boolean_node_id = '{0}_AND_{1}'.format(str(reaction), str(state))
-
-                        self.graph.add_node(boolean_node_id, dict(type=NodeType.AND.value, label=' '))
-                        self.graph.add_edge(str(reaction), boolean_node_id, interaction=EdgeInteractionType.AND.value)
-                        self.graph.add_edge(str(state), boolean_node_id, interaction=EdgeInteractionType.AND.value)
-
-                        produced_neutral_states = [neutral_state for neutral_state in state.neutral_states
-                                                   if not any(component in reaction.degraded_components
-                                                              for component in neutral_state.components)]
-                        for neutral_state in produced_neutral_states:
-                            self.graph.add_edge(boolean_node_id, str(neutral_state), interaction=EdgeInteractionType.produce.value)
-                    else:
-                        self.graph.add_edge(str(reaction), str(state), interaction=EdgeInteractionType.consume.value)
-
-        #
-        # def update_degradations_for_interaction_states():
-        #     new_reactions = {}
-        #
-        #     for reaction_target, contingency_factor in reaction_target_to_factor.items():
-        #         for num, interaction_state in enumerate(state for state in rxncon_sys.states if len(state.components) > 1
-        #                                                 and reaction_target.degrades(StateTarget(state))):
-        #             neutral_targets = StateTarget(interaction_state).neutral_targets
-        #             new_reaction_target = deepcopy(reaction_target)
-        #
-        #             new_reaction_target.consumed_targets.append(StateTarget(interaction_state))
-        #             new_reaction_target.produced_targets += \
-        #                 [x for x in neutral_targets if not any(component in new_reaction_target.degraded_components for component in x.components)]
-        #
-        #             new_reaction_target.interaction_variant_index = num + 1
-        #             new_reactions[new_reaction_target] = Intersection(contingency_factor, ValueSet(StateTarget(interaction_state)))
 
 
         def _add_reaction_reactant_to_graph(reaction: Reaction, reactants: ReactionTerm,
@@ -280,7 +232,6 @@ class RegulatoryGraph():
                 None
 
             """
-
             for reactant_state in reactants.states:
                 self._add_node(id=str(reactant_state), type=NodeType.state, label=str(reactant_state))
                 self._add_edge(source=str(reaction), target=str(reactant_state), interaction=edge_type)
