@@ -484,9 +484,9 @@ def test_regulatory_graph_for_degradation():
                               ('D_deg_A', 'D_deg_A_AND_A_[b]--B_[a]', EdgeInteractionType.AND),
                               ('A_[b]--B_[a]', 'D_deg_A_AND_A_[b]--B_[a]', EdgeInteractionType.AND),
                               ('D_deg_A_AND_A_[b]--B_[a]', 'B_[a]--0', EdgeInteractionType.produce)])
-    #reg_graph = _create_regulatory_graph(test_case.quick_string)
-    #gml_system = XGMML(reg_graph, "reactions_only")
-    #gml_system.to_file("test_deg.xgmml")
+    reg_graph = _create_regulatory_graph(test_case.quick_string)
+    gml_system = XGMML(reg_graph, "reactions_only")
+    gml_system.to_file("test_deg.xgmml")
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 def test_degradation_with_contingency():
@@ -524,21 +524,22 @@ def test_degradation_with_boolean_contingency_OR():
     gml_system.to_file("test_deg_bool_cont_OR.xgmml")
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
-# def test_degradation_with_contingency2():
-#     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
-#                                 A_[b]_ppi+_C_[a]
-#                                 C_p+_A_[(c)]
-#                                 C_p+_A_[(d)]
-#                                 D_deg_A; ! <comp>
-#                                 <comp>; OR <comp1>; OR <comp2>
-#                                 <comp1>; AND A_[(c)]-{p}
-#                                 <comp1>; AND A_[b]--B_[a]
-#                                 <comp2>; AND A_[(d)]-{p}
-#                                 <comp2>; AND A_[b]--C_[a]''',
-#                              [],
-#                              [],
-#                              [],
-#                              [])
-#
-#     _create_regulatory_graph(test_case.quick_string)
-#     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+def test_degradation_with_contingency2():
+    test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
+                                A_[b]_ppi+_C_[a]
+                                C_p+_A_[(c)]
+                                C_p+_A_[(d)]
+                                D_deg_A; ! <comp>
+                                <comp>; AND <comp1>; AND A_[(c)]-{p}
+                                <comp1>; OR <comp2>; OR  A_[b]--B_[a]
+                                <comp2>; AND A_[(d)]-{p}; AND AND A_[b]--C_[a]''',
+                             [],
+                             [],
+                             [],
+                             [])
+
+    _create_regulatory_graph(test_case.quick_string)
+    reg_graph = _create_regulatory_graph(test_case.quick_string)
+    gml_system = XGMML(reg_graph, "reactions_only")
+    gml_system.to_file("test_deg_bool_cont_AND_OR.xgmml")
+    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)

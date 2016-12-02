@@ -184,9 +184,9 @@ def map_layout2xgmml(no_layout_graph_str: str, template_file_str: str) -> str:
 
         """
 
-        return {graphic.parentNode.getAttribute('label'): {"x": graphic.getAttribute('x'),
-                                                           "y": graphic.getAttribute('y'),
-                                                           "z": graphic.getAttribute('z')}
+        return {graphic.parentNode.getAttribute('id'): {"x": graphic.getAttribute('x'),
+                                                        "y": graphic.getAttribute('y'),
+                                                        "z": graphic.getAttribute('z')}
                 for graphic in xmldoc.getElementsByTagName('graphics') if graphic.attributes.values() and
                 graphic.parentNode.tagName == "node"}
 
@@ -203,8 +203,8 @@ def map_layout2xgmml(no_layout_graph_str: str, template_file_str: str) -> str:
         nonlocal xmldoc_no_layout
 
         for no_layout_node in node_list_no_layout:
-            if no_layout_node.getAttribute('label') in template_coordinates:
-                node_name = no_layout_node.getAttribute('label')
+            if no_layout_node.getAttribute('id') in template_coordinates:
+                node_name = no_layout_node.getAttribute('id')
                 element = xmldoc_no_layout.createElement("graphics")
                 element.setAttribute("x", template_coordinates[node_name]["x"])
                 element.setAttribute("y", template_coordinates[node_name]["y"])
