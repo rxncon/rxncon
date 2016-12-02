@@ -581,7 +581,6 @@ def test_degradation_with_boolean_contingency_OR():
     #assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-
 def test_degradation_with_contingency2():
     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
                                 A_[b]_ppi+_C_[a]
@@ -599,5 +598,6 @@ def test_degradation_with_contingency2():
     _create_regulatory_graph(test_case.quick_string)
     reg_graph = _create_regulatory_graph(test_case.quick_string)
     gml_system = XGMML(reg_graph, "reactions_only")
-    #gml_system.to_file("test_deg_bool_cont_AND_OR.xgmml")
-    #assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+    gml_system.to_file("test_deg_bool_cont_AND_OR.xgmml")
+    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+
