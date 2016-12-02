@@ -13,7 +13,7 @@ PHEROMONE_XGMML = os.path.join(os.path.dirname(__file__), 'pheromone_layout.xgmm
 
 #System: A_[b]_ppi+_B_[a]; ! A_[(c)]-{p}
 #        C_p+_A_[(c)]
-NODE_LAYOUT_MANIPULATION = os.path.join(os.path.dirname(__file__), 'test_adding_node_layout.xgmml')
+NODE_LAYOUT_MANIPULATION = os.path.join(os.path.dirname(__file__), 'example_node_layout.xgmml')
 
 
 def _is_xgmml_export_test_case_correct(test_case_quick, expected_xgmml):
