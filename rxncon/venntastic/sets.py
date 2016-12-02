@@ -47,6 +47,7 @@ class Set:
             return [venn_from_pyeda(dnf_set, sym_to_val)]
         elif isinstance(dnf_set, OrOp):
             return [venn_from_pyeda(term, sym_to_val) for term in dnf_set.xs]
+
         else:
             raise Exception
 
