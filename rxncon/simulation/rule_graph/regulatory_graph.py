@@ -97,7 +97,6 @@ class RegulatoryGraph():
 
     def add_degradation_reaction_information_to_graph(self, reaction, contingencies):
 
-
             def parse_effector(eff: Effector, cont_type: ContingencyType, boolean_AND_target=None) -> VennSet:
                 if isinstance(eff, StateEffector):
                     return ValueSet(BooleanMemory(eff.expr.to_non_structured_state(), cont_type, boolean_AND_target))

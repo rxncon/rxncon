@@ -3,6 +3,7 @@ from typing import Dict
 from networkx import DiGraph
 from xml.dom import minidom
 
+from xml.etree import ElementTree as ET
 
 class XGMML:
     """
@@ -109,6 +110,7 @@ class XGMML:
                 label = id
 
             node = '<node id="{id}" label="{label}">'.format(id=id, label=label)
+            node += '<att name="{}" value="{}" />'.format("rxnconID", id)
             for k, v in attr.items():
                 node += '<att name="{}" value="{}" />'.format(k, v)
             node += '</node>'
@@ -171,25 +173,6 @@ def map_layout2xgmml(no_layout_graph_str: str, template_file_str: str) -> str:
         elif path and not os.path.exists(path):
             raise NotADirectoryError("Path {0} does not exists.".format(path))
 
-    def _get_labels_and_coordinates_dict(xmldoc) -> Dict:
-        """
-        Creates a mapping of node names and their coordinates.
-
-        Args:
-            xmldoc: xml information.
-
-        Returns:
-            Dict[str, Dict[str, str]]
-            Dictionary of nodes and coordinates.
-
-        """
-
-        return {graphic.parentNode.getAttribute('id'): {"x": graphic.getAttribute('x'),
-                                                        "y": graphic.getAttribute('y'),
-                                                        "z": graphic.getAttribute('z')}
-                for graphic in xmldoc.getElementsByTagName('graphics') if graphic.attributes.values() and
-                graphic.parentNode.tagName == "node"}
-
     def _apply_template_layout() -> None:
         """
         Writes the template layout information to the xml nodes with no layout information.
@@ -203,12 +186,13 @@ def map_layout2xgmml(no_layout_graph_str: str, template_file_str: str) -> str:
         nonlocal xmldoc_no_layout
 
         for no_layout_node in node_list_no_layout:
-            if no_layout_node.getAttribute('id') in template_coordinates:
-                node_name = no_layout_node.getAttribute('id')
+            rxnconID = _get_rxnconID(no_layout_node)
+            if rxnconID in template_coordinates:
+                #node_name = no_layout_node.getAttribute('label')
                 element = xmldoc_no_layout.createElement("graphics")
-                element.setAttribute("x", template_coordinates[node_name]["x"])
-                element.setAttribute("y", template_coordinates[node_name]["y"])
-                element.setAttribute("z", template_coordinates[node_name]["z"])
+                element.setAttribute("x", template_coordinates[rxnconID]["x"])
+                element.setAttribute("y", template_coordinates[rxnconID]["y"])
+                element.setAttribute("z", template_coordinates[rxnconID]["z"])
                 element.appendChild(xmldoc_no_layout.createTextNode(''))
                 no_layout_node.appendChild(element)
 
@@ -216,6 +200,39 @@ def map_layout2xgmml(no_layout_graph_str: str, template_file_str: str) -> str:
     xmldoc_no_layout = minidom.parseString(no_layout_graph_str)
     node_list_no_layout = xmldoc_no_layout.getElementsByTagName('node')
     template_coordinates = _get_labels_and_coordinates_dict(minidom.parse(template_file_str))
+
     _apply_template_layout()
 
     return xmldoc_no_layout.toprettyxml()
+
+
+def _get_rxnconID(element):
+        for child in element.childNodes:
+            if child.attributes and child.getAttribute('name') == "rxnconID":
+                return child.getAttribute('value')
+
+
+def _get_labels_and_coordinates_dict(xmldoc) -> Dict:
+    """
+    Creates a mapping of node names and their coordinates.
+
+    Args:
+        xmldoc: xml information.
+
+    Returns:
+        Dict[str, Dict[str, str]]
+        Dictionary of nodes and coordinates.
+
+    """
+
+    template_coordinates = {}
+    for graphic in xmldoc.getElementsByTagName('graphics'):
+        if graphic.attributes.values() and graphic.parentNode.tagName == "node":
+            rxnconID = _get_rxnconID(graphic.parentNode)
+            if rxnconID not in template_coordinates:
+                template_coordinates[rxnconID] = {"x": graphic.getAttribute('x'),
+                                                  "y": graphic.getAttribute('y'),
+                                                  "z": graphic.getAttribute('z')}
+            else:
+                raise AssertionError
+    return template_coordinates
