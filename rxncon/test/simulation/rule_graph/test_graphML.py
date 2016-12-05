@@ -10,6 +10,8 @@ from rxncon.input.excel_book.excel_book import ExcelBook
 
 PHEROMONE_XLS   = os.path.join(os.path.dirname(__file__), 'pheromone.xls')
 PHEROMONE_XGMML = os.path.join(os.path.dirname(__file__), 'pheromone_layout.xgmml')
+CELLCYCLE_XLS   = '/home/thiemese/data/projects/graph/Ulrike/Cell_Cycle_SBtab.xls'
+CELLCYCLE_XGMML = '/home/thiemese/data/projects/graph/Ulrike/test_iteration_02.xgmml'
 
 #System: A_[b]_ppi+_B_[a]; ! A_[(c)]-{p}
 #        C_p+_A_[(c)]
@@ -378,3 +380,17 @@ def test_removing_node():
     assert all(xmldoc_no_layout_info[no_layout_node] == xmldoc_expected_layout_info[no_layout_node]
                for no_layout_node in xmldoc_no_layout_info)
 
+
+def test_test():
+    book = ExcelBook(CELLCYCLE_XLS)
+    reg_graph = RegulatoryGraph(book.rxncon_system)
+    gml_system = XGMML(reg_graph.to_graph(), "remove_node")
+    mapped_layout = map_layout2xgmml(gml_system.to_string(), NODE_LAYOUT_MANIPULATION)
+    xmldoc_no_layout = minidom.parseString(mapped_layout)
+    xmldoc_no_layout_info = _get_labels_and_coordinates_dict(xmldoc_no_layout)
+    xmldoc_expected_layout = minidom.parse(CELLCYCLE_XGMML)
+    xmldoc_expected_layout_info = _get_labels_and_coordinates_dict(xmldoc_expected_layout)
+    assert all(xmldoc_no_layout_info[no_layout_node] == xmldoc_expected_layout_info[no_layout_node]
+               for no_layout_node in xmldoc_no_layout_info)
+    assert all(xmldoc_no_layout_info[expected_layout_node] == xmldoc_expected_layout_info[expected_layout_node]
+               for expected_layout_node in xmldoc_expected_layout_info)

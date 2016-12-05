@@ -168,7 +168,7 @@ def test_regulatory_graph_for_boolean_AND():
     """
 
     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]; ! <comp>; ! C-{p}
-                                <comp>; AND A-{p}; AND A--C
+                                <comp>; AND A_[(c)]-{p}; AND A_[c]--C_[a]
                                 A_[c]_ppi+_C_[a]
                                 C_p+_A_[(c)]
                                 D_p+_C_[(d)]''',
@@ -489,7 +489,7 @@ def test_regulatory_graph_for_degradation():
 
     reg_graph = _create_regulatory_graph(test_case.quick_string)
     gml_system = XGMML(reg_graph, "reactions_only")
-    gml_system.to_file("test_deg.xgmml")
+#    gml_system.to_file("test_deg.xgmml")
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 def test_degradation_with_contingency():
@@ -507,7 +507,6 @@ def test_degradation_with_contingency():
     reg_graph = _create_regulatory_graph(test_case.quick_string)
     gml_system = XGMML(reg_graph, "reactions_only")
     gml_system.to_file("test_deg_bool_cont_AND.xgmml")
-
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 

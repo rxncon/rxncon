@@ -5,7 +5,7 @@ import click
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.input.excel_book.excel_book import ExcelBook
 from rxncon.simulation.rule_graph.regulatory_graph import RegulatoryGraph
-from rxncon.simulation.rule_graph.graphML import map_layout2xgmml
+from rxncon.simulation.rule_graph.graphML import map_layout2xgmml_old
 from rxncon.simulation.rule_graph.graphML import XGMML
 
 
@@ -78,7 +78,8 @@ def write_xgmml(excel_filename: str, output=None, layout_template_file=None):
     if layout_template_file:
         print('Writing layout information from [{0}] to graph file [{1}] ...'.format(layout_template_file, graph_filename))
         gml_system = XGMML(graph, "{}".format(output))
-        graph = map_layout2xgmml(gml_system.to_string(), layout_template_file)
+        # todo: change back
+        graph = map_layout2xgmml_old(gml_system.to_string(), layout_template_file)
         print('Writing regulatory graph file [{}] ...'.format(graph_filename))
 
         with open(graph_filename, "w") as graph_handle:
