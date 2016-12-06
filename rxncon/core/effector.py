@@ -86,7 +86,7 @@ class AndEffector(Effector):
         return [state for x in self.exprs for state in x.states]
 
     def to_flattened(self):
-
+        pass
 
 class OrEffector(Effector):
     def __init__(self, *exprs):
