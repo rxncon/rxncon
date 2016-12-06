@@ -2,7 +2,7 @@ from typing import List, Dict, Tuple, Union
 from copy import deepcopy
 from enum import Enum
 
-from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union, Complement, UniversalSet
+from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union, Complement, UniversalSet, EmptySet
 from rxncon.core.reaction import Reaction
 from rxncon.core.state import State
 from rxncon.core.spec import Spec
@@ -146,6 +146,9 @@ class StateTarget(Target):
     @property
     def components(self) -> List[Spec]:
         return self._state_parent.components
+
+    def shares_component_with(self, other_target: 'StateTarget') -> bool:
+        return any(x in other_target.components for x in self.components)
 
     @property
     def is_neutral(self) -> bool:
@@ -314,12 +317,19 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             return Intersection(ValueSet(reaction_target),
                                 Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets)))
 
+        def indirect_synth_path(state_target: StateTarget) -> VennSet:
+            my_brothers = [x for x in state_targets if state_target.shares_component_with(x) and x != state_target]
+            return Union(*(ValueSet(rxn) for state in my_brothers for rxn in reaction_targets if rxn.synthesises(state)))
+
+        def degradation_factor(state_target: StateTarget) -> VennSet:
+            return Complement(Union(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
+
         # Factor for a state target is of the form:
         # synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
         for state_target in state_targets:
             synt_fac = Union(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
             comp_fac = Intersection(*(component_to_factor[x] for x in state_target.components))
-            degr_fac = Complement(Union(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
+            degr_fac = degradation_factor(state_target)
 
             prod_facs = []
             cons_facs = []
@@ -330,8 +340,11 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 elif smoothing_strategy == SmoothingStrategy.smooth_production_sources:
                     smoothed_prod_facs = []
                     for primary_source in reaction_target.consumed_targets:
-                        smoothed_prod_facs.append(Union(ValueSet(primary_source),
-                                                        *(reaction_with_sources(rxn) for rxn in reaction_targets if rxn.produces(primary_source))))
+                        smooth_source = Union(ValueSet(primary_source),
+                                              Intersection(*(reaction_with_sources(rxn) for rxn in reaction_targets if rxn.produces(primary_source)),
+                                                           Union(degradation_factor(primary_source), indirect_synth_path(primary_source))))
+
+                        smoothed_prod_facs.append(smooth_source)
                     prod_facs.append(Intersection(ValueSet(reaction_target), *smoothed_prod_facs))
                 else:
                     raise AssertionError
@@ -339,11 +352,13 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             for reaction_target in (target for target in reaction_targets if target.consumes(state_target)):
                 cons_facs.append(Complement(reaction_with_sources(reaction_target)))
 
-            prod_cons_fac = Union(Union(*prod_facs), Intersection(ValueSet(state_target), Intersection(*cons_facs)))
+            tot_prod_fac = Intersection(comp_fac, Union(*prod_facs), Union(degr_fac, indirect_synth_path(state_target)))
+            tot_cons_fac = Intersection(comp_fac, ValueSet(state_target), Intersection(*cons_facs), degr_fac)
 
             state_rules.append(UpdateRule(state_target,
                                           Union(synt_fac,
-                                                Intersection(comp_fac, degr_fac, prod_cons_fac)).to_simplified_set()))
+                                                tot_prod_fac,
+                                                tot_cons_fac).to_simplified_set()))
 
     component_to_factor       = {}  # type: Dict[Spec, VennSet]
     reaction_target_to_factor = {}  # type: Dict[ReactionTarget, VennSet]

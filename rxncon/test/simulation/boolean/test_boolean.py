@@ -387,3 +387,13 @@ def test_smooth_production_sources():
     for rule in boolean_model.update_rules:
         if rule.target == target_from_str('A_[b]--0'):
             assert rule.factor.is_equivalent_to(venn_from_str(expected, target_from_str))
+
+
+def test_synth_deg_steady_state():
+    boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(x)]
+                                                    C_p-_A_[(x)]
+                                                    D_syn_A
+                                                    E_deg_A""").rxncon_system, SmoothingStrategy.no_smoothing)
+
+    for rule in boolean_model.update_rules:
+        print(rule)
