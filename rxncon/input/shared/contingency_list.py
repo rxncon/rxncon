@@ -1,5 +1,4 @@
 import re
-from functools import reduce
 from typing import Dict, List, Union
 from typecheck import typecheck
 
