@@ -20,7 +20,6 @@ class Effector(metaclass=ABCMeta):
     def states(self) -> List[State]:
         pass
 
-    @abstractmethod
     def to_flattened(self) -> 'Effector':
         pass
 

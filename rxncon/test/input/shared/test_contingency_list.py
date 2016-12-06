@@ -1,4 +1,21 @@
 from rxncon.input.shared.contingency_list import contingency_list_entry_from_strs as cle_from_str, contingencies_from_contingency_list_entries
+from rxncon.venntastic.sets import venn_from_str, Set as VennSet, ValueSet, Intersection, Union, Complement
+from rxncon.core.state import state_from_str
+from rxncon.core.effector import Effector, StateEffector, AndEffector, OrEffector, NotEffector
+
+
+def venn_from_effector(effector: Effector) -> VennSet:
+    if isinstance(effector, StateEffector):
+        return ValueSet(effector.expr)
+    elif isinstance(effector, AndEffector):
+        return Intersection(*(venn_from_effector(x) for x in effector.exprs))
+    elif isinstance(effector, OrEffector):
+        return Union(*(venn_from_effector(x) for x in effector.exprs))
+    elif isinstance(effector, NotEffector):
+        return Complement(venn_from_effector(effector.expr))
+    else:
+        raise AssertionError
+
 
 def test_nested_boolean():
     cles = [
@@ -13,6 +30,8 @@ def test_nested_boolean():
     ]
 
     contingencies = contingencies_from_contingency_list_entries(cles)
+    assert len(contingencies) == 1
 
-    for x in contingencies:
-        print(x)
+    expected = venn_from_str('( A_[x]--B_[y] & A_[(r)]-{p} & B_[z]--D_[y] & B_[(r1)]-{p} & B_[(r2)]-{p} )', state_from_str)
+    assert venn_from_effector(contingencies[0].effector).is_equivalent_to(expected)
+
