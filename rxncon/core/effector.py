@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractproperty
+from abc import ABCMeta, abstractproperty, abstractmethod
 from typing import List, Optional
 
 from rxncon.core.state import State
@@ -18,6 +18,10 @@ class Effector(metaclass=ABCMeta):
 
     @abstractproperty
     def states(self) -> List[State]:
+        pass
+
+    @abstractmethod
+    def to_flattened(self) -> 'Effector':
         pass
 
 
@@ -41,6 +45,9 @@ class StateEffector(Effector):
     def states(self) -> List[State]:
         return [self.expr]
 
+    def to_flattened(self):
+        return self
+
 
 class NotEffector(Effector):
     def __init__(self, expr: Effector):
@@ -55,6 +62,9 @@ class NotEffector(Effector):
     @property
     def states(self) -> List[State]:
         return self.expr.states
+
+    def to_flattened(self):
+        return NotEffector(self.expr.to_flattened())
 
 
 class AndEffector(Effector):
@@ -74,6 +84,8 @@ class AndEffector(Effector):
     @property
     def states(self):
         return [state for x in self.exprs for state in x.states]
+
+    def to_flattened(self):
 
 
 class OrEffector(Effector):
