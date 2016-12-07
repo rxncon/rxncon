@@ -2,7 +2,7 @@ import re
 from abc import ABCMeta, abstractproperty
 from typing import List, Optional, Tuple
 
-from rxncon.core.spec import spec_from_str
+from rxncon.core.spec import spec_from_str, Spec
 from rxncon.core.state import State
 from rxncon.util.utils import OrderedEnum
 
@@ -41,12 +41,42 @@ class QualifiedSpec:
         self.spec      = spec_from_str(qualified_spec_str.split('.')[-1])
         self._name     = qualified_spec_str
 
-
     def __str__(self) -> str:
         return self._name
 
     def __repr__(self) -> str:
         return 'QualifiedSpec<{}>'.format(self._name)
+
+    @property
+    def has_trivial_namespace(self):
+        return not self.namespace
+
+
+class StructEquivalences:
+    def __init__(self):
+        self._eq_classes = []
+
+    def add_equivalence(self, first_qual_spec: QualifiedSpec, second_qual_spec: QualifiedSpec):
+        found = False
+        for eq_class in self._eq_classes:
+            if first_qual_spec in eq_class:
+                eq_class.append(second_qual_spec)
+                found = True
+            elif second_qual_spec in eq_class:
+                eq_class.append(first_qual_spec)
+                found = True
+
+        if not found:
+            self._eq_classes.append([first_qual_spec, second_qual_spec])
+
+    def find_unqualified_spec(self, qual_spec: QualifiedSpec) -> Optional[Spec]:
+        for eq_class in self._eq_classes:
+            if qual_spec in eq_class:
+                result = next((x for x in eq_class if x.has_trivial_namespace), None)
+                return result.spec if result else None
+
+        return None
+
 
 class Effector(metaclass=ABCMeta):
     @property
@@ -62,9 +92,6 @@ class Effector(metaclass=ABCMeta):
 
     @abstractproperty
     def states(self) -> List[State]:
-        pass
-
-    def to_flattened(self) -> 'Effector':
         pass
 
     @property
@@ -92,9 +119,6 @@ class StateEffector(Effector):
     def states(self) -> List[State]:
         return [self.expr]
 
-    def to_flattened(self):
-        return self
-
     @property
     def is_leaf(self) -> bool:
         return True
@@ -114,9 +138,6 @@ class NotEffector(Effector):
     def states(self) -> List[State]:
         return self.expr.states
 
-    def to_flattened(self):
-        return NotEffector(self.expr.to_flattened())
-
     @property
     def is_leaf(self):
         return self.expr.is_leaf
@@ -124,15 +145,12 @@ class NotEffector(Effector):
 
 class NaryEffector(Effector):
     def __init__(self, *exprs):
-        self.exprs        = exprs
-        self.equivalences = []     # type: List[Tuple[QualifiedSpec, QualifiedSpec]]
+        self.exprs  = exprs
+        self.equivs = StructEquivalences()
 
     @property
     def states(self) -> List[State]:
         return [state for x in self.exprs for state in x.states]
-
-    def to_flattened(self):
-        pass
 
     @property
     def is_leaf(self) -> bool:

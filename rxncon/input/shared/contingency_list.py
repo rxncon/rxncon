@@ -122,7 +122,11 @@ def _dereference_boolean_contingency_effectors(self: Effector,
         _dereference_boolean_contingency_effectors(self.expr, effector_table, equivalence_table)
     elif isinstance(self, OrEffector) or isinstance(self, AndEffector):
         try:
-            self.equivalences = equivalence_table[BooleanContingencyName(self.name)]
+            equivs_list = equivalence_table[BooleanContingencyName(self.name)]
+
+            for equiv in equivs_list:
+                self.equivs.add_equivalence(*equiv)
+
         except KeyError:
             pass
 
@@ -192,9 +196,10 @@ def _create_boolean_contingency_to_equivalences(equivalence_contingencies: List[
     assert all(x.is_boolean_equivalence_entry for x in equivalence_contingencies)
 
     for contingency in equivalence_contingencies:
-        lookup_table[contingency.subject] += contingency.object
+        lookup_table[contingency.subject].append(contingency.object)
 
     return lookup_table
+
 
 @typecheck
 def _unary_effector_from_boolean_contingency_entry(entry: ContingencyListEntry) -> Effector:
