@@ -6,6 +6,7 @@ from rxncon.core.spec import spec_from_str
 from rxncon.core.state import State
 from rxncon.util.utils import OrderedEnum
 
+
 BOOLEAN_CONTINGENCY_REGEX = '^<.*>$'
 
 
@@ -46,7 +47,6 @@ class QualifiedSpec:
 
     def __repr__(self) -> str:
         return 'QualifiedSpec<{}>'.format(self._name)
-
 
 class Effector(metaclass=ABCMeta):
     @property
@@ -98,6 +98,7 @@ class StateEffector(Effector):
     @property
     def is_leaf(self) -> bool:
         return True
+
 
 class NotEffector(Effector):
     def __init__(self, expr: Effector):

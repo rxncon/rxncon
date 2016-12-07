@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 R0, Fus3_[Dock]_ppi+_Msg5_[MAPK]
 R1, UC100_trsl_Dig1mRNA
 R2, UC120_deg_Fus3#0/8
@@ -416,6 +417,8 @@ S177, UC116
 S178, YckmRNA
 S179, UC104
 =======
+=======
+>>>>>>> 5d78cd37b18f9cabcd621663adb6fac4673c2a80
 R0, Ptp_[MAPK]_ppi+_Kss1_[Dock]
 R1, Ste12_trsl_Gpa1mRNA
 R2, Kss1_p+_Dig1_[(MAPK)]
@@ -832,4 +835,7 @@ S176, UC54
 S177, UC17
 S178, UC134
 S179, UC56
+<<<<<<< HEAD
 >>>>>>> Add EQV keyword to ContingencyListEntry, add Equiv.List to Effector
+=======
+>>>>>>> 5d78cd37b18f9cabcd621663adb6fac4673c2a80
