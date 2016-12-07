@@ -80,7 +80,7 @@ class ReactionTarget(Target):
     def __str__(self) -> str:
         suffix = ''
         if self.interaction_variant_index != 0:
-            suffix = '#{},{}'.format(self.contingency_variant_index, self.interaction_variant_index)
+            suffix = '#{}/{}'.format(self.contingency_variant_index, self.interaction_variant_index)
         elif self.contingency_variant_index != 0 and self.interaction_variant_index == 0:
             suffix = '#{}'.format(self.contingency_variant_index)
 
