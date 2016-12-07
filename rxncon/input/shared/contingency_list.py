@@ -1,49 +1,24 @@
 import re
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Tuple
+from collections import defaultdict
+
 from typecheck import typecheck
 
-from rxncon.core.reaction import reaction_from_str
-from rxncon.util.utils import OrderedEnum
 from rxncon.core.contingency import ContingencyType, Contingency
-from rxncon.core.effector import StateEffector, NotEffector, OrEffector, Effector, AndEffector
+from rxncon.core.effector import StateEffector, NotEffector, OrEffector, Effector, AndEffector, \
+    BOOLEAN_CONTINGENCY_REGEX, BooleanOperator, BooleanContingencyName, QualifiedSpec
 from rxncon.core.reaction import Reaction
+from rxncon.core.reaction import reaction_from_str
 from rxncon.core.state import state_from_str, State
-
-
-BOOLEAN_CONTINGENCY_REGEX = '^<.*>$'
-
-
-class BooleanOperator(OrderedEnum):
-    op_and = 'and'
-    op_or  = 'or'
-    op_not = 'not'
-
-
-class BooleanContingencyName:
-    def __init__(self, name: str):
-        assert re.match(BOOLEAN_CONTINGENCY_REGEX, name)
-        self.name = name
-
-    def __eq__(self, other: 'BooleanContingencyName') -> bool:
-        return self.name == other.name
-
-    def __hash__(self) -> int:
-        return hash(str(self))
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def __str__(self) -> str:
-        return self.name
 
 
 class ContingencyListEntry:
     def __init__(self, subject: Union[Reaction, BooleanContingencyName],
                  verb: Union[BooleanOperator, ContingencyType],
-                 object: Union[State, BooleanContingencyName]):
+                 object: Union[State, BooleanContingencyName, Tuple[QualifiedSpec, QualifiedSpec]]):
         self.subject = subject
-        self.verb = verb
-        self.object = object
+        self.verb    = verb
+        self.object  = object
 
     def __eq__(self, other: 'ContingencyListEntry') -> bool:
         return self.subject == other.subject and self.verb == other.verb and self.object == other.object
@@ -52,11 +27,16 @@ class ContingencyListEntry:
         return str(self)
 
     def __str__(self):
-        return "ContingencyListEntry<{}>".format(self.object)
+        return "ContingencyListEntry<{}, {}, {}>".format(self.subject, self.verb, self.object)
 
     @property
-    def is_boolean_entry(self) -> bool:
-        return isinstance(self.subject, BooleanContingencyName)
+    def is_boolean_effector_entry(self) -> bool:
+        return self.verb in (BooleanOperator(BooleanOperator.op_and), BooleanOperator(BooleanOperator.op_or),
+                             BooleanOperator(BooleanOperator.op_not))
+
+    @property
+    def is_boolean_equivalence_entry(self) -> bool:
+        return self.verb == BooleanOperator(BooleanOperator.op_eqv)
 
     @property
     def is_reaction_entry(self) -> bool:
@@ -76,7 +56,11 @@ def contingency_list_entry_from_strs(subject_str, verb_str, object_str) -> Conti
     if re.match(BOOLEAN_CONTINGENCY_REGEX, object_str):
         object = BooleanContingencyName(object_str)
     else:
-        object = state_from_str(object_str)
+        try:
+            object = state_from_str(object_str)
+        except SyntaxError:
+            strs = [x.strip() for x in object_str.split(',')]
+            object = (QualifiedSpec(strs[0]), QualifiedSpec(strs[1]))
 
     return ContingencyListEntry(subject, verb, object)
 
@@ -85,9 +69,13 @@ def contingency_list_entry_from_strs(subject_str, verb_str, object_str) -> Conti
 def contingencies_from_contingency_list_entries(entries: List[ContingencyListEntry]) -> List[Contingency]:
     contingencies = []
 
-    boolean_entries = [x for x in entries if x.is_boolean_entry]
+    boolean_entries  = [x for x in entries if x.is_boolean_effector_entry]
+    equiv_entries    = [x for x in entries if x.is_boolean_equivalence_entry]
     reaction_entries = [x for x in entries if x.is_reaction_entry]
-    lookup_table = _create_boolean_contingency_lookup_table(boolean_entries)
+
+    effectors        = _create_boolean_contingency_to_effector(boolean_entries)
+    equivalences     = _create_boolean_contingency_to_equivalences(equiv_entries)
+
 
     while reaction_entries:
         entry = reaction_entries.pop()
@@ -100,7 +88,7 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
 
     while any(x.effector.contains_booleans() for x in contingencies):
         for contingency in contingencies:
-            contingency.effector.dereference(lookup_table)
+            contingency.effector.dereference(effectors, equivalences)
 
     del Effector.dereference
     del Effector.contains_booleans
@@ -120,19 +108,26 @@ class _BooleanContingencyEffector(Effector):
         return [self.expr]
 
 
-def _dereference_boolean_contingency_effectors(self: Effector, lookup_table: Dict[BooleanContingencyName, Effector]):
+def _dereference_boolean_contingency_effectors(self: Effector,
+                                               effector_table: Dict[BooleanContingencyName, Effector],
+                                               equivalence_table: Dict[BooleanContingencyName, List[Tuple[QualifiedSpec, QualifiedSpec]]]):
     if isinstance(self, _BooleanContingencyEffector):
         name = self.expr.name
-        self.__class__ = lookup_table[self.expr].__class__
-        self.__dict__ = lookup_table[self.expr].__dict__
+        self.__class__ = effector_table[self.expr].__class__
+        self.__dict__  = effector_table[self.expr].__dict__
         self.name = name
     elif isinstance(self, StateEffector):
         pass
     elif isinstance(self, NotEffector):
-        _dereference_boolean_contingency_effectors(self.expr, lookup_table)
+        _dereference_boolean_contingency_effectors(self.expr, effector_table, equivalence_table)
     elif isinstance(self, OrEffector) or isinstance(self, AndEffector):
+        try:
+            self.equivalences = equivalence_table[BooleanContingencyName(self.name)]
+        except KeyError:
+            pass
+
         for expr in self.exprs:
-            _dereference_boolean_contingency_effectors(expr, lookup_table)
+            _dereference_boolean_contingency_effectors(expr, effector_table, equivalence_table)
     else:
         raise AssertionError
 
@@ -151,13 +146,14 @@ def _contains_boolean_contingency_effectors(self: Effector) -> bool:
 
 
 @typecheck
-def _create_boolean_contingency_lookup_table(boolean_contingencies: List[ContingencyListEntry]) -> Dict[BooleanContingencyName, Effector]:
+def _create_boolean_contingency_to_effector(boolean_contingencies: List[ContingencyListEntry]) \
+        -> Dict[BooleanContingencyName, Effector]:
     lookup_table = {}
 
     if not boolean_contingencies:
         return lookup_table
 
-    assert all(x.is_boolean_entry for x in boolean_contingencies)
+    assert all(x.is_boolean_effector_entry for x in boolean_contingencies)
 
     while boolean_contingencies:
         current_contingency = boolean_contingencies[0]
@@ -185,6 +181,20 @@ def _create_boolean_contingency_lookup_table(boolean_contingencies: List[Conting
 
     return lookup_table
 
+
+def _create_boolean_contingency_to_equivalences(equivalence_contingencies: List[ContingencyListEntry]) \
+        -> Dict[BooleanContingencyName, List[Tuple[QualifiedSpec, QualifiedSpec]]]:
+    lookup_table = defaultdict(list)
+
+    if not equivalence_contingencies:
+        return lookup_table
+
+    assert all(x.is_boolean_equivalence_entry for x in equivalence_contingencies)
+
+    for contingency in equivalence_contingencies:
+        lookup_table[contingency.subject] += contingency.object
+
+    return lookup_table
 
 @typecheck
 def _unary_effector_from_boolean_contingency_entry(entry: ContingencyListEntry) -> Effector:

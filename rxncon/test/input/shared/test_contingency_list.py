@@ -35,3 +35,18 @@ def test_nested_boolean():
     expected = venn_from_str('( A_[x]--B_[y] & A_[(r)]-{p} & B_[z]--D_[y] & B_[(r1)]-{p} & B_[(r2)]-{p} )', state_from_str)
     assert venn_from_effector(contingencies[0].effector).is_equivalent_to(expected)
 
+
+def test_simple_namespace():
+    cles = [
+        cle_from_str('<C1>', 'AND', 'A@1_[x]--B@2_[a]'),
+        cle_from_str('<C1>', 'AND', 'A@1_[y]--C@3_[a]'),
+        cle_from_str('<C>', 'AND', '<C1>'),
+        cle_from_str('<C>', 'AND', 'X@1_[a]--A@2_[z]'),
+        cle_from_str('<C>', 'EQV', 'A@2,<C1>.A@1'),
+        cle_from_str('A_p+_B_[(r)]', '!', '<C>')
+    ]
+
+    contingencies = contingencies_from_contingency_list_entries(cles)
+
+    for x in contingencies:
+        print(x)

@@ -1,8 +1,51 @@
-from abc import ABCMeta, abstractproperty, abstractmethod
-from typing import List, Optional
+import re
+from abc import ABCMeta, abstractproperty
+from typing import List, Optional, Tuple
 
+from rxncon.core.spec import spec_from_str
 from rxncon.core.state import State
+from rxncon.util.utils import OrderedEnum
 
+BOOLEAN_CONTINGENCY_REGEX = '^<.*>$'
+
+
+class BooleanOperator(OrderedEnum):
+    op_and = 'and'
+    op_or  = 'or'
+    op_not = 'not'
+    op_eqv = 'eqv'
+
+
+class BooleanContingencyName:
+    def __init__(self, name: str):
+        assert re.match(BOOLEAN_CONTINGENCY_REGEX, name)
+        self.name = name
+
+    def __eq__(self, other: 'BooleanContingencyName') -> bool:
+        return self.name == other.name
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class QualifiedSpec:
+    def __init__(self, qualified_spec_str: str):
+        self.namespace = [BooleanContingencyName(x) for x in qualified_spec_str.split('.')[:-1]]
+        self.spec      = spec_from_str(qualified_spec_str.split('.')[-1])
+        self._name     = qualified_spec_str
+
+
+    def __str__(self) -> str:
+        return self._name
+
+    def __repr__(self) -> str:
+        return 'QualifiedSpec<{}>'.format(self._name)
 
 class Effector(metaclass=ABCMeta):
     @property
@@ -66,10 +109,20 @@ class NotEffector(Effector):
         return NotEffector(self.expr.to_flattened())
 
 
-class AndEffector(Effector):
+class NaryEffector(Effector):
     def __init__(self, *exprs):
-        self.exprs = exprs
+        self.exprs        = exprs
+        self.equivalences = []     # type: List[Tuple[QualifiedSpec, QualifiedSpec]]
 
+    @property
+    def states(self) -> List[State]:
+        return [state for x in self.exprs for state in x.states]
+
+    def to_flattened(self):
+        pass
+
+
+class AndEffector(NaryEffector):
     def __str__(self) -> str:
         if self.name:
             return 'AndEffector{0}({1})'.format(self.name, ','.join(str(x) for x in self.exprs))
@@ -80,17 +133,8 @@ class AndEffector(Effector):
         return isinstance(other, AndEffector) and self.name == other.name and \
                self.exprs == other.exprs
 
-    @property
-    def states(self):
-        return [state for x in self.exprs for state in x.states]
 
-    def to_flattened(self):
-        pass
-
-class OrEffector(Effector):
-    def __init__(self, *exprs):
-        self.exprs = exprs
-
+class OrEffector(NaryEffector):
     def __str__(self) -> str:
         if self.name:
             return 'OrEffector{0}({1})'.format(self.name, ','.join(str(x) for x in self.exprs))
@@ -101,6 +145,4 @@ class OrEffector(Effector):
         return isinstance(other, OrEffector) and self.name == other.name and \
                self.exprs == other.exprs
 
-    @property
-    def states(self):
-        return [state for x in self.exprs for state in x.states]
+
