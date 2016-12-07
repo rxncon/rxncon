@@ -1,6 +1,7 @@
 import re
 from abc import ABCMeta, abstractproperty
 from typing import List, Optional, Tuple
+from copy import deepcopy
 
 from rxncon.core.spec import spec_from_str, Spec
 from rxncon.core.state import State
@@ -35,28 +36,38 @@ class BooleanContingencyName:
         return self.name
 
 
-class QualifiedSpec:
-    def __init__(self, qualified_spec_str: str):
-        self.namespace = [BooleanContingencyName(x) for x in qualified_spec_str.split('.')[:-1]]
-        self.spec      = spec_from_str(qualified_spec_str.split('.')[-1])
-        self._name     = qualified_spec_str
+class QualSpec:
+    def __init__(self, namespace: List[BooleanContingencyName], spec: Spec):
+        self.namespace = namespace
+        self.spec      = spec
+        self._name     = '.'.join(str(x) for x in namespace + [spec])
 
     def __str__(self) -> str:
         return self._name
 
     def __repr__(self) -> str:
-        return 'QualifiedSpec<{}>'.format(self._name)
+        return 'QualSpec<{}>'.format(self._name)
+
+    def __eq__(self, other: 'QualSpec') -> bool:
+        return self.namespace == other.namespace and self.spec == other.spec
 
     @property
     def has_trivial_namespace(self):
         return not self.namespace
 
 
+def qual_spec_from_str(qualified_spec_str: str) -> QualSpec:
+    namespace = [BooleanContingencyName(x) for x in qualified_spec_str.split('.')[:-1]]
+    spec      = spec_from_str(qualified_spec_str.split('.')[-1])
+
+    return QualSpec(namespace, spec)
+
+
 class StructEquivalences:
     def __init__(self):
         self._eq_classes = []
 
-    def add_equivalence(self, first_qual_spec: QualifiedSpec, second_qual_spec: QualifiedSpec):
+    def add_equivalence(self, first_qual_spec: QualSpec, second_qual_spec: QualSpec):
         found = False
         for eq_class in self._eq_classes:
             if first_qual_spec in eq_class:
@@ -69,7 +80,7 @@ class StructEquivalences:
         if not found:
             self._eq_classes.append([first_qual_spec, second_qual_spec])
 
-    def find_unqualified_spec(self, qual_spec: QualifiedSpec) -> Optional[Spec]:
+    def find_unqualified_spec(self, qual_spec: QualSpec) -> Optional[Spec]:
         for eq_class in self._eq_classes:
             if qual_spec in eq_class:
                 result = next((x for x in eq_class if x.has_trivial_namespace), None)
@@ -98,6 +109,10 @@ class Effector(metaclass=ABCMeta):
     def is_leaf(self) -> bool:
         raise NotImplementedError
 
+    def to_struct_effector(self, glob_equivs: StructEquivalences, cur_index: int, cur_namespace: List[BooleanContingencyName]) \
+            -> 'Effector':
+        raise AssertionError
+
 
 class StateEffector(Effector):
     def __init__(self, expr: State):
@@ -122,6 +137,24 @@ class StateEffector(Effector):
     @property
     def is_leaf(self) -> bool:
         return True
+
+    def to_struct_effector(self, glob_equivs: StructEquivalences, cur_index: int, cur_namespace: List[BooleanContingencyName]):
+        state = deepcopy(self.expr)
+
+        for spec in state.specs:
+            existing_spec = glob_equivs.find_unqualified_spec(QualSpec(cur_namespace, spec))
+
+            if existing_spec:
+                state.update_spec(spec, existing_spec)
+            else:
+                new_spec = deepcopy(spec)
+                new_spec.struct_index = cur_index
+                cur_index += 1
+
+                state.update_spec(spec, new_spec)
+                glob_equivs.add_equivalence(QualSpec([], new_spec), QualSpec(cur_namespace, spec))
+
+        return StateEffector(state)
 
 
 class NotEffector(Effector):

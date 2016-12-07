@@ -6,7 +6,7 @@ from typecheck import typecheck
 
 from rxncon.core.contingency import ContingencyType, Contingency
 from rxncon.core.effector import StateEffector, NotEffector, OrEffector, Effector, AndEffector, \
-    BOOLEAN_CONTINGENCY_REGEX, BooleanOperator, BooleanContingencyName, QualifiedSpec
+    BOOLEAN_CONTINGENCY_REGEX, BooleanOperator, BooleanContingencyName, QualSpec, qual_spec_from_str
 from rxncon.core.reaction import Reaction
 from rxncon.core.reaction import reaction_from_str
 from rxncon.core.state import state_from_str, State
@@ -15,7 +15,7 @@ from rxncon.core.state import state_from_str, State
 class ContingencyListEntry:
     def __init__(self, subject: Union[Reaction, BooleanContingencyName],
                  verb: Union[BooleanOperator, ContingencyType],
-                 object: Union[State, BooleanContingencyName, Tuple[QualifiedSpec, QualifiedSpec]]):
+                 object: Union[State, BooleanContingencyName, Tuple[QualSpec, QualSpec]]):
         self.subject = subject
         self.verb    = verb
         self.object  = object
@@ -60,7 +60,7 @@ def contingency_list_entry_from_strs(subject_str, verb_str, object_str) -> Conti
             object = state_from_str(object_str)
         except SyntaxError:
             strs = [x.strip() for x in object_str.split(',')]
-            object = (QualifiedSpec(strs[0]), QualifiedSpec(strs[1]))
+            object = (qual_spec_from_str(strs[0]), qual_spec_from_str(strs[1]))
 
     return ContingencyListEntry(subject, verb, object)
 
@@ -110,7 +110,7 @@ class _BooleanContingencyEffector(Effector):
 
 def _dereference_boolean_contingency_effectors(self: Effector,
                                                effector_table: Dict[BooleanContingencyName, Effector],
-                                               equivalence_table: Dict[BooleanContingencyName, List[Tuple[QualifiedSpec, QualifiedSpec]]]):
+                                               equivalence_table: Dict[BooleanContingencyName, List[Tuple[QualSpec, QualSpec]]]):
     if isinstance(self, _BooleanContingencyEffector):
         name = self.expr.name
         self.__class__ = effector_table[self.expr].__class__
@@ -187,7 +187,7 @@ def _create_boolean_contingency_to_effector(boolean_contingencies: List[Continge
 
 
 def _create_boolean_contingency_to_equivalences(equivalence_contingencies: List[ContingencyListEntry]) \
-        -> Dict[BooleanContingencyName, List[Tuple[QualifiedSpec, QualifiedSpec]]]:
+        -> Dict[BooleanContingencyName, List[Tuple[QualSpec, QualSpec]]]:
     lookup_table = defaultdict(list)
 
     if not equivalence_contingencies:

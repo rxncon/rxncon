@@ -228,43 +228,6 @@ class State:
         else:
             return False
 
-    def to_non_structured_state(self) -> 'State':
-        non_struct_vars = deepcopy(self.vars)
-        for k, v in non_struct_vars.items():
-            if isinstance(v, Spec):
-                non_struct_vars[k] = v.to_non_struct_spec()
-
-        return State(self.definition, non_struct_vars)
-
-    def to_structured_from_spec(self, spec: Spec) -> 'State':
-        struct_vars = deepcopy(self.vars)
-        for k, v in struct_vars.items():
-            if isinstance(v, Spec):
-                if v.struct_index is not None:
-                    continue
-                elif spec.to_non_struct_spec().to_component_spec() == v.to_component_spec():
-                    v.struct_index = spec.struct_index
-                    break
-
-        return State(self.definition, struct_vars)
-
-    def to_structured_from_state(self, state: 'State') -> 'State':
-        other_vars = deepcopy(state.vars)
-        struct_vars = deepcopy(self.vars)
-
-        for k, v in struct_vars.items():
-            if isinstance(v, Spec):
-                if v.struct_index is not None:
-                    continue
-
-                for kp, vp in other_vars.items():
-                    if isinstance(vp, Spec) and vp.struct_index is not None and vp.to_non_struct_spec() == v:
-                        v.struct_index = vp.struct_index
-                        other_vars[kp] = vp.to_non_struct_spec()
-                        break
-
-        return State(self.definition, struct_vars)
-
     @property
     def is_structured(self) -> bool:
         return all(mol_spec.struct_index is not None for mol_spec in self.specs)
@@ -298,6 +261,12 @@ class State:
     @property
     def specs(self) -> List[Spec]:
         return [x for x in self.vars.values() if isinstance(x, Spec)]
+
+    def update_spec(self, old_spec: Spec, new_spec: Spec):
+        assert old_spec in self.specs
+        for k, v in self.vars.items():
+            if isinstance(v, Spec) and v == old_spec:
+                self.vars[k] = new_spec
 
     @property
     def components(self) -> List[Spec]:
