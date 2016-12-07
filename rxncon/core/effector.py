@@ -47,6 +47,7 @@ class QualifiedSpec:
     def __repr__(self) -> str:
         return 'QualifiedSpec<{}>'.format(self._name)
 
+
 class Effector(metaclass=ABCMeta):
     @property
     def name(self) -> Optional[str]:
@@ -65,6 +66,10 @@ class Effector(metaclass=ABCMeta):
 
     def to_flattened(self) -> 'Effector':
         pass
+
+    @property
+    def is_leaf(self) -> bool:
+        raise NotImplementedError
 
 
 class StateEffector(Effector):
@@ -90,6 +95,9 @@ class StateEffector(Effector):
     def to_flattened(self):
         return self
 
+    @property
+    def is_leaf(self) -> bool:
+        return True
 
 class NotEffector(Effector):
     def __init__(self, expr: Effector):
@@ -108,6 +116,10 @@ class NotEffector(Effector):
     def to_flattened(self):
         return NotEffector(self.expr.to_flattened())
 
+    @property
+    def is_leaf(self):
+        return self.expr.is_leaf
+
 
 class NaryEffector(Effector):
     def __init__(self, *exprs):
@@ -121,6 +133,9 @@ class NaryEffector(Effector):
     def to_flattened(self):
         pass
 
+    @property
+    def is_leaf(self) -> bool:
+        return False
 
 class AndEffector(NaryEffector):
     def __str__(self) -> str:
