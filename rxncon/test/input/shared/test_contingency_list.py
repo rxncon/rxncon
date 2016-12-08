@@ -38,15 +38,19 @@ def test_nested_boolean():
 
 def test_simple_namespace():
     cles = [
-        cle_from_str('<C1>', 'AND', 'A@1_[x]--B@2_[a]'),
-        cle_from_str('<C1>', 'AND', 'A@1_[y]--C@3_[a]'),
+        cle_from_str('<C0>', 'AND', 'B@1_[(r)]-{p}'),
+        cle_from_str('<C0>', 'AND', 'A@0_[ab]--B@1_[ba]'),
+        cle_from_str('<C1>', 'AND', 'A@1_[ac]--C@2_[ca]'),
+        cle_from_str('<C1>', 'AND', 'A@1_[ad]--D@2_[da]'),
+        cle_from_str('<C1>', 'AND', '<C0>'),
+        # cle_from_str('<C1>', 'EQV', 'A@1,<C0>.A@0'),
         cle_from_str('<C>', 'AND', '<C1>'),
-        cle_from_str('<C>', 'AND', 'X@1_[a]--A@2_[z]'),
-        cle_from_str('<C>', 'EQV', 'A@2,<C1>.A@1'),
-        cle_from_str('A_p+_B_[(r)]', '!', '<C>')
+        cle_from_str('<C>', 'AND', 'X@0_[xa]--A@1_[ax]'),
+        cle_from_str('<C>', 'EQV', 'A@1,<C1>.A@1'),
+        cle_from_str('X_p+_A_[(r)]', '!', '<C>')
     ]
 
     contingencies = contingencies_from_contingency_list_entries(cles)
 
     for x in contingencies:
-        print(x)
+        print(x.effector.to_struct_effector())

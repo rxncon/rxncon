@@ -268,6 +268,14 @@ class State:
             if isinstance(v, Spec) and v == old_spec:
                 self.vars[k] = new_spec
 
+    def to_non_structured_state(self) -> 'State':
+        non_struct_vars = deepcopy(self.vars)
+        for k, v in non_struct_vars.items():
+            if isinstance(v, Spec):
+                non_struct_vars[k] = v.to_non_struct_spec()
+
+        return State(self.definition, non_struct_vars)
+
     @property
     def components(self) -> List[Spec]:
         return [x.to_component_spec() for x in self.specs]
