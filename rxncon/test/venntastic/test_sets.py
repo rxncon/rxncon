@@ -53,6 +53,29 @@ def test_values():
     assert set(venn_from_str('1 | 2 | 3 | 4 | 2', int).values) == {1, 2, 3, 4}
 
 
+def test_list_form():
+    assert venn_from_str('1 & 2', int).to_dnf_list() == [venn_from_str('1 & 2', int)]
+    assert set(venn_from_str('1 | 2', int).to_dnf_list()) == {ValueSet(1), ValueSet(2)}
+
+    x = venn_from_str('1 & ( 2 | 3 )', int)
+    assert any(elem.is_equivalent_to(venn_from_str('1 & 2', int)) for elem in x.to_dnf_list())
+    assert any(elem.is_equivalent_to(venn_from_str('1 & 3', int)) for elem in x.to_dnf_list())
+
+    assert UniversalSet().to_dnf_list() == [UniversalSet()]
+    assert EmptySet().to_dnf_list() == [EmptySet()]
+
+def test_nested_list_form():
+    x = venn_from_str('1 & ( 2 | 3 )', int)
+    assert [ValueSet(1), ValueSet(2)] in x.to_dnf_nested_list()
+    assert [ValueSet(1), ValueSet(3)] in x.to_dnf_nested_list()
+
+    assert venn_from_str('1 & 2', int).to_dnf_nested_list() == [[ValueSet(1), ValueSet(2)]]
+    assert venn_from_str('1 | 2', int).to_dnf_nested_list() == [[ValueSet(1)], [ValueSet(2)]]
+
+    assert UniversalSet().to_dnf_nested_list() == [[UniversalSet()]]
+    assert EmptySet().to_dnf_nested_list() == [[EmptySet()]]
+
+
 # Test the superset / subset relationships
 def test_superset_subset_for_unary_sets():
     assert UniversalSet() == ValueSet(None)

@@ -43,8 +43,10 @@ class Set:
             return [EmptySet()]
         elif isinstance(dnf_set, Literal):
             return [venn_from_pyeda(dnf_set, sym_to_val)]
-        elif isinstance(dnf_set, NaryOp):
-            return [venn_from_pyeda(x, sym_to_val) for x in dnf_set.xs]
+        elif isinstance(dnf_set, AndOp):
+            return [venn_from_pyeda(dnf_set, sym_to_val)]
+        elif isinstance(dnf_set, OrOp):
+            return [venn_from_pyeda(term, sym_to_val) for term in dnf_set.xs]
         else:
             raise Exception
 
@@ -53,14 +55,20 @@ class Set:
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
         dnf_set = self._to_pyeda_expr(val_to_sym).to_dnf()
 
-        if isinstance(dnf_set, Literal):
+        if dnf_set is One:
+            return [[UniversalSet()]]
+        elif dnf_set is Zero:
+            return [[EmptySet()]]
+        elif isinstance(dnf_set, Literal):
             return [venn_from_pyeda(dnf_set, sym_to_val)]
+        elif isinstance(dnf_set, AndOp):
+            return [[venn_from_pyeda(x, sym_to_val) for x in dnf_set.xs]]
 
         res = []
         for term in dnf_set.xs:
             if isinstance(term, Literal):
                 res.append([venn_from_pyeda(term, sym_to_val)])
-            elif isinstance(term, NaryOp):
+            elif isinstance(term, AndOp):
                 res.append([venn_from_pyeda(x, sym_to_val) for x in term.xs])
             else:
                 raise Exception
