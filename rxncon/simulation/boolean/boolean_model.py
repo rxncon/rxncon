@@ -117,6 +117,14 @@ class ReactionTarget(Target):
     def synthesised_components(self) -> List[Spec]:
         return [component for component in self.components_rhs if component not in self.components_lhs]
 
+    def degrades_component(self, spec: Spec) -> bool:
+        assert spec.is_component_spec
+        return spec in self.degraded_components
+
+    def synthesises_component(self, spec: Spec) -> bool:
+        assert spec.is_component_spec
+        return spec in self.synthesised_components
+
 
 class StateTarget(Target):
     def __init__(self, state_parent: State):
@@ -286,7 +294,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         for reaction_target, contingency_factor in reaction_target_to_factor.items():
             for num, interaction_state in enumerate(state for state in rxncon_sys.states if len(state.components) > 1
-                                                    and reaction_target.degrades(StateTarget(state))):
+                                                    and any(reaction_target.degrades_component(spec) for spec in state.components)):
                 neutral_targets = StateTarget(interaction_state).neutral_targets
                 new_reaction_target = deepcopy(reaction_target)
 

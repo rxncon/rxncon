@@ -366,7 +366,8 @@ def test_deg_with_boolean_contingency():
 
 def test_deg_with_interaction():
     boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
-                                                       C_deg_A""").rxncon_system)
+                                                       D_p+_A_[(r)]
+                                                       C_deg_A; ! A_[(r)]-{p}""").rxncon_system)
 
     for rule in boolean_model.update_rules:
         print()
@@ -389,11 +390,11 @@ def test_smooth_production_sources():
             assert rule.factor.is_equivalent_to(venn_from_str(expected, target_from_str))
 
 
-def test_synth_deg_steady_state():
-    boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(x)]
-                                                    C_p-_A_[(x)]
-                                                    D_syn_A
-                                                    E_deg_A""").rxncon_system, SmoothingStrategy.no_smoothing)
-
-    for rule in boolean_model.update_rules:
-        print(rule)
+# def test_synth_deg_steady_state():
+#     boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(x)]
+#                                                     C_p-_A_[(x)]
+#                                                     D_syn_A
+#                                                     E_deg_A""").rxncon_system, SmoothingStrategy.no_smoothing)
+#
+#     for rule in boolean_model.update_rules:
+#         print(rule)
