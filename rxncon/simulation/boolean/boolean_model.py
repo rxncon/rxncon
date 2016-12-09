@@ -166,6 +166,9 @@ class StateTarget(Target):
     def neutral_targets(self) -> List['StateTarget']:
         return [StateTarget(x) for x in self._state_parent.neutral_states]
 
+    def is_mutually_exclusive_with(self, other: 'StateTarget'):
+        return self._state_parent.is_mutually_exclusive_with(other._state_parent)
+
 
 class ComponentStateTarget(StateTarget):
     def __init__(self, component: Spec):
@@ -290,11 +293,23 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                             [StateTarget(x) for x in rxncon_sys.states_for_component(degraded_component)]
 
     def update_degradations_for_interaction_states():
+        def state_exclusive_with_contingency(state: StateTarget, contingency_factor: VennSet) -> bool:
+            solns = contingency_factor.calc_solutions()
+            assert len(solns) == 1
+            true_states  = [state for state, val in solns[0].items() if val]
+            false_states = [state for state, val in solns[0].items() if not val]
+
+            if state in false_states or any(true_state.is_mutually_exclusive_with(state) for true_state in true_states):
+                return True
+            else:
+                return False
+
         new_reactions = {}
 
         for reaction_target, contingency_factor in reaction_target_to_factor.items():
             for num, interaction_state in enumerate(state for state in rxncon_sys.states if len(state.components) > 1
-                                                    and any(reaction_target.degrades_component(spec) for spec in state.components)):
+                                                    and any(reaction_target.degrades_component(spec) for spec in state.components)
+                                                    and not state_exclusive_with_contingency(StateTarget(state), contingency_factor)):
                 neutral_targets = StateTarget(interaction_state).neutral_targets
                 new_reaction_target = deepcopy(reaction_target)
 

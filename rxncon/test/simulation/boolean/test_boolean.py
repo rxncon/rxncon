@@ -367,7 +367,7 @@ def test_deg_with_boolean_contingency():
 def test_deg_with_interaction():
     boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
                                                        D_p+_A_[(r)]
-                                                       C_deg_A; ! A_[(r)]-{p}""").rxncon_system)
+                                                       C_deg_A; x A_[x]--B_[y]""").rxncon_system)
 
     for rule in boolean_model.update_rules:
         print()
