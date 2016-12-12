@@ -62,6 +62,8 @@ def _get_boolean_complex_state_nodes(test_case, expected_graph):
             expected_graph.add_node(id, type=NodeType.OR.value, label=label)
         elif 'NOT' == type:
             expected_graph.add_node(id, type=NodeType.NOT.value, label=label)
+        elif 'boolean' == type:
+            expected_graph.add_node(id, type=NodeType.boolean.value, label=label)
         else:
             raise AssertionError
     return expected_graph
@@ -155,8 +157,8 @@ def test_regulatory_graph_for_synthesis_reaction():
                               ('A_[b]_ppi+_B_[a]', 'A_[b]--0', EdgeInteractionType.consume),
                               ('B_[a]--0', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.source_state),
                               ('A_[b]--0', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.source_state),
-                              ('C_syn_A', 'A_[b]--0', EdgeInteractionType.produce),
-                              ('C_syn_A', 'A_[(c)]-{0}', EdgeInteractionType.produce),
+                              ('C_syn_A', 'A_[b]--0', EdgeInteractionType.synthesis),
+                              ('C_syn_A', 'A_[(c)]-{0}', EdgeInteractionType.synthesis),
                               ('C_p+_A_[(c)]', 'A_[(c)]-{p}', EdgeInteractionType.produce),
                               ('C_p+_A_[(c)]', 'A_[(c)]-{0}', EdgeInteractionType.consume),
                               ('A_[(c)]-{0}', 'C_p+_A_[(c)]', EdgeInteractionType.source_state)])
@@ -469,7 +471,8 @@ def test_regulatory_graph_for_structured_boolean():
                              ('IR_[lig]--0', 'IR-empty', EdgeInteractionType.AND),
                              ('IR_[lig]--0', 'IR-empty', EdgeInteractionType.AND)])
 
-    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+    assert False #_is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+
 
 def test_regulatory_graph_for_degradation_no_contingency():
     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
@@ -502,6 +505,7 @@ def test_regulatory_graph_for_degradation_no_contingency():
 #    gml_system.to_file("test_deg.xgmml")
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
+
 def test_degradation_with_contingency():
     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
                                 A_[c]_ppi+_C_[a]
@@ -509,10 +513,10 @@ def test_degradation_with_contingency():
                                 C_p+_A_[(d)]
                                 D_deg_A; ! <comp>
                                 <comp>; AND A_[(c)]-{p}; AND A_[b]--B_[a]''',
-                             ['A_[b]_ppi+_B_[a]', 'A_[c]_ppi+_C_[a]', 'C_p+_A_[(c)]', 'C_p+_A_[(d)]', 'D_deg_A#0'],
+                             ['A_[b]_ppi+_B_[a]', 'A_[c]_ppi+_C_[a]', 'C_p+_A_[(c)]', 'C_p+_A_[(d)]', 'D_deg_A#(BoolMem:A_[(c)]-{p} AND BoolMem:A_[b]--B_[a])'],
                              ['A_[b]--B_[a]', 'A_[c]--C_[a]', 'A_[(c)]-{p}', 'A_[(d)]-{p}', 'B_[a]--0', 'C_[a]--0',
                               'A_[b]--0', 'A_[c]--0', 'A_[(c)]-{0}', 'A_[(d)]-{0}',],
-                             [('D_deg_A#0_AND_A_[b]--B_[a]', " ", 'AND'), ('comp', 'comp', 'AND')],
+                             [('D_deg_A#(BoolMem:A_[(c)]-{p} AND BoolMem:A_[b]--B_[a])_ON_A_[b]--B_[a]', " ", 'boolean'), ('comp', 'comp', 'AND')],
                              [('A_[b]_ppi+_B_[a]', 'A_[b]--B_[a]', EdgeInteractionType.produce),
                               ('A_[b]_ppi+_B_[a]', 'B_[a]--0', EdgeInteractionType.consume),
                               ('A_[b]_ppi+_B_[a]', 'A_[b]--0', EdgeInteractionType.consume),
@@ -529,37 +533,21 @@ def test_degradation_with_contingency():
                               ('C_p+_A_[(d)]', 'A_[(d)]-{p}', EdgeInteractionType.produce),
                               ('C_p+_A_[(d)]', 'A_[(d)]-{0}', EdgeInteractionType.consume),
                               ('A_[(d)]-{0}', 'C_p+_A_[(d)]', EdgeInteractionType.source_state),
-                              ('D_deg_A#0', 'A_[b]--B_[a]', EdgeInteractionType.consume),
-                              ('D_deg_A#0', 'A_[(c)]-{p}', EdgeInteractionType.consume),
-                              ('D_deg_A#0', 'D_deg_A#0_AND_A_[b]--B_[a]', EdgeInteractionType.AND),
-                              ('A_[b]--B_[a]', 'D_deg_A#0_AND_A_[b]--B_[a]', EdgeInteractionType.AND),
-                              ('D_deg_A#0_AND_A_[b]--B_[a]', 'B_[a]--0', EdgeInteractionType.produce),
+                              ('D_deg_A#(BoolMem:A_[(c)]-{p} AND BoolMem:A_[b]--B_[a])', 'A_[b]--B_[a]', EdgeInteractionType.degrade),
+                              ('D_deg_A#(BoolMem:A_[(c)]-{p} AND BoolMem:A_[b]--B_[a])', 'A_[(c)]-{p}', EdgeInteractionType.degrade),
+                              ('D_deg_A#(BoolMem:A_[(c)]-{p} AND BoolMem:A_[b]--B_[a])',
+                               'D_deg_A#(BoolMem:A_[(c)]-{p} AND BoolMem:A_[b]--B_[a])_ON_A_[b]--B_[a]', EdgeInteractionType.AND),
+                              ('A_[b]--B_[a]', 'D_deg_A#(BoolMem:A_[(c)]-{p} AND BoolMem:A_[b]--B_[a])_ON_A_[b]--B_[a]', EdgeInteractionType.AND),
+                              ('D_deg_A#(BoolMem:A_[(c)]-{p} AND BoolMem:A_[b]--B_[a])_ON_A_[b]--B_[a]', 'B_[a]--0', EdgeInteractionType.produce),
                               ('A_[(c)]-{p}', 'comp', EdgeInteractionType.AND),
                               ('A_[b]--B_[a]', 'comp', EdgeInteractionType.AND),
-                              ('comp', 'D_deg_A#0', EdgeInteractionType.required)])
+                              ('comp', 'D_deg_A#(BoolMem:A_[(c)]-{p} AND BoolMem:A_[b]--B_[a])', EdgeInteractionType.required)])
 
     reg_graph = _create_regulatory_graph(test_case.quick_string)
     gml_system = XGMML(reg_graph, "reactions_only")
     #gml_system.to_file("test_deg_bool_cont_AND.xgmml")
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
-# def test_degradation_with_contingency():
-#     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
-#                                 A_[b]_ppi+_C_[a]
-#                                 C_p+_A_[(c)]
-#                                 C_p+_A_[(d)]
-#                                 D_deg_A; ! <comp>
-#                                 <comp>; AND A_[(c)]-{p}; AND A_[b]--B_[a]''',
-#                              [],
-#                              [],
-#                              [],
-#                              [])
-#
-#     reg_graph = _create_regulatory_graph(test_case.quick_string)
-#     gml_system = XGMML(reg_graph, "reactions_only")
-#     #gml_system.to_file("test_deg_bool_cont_AND.xgmml")
-#     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
-#
 #
 # def test_degradation_with_boolean_contingency_OR():
 #     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]

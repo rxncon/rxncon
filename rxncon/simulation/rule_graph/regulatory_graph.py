@@ -10,6 +10,7 @@ from rxncon.core.reaction import ReactionTerm, Reaction
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.state import State
 
+
 from rxncon.core.rxncon_system import RxnConSystem, Reaction, ReactionTerm, Contingency
 from rxncon.core.effector import StateEffector, AndEffector, NotEffector, OrEffector, Effector
 from rxncon.venntastic.sets import Intersection
@@ -23,6 +24,7 @@ class NodeType(Enum):
     AND      = "boolean_and"
     OR       = "boolean_or"
     NOT      = "boolean_not"
+    boolean  = "boolean"
     input    = 'input'
     output   = 'output'
 
@@ -30,8 +32,10 @@ class NodeType(Enum):
 class EdgeInteractionType(Enum):
     produce       = 'produce'
     consume       = 'consume'
+    synthesis     = 'synthesis'
+    degrade       = 'degrade'
     required      = '!'
-    inhibition    = "x"
+    inhibited    = "x"
     positive      = 'k+'
     negative      = 'k-'
     AND           = 'AND'
@@ -40,7 +44,7 @@ class EdgeInteractionType(Enum):
     source_state  = 'ss'
 
 edge_type_mapping = {ContingencyType.requirement: EdgeInteractionType.required,
-                     ContingencyType.inhibition: EdgeInteractionType.inhibition,
+                     ContingencyType.inhibition: EdgeInteractionType.inhibited,
                      ContingencyType.positive: EdgeInteractionType.positive,
                      ContingencyType.negative: EdgeInteractionType.negative}
 
@@ -59,7 +63,7 @@ class BooleanMemory():
         return str(self)
 
     def __str__(self):
-        return "state: {0} boolean_target: {1}".format(str(self.state), self.boolean_target)
+        return "BoolMem:{}".format(str(self.state))
 
 
 class RegulatoryGraph():
@@ -89,111 +93,11 @@ class RegulatoryGraph():
                 self.add_degradation_reaction_information_to_graph(reaction, self.rxncon_system.contingencies_for_reaction(reaction))
         return self.graph
 
-
     def _add_node(self, id: str, label: str , type: NodeType):
         self.graph.add_node(self._replace_invalid_chars(id), dict(label=self._replace_invalid_chars(label), type=type.value))
 
     def _add_edge(self, source: str, target: str, interaction: EdgeInteractionType):
         self.graph.add_edge(self._replace_invalid_chars(source), self._replace_invalid_chars(target), interaction=interaction.value)
-
-    def add_degradation_reaction_information_to_graph(self, reaction, contingencies):
-
-            def parse_effector(eff: Effector, cont_type: ContingencyType, boolean_AND_target=None) -> VennSet:
-                if isinstance(eff, StateEffector):
-                    return ValueSet(BooleanMemory(eff.expr.to_non_structured_state(), cont_type, boolean_AND_target))
-                elif isinstance(eff, NotEffector):
-                    return Complement(parse_effector(eff.expr, cont_type))
-                elif isinstance(eff, OrEffector):
-                    return VennUnion(parse_effector(eff.left_expr, cont_type), parse_effector(eff.right_expr, cont_type))
-                elif isinstance(eff, AndEffector):
-                    if isinstance(eff.left_expr, StateEffector) and isinstance(eff.right_expr, StateEffector):
-                        return Intersection(parse_effector(eff.left_expr, cont_type, eff.name), parse_effector(eff.right_expr, cont_type, eff.name))
-                    else:
-                        return Intersection(parse_effector(eff.left_expr, cont_type), parse_effector(eff.right_expr, cont_type))
-                else:
-                    raise AssertionError
-
-            def parse_venn(venn: ValueSet):
-                if isinstance(venn, ValueSet):
-                    return _update_contingency_information(venn)
-                #elif isinstance(venn, Complement):
-                #    parse_venn(venn.expr)
-                #elif isinstance(venn, VennUnion):
-                #    parse_venn(venn.exprs[0])
-                #    parse_venn(venn.exprs[1])
-                elif isinstance(venn, Intersection):
-                    for expr in venn.exprs:
-                        parse_venn(expr)
-                    return
-                else:
-                    raise AssertionError
-
-            def _interaction_state_degradation(state: State, reaction_id: str):
-                self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.consume)
-                boolean_node_id = '{0}_AND_{1}'.format(reaction_id, str(state))
-                self._add_node(id=boolean_node_id, label=' ', type=NodeType.AND)
-
-                self._add_edge(source=reaction_id, target=boolean_node_id, interaction=EdgeInteractionType.AND)
-                self._add_edge(source=str(state), target=boolean_node_id, interaction=EdgeInteractionType.AND)
-
-                produced_neutral_states = [neutral_state for neutral_state in state.neutral_states
-                                           if not any(component in reaction.degraded_components
-                                                      for component in neutral_state.components)]
-                for neutral_state in produced_neutral_states:
-                    self._add_edge(source=boolean_node_id, target=str(neutral_state), interaction=EdgeInteractionType.produce)
-
-            def _update_no_contingency_case():
-                nonlocal reaction_id
-                degraded_states = [x for degraded_component in reaction.degraded_components
-                                   for x in self.rxncon_system.states_for_component(degraded_component)]
-                for state in degraded_states:
-                    if len(state.components) > 1:
-                        _interaction_state_degradation(state, reaction_id)
-                    else:
-                        self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.consume)
-
-            def _add_contingency_information(state, boolean_target: str, cont_type: EdgeInteractionType, reaction_id):
-                boolean_target = self._replace_invalid_chars(boolean_target)
-                self._add_node(boolean_target, label=boolean_target, type=NodeType.AND)
-
-                self._add_edge(source=str(state), target=boolean_target, interaction=EdgeInteractionType.AND)
-                self._add_edge(source=boolean_target, target=reaction_id, interaction=edge_type_mapping[cont_type])
-
-            def _update_contingency_information(valueset: ValueSet):
-                nonlocal reaction_id
-
-                state = valueset.value.state
-                cont_type = valueset.value.cont_type
-                boolean_target = valueset.value.boolean_target
-
-                if boolean_target:
-                    _add_contingency_information(state, boolean_target, cont_type, reaction_id)
-                elif not boolean_target:
-                    self._add_edge(source=str(state), target=reaction_id, interaction=edge_type_mapping[cont_type])
-
-                for degraded_component in reaction.degraded_components:
-                    if degraded_component in state.components:
-                        if len(state.components) > 1:
-                            _interaction_state_degradation(state, reaction_id)
-                        else:
-                            self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.consume)
-
-            # First case: reaction with a non-trivial contingency should degrade only the states appearing
-            # in the contingency that are connected to the degraded component.
-            if contingencies:
-                cont = Intersection(*(parse_effector(contingency.effector, contingency.type) for contingency in contingencies)).to_simplified_set()
-                for index, effector in enumerate(cont.to_dnf_list()):
-                    reaction_id = "{0}#{1}".format(str(reaction), str(index))
-                    self._add_node(reaction_id, label=str(reaction), type=NodeType.reaction)
-
-                    parse_venn(effector)
-
-            # Second case: reaction with a trivial contingency should degrade all states for the degraded component.
-            else:
-                self._add_node(id=str(reaction), label=str(reaction), type=NodeType.reaction)
-                reaction_id = str(reaction)
-                _update_no_contingency_case()
-
 
     def add_degradation_reaction_information_to_graph(self, reaction, contingencies):
 
@@ -214,14 +118,9 @@ class RegulatoryGraph():
                 else:
                     raise AssertionError
 
-            def parse_venn(venn: ValueSet):
+            def parse_venn(venn: VennSet):
                 if isinstance(venn, ValueSet):
                     return _update_contingency_information(venn)
-                #elif isinstance(venn, Complement):
-                #    parse_venn(venn.expr)
-                #elif isinstance(venn, VennUnion):
-                #    parse_venn(venn.exprs[0])
-                #    parse_venn(venn.exprs[1])
                 elif isinstance(venn, Intersection):
                     for expr in venn.exprs:
                         parse_venn(expr)
@@ -229,11 +128,10 @@ class RegulatoryGraph():
                 else:
                     raise AssertionError
 
-
             def _interaction_state_degradation(state: State, reaction_id: str):
-                self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.consume)
-                boolean_node_id = '{0}_AND_{1}'.format(reaction_id, str(state))
-                self._add_node(id=boolean_node_id, label=' ', type=NodeType.AND)
+                self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.degrade)
+                boolean_node_id = '{0}_ON_{1}'.format(reaction_id, str(state))
+                self._add_node(id=boolean_node_id, label=' ', type=NodeType.boolean)
 
                 self._add_edge(source=reaction_id, target=boolean_node_id, interaction=EdgeInteractionType.AND)
                 self._add_edge(source=str(state), target=boolean_node_id, interaction=EdgeInteractionType.AND)
@@ -254,7 +152,7 @@ class RegulatoryGraph():
                     else:
                         self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.consume)
 
-            def _add_contingency_information(state, boolean_target: str, cont_type: EdgeInteractionType, reaction_id):
+            def _add_boolean_information(state, boolean_target: str, cont_type: EdgeInteractionType, reaction_id):
                 boolean_target = self._replace_invalid_chars(boolean_target)
                 self._add_node(boolean_target, label=boolean_target, type=NodeType.AND)
 
@@ -269,7 +167,7 @@ class RegulatoryGraph():
                 boolean_target = valueset.value.boolean_target
 
                 if boolean_target:
-                    _add_contingency_information(state, boolean_target, cont_type, reaction_id)
+                    _add_boolean_information(state, boolean_target, cont_type, reaction_id)
                 elif not boolean_target:
                     self._add_edge(source=str(state), target=reaction_id, interaction=edge_type_mapping[cont_type])
 
@@ -278,14 +176,14 @@ class RegulatoryGraph():
                         if len(state.components) > 1:
                             _interaction_state_degradation(state, reaction_id)
                         else:
-                            self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.consume)
+                            self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.degrade)
 
             # First case: reaction with a non-trivial contingency should degrade only the states appearing
             # in the contingency that are connected to the degraded component.
             if contingencies:
                 cont = Intersection(*(parse_effector(contingency.effector, contingency.type) for contingency in contingencies)).to_simplified_set()
                 for index, effector in enumerate(cont.to_dnf_list()):
-                    reaction_id = "{0}#{1}".format(str(reaction), str(index))
+                    reaction_id = "{0}#{1}".format(str(reaction), self._replace_invalid_chars(str(effector)))
                     self._add_node(reaction_id, label=str(reaction), type=NodeType.reaction)
 
                     parse_venn(effector)
@@ -295,6 +193,7 @@ class RegulatoryGraph():
                 self._add_node(id=str(reaction), label=str(reaction), type=NodeType.reaction)
                 reaction_id = str(reaction)
                 _update_no_contingency_case()
+
 
     def add_reaction_information_to_graph(self, reaction: Reaction) -> None:
         """
@@ -310,8 +209,6 @@ class RegulatoryGraph():
             None
 
         """
-
-
 
         def _add_reaction_reactant_to_graph(reaction: Reaction, reactants: ReactionTerm,
                                             edge_type: EdgeInteractionType) -> None:
@@ -364,7 +261,10 @@ class RegulatoryGraph():
         self._add_node(id=str(reaction), type=NodeType.reaction, label=str(reaction))
 
         for reactant_post in reaction.terms_rhs:
-            _add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.produce)
+            if reaction.synthesised_states:
+                _add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.synthesis)
+            else:
+                _add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.produce)
 
         for reactant_pre in reaction.terms_lhs:
             _add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
@@ -397,7 +297,9 @@ class RegulatoryGraph():
             Valid string for xgmml files.
 
         """
-        return re.sub('[<>]', '', name)
+        name = re.sub('[<>]', '', name)
+        name = re.sub('[&]', 'AND', name)
+        return name
 
     def _add_node_and_edge(self, name: str, node_type: NodeType, edge_type: EdgeInteractionType, target_name: str) -> None:
         """
@@ -414,12 +316,14 @@ class RegulatoryGraph():
         Mutates:
             self.graph (DiGraph): The regulatory graph.
 
+
         Returns:
             None
 
         """
 
         self._add_node(str(name), type=node_type, label=str(name))
+
 
         self._add_edge(source=str(name), target=target_name, interaction=edge_type)
 
