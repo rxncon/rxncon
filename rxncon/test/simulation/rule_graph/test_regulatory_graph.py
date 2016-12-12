@@ -92,8 +92,7 @@ def _is_graph_test_case_correct(actual_graph, test_case) -> bool:
 
     return expected_graph.node == actual_graph.node and expected_graph.edge == actual_graph.edge
 
-
-def _create_regulatory_graph(quick_string):
+def _create_regulatory_graph(quick_string, potential_degradation=False):
     """
     Creating a regulatory graph.
 
@@ -105,7 +104,7 @@ def _create_regulatory_graph(quick_string):
 
     """
     actual_system = qui.Quick(quick_string)
-    reg_system = RegulatoryGraph(actual_system.rxncon_system)
+    reg_system = RegulatoryGraph(actual_system.rxncon_system, potential_degradation)
     return reg_system.to_graph()
 
 
@@ -480,7 +479,7 @@ def test_regulatory_graph_for_degradation_no_contingency():
                                 D_deg_A''',
                              ['A_[b]_ppi+_B_[a]', 'C_p+_A_[(c)]', 'D_deg_A'],
                              ['A_[b]--B_[a]', 'A_[(c)]-{p}', 'B_[a]--0', 'A_[b]--0', 'A_[(c)]-{0}'],
-                             [('D_deg_A_AND_A_[b]--B_[a]', " ", 'AND')],
+                             [('D_deg_A_AND_A_[b]--B_[a]', " ", 'boolean')],
 
                              [('A_[b]_ppi+_B_[a]', 'A_[b]--B_[a]', EdgeInteractionType.produce),
                               ('A_[b]_ppi+_B_[a]', 'B_[a]--0', EdgeInteractionType.consume),
@@ -492,10 +491,11 @@ def test_regulatory_graph_for_degradation_no_contingency():
                               ('A_[(c)]-{0}', 'C_p+_A_[(c)]', EdgeInteractionType.source_state),
 
 
-                              ('D_deg_A', 'A_[b]--B_[a]', EdgeInteractionType.consume),
-                              ('D_deg_A', 'A_[b]--0', EdgeInteractionType.consume),
-                              ('D_deg_A', 'A_[(c)]-{p}', EdgeInteractionType.consume),
-                              ('D_deg_A', 'A_[(c)]-{0}', EdgeInteractionType.consume),
+                              ('D_deg_A', 'A_[b]--B_[a]', EdgeInteractionType.degrade),
+                              ('D_deg_A', 'A_[b]--0', EdgeInteractionType.degrade),
+                              ('D_deg_A', 'A_[(c)]-{p}', EdgeInteractionType.degrade),
+                              ('D_deg_A', 'A_[(c)]-{0}', EdgeInteractionType.degrade),
+
                               ('D_deg_A', 'D_deg_A_AND_A_[b]--B_[a]', EdgeInteractionType.AND),
                               ('A_[b]--B_[a]', 'D_deg_A_AND_A_[b]--B_[a]', EdgeInteractionType.AND),
                               ('D_deg_A_AND_A_[b]--B_[a]', 'B_[a]--0', EdgeInteractionType.produce)])
@@ -504,6 +504,70 @@ def test_regulatory_graph_for_degradation_no_contingency():
     gml_system = XGMML(reg_graph, "reactions_only")
 #    gml_system.to_file("test_deg.xgmml")
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+
+def test_degradation_with_contingency_inhibited_by_interaction_potential_degradation():
+    test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
+                                A_[c]_ppi+_C_[a]
+                                C_p+_A_[(c)]
+                                D_deg_A; x A_[b]--B_[a]''',
+                             ['A_[b]_ppi+_B_[a]', 'A_[c]_ppi+_C_[a]', 'C_p+_A_[(c)]', 'D_deg_A#BoolMem:A_[b]--B_[a]'],
+                             ['A_[b]--B_[a]', 'A_[c]--C_[a]', 'A_[(c)]-{p}', 'B_[a]--0', 'C_[a]--0', 'A_[b]--0', 'A_[c]--0', 'A_[(c)]-{0}'],
+                             [('D_deg_A#BoolMem:A_[b]--B_[a]_ON_A_[c]--C_[a]', " ", 'boolean')],
+
+                             [('A_[b]_ppi+_B_[a]', 'A_[b]--B_[a]', EdgeInteractionType.produce),
+                              ('A_[b]_ppi+_B_[a]', 'B_[a]--0', EdgeInteractionType.consume),
+                              ('A_[b]_ppi+_B_[a]', 'A_[b]--0', EdgeInteractionType.consume),
+                              ('A_[c]_ppi+_C_[a]', 'A_[c]--C_[a]', EdgeInteractionType.produce),
+                              ('A_[c]_ppi+_C_[a]', 'C_[a]--0', EdgeInteractionType.consume),
+                              ('A_[c]_ppi+_C_[a]', 'A_[c]--0', EdgeInteractionType.consume),
+                              ('B_[a]--0', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.source_state),
+                              ('A_[b]--0', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.source_state),
+                              ('A_[c]--0', 'A_[c]_ppi+_C_[a]', EdgeInteractionType.source_state),
+                              ('C_[a]--0', 'A_[c]_ppi+_C_[a]', EdgeInteractionType.source_state),
+                              ('C_p+_A_[(c)]', 'A_[(c)]-{p}', EdgeInteractionType.produce),
+                              ('C_p+_A_[(c)]', 'A_[(c)]-{0}', EdgeInteractionType.consume),
+                              ('A_[(c)]-{0}', 'C_p+_A_[(c)]', EdgeInteractionType.source_state),
+                              ('A_[b]--B_[a]', 'D_deg_A#BoolMem:A_[b]--B_[a]', EdgeInteractionType.inhibited),
+                              ('D_deg_A#BoolMem:A_[b]--B_[a]', 'A_[b]--0', EdgeInteractionType.maybe_degraded),
+                              ('D_deg_A#BoolMem:A_[b]--B_[a]', 'A_[(c)]-{p}', EdgeInteractionType.maybe_degraded),
+                              ('D_deg_A#BoolMem:A_[b]--B_[a]', 'A_[(c)]-{0}', EdgeInteractionType.maybe_degraded),
+                              ('D_deg_A#BoolMem:A_[b]--B_[a]', 'A_[c]--C_[a]', EdgeInteractionType.maybe_degraded),
+                              ('D_deg_A#BoolMem:A_[b]--B_[a]', 'A_[c]--0', EdgeInteractionType.maybe_degraded),
+                              ('D_deg_A#BoolMem:A_[b]--B_[a]', 'D_deg_A#BoolMem:A_[b]--B_[a]_ON_A_[c]--C_[a]', EdgeInteractionType.AND),
+                              ('A_[c]--C_[a]', 'D_deg_A#BoolMem:A_[b]--B_[a]_ON_A_[c]--C_[a]', EdgeInteractionType.AND),
+                              ('D_deg_A#BoolMem:A_[b]--B_[a]_ON_A_[c]--C_[a]', 'C_[a]--0', EdgeInteractionType.produce)])
+
+    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string, True), test_case)
+
+def test_degradation_with_contingency_mutually_exclusivity_potential_degradation():
+    test_case = RuleTestCase('''A_[c]_ppi+_C_[a]
+                                C_p+_A_[(c)]
+                                C_ub+_A_[(c)]
+                                D_deg_A; ! A_[(c)]-{P}''',
+                             ['A_[c]_ppi+_C_[a]', 'C_p+_A_[(c)]', 'D_deg_A#BoolMem:A_[(c)]-{p}', 'C_ub+_A_[(c)]'],
+                             ['A_[c]--C_[a]', 'A_[(c)]-{p}', 'A_[(c)]-{ub}', 'C_[a]--0', 'A_[c]--0', 'A_[(c)]-{0}'],
+                             [('D_deg_A#BoolMem:A_[(c)]-{p}_ON_A_[c]--C_[a]', " ", 'boolean')],
+
+                             [('A_[c]_ppi+_C_[a]', 'A_[c]--C_[a]', EdgeInteractionType.produce),
+                              ('A_[c]_ppi+_C_[a]', 'C_[a]--0', EdgeInteractionType.consume),
+                              ('A_[c]_ppi+_C_[a]', 'A_[c]--0', EdgeInteractionType.consume),
+                              ('A_[c]--0', 'A_[c]_ppi+_C_[a]', EdgeInteractionType.source_state),
+                              ('C_[a]--0', 'A_[c]_ppi+_C_[a]', EdgeInteractionType.source_state),
+                              ('C_p+_A_[(c)]', 'A_[(c)]-{p}', EdgeInteractionType.produce),
+                              ('C_p+_A_[(c)]', 'A_[(c)]-{0}', EdgeInteractionType.consume),
+                              ('C_ub+_A_[(c)]', 'A_[(c)]-{ub}', EdgeInteractionType.produce),
+                              ('C_ub+_A_[(c)]', 'A_[(c)]-{0}', EdgeInteractionType.consume),
+                              ('A_[(c)]-{0}', 'C_p+_A_[(c)]', EdgeInteractionType.source_state),
+                              ('A_[(c)]-{0}', 'C_ub+_A_[(c)]', EdgeInteractionType.source_state),
+                              ('A_[(c)]-{p}', 'D_deg_A#BoolMem:A_[(c)]-{p}', EdgeInteractionType.required),
+                              ('D_deg_A#BoolMem:A_[(c)]-{p}', 'A_[(c)]-{p}', EdgeInteractionType.degrade),
+                              ('D_deg_A#BoolMem:A_[(c)]-{p}', 'A_[c]--C_[a]', EdgeInteractionType.maybe_degraded),
+                              ('D_deg_A#BoolMem:A_[(c)]-{p}', 'A_[c]--0', EdgeInteractionType.maybe_degraded),
+                              ('D_deg_A#BoolMem:A_[(c)]-{p}', 'D_deg_A#BoolMem:A_[(c)]-{p}_ON_A_[c]--C_[a]', EdgeInteractionType.AND),
+                              ('A_[c]--C_[a]', 'D_deg_A#BoolMem:A_[(c)]-{p}_ON_A_[c]--C_[a]', EdgeInteractionType.AND),
+                              ('D_deg_A#BoolMem:A_[(c)]-{p}_ON_A_[c]--C_[a]', 'C_[a]--0', EdgeInteractionType.produce)])
+
+    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string, True), test_case)
 
 
 def test_degradation_with_contingency():
@@ -543,9 +607,7 @@ def test_degradation_with_contingency():
                               ('A_[b]--B_[a]', 'comp', EdgeInteractionType.AND),
                               ('comp', 'D_deg_A#(BoolMem:A_[(c)]-{p} AND BoolMem:A_[b]--B_[a])', EdgeInteractionType.required)])
 
-    reg_graph = _create_regulatory_graph(test_case.quick_string)
-    gml_system = XGMML(reg_graph, "reactions_only")
-    #gml_system.to_file("test_deg_bool_cont_AND.xgmml")
+
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 #

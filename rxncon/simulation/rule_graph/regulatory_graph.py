@@ -34,6 +34,7 @@ class EdgeInteractionType(Enum):
     consume       = 'consume'
     synthesis     = 'synthesis'
     degrade       = 'degrade'
+    maybe_degraded = 'maybe_degraded'
     required      = '!'
     inhibited    = "x"
     positive      = 'k+'
@@ -73,8 +74,9 @@ class RegulatoryGraph():
     Args:
         rxncon_system: The rxncon system.
     """
-    def __init__(self,rxncon_system: RxnConSystem) -> None:
+    def __init__(self,rxncon_system: RxnConSystem, potential_degradation: bool = False) -> None:
         self.rxncon_system = rxncon_system
+        self.potential_degradation = potential_degradation
         self.graph = DiGraph()
 
     def to_graph(self) -> DiGraph:
@@ -128,8 +130,8 @@ class RegulatoryGraph():
                 else:
                     raise AssertionError
 
-            def _interaction_state_degradation(state: State, reaction_id: str):
-                self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.degrade)
+            def _interaction_state_degradation(state: State, reaction_id: str, edge_type: EdgeInteractionType = EdgeInteractionType.degrade):
+                self._add_edge(source=reaction_id, target=str(state), interaction=edge_type)
                 boolean_node_id = '{0}_ON_{1}'.format(reaction_id, str(state))
                 self._add_node(id=boolean_node_id, label=' ', type=NodeType.boolean)
 
@@ -150,7 +152,7 @@ class RegulatoryGraph():
                     if len(state.components) > 1:
                         _interaction_state_degradation(state, reaction_id)
                     else:
-                        self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.consume)
+                        self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.degrade)
 
             def _add_boolean_information(state, boolean_target: str, cont_type: EdgeInteractionType, reaction_id):
                 boolean_target = self._replace_invalid_chars(boolean_target)
@@ -159,12 +161,25 @@ class RegulatoryGraph():
                 self._add_edge(source=str(state), target=boolean_target, interaction=EdgeInteractionType.AND)
                 self._add_edge(source=boolean_target, target=reaction_id, interaction=edge_type_mapping[cont_type])
 
-            def _update_contingency_information(valueset: ValueSet):
+            def _add_potential_degradation(value_sets: List[BooleanMemory]):
+                contingency_states = [value_set.state for value_set in value_sets]
+                degraded_states = [x for degraded_component in reaction.degraded_components
+                                   for x in self.rxncon_system.states_for_component(degraded_component) if x not in contingency_states]
+
+                for state in degraded_states:
+                    if not any(value_set for value_set in value_sets if state.is_mutually_exclusive_with(value_set.state)
+                    and value_set.cont_type is not ContingencyType.inhibition):
+                        if len(state.components) > 1:
+                            _interaction_state_degradation(state, reaction_id, EdgeInteractionType.maybe_degraded)
+                        else:
+                            self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.maybe_degraded)
+
+            def _update_contingency_information(value_set: BooleanMemory):
                 nonlocal reaction_id
 
-                state = valueset.value.state
-                cont_type = valueset.value.cont_type
-                boolean_target = valueset.value.boolean_target
+                state = value_set.state
+                cont_type = value_set.cont_type
+                boolean_target = value_set.boolean_target
 
                 if boolean_target:
                     _add_boolean_information(state, boolean_target, cont_type, reaction_id)
@@ -172,7 +187,7 @@ class RegulatoryGraph():
                     self._add_edge(source=str(state), target=reaction_id, interaction=edge_type_mapping[cont_type])
 
                 for degraded_component in reaction.degraded_components:
-                    if degraded_component in state.components:
+                    if degraded_component in state.components and cont_type is not ContingencyType.inhibition:
                         if len(state.components) > 1:
                             _interaction_state_degradation(state, reaction_id)
                         else:
@@ -185,8 +200,9 @@ class RegulatoryGraph():
                 for index, effector in enumerate(cont.to_dnf_list()):
                     reaction_id = "{0}#{1}".format(str(reaction), self._replace_invalid_chars(str(effector)))
                     self._add_node(reaction_id, label=str(reaction), type=NodeType.reaction)
-
-                    parse_venn(effector)
+                    [_update_contingency_information(value_set) for value_set in effector.values]
+                    if self.potential_degradation:
+                        _add_potential_degradation(effector.values)
 
             # Second case: reaction with a trivial contingency should degrade all states for the degraded component.
             else:
