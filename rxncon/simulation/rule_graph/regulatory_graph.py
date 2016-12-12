@@ -203,12 +203,14 @@ class RegulatoryGraph():
                 elif isinstance(eff, NotEffector):
                     return Complement(parse_effector(eff.expr, cont_type))
                 elif isinstance(eff, OrEffector):
-                    return VennUnion(parse_effector(eff.left_expr, cont_type), parse_effector(eff.right_expr, cont_type))
+                    return VennUnion(*[parse_effector(expr, cont_type) for expr in eff.exprs])
                 elif isinstance(eff, AndEffector):
-                    if isinstance(eff.left_expr, StateEffector) and isinstance(eff.right_expr, StateEffector):
-                        return Intersection(parse_effector(eff.left_expr, cont_type, eff.name), parse_effector(eff.right_expr, cont_type, eff.name))
+                    state_effectors = [expr for expr in eff.exprs if isinstance(expr, StateEffector)]
+                    if len(state_effectors) > 1:
+                        return Intersection(*[parse_effector(expr, cont_type, eff.name) if isinstance(expr, StateEffector) else
+                                              parse_effector(expr, cont_type) for expr in eff.exprs])
                     else:
-                        return Intersection(parse_effector(eff.left_expr, cont_type), parse_effector(eff.right_expr, cont_type))
+                        return Intersection(*[parse_effector(expr, cont_type) for expr in eff.exprs])
                 else:
                     raise AssertionError
 
@@ -478,15 +480,13 @@ class RegulatoryGraph():
                 self._add_node_and_edge(effector.name, NodeType.OR, edge_type, target_name)
                 target_name = self._target_name_from_reaction_or_effector(effector)
 
-            self._add_information_from_effector_to_graph(effector.left_expr, EdgeInteractionType.OR, target_name)
-            self._add_information_from_effector_to_graph(effector.right_expr, EdgeInteractionType.OR, target_name)
+            [self._add_information_from_effector_to_graph(expr, EdgeInteractionType.OR, target_name) for expr in effector.exprs]
 
         elif isinstance(effector, AndEffector):
             if effector.name is not None:
                 self._add_node_and_edge(effector.name, NodeType.AND, edge_type, target_name)
                 target_name = self._target_name_from_reaction_or_effector(effector)
 
-            self._add_information_from_effector_to_graph(effector.left_expr, EdgeInteractionType.AND, target_name)
-            self._add_information_from_effector_to_graph(effector.right_expr, EdgeInteractionType.AND, target_name)
+            [self._add_information_from_effector_to_graph(expr, EdgeInteractionType.AND, target_name) for expr in effector.exprs]
         else:
             raise AssertionError
