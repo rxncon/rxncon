@@ -60,7 +60,7 @@ class Set:
         elif dnf_set is Zero:
             return [[EmptySet()]]
         elif isinstance(dnf_set, Literal):
-            return [venn_from_pyeda(dnf_set, sym_to_val)]
+            return [[venn_from_pyeda(dnf_set, sym_to_val)]]
         elif isinstance(dnf_set, AndOp):
             return [[venn_from_pyeda(x, sym_to_val) for x in dnf_set.xs]]
 
