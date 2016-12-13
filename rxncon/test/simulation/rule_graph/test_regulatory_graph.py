@@ -474,6 +474,19 @@ def test_regulatory_graph_for_structured_boolean():
 
 
 def test_regulatory_graph_for_degradation_no_contingency():
+    """
+    Testing a regulatory graph for degradation reaction without contingencies.
+
+    Note:
+        A system of 3 reactions.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
                                 C_p+_A_[(c)]
                                 D_deg_A''',
@@ -506,7 +519,22 @@ def test_regulatory_graph_for_degradation_no_contingency():
 #    gml_system.to_file("test_deg.xgmml")
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
+
 def test_degradation_with_contingency_inhibited_by_interaction_potential_degradation():
+    """
+    Testing regulatory graph with degradation and contingencies
+
+    Note:
+        A system of 4 reactions and one inhibition contingency.
+        In this scenario we also create edges to optional/possible degradation targets.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
                                 A_[c]_ppi+_C_[a]
                                 C_p+_A_[(c)]
@@ -541,7 +569,22 @@ def test_degradation_with_contingency_inhibited_by_interaction_potential_degrada
 
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string, True), test_case)
 
+
 def test_degradation_with_contingency_mutually_exclusivity_potential_degradation():
+    """
+    Testing regulatory graph with degradation and contingencies.
+
+    Note:
+        A system of 4 reactions and 1 contingency.
+        Mutually exclusive states should not be degraded.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
     test_case = RuleTestCase('''A_[c]_ppi+_C_[a]
                                 C_p+_A_[(c)]
                                 C_ub+_A_[(c)]
@@ -577,6 +620,19 @@ def test_degradation_with_contingency_mutually_exclusivity_potential_degradation
 
 
 def test_degradation_with_contingency():
+    """
+    Testing regulatory graph with degradation and contingencies.
+
+    Note:
+        The system contains 5 reactions and 1 boolean contingency.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
                                 A_[c]_ppi+_C_[a]
                                 C_p+_A_[(c)]
