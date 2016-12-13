@@ -120,16 +120,6 @@ class RegulatoryGraph():
                 else:
                     raise AssertionError
 
-            def parse_venn(venn: VennSet):
-                if isinstance(venn, ValueSet):
-                    return _update_contingency_information(venn)
-                elif isinstance(venn, Intersection):
-                    for expr in venn.exprs:
-                        parse_venn(expr)
-                    return
-                else:
-                    raise AssertionError
-
             def _interaction_state_degradation(state: State, reaction_id: str, edge_type: EdgeInteractionType = EdgeInteractionType.degrade):
                 self._add_edge(source=reaction_id, target=str(state), interaction=edge_type)
                 boolean_node_id = '{0}_ON_{1}'.format(reaction_id, str(state))
