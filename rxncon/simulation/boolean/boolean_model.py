@@ -318,7 +318,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                     [x for x in neutral_targets if not any(component in new_reaction_target.degraded_components for component in x.components)]
 
                 new_reaction_target.interaction_variant_index = num + 1
-                new_reactions[new_reaction_target] = Intersection(contingency_factor, ValueSet(StateTarget(interaction_state)))
+                new_reactions[new_reaction_target] = contingency_factor
 
         reaction_target_to_factor.update(new_reactions)
 
@@ -364,7 +364,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                     smoothed_prod_facs = []
                     for primary_source in reaction_target.consumed_targets:
                         smooth_source = Union(ValueSet(primary_source),
-                                              Intersection(*(reaction_with_sources(rxn) for rxn in reaction_targets if rxn.produces(primary_source)),
+                                              Intersection(Union(*(reaction_with_sources(rxn) for rxn in reaction_targets if rxn.produces(primary_source))),
                                                            Union(degradation_factor(primary_source), indirect_synth_path(primary_source))))
 
                         smoothed_prod_facs.append(smooth_source)

@@ -117,7 +117,7 @@ class StructEquivalences:
 
 class StructCounter:
     def __init__(self):
-        self.value = 0
+        self.value = 2
 
     def increment(self):
         self.value += 1
@@ -250,9 +250,6 @@ class NaryEffector(Effector):
         glob_equivs, cur_index, cur_namespace = self._init_to_struct_effector_args(glob_equivs, cur_index, cur_namespace)
         glob_equivs.merge_with(self.equivs, cur_namespace + [BooleanContingencyName(self.name)])
 
-        print('===')
-        print(glob_equivs)
-
         return self.__class__(*(x.to_struct_effector(
             glob_equivs, cur_index, cur_namespace + [BooleanContingencyName(self.name)]) for x in self.exprs))
 
@@ -265,8 +262,7 @@ class AndEffector(NaryEffector):
             return 'AndEffector({0})'.format(','.join(str(x) for x in self.exprs))
 
     def __eq__(self, other: Effector) -> bool:
-        return isinstance(other, AndEffector) and self.name == other.name and \
-               self.exprs == other.exprs
+        return isinstance(other, AndEffector) and self.name == other.name and self.exprs == other.exprs
 
 
 class OrEffector(NaryEffector):

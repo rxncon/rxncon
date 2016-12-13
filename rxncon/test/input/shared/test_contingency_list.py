@@ -48,10 +48,11 @@ def test_simple_namespace():
         cle_from_str('<C>', 'AND', '<C1>'),
         # cle_from_str('<C>', 'AND', 'X@0_[xa]--A@1_[ax]'),
         cle_from_str('<C>', 'EQV', '<C0>.A@0,<C1>.A@1'),
-        cle_from_str('X_p+_A_[(r)]', '!', '<C>')
+        cle_from_str('X_p+_A_[(r)]', '!', '<C>'),
+        cle_from_str('X_p+_A_[(r)]', 'EQV', 'A@1, <C>.<C0>.A@0')
     ]
 
     contingencies = contingencies_from_contingency_list_entries(cles)
 
-    for x in contingencies:
-        print(x.effector.to_struct_effector())
+    x = contingencies[0]
+    print(x.effector.to_struct_effector())

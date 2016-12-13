@@ -31,3 +31,8 @@ class Contingency:
                                                                        str(self.type),
                                                                        str(self.effector))
 
+    def calc_struct_effector(self) -> Effector:
+        return self.effector.to_struct_effector()
+
+    def calc_flat_effector(self) -> Effector:
+        return self.effector

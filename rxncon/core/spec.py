@@ -64,6 +64,9 @@ class Spec(ABC):
     def is_component_spec(self) -> bool:
         return self.has_resolution(LocusResolution.component)
 
+    def with_struct_index(self, index: int) -> 'Spec':
+        return type(self)(self.component_name, index, self.locus)
+
     def to_non_struct_spec(self):
         return type(self)(self.component_name, None, self.locus)
 

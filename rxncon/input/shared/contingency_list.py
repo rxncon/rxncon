@@ -6,7 +6,7 @@ from typecheck import typecheck
 
 from rxncon.core.contingency import ContingencyType, Contingency
 from rxncon.core.effector import StateEffector, NotEffector, OrEffector, Effector, AndEffector, \
-    BOOLEAN_CONTINGENCY_REGEX, BooleanOperator, BooleanContingencyName, QualSpec, qual_spec_from_str
+    BOOLEAN_CONTINGENCY_REGEX, BooleanOperator, BooleanContingencyName, QualSpec, qual_spec_from_str, StructEquivalences
 from rxncon.core.reaction import Reaction
 from rxncon.core.reaction import reaction_from_str
 from rxncon.core.state import state_from_str, State
@@ -76,7 +76,6 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
     effectors        = _create_boolean_contingency_to_effector(boolean_entries)
     equivalences     = _create_boolean_contingency_to_equivalences(equiv_entries)
 
-
     while reaction_entries:
         entry = reaction_entries.pop()
         contingencies.append(Contingency(entry.subject,
@@ -98,7 +97,8 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
 
 class _BooleanContingencyEffector(Effector):
     def __init__(self, expr: BooleanContingencyName):
-        self.expr = expr
+        self.expr   = expr
+        self.equivs = StructEquivalences()
 
     @typecheck
     def __eq__(self, other: Effector) -> bool:
@@ -112,10 +112,15 @@ def _dereference_boolean_contingency_effectors(self: Effector,
                                                effector_table: Dict[BooleanContingencyName, Effector],
                                                equivalence_table: Dict[BooleanContingencyName, List[Tuple[QualSpec, QualSpec]]]):
     if isinstance(self, _BooleanContingencyEffector):
-        name = self.expr.name
+        name   = self.expr.name
+        equivs = self.equivs
         self.__class__ = effector_table[self.expr].__class__
         self.__dict__  = effector_table[self.expr].__dict__
         self.name = name
+        try:
+            self.equivs.merge_with(equivs, [])
+        except NameError:
+            self.equivs = equivs
     elif isinstance(self, StateEffector):
         pass
     elif isinstance(self, NotEffector):
