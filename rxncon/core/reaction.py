@@ -444,7 +444,7 @@ REACTION_DEFS = [
         },
         '$x# + $y#$y-{0} -> $x# + $y#$y-{truncated}'
     ),
-        ReactionDef(
+    ReactionDef(
         STATE_DEFS,
         'satellite',
         '$x_SAT_$y',
@@ -454,8 +454,7 @@ REACTION_DEFS = [
         },
         '$y#$y-{0} -> $y#$y-{SAT}'
     ),
-
-        ReactionDef(
+    ReactionDef(
         STATE_DEFS,
         'DuplicationPlaque',
         '$x_DUP_$y',
@@ -465,8 +464,7 @@ REACTION_DEFS = [
         },
         '$y#$y-{SAT} -> $y#$y-{DUP}'
     ),
-
-        ReactionDef(
+    ReactionDef(
         STATE_DEFS,
         'SPBDuplication',
         '$x_SPB_$y',
@@ -476,9 +474,7 @@ REACTION_DEFS = [
         },
         '$y#$y-{DUP} -> $y#$y-{SPB}'
     ),
-
-
-        ReactionDef(
+    ReactionDef(
         STATE_DEFS,
         'SPBSeparation',
         '$x_SEP_$y',
@@ -488,8 +484,7 @@ REACTION_DEFS = [
         },
         '$y#$y-{SPB} -> $y#$y-{0}'
     ),
-
-        ReactionDef(
+    ReactionDef(
         STATE_DEFS,
         'DNAlicensing',
         '$x_LIC_$y',
@@ -499,9 +494,7 @@ REACTION_DEFS = [
         },
         '$y#$y-{} -> $y#$y-{LIC}'
     ),
-
-
-        ReactionDef(
+    ReactionDef(
         STATE_DEFS,
         'DNAreplicationInitiation',
         '$x_RepInit_$y',
@@ -511,8 +504,7 @@ REACTION_DEFS = [
         },
         '$y#$y-{LIC} -> $y#$y-{RepInit}'
     ),
-
-        ReactionDef(
+    ReactionDef(
         STATE_DEFS,
         'DNAreplication',
         '$x_REP_$y',
@@ -522,8 +514,7 @@ REACTION_DEFS = [
         },
         '$y#$y-{RepInit} -> $y#$y-{REP}'
     ),
-
-        ReactionDef(
+    ReactionDef(
         STATE_DEFS,
         'DNAsegregation',
         '$x_SEG_$y',
@@ -533,9 +524,7 @@ REACTION_DEFS = [
         },
         '$y#$y-{REP} -> $y#$y-{0}'
     ),
-
-
-        ReactionDef(
+    ReactionDef(
         STATE_DEFS,
         'CYTpolarisation',
         '$x_POL_$y',
@@ -545,8 +534,7 @@ REACTION_DEFS = [
         },
         '$y#$y-{0} -> $y#$y-{POL}'
     ),
-
-        ReactionDef(
+    ReactionDef(
         STATE_DEFS,
         'CYTbudding',
         '$x_BUD_$y',
@@ -556,8 +544,7 @@ REACTION_DEFS = [
         },
         '$y#$y-{POL} -> $y#$y-{BUD}'
     ),
-
-        ReactionDef(
+    ReactionDef(
         STATE_DEFS,
         'CYTisotropic',
         '$x_ISO_$y',
@@ -567,8 +554,7 @@ REACTION_DEFS = [
         },
         '$y#$y-{BUD} -> $y#$y-{ISO}'
     ),
-
-        ReactionDef(
+    ReactionDef(
         STATE_DEFS,
         'CYTokinesis',
         '$x_CYT_$y',
@@ -577,9 +563,7 @@ REACTION_DEFS = [
             '$y': (ProteinSpec, LocusResolution.residue)
         },
         '$y#$y-{ISO} -> $y#$y-{0}'
-    ),
-
-]
+    )]
 
 
 class Reaction:
