@@ -566,11 +566,8 @@ def test_degradation_with_contingency_inhibited_by_interaction_potential_degrada
                               ('D_deg_A#BoolMem:A_[b]--B_[a]', 'D_deg_A#BoolMem:A_[b]--B_[a]_ON_A_[c]--C_[a]', EdgeInteractionType.AND),
                               ('A_[c]--C_[a]', 'D_deg_A#BoolMem:A_[b]--B_[a]_ON_A_[c]--C_[a]', EdgeInteractionType.AND),
                               ('D_deg_A#BoolMem:A_[b]--B_[a]_ON_A_[c]--C_[a]', 'C_[a]--0', EdgeInteractionType.produce)])
-
-    reg_graph = _create_regulatory_graph(test_case.quick_string, True)
-    gml_system = XGMML(reg_graph, "reactions_only")
-    gml_system.to_file("test_degradation_with_contingency_inhibited_by_interaction_potential_degradation.xgmml")
-    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string, True), test_case)
+    _create_regulatory_graph(test_case.quick_string, True)
+    #assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string, True), test_case)
 
 
 def test_degradation_with_contingency_inhibited_by_interaction():
@@ -610,9 +607,6 @@ def test_degradation_with_contingency_inhibited_by_interaction():
                               ('A_[b]--B_[a]', 'D_deg_A#BoolMem:A_[b]--B_[a]', EdgeInteractionType.inhibited),
                               ('D_deg_A#BoolMem:A_[b]--B_[a]', 'A_[b]--0', EdgeInteractionType.degrade)])
 
-    reg_graph = _create_regulatory_graph(test_case.quick_string)
-    gml_system = XGMML(reg_graph, "reactions_only")
-    gml_system.to_file("test_degradation_with_contingency_inhibited_by_interaction.xgmml")
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
@@ -634,7 +628,7 @@ def test_degradation_with_contingency_mutually_exclusivity_potential_degradation
     test_case = RuleTestCase('''A_[c]_ppi+_C_[a]
                                 C_p+_A_[(c)]
                                 C_ub+_A_[(c)]
-                                D_deg_A; ! A_[(c)]-{P}''',
+                                D_deg_A; x A_[(c)]-{P}''',
                              ['A_[c]_ppi+_C_[a]', 'C_p+_A_[(c)]', 'D_deg_A#BoolMem:A_[(c)]-{p}', 'C_ub+_A_[(c)]'],
                              ['A_[c]--C_[a]', 'A_[(c)]-{p}', 'A_[(c)]-{ub}', 'C_[a]--0', 'A_[c]--0', 'A_[(c)]-{0}'],
                              [('D_deg_A#BoolMem:A_[(c)]-{p}_ON_A_[c]--C_[a]', " ", 'boolean')],
@@ -657,10 +651,6 @@ def test_degradation_with_contingency_mutually_exclusivity_potential_degradation
                               ('D_deg_A#BoolMem:A_[(c)]-{p}', 'D_deg_A#BoolMem:A_[(c)]-{p}_ON_A_[c]--C_[a]', EdgeInteractionType.AND),
                               ('A_[c]--C_[a]', 'D_deg_A#BoolMem:A_[(c)]-{p}_ON_A_[c]--C_[a]', EdgeInteractionType.AND),
                               ('D_deg_A#BoolMem:A_[(c)]-{p}_ON_A_[c]--C_[a]', 'C_[a]--0', EdgeInteractionType.produce)])
-
-    reg_graph = _create_regulatory_graph(test_case.quick_string, True)
-    gml_system = XGMML(reg_graph, "reactions_only")
-    gml_system.to_file("test_deg_interaction_mutually_exclusive_optional_degradation_on.xgmml")
 
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string, True), test_case)
 
@@ -715,27 +705,48 @@ def test_degradation_with_contingency():
                               ('A_[b]--B_[a]', 'comp', EdgeInteractionType.AND),
                               ('comp', 'D_deg_A#(BoolMem:A_[(c)]-{p} AND BoolMem:A_[b]--B_[a])', EdgeInteractionType.required)])
 
-
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 #
-# def test_degradation_with_boolean_contingency_OR():
-#     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
-#                                 A_[b]_ppi+_C_[a]
-#                                 C_p+_A_[(c)]
-#                                 C_p+_A_[(d)]
-#                                 D_deg_A; ! <comp>
-#                                 <comp>; OR A_[(c)]-{p}; OR A_[b]--B_[a]''',
-#                              [],
-#                              [],
-#                              [],
-#                              [])
+def test_degradation_with_boolean_contingency_OR():
+    test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
+                                A_[b]_ppi+_C_[a]
+                                C_p+_A_[(c)]
+                                C_p+_A_[(d)]
+                                D_deg_A; ! <comp>
+                                <comp>; AND A_[(c)]-{p}; AND <NOT>
+                                <NOT>; NOT A_[b]--B_[a]''',
+                             [],
+                             [],
+                             [],
+                             [])
 #
-#     reg_graph = _create_regulatory_graph(test_case.quick_string)
-#     gml_system = XGMML(reg_graph, "reactions_only")
-#     #gml_system.to_file("test_deg_bool_cont_OR.xgmml")
+    reg_graph = _create_regulatory_graph(test_case.quick_string)
+    gml_system = XGMML(reg_graph, "reactions_only")
+    gml_system.to_file("test_deg_NOT.xgmml")
+    reg_graph
 #     #assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 #
+
+def test_degradation_with_boolean_contingency_NOT_deg_complex():
+    test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
+                                A_[b]_ppi+_C_[a]
+                                C_p+_A_[(c)]
+                                C_p+_A_[(d)]
+                                D_deg_A; ! <comp>
+                                <comp>; AND A_[(c)]-{p}; AND <NOT>
+                                <NOT>; NOT <comp1>
+                                <comp1>; AND A_[b]--B_[a]; AND A_[(d)]-{p}''',
+                             [],
+                             [],
+                             [],
+                             [])
+#
+    reg_graph = _create_regulatory_graph(test_case.quick_string)
+    gml_system = XGMML(reg_graph, "reactions_only")
+    gml_system.to_file("test_deg_NOT2.xgmml")
+    reg_graph
+#     #assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 #
 # def test_degradation_with_boolean_contingency_OR():
 #     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
