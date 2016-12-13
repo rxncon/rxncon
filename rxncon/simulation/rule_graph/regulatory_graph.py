@@ -208,7 +208,7 @@ class RegulatoryGraph():
             self._add_edge(source=str(state), target=boolean_target, interaction=EdgeInteractionType.AND)
             self._add_edge(source=boolean_target, target=reaction_id, interaction=edge_type_mapping[cont_type])
 
-        def _add_optional_degradation(contingency_node_states: List[ContingencyNode]) -> None:
+        def _add_possible_degraded_states(contingency_node_states: List[ContingencyNode]) -> None:
             """
             Adding optional degradation.
 
@@ -238,6 +238,15 @@ class RegulatoryGraph():
                     else:
                         self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.maybe_degraded)
 
+        def _add_complement_for_degradation(component, state: State):
+            complements = self.rxncon_system.complementary_states_for_component(component, state)
+            if len(complements) == 1:
+                self._add_edge(source=reaction_id, target=str(complements[0]), interaction=EdgeInteractionType.degrade)
+            else:
+                for state in complements:
+                    self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.maybe_degraded)
+
+
         def _update_contingency_information(cont_node: ContingencyNode) -> None:
             """
             Updating the degradation information with its contingencies.
@@ -261,11 +270,14 @@ class RegulatoryGraph():
                 self._add_edge(source=str(state), target=reaction_id, interaction=edge_type_mapping[cont_type])
 
             for degraded_component in reaction.degraded_components:
-                if degraded_component in state.components and cont_type is not ContingencyType.inhibition:
-                    if len(state.components) > 1:
-                        _add_interaction_state_for_degradation(state, reaction_id)
+                if degraded_component in state.components:
+                    if cont_type is ContingencyType.inhibition:
+                        _add_complement_for_degradation(degraded_component, state)
                     else:
-                        self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.degrade)
+                        if len(state.components) > 1:
+                            _add_interaction_state_for_degradation(state, reaction_id)
+                        else:
+                            self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.degrade)
 
         # First case: reaction with a non-trivial contingency should degrade only the states appearing
         # in the contingency that are connected to the degraded component.
@@ -275,8 +287,9 @@ class RegulatoryGraph():
                 reaction_id = "{0}#{1}".format(str(reaction), self._replace_invalid_chars(str(effector)))
                 self._add_node(reaction_id, label=str(reaction), type=NodeType.reaction)
                 [_update_contingency_information(cont_state) for cont_state in effector.values]
+
                 if self.potential_degradation:
-                    _add_optional_degradation(effector.values)
+                    _add_possible_degraded_states(effector.values)
 
         # Second case: reaction with a trivial contingency should degrade all states for the degraded component.
         else:
@@ -500,7 +513,8 @@ class RegulatoryGraph():
             None
 
         """
-        self.regulatory_graph.add_edge(self._replace_invalid_chars(source), self._replace_invalid_chars(target), interaction=interaction.value)
+        if not self.regulatory_graph.has_edge(self._replace_invalid_chars(source), self._replace_invalid_chars(target)):
+            self.regulatory_graph.add_edge(self._replace_invalid_chars(source), self._replace_invalid_chars(target), interaction=interaction.value)
 
     def _replace_invalid_chars(self, name: str) -> str:
         """
