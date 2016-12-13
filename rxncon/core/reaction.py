@@ -103,7 +103,7 @@ class ReactionDef:
             try:
                 return [parse_vars_str(x, state_from_str) for x in states_str.split(',')]
             except SyntaxError:
-                return []
+                raise SyntaxError('Could not parse states string {}'.format(states_str))
 
         def parse_specs_str(specs_str: str) -> List[Spec]:
             return [parse_vars_str(x, spec_from_str).to_component_spec() for x in specs_str.split(',')]
@@ -422,7 +422,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (Spec, LocusResolution.component)
         },
-        '$x# + $y#$y_[(loc)]-{0} -> $x# + $y#$y_[(loc)]-{cyt}'
+        '$x# + $y#$y_[(loc)]-{0} -> $x# + $y#$y_[(loc)]-{cytosol}'
     ),
     ReactionDef(
         STATE_DEFS,
@@ -430,9 +430,9 @@ REACTION_DEFS = [
         '$x_FDCytExt_$y',
         {
             '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (Spec, LocusResolution.residue)
+            '$y': (Spec, LocusResolution.component)
         },
-        '$x# + $y#$y_[(loc)]-{cyt} -> $x# + $y#$y_[(loc)]-{0}'
+        '$x# + $y#$y_[(loc)]-{cytosol} -> $x# + $y#$y_[(loc)]-{0}'
     ),
     ReactionDef(
         STATE_DEFS,

@@ -3,6 +3,7 @@ from rxncon.venntastic.sets import venn_from_str, Set as VennSet, ValueSet, Inte
 from rxncon.core.state import state_from_str
 from rxncon.core.effector import Effector, StateEffector, AndEffector, OrEffector, NotEffector
 
+from rxncon.core.reaction import reaction_from_str
 
 def venn_from_effector(effector: Effector) -> VennSet:
     if isinstance(effector, StateEffector):
@@ -37,22 +38,26 @@ def test_nested_boolean():
 
 
 def test_simple_namespace():
-    cles = [
-        cle_from_str('<C0>', 'AND', 'B@1_[(r)]-{p}'),
-        cle_from_str('<C0>', 'AND', 'A@0_[ab]--B@1_[ba]'),
-        cle_from_str('<C1>', 'AND', 'A@1_[ac]--C@2_[ca]'),
-        cle_from_str('<C1>', 'AND', 'A@1_[ad]--D@2_[da]'),
-        # cle_from_str('<C1>', 'AND', '<C0>'),
-        # cle_from_str('<C1>', 'EQV', 'A@1,<C0>.A@0'),
-        cle_from_str('<C>', 'AND', '<C0>'),
-        cle_from_str('<C>', 'AND', '<C1>'),
-        # cle_from_str('<C>', 'AND', 'X@0_[xa]--A@1_[ax]'),
-        cle_from_str('<C>', 'EQV', '<C0>.A@0,<C1>.A@1'),
-        cle_from_str('X_p+_A_[(r)]', '!', '<C>'),
-        cle_from_str('X_p+_A_[(r)]', 'EQV', 'A@1, <C>.<C0>.A@0')
-    ]
+    # cles = [
+    #     cle_from_str('<C0>', 'AND', 'B@1_[(r)]-{p}'),
+    #     cle_from_str('<C0>', 'AND', 'A@0_[ab]--B@1_[ba]'),
+    #     cle_from_str('<C1>', 'AND', 'A@1_[ac]--C@2_[ca]'),
+    #     cle_from_str('<C1>', 'AND', 'A@1_[ad]--D@2_[da]'),
+    #     # cle_from_str('<C1>', 'AND', '<C0>'),
+    #     # cle_from_str('<C1>', 'EQV', 'A@1,<C0>.A@0'),
+    #     cle_from_str('<C>', 'AND', '<C0>'),
+    #     cle_from_str('<C>', 'AND', '<C1>'),
+    #     # cle_from_str('<C>', 'AND', 'X@0_[xa]--A@1_[ax]'),
+    #     cle_from_str('<C>', 'EQV', '<C0>.A@0,<C1>.A@1'),
+    #     cle_from_str('X_p+_A_[(r)]', '!', '<C>'),
+    #     # cle_from_str('X_p+_A_[(r)]', 'EQV', 'A@1, <C>.<C0>.A@0')
+    # ]
+    #
+    # contingencies = contingencies_from_contingency_list_entries(cles)
+    #
+    # x = contingencies[0]
+    # # print(x.effector.to_struct_effector())
 
-    contingencies = contingencies_from_contingency_list_entries(cles)
+    x = reaction_from_str('A_FDCytExt_B')
 
-    x = contingencies[0]
-    print(x.effector.to_struct_effector())
+    print(x.terms_lhs)
