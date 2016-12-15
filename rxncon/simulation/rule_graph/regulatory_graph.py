@@ -52,23 +52,6 @@ edge_type_mapping = {ContingencyType.requirement: EdgeInteractionType.required,
                      ContingencyType.positive: EdgeInteractionType.positive,
                      ContingencyType.negative: EdgeInteractionType.negative}
 
-class ContingencyNode():
-
-    def __init__(self, state, cont_type: ContingencyType, boolean_target: str):
-
-        self.state = state
-        self.boolean_target = boolean_target
-        self.cont_type = cont_type
-
-    def __hash__(self):
-        return hash(str(self))
-
-    def __repr__(self):
-        return str(self)
-
-    def __str__(self):
-        return "ContNode state:{0} bool_target:{1} cont_type:{2}".format(str(self.state), self.boolean_target, self.cont_type.value)
-
 
 class RegulatoryGraph():
     """
@@ -114,7 +97,7 @@ class RegulatoryGraph():
 
         """
 
-        def _preprocessing_effector(eff: Effector, cont_type: ContingencyType, boolean_AND_target=None) -> VennSet:
+        def _effector_to_vennset(eff: Effector, con_type: Union[ContingencyType, None]=None) -> VennSet:
             """
             Preprocessing effector. Save information in leafs.
 
@@ -132,40 +115,44 @@ class RegulatoryGraph():
                 Return VennSet
 
             """
+
             if isinstance(eff, StateEffector):
-                return ValueSet(ContingencyNode(eff.expr.to_non_structured_state(), cont_type, boolean_AND_target))
+                if con_type is ContingencyType.inhibition:
+                    return Complement(ValueSet(eff.expr.to_non_structured_state()))
+                return ValueSet(eff.expr.to_non_structured_state())
             elif isinstance(eff, NotEffector):
-                return Complement(_preprocessing_effector(eff.expr, cont_type, eff.name))
+                if con_type is ContingencyType.inhibition:
+                    return _effector_to_vennset(eff.expr)
+                return Complement(_effector_to_vennset(eff.expr))
             elif isinstance(eff, OrEffector):
-                return VennUnion(*[_preprocessing_effector(expr, cont_type) for expr in eff.exprs])
+                if con_type is ContingencyType.inhibition:
+                    return Complement(VennUnion(*[_effector_to_vennset(expr) for expr in eff.exprs]))
+                return VennUnion(*[_effector_to_vennset(expr) for expr in eff.exprs])
             elif isinstance(eff, AndEffector):
-                state_effectors = [expr for expr in eff.exprs if isinstance(expr, StateEffector)]
-                if len(state_effectors) > 1:
-                    return Intersection(*[_preprocessing_effector(expr, cont_type, eff.name) if isinstance(expr, StateEffector) else
-                                          _preprocessing_effector(expr, cont_type) for expr in eff.exprs])
-                else:
-                    return Intersection(*[_preprocessing_effector(expr, cont_type) for expr in eff.exprs])
+                if con_type is ContingencyType.inhibition:
+                    return Complement(Intersection(*[_effector_to_vennset(expr) for expr in eff.exprs]))
+                return Intersection(*[_effector_to_vennset(expr) for expr in eff.exprs])
             else:
                 raise AssertionError
 
-        def _add_interaction_state_for_degradation(state: State, reaction_id: str, edge_type: EdgeInteractionType = EdgeInteractionType.degrade) ->None:
+        def _add_interaction_state_for_degradation(state: State, reaction: Reaction, edge_type: EdgeInteractionType = EdgeInteractionType.degrade) ->None:
             """
             Adds interaction state for degradation.
 
             Args:
                 state: interaction state
-                reaction_id: reaction ID of the degradation reaction.
+                reaction: reaction ID of the degradation reaction.
                 edge_type: type of the edge.
 
             Returns:
                 None
 
             """
-            self._add_edge(source=reaction_id, target=str(state), interaction=edge_type)
-            boolean_node_id = '{0}_ON_{1}'.format(reaction_id, str(state))
+            self._add_edge(source=str(reaction), target=str(state), interaction=edge_type)
+            boolean_node_id = '{0}_ON_{1}'.format(str(reaction), str(state))
             self._add_node(id=boolean_node_id, label=' ', type=NodeType.boolean)
 
-            self._add_edge(source=reaction_id, target=boolean_node_id, interaction=EdgeInteractionType.AND)
+            self._add_edge(source=str(reaction), target=boolean_node_id, interaction=EdgeInteractionType.AND)
             self._add_edge(source=str(state), target=boolean_node_id, interaction=EdgeInteractionType.AND)
 
             produced_neutral_states = [neutral_state for neutral_state in state.neutral_states
@@ -182,36 +169,16 @@ class RegulatoryGraph():
                 None
 
             """
-            nonlocal reaction_id
+            nonlocal reaction
             degraded_states = [x for degraded_component in reaction.degraded_components
                                for x in self.rxncon_system.states_for_component(degraded_component)]
             for state in degraded_states:
                 if len(state.components) > 1:
-                    _add_interaction_state_for_degradation(state, reaction_id)
+                    _add_interaction_state_for_degradation(state, reaction)
                 else:
-                    self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.degrade)
+                    self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.degrade)
 
-        def _add_boolean_information(state, boolean_target: str, cont_type: ContingencyType, reaction_id) -> None:
-            """
-            Adding boolean information.
-
-            Args:
-                state: rxncon state.
-                boolean_target: name of the boolean state targeting by the state.
-                cont_type: contingency type.
-                reaction_id: degradation reaction ID.
-
-            Returns:
-                None
-
-            """
-            boolean_target = self._replace_invalid_chars(boolean_target)
-            self._add_node(boolean_target, label=boolean_target, type=NodeType.AND)
-
-            self._add_edge(source=str(state), target=boolean_target, interaction=EdgeInteractionType.AND)
-            self._add_edge(source=boolean_target, target=reaction_id, interaction=edge_type_mapping[cont_type])
-
-        def _add_possible_degraded_states(contingency_node_states: List[ContingencyNode]) -> None:
+        def _add_possible_degraded_states(positive_states: List[State], negative_states: List[State]) -> None:
             """
             Adding optional degradation.
 
@@ -227,34 +194,34 @@ class RegulatoryGraph():
                 None
 
             """
-            contingency_states = [value_set.state for value_set in contingency_node_states]
+
             degraded_states = [x for degraded_component in reaction.degraded_components
                                for x in self.rxncon_system.states_for_component(degraded_component)
-                               if x not in contingency_states]
+                               if x not in positive_states and x not in negative_states]
 
             for state in degraded_states:
-                if not any(contingency_node_state for contingency_node_state in contingency_node_states
-                           if state.is_mutually_exclusive_with(contingency_node_state.state) and contingency_node_state.cont_type
-                           is not ContingencyType.inhibition):
+                if not any(positive_state for positive_state in positive_states if state.is_mutually_exclusive_with(positive_state)):
                     if len(state.components) > 1:
-                        _add_interaction_state_for_degradation(state, reaction_id, EdgeInteractionType.maybe_degraded)
+                        _add_interaction_state_for_degradation(state, reaction, EdgeInteractionType.maybe_degraded)
                     else:
-                        self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.maybe_degraded)
+                        self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.maybe_degraded)
 
-        def _add_complement_for_degradation(component, state: State):
-            complements = self.rxncon_system.complementary_states_for_component(component, state)
-            if len(complements) == 1:
-                self._add_edge(source=reaction_id, target=str(complements[0]), interaction=EdgeInteractionType.degrade)
-            else:
-                for state in complements:
-                    self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.maybe_degraded)
+        def _add_complement_states_for_degradation_reaction(state: State) -> None:
+            for degraded_component in reaction.degraded_components:
+                if degraded_component in state.components:
+                    complements = self.rxncon_system.complementary_states_for_component(degraded_component, state)
+                    if len(complements) == 1:
+                        self._add_edge(source=str(reaction), target=str(complements[0]), interaction=EdgeInteractionType.degrade)
+                    else:
+                        for state in complements:
+                            self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.maybe_degraded)
 
-        def _number_from_vennset(nested_list: List[ValueSet]):
-            cont_node_strs = [str(value) for value in nested_list]
-            sorted_cont_node_strs = "".join(sorted(cont_node_strs))
-            return hashlib.md5(sorted_cont_node_strs.encode('utf-8')).hexdigest()
+        # def _number_from_vennset(nested_list: List[ValueSet]):
+        #     cont_node_strs = [str(value) for value in nested_list]
+        #     sorted_cont_node_strs = "".join(sorted(cont_node_strs))
+        #     return hashlib.md5(sorted_cont_node_strs.encode('utf-8')).hexdigest()
 
-        def _update_contingency_information(cont_node: ValueSet, complexes: Dict) -> None:
+        def _update_contingency_information(cont_node: ValueSet) -> None:
             """
             Updating the degradation information with its contingencies.
 
@@ -265,61 +232,43 @@ class RegulatoryGraph():
                 None
 
             """
-            nonlocal reaction_id
+            nonlocal reaction
 
-            state = cont_node.value.state
-            cont_type = cont_node.value.cont_type
-            boolean_target = cont_node.value.boolean_target
-
-            if boolean_target and complexes[boolean_target] > 1:
-                _add_boolean_information(state, boolean_target, cont_type, reaction_id)
-            else:
-                self._add_edge(source=str(state), target=reaction_id, interaction=edge_type_mapping[cont_type])
+            state = cont_node.value
 
             for degraded_component in reaction.degraded_components:
                 if degraded_component in state.components:
-                    if cont_type is ContingencyType.inhibition:
-                        _add_complement_for_degradation(degraded_component, state)
+                    if len(state.components) > 1:
+                        _add_interaction_state_for_degradation(state, reaction)
                     else:
-                        if len(state.components) > 1:
-                            _add_interaction_state_for_degradation(state, reaction_id)
-                        else:
-                            self._add_edge(source=reaction_id, target=str(state), interaction=EdgeInteractionType.degrade)
+                        self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.degrade)
 
-        def _update_contingency_information_for_complement(value_set: ValueSet, complexes: Dict):
+        def _update_contingency_information_for_complement(value_set: ValueSet):
             assert len(value_set.values) == 1
-
-            boolean_node_id = '{0}_ON_{1}'.format(reaction_id, _number_from_vennset([value_set]))
-            self._add_node(id=boolean_node_id, label=' ', type=NodeType.NOT)
-            self._add_edge(source=str(value_set.values[0].state), target=boolean_node_id, interaction=EdgeInteractionType.NOT)
-            self._add_edge(source=boolean_node_id, target=reaction_id, interaction=edge_type_mapping[value_set.values[0].cont_type])
+            state = value_set.values[0]
+            _add_complement_states_for_degradation_reaction(state)
 
         # First case: reaction with a non-trivial contingency should degrade only the states appearing
         # in the contingency that are connected to the degraded component.
+        self._add_node(id=str(reaction), label=str(reaction), type=NodeType.reaction)
         if contingencies:
-            cont = Intersection(*(_preprocessing_effector(contingency.effector, contingency.type) for contingency in contingencies)).to_simplified_set()
+            self.add_contingency_information_to_graph(contingencies)
+            cont = Intersection(*(_effector_to_vennset(contingency.effector, contingency.type) for contingency in contingencies)).to_simplified_set()
             for index, nested_list in enumerate(cont.to_dnf_nested_list()):
-                reaction_id = "{0}#{1}".format(str(reaction), _number_from_vennset(nested_list))
-                self._add_node(reaction_id, label=str(reaction), type=NodeType.reaction)
 
-                false_states = [value for value in nested_list if isinstance(value, Complement)]
-                true_states = [value for value in nested_list if not isinstance(value, Complement)]
+                negative_value_set = [value for value in nested_list if isinstance(value, Complement)]
+                positive_value_set = [value for value in nested_list if not isinstance(value, Complement)]
 
-                complexes = defaultdict(int)
-                for cont_state in true_states:
-                    if cont_state.value.boolean_target:
-                        complexes[cont_state.values.boolean_target] += 1
-
-                [_update_contingency_information(value_set, complexes) for value_set in true_states]
-                [_update_contingency_information_for_complement(value_set, complexes) for value_set in false_states]
+                [_update_contingency_information(value_set) for value_set in positive_value_set]
+                [_update_contingency_information_for_complement(value_set) for value_set in negative_value_set]
 
                 if self.potential_degradation:
-                    _add_possible_degraded_states(venn_set.values)
+                    positive_states = [value_set.value for value_set in positive_value_set]
+                    negative_states = [value_set.expr.value for value_set in negative_value_set]
+                    _add_possible_degraded_states(positive_states, negative_states)
 
         # Second case: reaction with a trivial contingency should degrade all states for the degraded component.
         else:
-            self._add_node(id=str(reaction), label=str(reaction), type=NodeType.reaction)
-            reaction_id = str(reaction)
             _update_no_contingency_case()
 
     def add_reaction_information_to_graph(self, reaction: Reaction) -> None:
