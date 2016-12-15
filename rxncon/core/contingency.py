@@ -1,6 +1,7 @@
 from enum import unique
+from copy import deepcopy
 
-from rxncon.core.effector import Effector
+from rxncon.core.effector import Effector, StructEquivalences, QualSpec
 from rxncon.core.reaction import Reaction
 from rxncon.util.utils import OrderedEnum
 
@@ -27,12 +28,13 @@ class Contingency:
         return str(self)
 
     def __str__(self) -> str:
-        return 'Contingency(target={0}, type={1}, effector={2}'.format(str(self.target),
-                                                                       str(self.type),
-                                                                       str(self.effector))
+        return 'Contingency({0}, {1}, {2}'.format(str(self.target), str(self.type), str(self.effector))
 
-    def calc_struct_effector(self) -> Effector:
-        return self.effector.to_struct_effector()
+    def clone(self) -> 'Contingency':
+        return deepcopy(self)
 
-    def calc_flat_effector(self) -> Effector:
-        return self.effector
+    def to_structured(self):
+        sc = self.clone()
+        sc.effector = sc.effector.to_struct_effector()
+        return sc
+

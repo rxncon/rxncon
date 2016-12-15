@@ -28,6 +28,7 @@ class RxnConSystem:
         self._calculate_states()
 
         self._expand_non_elemental_contingencies()
+        self._structure_contingencies()
 
         self.validate()
 
@@ -196,6 +197,9 @@ class RxnConSystem:
 
         for contingency in self.contingencies:
             contingency.effector = expanded_effector(contingency.effector)
+
+    def _structure_contingencies(self):
+        self.contingencies = [c.to_structured() for c in self.contingencies]
 
     def _missing_states(self):
         required_states = []

@@ -38,26 +38,25 @@ def test_nested_boolean():
 
 
 def test_simple_namespace():
-    # cles = [
-    #     cle_from_str('<C0>', 'AND', 'B@1_[(r)]-{p}'),
-    #     cle_from_str('<C0>', 'AND', 'A@0_[ab]--B@1_[ba]'),
-    #     cle_from_str('<C1>', 'AND', 'A@1_[ac]--C@2_[ca]'),
-    #     cle_from_str('<C1>', 'AND', 'A@1_[ad]--D@2_[da]'),
-    #     # cle_from_str('<C1>', 'AND', '<C0>'),
-    #     # cle_from_str('<C1>', 'EQV', 'A@1,<C0>.A@0'),
-    #     cle_from_str('<C>', 'AND', '<C0>'),
-    #     cle_from_str('<C>', 'AND', '<C1>'),
-    #     # cle_from_str('<C>', 'AND', 'X@0_[xa]--A@1_[ax]'),
-    #     cle_from_str('<C>', 'EQV', '<C0>.A@0,<C1>.A@1'),
-    #     cle_from_str('X_p+_A_[(r)]', '!', '<C>'),
-    #     # cle_from_str('X_p+_A_[(r)]', 'EQV', 'A@1, <C>.<C0>.A@0')
-    # ]
-    #
-    # contingencies = contingencies_from_contingency_list_entries(cles)
-    #
-    # x = contingencies[0]
-    # # print(x.effector.to_struct_effector())
+    cles = [
+        cle_from_str('<C0>', 'AND', 'B@1_[(r)]-{p}'),
+        cle_from_str('<C0>', 'AND', 'A@0_[ab]--B@1_[ba]'),
+        cle_from_str('<C1>', 'AND', 'A@1_[ac]--C@2_[ca]'),
+        cle_from_str('<C1>', 'AND', 'A@1_[ad]--D@3_[da]'),
+        cle_from_str('<C>', 'AND', '<C0>'),
+        cle_from_str('<C>', 'AND', '<C1>'),
+        cle_from_str('<C>', 'AND', 'X@0_[xa]--A@1_[ax]'),
+        cle_from_str('<C>', 'EQV', '<C0>.A@0,<C1>.A@1'),
+        cle_from_str('<C>', 'EQV', 'A@1,<C0>.A@0'),
+        cle_from_str('X_p+_A_[(r)]', '!', '<C>#1,A@1#0,X@0'),
+    ]
 
-    x = reaction_from_str('A_FDCytExt_B')
+    contingencies = contingencies_from_contingency_list_entries(cles)
 
-    print(x.terms_lhs)
+    effector = contingencies[0].to_structured().effector
+    # Note: the precise numbering is not important, but currently is reproducible.
+    assert state_from_str('X@0_[xa]--A@1_[ax]') in effector.states
+    assert state_from_str('B@2_[(r)]-{p}') in effector.states
+    assert state_from_str('A@1_[ab]--B@2_[ba]') in effector.states
+    assert state_from_str('A@1_[ac]--C@3_[ca]') in effector.states
+    assert state_from_str('A@1_[ad]--D@4_[da]') in effector.states

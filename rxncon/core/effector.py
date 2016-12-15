@@ -55,7 +55,7 @@ class QualSpec:
         return QualSpec(self.namespace, self.spec.to_component_spec())
 
     @property
-    def has_trivial_namespace(self):
+    def is_in_root_namespace(self):
         return not self.namespace
 
     def with_prepended_namespace(self, extra_namespace: List[BooleanContingencyName]):
@@ -80,16 +80,21 @@ class StructEquivalences:
     def add_equivalence(self, first_qual_spec: QualSpec, second_qual_spec: QualSpec):
         first_qual_spec, second_qual_spec = first_qual_spec.to_component_qual_spec(), second_qual_spec.to_component_qual_spec()
 
-        found = False
+        found_first = None
+        found_second = None
         for eq_class in self.eq_classes:
             if first_qual_spec in eq_class:
                 eq_class.append(second_qual_spec)
-                found = True
+                found_first = eq_class
             elif second_qual_spec in eq_class:
                 eq_class.append(first_qual_spec)
-                found = True
+                found_second = eq_class
 
-        if not found:
+        if found_first and found_second:
+            found_first += found_second
+            self.eq_classes.remove(found_second)
+
+        if not (found_first or found_second):
             self.eq_classes.append([first_qual_spec, second_qual_spec])
 
     def add_equivalence_class(self, eq_class: List[QualSpec]):
@@ -107,12 +112,15 @@ class StructEquivalences:
     def find_unqualified_spec(self, qual_spec: QualSpec) -> Optional[Spec]:
         for eq_class in self.eq_classes:
             if qual_spec.to_component_qual_spec() in eq_class:
-                existing_spec = deepcopy(next((x.spec for x in eq_class if x.has_trivial_namespace), None))
+                existing_spec = deepcopy(next((x.spec for x in eq_class if x.is_in_root_namespace), None))
                 if existing_spec:
                     existing_spec.locus = deepcopy(qual_spec.spec.locus)
                     return existing_spec
 
         return None
+
+    def indices_in_root_namespace(self):
+        return [qspec.spec.struct_index for eq_class in self.eq_classes for qspec in eq_class if qspec.is_in_root_namespace]
 
 
 class StructCounter:
@@ -144,7 +152,7 @@ class Effector(metaclass=ABCMeta):
         raise NotImplementedError
 
     def to_struct_effector(self, glob_equivs: StructEquivalences=None,
-                           cur_index: StructCounter=None,
+                           counter: StructCounter=None,
                            cur_namespace: List[BooleanContingencyName]=None) -> 'Effector':
         raise AssertionError
 
@@ -162,6 +170,7 @@ class Effector(metaclass=ABCMeta):
 class StateEffector(Effector):
     def __init__(self, expr: State):
         self.expr = expr
+
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -184,30 +193,45 @@ class StateEffector(Effector):
         return True
 
     def to_struct_effector(self, glob_equivs: StructEquivalences=None,
-                           cur_index: StructCounter=None,
+                           counter: StructCounter=None,
                            cur_namespace: List[BooleanContingencyName]=None):
-        glob_equivs, cur_index, cur_namespace = self._init_to_struct_effector_args(glob_equivs, cur_index, cur_namespace)
+        glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
 
         state = deepcopy(self.expr)
+
+        updates = {}
 
         for spec in state.specs:
             existing_spec = glob_equivs.find_unqualified_spec(QualSpec(cur_namespace, spec))
 
             if existing_spec:
-                state.update_spec(spec, existing_spec)
+                updates[spec] = existing_spec
             else:
                 new_spec = deepcopy(spec)
-                new_spec.struct_index = cur_index.value
-                cur_index.increment()
+                new_spec.struct_index = self._generate_index(glob_equivs, counter)
 
-                state.update_spec(spec, new_spec)
+                updates[spec] = new_spec
                 glob_equivs.add_equivalence(QualSpec([], new_spec), QualSpec(cur_namespace, spec))
+
+        state.update_specs(updates)
 
         return StateEffector(state)
 
+    def _generate_index(self, glob_equivs: StructEquivalences, cur_index: StructCounter):
+        index = cur_index.value
+        while index in glob_equivs.indices_in_root_namespace():
+            cur_index.increment()
+            index = cur_index.value
+
+        return index
+
 
 class NotEffector(Effector):
-    def __init__(self, expr: Effector):
+    def __init__(self, expr: Effector, **kwargs):
+        try:
+            self.name = kwargs['name']
+        except KeyError:
+            pass
         self.expr = expr
 
     def __str__(self) -> str:
@@ -225,14 +249,18 @@ class NotEffector(Effector):
         return self.expr.is_leaf
 
     def to_struct_effector(self, glob_equivs: StructEquivalences=None,
-                           cur_index: StructCounter=None,
+                           counter: StructCounter=None,
                            cur_namespace: List[BooleanContingencyName]=None):
-        glob_equivs, cur_index, cur_namespace = self._init_to_struct_effector_args(glob_equivs, cur_index, cur_namespace)
-        return NotEffector(self.expr.to_struct_effector(glob_equivs, cur_index, cur_namespace))
+        glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
+        return NotEffector(self.expr.to_struct_effector(glob_equivs, counter, cur_namespace), name=self.name)
 
 
 class NaryEffector(Effector):
-    def __init__(self, *exprs):
+    def __init__(self, *exprs, **kwargs):
+        try:
+            self.name = kwargs['name']
+        except KeyError:
+            pass
         self.exprs  = exprs
         self.equivs = StructEquivalences()
 
@@ -245,13 +273,13 @@ class NaryEffector(Effector):
         return False
 
     def to_struct_effector(self, glob_equivs: StructEquivalences=None,
-                           cur_index: StructCounter=None,
+                           counter: StructCounter=None,
                            cur_namespace: List[BooleanContingencyName]=None):
-        glob_equivs, cur_index, cur_namespace = self._init_to_struct_effector_args(glob_equivs, cur_index, cur_namespace)
-        glob_equivs.merge_with(self.equivs, cur_namespace + [BooleanContingencyName(self.name)])
+        glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
+        glob_equivs.merge_with(self.equivs, cur_namespace)
 
         return self.__class__(*(x.to_struct_effector(
-            glob_equivs, cur_index, cur_namespace + [BooleanContingencyName(self.name)]) for x in self.exprs))
+            glob_equivs, counter, cur_namespace + [BooleanContingencyName(self.name)]) for x in self.exprs), name=self.name)
 
 
 class AndEffector(NaryEffector):
@@ -275,5 +303,3 @@ class OrEffector(NaryEffector):
     def __eq__(self, other: Effector) -> bool:
         return isinstance(other, OrEffector) and self.name == other.name and \
                self.exprs == other.exprs
-
-

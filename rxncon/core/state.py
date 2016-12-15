@@ -262,11 +262,16 @@ class State:
     def specs(self) -> List[Spec]:
         return [x for x in self.vars.values() if isinstance(x, Spec)]
 
-    def update_spec(self, old_spec: Spec, new_spec: Spec):
-        assert old_spec in self.specs
+    def update_specs(self, updates: Dict[Spec, Spec]):
+        new_vars = deepcopy(self.vars)
+
         for k, v in self.vars.items():
-            if isinstance(v, Spec) and v == old_spec:
-                self.vars[k] = new_spec
+            try:
+                new_vars[k] = updates[v]
+            except KeyError:
+                pass
+
+        self.vars = new_vars
 
     def to_non_structured_state(self) -> 'State':
         non_struct_vars = deepcopy(self.vars)

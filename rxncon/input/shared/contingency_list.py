@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List, Union, Tuple
+from typing import Dict, List, Union, Tuple, Optional
 from collections import defaultdict
 
 from typecheck import typecheck
@@ -43,24 +43,56 @@ class ContingencyListEntry:
         return isinstance(self.subject, Reaction)
 
 
+class BooleanContingencyNameWithEquivs(BooleanContingencyName):
+    def __init__(self, name: str, equivs: StructEquivalences):
+        super().__init__(name)
+        self.equivs = equivs
+
+
 def contingency_list_entry_from_strs(subject_str, verb_str, object_str) -> ContingencyListEntry:
     subject_str, verb_str, object_str = subject_str.strip(), verb_str.lower().strip(), object_str.strip()
 
     if re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
+        # subject: Boolean contingency,
+        # verb   : Boolean operator,
+        # object : State / Boolean contingency / Qual Spec pair.
         subject = BooleanContingencyName(subject_str)
         verb = BooleanOperator(verb_str)
     else:
+        # subject: Reaction,
+        # verb   : Contingency type,
+        # object : State / Boolean contingency.
         subject = reaction_from_str(subject_str)
         verb = ContingencyType(verb_str)
 
-    if re.match(BOOLEAN_CONTINGENCY_REGEX, object_str):
+    if re.match(BOOLEAN_CONTINGENCY_REGEX, object_str) and not isinstance(subject, Reaction):
+        # subject: Boolean contingency,
+        # verb   : Contingency type / Boolean operator,
+        # object : Boolean contingency.
         object = BooleanContingencyName(object_str)
+    elif re.match(BOOLEAN_CONTINGENCY_REGEX, object_str.split('#')[0]) and isinstance(subject, Reaction):
+        # subject: Reaction,
+        # verb   : Contingency type,
+        # object : Boolean contingency + '#' + reactant equivs.
+        name = object_str.split('#')[0]
+        equivs_strs = [s.split(',') for s in object_str.split('#')[1:]]
+        equivs_dict = {int(i): qual_spec_from_str(qual_spec_str).with_prepended_namespace([BooleanContingencyName(name)])
+                       for i, qual_spec_str in equivs_strs}
+        equivs = StructEquivalences()
+        for index, spec in enumerate(subject.components_lhs):
+            try:
+                equivs.add_equivalence(QualSpec([], spec.with_struct_index(index)), equivs_dict[index])
+            except KeyError:
+                pass
+
+        object = BooleanContingencyNameWithEquivs(name, equivs)
     else:
         try:
             object = state_from_str(object_str)
         except SyntaxError:
             strs = [x.strip() for x in object_str.split(',')]
-            object = (qual_spec_from_str(strs[0]), qual_spec_from_str(strs[1]))
+            object = (qual_spec_from_str(strs[0]).with_prepended_namespace([subject]),
+                      qual_spec_from_str(strs[1]).with_prepended_namespace([subject]))
 
     return ContingencyListEntry(subject, verb, object)
 
@@ -96,9 +128,12 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
 
 
 class _BooleanContingencyEffector(Effector):
-    def __init__(self, expr: BooleanContingencyName):
+    def __init__(self, expr: BooleanContingencyName, equivs: Optional[StructEquivalences]=None):
         self.expr   = expr
-        self.equivs = StructEquivalences()
+        if not equivs:
+            self.equivs = StructEquivalences()
+        else:
+            self.equivs = equivs
 
     @typecheck
     def __eq__(self, other: Effector) -> bool:
@@ -210,6 +245,8 @@ def _create_boolean_contingency_to_equivalences(equivalence_contingencies: List[
 def _unary_effector_from_boolean_contingency_entry(entry: ContingencyListEntry) -> Effector:
     if isinstance(entry.object, State):
         return StateEffector(entry.object)
+    elif isinstance(entry.object, BooleanContingencyNameWithEquivs):
+        return _BooleanContingencyEffector(entry.object, entry.object.equivs)
     elif isinstance(entry.object, BooleanContingencyName):
         return _BooleanContingencyEffector(entry.object)
     else:
