@@ -148,7 +148,7 @@ class Effector(metaclass=ABCMeta):
         pass
 
     @property
-    def is_leaf(self) -> bool:
+    def is_structured(self) -> bool:
         raise NotImplementedError
 
     def to_struct_effector(self, glob_equivs: StructEquivalences=None,
@@ -189,8 +189,8 @@ class StateEffector(Effector):
         return [self.expr]
 
     @property
-    def is_leaf(self) -> bool:
-        return True
+    def is_structured(self) -> bool:
+        return self.expr.is_structured
 
     def to_struct_effector(self, glob_equivs: StructEquivalences=None,
                            counter: StructCounter=None,
@@ -245,8 +245,8 @@ class NotEffector(Effector):
         return self.expr.states
 
     @property
-    def is_leaf(self):
-        return self.expr.is_leaf
+    def is_structured(self):
+        return self.expr.is_structured
 
     def to_struct_effector(self, glob_equivs: StructEquivalences=None,
                            counter: StructCounter=None,
@@ -269,7 +269,7 @@ class NaryEffector(Effector):
         return [state for x in self.exprs for state in x.states]
 
     @property
-    def is_leaf(self) -> bool:
+    def is_structured(self) -> bool:
         return False
 
     def to_struct_effector(self, glob_equivs: StructEquivalences=None,

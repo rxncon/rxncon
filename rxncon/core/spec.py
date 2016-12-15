@@ -67,6 +67,11 @@ class Spec(ABC):
     def with_struct_index(self, index: int) -> 'Spec':
         return type(self)(self.component_name, index, self.locus)
 
+    def with_struct_from_spec(self, other: 'Spec') -> 'Spec':
+        assert other.struct_index is not None
+        assert self.component_name == other.component_name
+        return type(self)(self.component_name, other.struct_index, self.locus)
+
     def to_non_struct_spec(self):
         return type(self)(self.component_name, None, self.locus)
 
