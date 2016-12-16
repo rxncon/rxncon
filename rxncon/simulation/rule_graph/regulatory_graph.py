@@ -221,12 +221,12 @@ class RegulatoryGraph():
         #     sorted_cont_node_strs = "".join(sorted(cont_node_strs))
         #     return hashlib.md5(sorted_cont_node_strs.encode('utf-8')).hexdigest()
 
-        def _update_contingency_information(cont_node: ValueSet) -> None:
+        def _update_contingency_information(value_set: ValueSet) -> None:
             """
             Updating the degradation information with its contingencies.
 
             Args:
-                cont_node:
+                value_set:
 
             Returns:
                 None
@@ -234,7 +234,7 @@ class RegulatoryGraph():
             """
             nonlocal reaction
 
-            state = cont_node.value
+            state = value_set.value
 
             for degraded_component in reaction.degraded_components:
                 if degraded_component in state.components:
@@ -256,16 +256,18 @@ class RegulatoryGraph():
             cont = Intersection(*(_effector_to_vennset(contingency.effector, contingency.type) for contingency in contingencies)).to_simplified_set()
             for index, nested_list in enumerate(cont.to_dnf_nested_list()):
 
-                negative_value_set = [value for value in nested_list if isinstance(value, Complement)]
-                positive_value_set = [value for value in nested_list if not isinstance(value, Complement)]
+                negative_value_set = [value for value in nested_list if isinstance(value, Complement) and
+                                      all(value in nested_list for nested_list in cont.to_dnf_nested_list())]
+                positive_value_set = [value for value in nested_list if not isinstance(value, Complement) and
+                                      all(value in nested_list for nested_list in cont.to_dnf_nested_list())]
 
                 [_update_contingency_information(value_set) for value_set in positive_value_set]
                 [_update_contingency_information_for_complement(value_set) for value_set in negative_value_set]
 
-                if self.potential_degradation:
-                    positive_states = [value_set.value for value_set in positive_value_set]
-                    negative_states = [value_set.expr.value for value_set in negative_value_set]
-                    _add_possible_degraded_states(positive_states, negative_states)
+                #if self.potential_degradation:
+                positive_states = [value_set.value for value_set in positive_value_set]
+                negative_states = [value_set.expr.value for value_set in negative_value_set]
+                _add_possible_degraded_states(positive_states, negative_states)
 
         # Second case: reaction with a trivial contingency should degrade all states for the degraded component.
         else:
