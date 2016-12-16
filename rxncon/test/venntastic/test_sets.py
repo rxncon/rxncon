@@ -54,6 +54,8 @@ def test_values():
 
 
 def test_list_form():
+    assert venn_from_str('1', int).to_dnf_list() == [venn_from_str('1', int)]
+
     assert venn_from_str('1 & 2', int).to_dnf_list() == [venn_from_str('1 & 2', int)]
     assert set(venn_from_str('1 | 2', int).to_dnf_list()) == {ValueSet(1), ValueSet(2)}
 
@@ -65,6 +67,8 @@ def test_list_form():
     assert EmptySet().to_dnf_list() == [EmptySet()]
 
 def test_nested_list_form():
+    assert venn_from_str('1', int).to_dnf_nested_list() == [[venn_from_str('1', int)]]
+
     x = venn_from_str('1 & ( 2 | 3 )', int)
     assert [ValueSet(1), ValueSet(2)] in x.to_dnf_nested_list()
     assert [ValueSet(1), ValueSet(3)] in x.to_dnf_nested_list()
