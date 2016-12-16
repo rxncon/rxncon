@@ -254,7 +254,7 @@ def spec_from_str(spec_str: str) -> Spec:
 
         raise SyntaxError('Could not parse spec component_name {}'.format(name))
 
-    if not re.match('[A-Za-z][A-Za-z0-9]*(@[\d]+)*(_\[[\w\/\(\)]+\])*', spec_str):
+    if not re.match('[A-Za-z][A-Za-z0-9]*(@[\d]+)*(_\[[[A-Za-z0-9]\/\(\)]+\])*', spec_str):
         raise SyntaxError('Spec str {} does not match validating regex.'.format(spec_str))
 
     DOMAIN_DELIMITER = '_'
