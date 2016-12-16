@@ -33,6 +33,9 @@ class RxnConSystem:
         self.validate()
 
     def validate(self):
+        if not self.reactions:
+            raise AssertionError('No reactions, boring!')
+
         missing_states = self._missing_states()
 
         if missing_states:
