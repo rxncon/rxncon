@@ -999,9 +999,5 @@ def test_deg_double_negation():
                               ('NOT', 'comp', EdgeInteractionType.OR),
                               ('A_[(c)]-{p}', 'NOT', EdgeInteractionType.NOT),
                               ('comp', 'D_deg_A', EdgeInteractionType.inhibited)])
-#
-    reg_graph = _create_regulatory_graph(test_case.quick_string)
 
-    gml_system = XGMML(reg_graph, "OR_double_negation")
-    gml_system.to_file("test_deg_OR_double_negation.xgmml")
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)

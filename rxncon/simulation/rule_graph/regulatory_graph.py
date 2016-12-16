@@ -1,23 +1,16 @@
-from typing import Union, List, Dict
+from typing import Union, List
 import re
 from enum import Enum, unique
 from networkx import DiGraph
-from collections import defaultdict
 
-import hashlib
-
-from rxncon.core.rxncon_system import RxnConSystem
-from rxncon.venntastic.sets import Intersection, Union as VennUnion, Complement, ValueSet, UniversalSet, Set as VennSet
-from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
-from rxncon.core.reaction import ReactionTerm, Reaction
-from rxncon.core.contingency import Contingency, ContingencyType
+from rxncon.venntastic.sets import Union as VennUnion, Complement, ValueSet, Set as VennSet
+from rxncon.core.contingency import ContingencyType
 from rxncon.core.state import State
 
 
 from rxncon.core.rxncon_system import RxnConSystem, Reaction, ReactionTerm, Contingency
 from rxncon.core.effector import StateEffector, AndEffector, NotEffector, OrEffector, Effector
 from rxncon.venntastic.sets import Intersection
-from copy import deepcopy
 
 
 @unique
@@ -53,7 +46,7 @@ edge_type_mapping = {ContingencyType.requirement: EdgeInteractionType.required,
                      ContingencyType.negative: EdgeInteractionType.negative}
 
 
-class RegulatoryGraph():
+class RegulatoryGraph:
     """
     Definition of the regulatory Graph.
 
@@ -102,17 +95,21 @@ class RegulatoryGraph():
             Preprocessing effector. Save information in leafs.
 
             Note:
-                We need some effector information for later processing, which we will lose during the dnf step.
-                We need the information of the name of an ANDEffector if it has at least two StateEffectors as
-                children. We need the information of the contingency type.
+                We need the contingency information later on in the process. Since, this information is lost during the
+                calculation of the disjunctive normal form we have to add it beforehand. For this we say an inhibiting
+                contingency is the complement of everything afterwards.
+
+                The contingency type is only needed at the beginning of the recursion step.
 
             Args:
                 eff: rxncon Effector.
                 cont_type: Contingency type.
-                boolean_AND_target: boolean node name.
 
             Returns:
                 Return VennSet
+
+            Raises:
+                AssertionError if the eff is not an effector.
 
             """
 
@@ -138,6 +135,10 @@ class RegulatoryGraph():
         def _add_interaction_state_for_degradation(state: State, reaction: Reaction, edge_type: EdgeInteractionType = EdgeInteractionType.degrade) ->None:
             """
             Adds interaction state for degradation.
+
+            Note:
+                If we degrade an interaction state, we degrade one component of the state and release the other unbound.
+                For visualisation purpose we add an additional boolean node reflecting this interpretation.
 
             Args:
                 state: interaction state
@@ -165,6 +166,9 @@ class RegulatoryGraph():
             """
             Updating degradation information if no contingencies are given.
 
+            Mutates:
+                regulatory graph.
+
             Returns:
                 None
 
@@ -183,12 +187,13 @@ class RegulatoryGraph():
             Adding optional degradation.
 
             Note:
-                If there is a required non-inhibiting contingency on a degradation only the these contingencies will
+                If there is a required contingency on a degradation only the these contingencies will
                 have a degradation edge for sure. We are adding optional degradation edges to all other possible
                 (non-mutually exclusive) states.
 
             Args:
-                contingency_node_states:
+                positive_states: List of not negated value sets
+                negative_states: List of negated value sets.
 
             Returns:
                 None
@@ -206,33 +211,45 @@ class RegulatoryGraph():
                     else:
                         self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.maybe_degraded)
 
-        def _add_complement_states_for_degradation_reaction(state: State) -> None:
+        def _add_complement_of_state_for_degradation_reaction(state: State) -> None:
+            """
+            Adding complement of a state to the regulatory graph.
+
+            Args:
+                state: rxncon state.
+
+            Mutates:
+                regulatory graph.
+
+            Returns:
+                None
+
+            """
             for degraded_component in reaction.degraded_components:
                 if degraded_component in state.components:
                     complements = self.rxncon_system.complementary_states_for_component(degraded_component, state)
+                    # If we have one unique complement of a state we know what gets degraded.
                     if len(complements) == 1:
                         self._add_edge(source=str(reaction), target=str(complements[0]), interaction=EdgeInteractionType.degrade)
+                    # If we have more than one complement of a state. We say that its a possible degradation.
                     else:
                         for state in complements:
                             self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.maybe_degraded)
-
-        # def _number_from_vennset(nested_list: List[ValueSet]):
-        #     cont_node_strs = [str(value) for value in nested_list]
-        #     sorted_cont_node_strs = "".join(sorted(cont_node_strs))
-        #     return hashlib.md5(sorted_cont_node_strs.encode('utf-8')).hexdigest()
 
         def _update_contingency_information(value_set: ValueSet) -> None:
             """
             Updating the degradation information with its contingencies.
 
             Args:
-                value_set:
+                value_set: VennSet object.
+
+            Mutates:
+                regulatory_graph.
 
             Returns:
                 None
 
             """
-            nonlocal reaction
 
             state = value_set.value
 
@@ -243,28 +260,69 @@ class RegulatoryGraph():
                     else:
                         self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.degrade)
 
-        def _update_contingency_information_for_complement(value_set: ValueSet):
-            assert len(value_set.values) == 1
-            state = value_set.values[0]
-            _add_complement_states_for_degradation_reaction(state)
+        def _update_contingency_information_for_complement(complement_value: Complement):
+            """
+            Updating the contingency information for complements.
+
+            Note:
+                If we have a complement of a value set we have to add the complemented states of these value set to
+                regulatory graph.
+
+            Args:
+                complement_value: Complement of a value set.
+
+            Returns:
+                None
+
+            Raises:
+                AssertionError if the the complement_value has more than one entry.
+
+            """
+            assert len(complement_value.values) == 1
+            state = complement_value.values[0]
+            _add_complement_of_state_for_degradation_reaction(state)
+
+        def _get_positive_and_negative_states(nested_list: List[Union[ValueSet, Complement]], dnf_of_cont: List[List[Union[ValueSet, Complement]]]):
+            """
+            Calculating a list of negative states (complements) and positive states (not complements).
+
+            Args:
+                nested_list: List if Complements and ValueSets.
+                dnf_of_cont: disjunctive normal form of the contingency list belonging to a certain reaction.
+
+            Returns:
+                A list of complements (negative_value_set) and positive_value_set.
+
+            """
+            negative_value_set = []  # type: List[Complement]
+            positive_value_set = []  # type: List[ValueSet]
+
+            for value in nested_list:
+                if all(value in nested_list for nested_list in dnf_of_cont):
+                    if isinstance(value, Complement):
+                        negative_value_set.append(value)
+                    else:
+                        positive_value_set.append(value)
+
+            return negative_value_set, positive_value_set
 
         # First case: reaction with a non-trivial contingency should degrade only the states appearing
         # in the contingency that are connected to the degraded component.
         self._add_node(id=str(reaction), label=str(reaction), type=NodeType.reaction)
         if contingencies:
-            self.add_contingency_information_to_graph(contingencies)
-            cont = Intersection(*(_effector_to_vennset(contingency.effector, contingency.type) for contingency in contingencies)).to_simplified_set()
-            for index, nested_list in enumerate(cont.to_dnf_nested_list()):
 
-                negative_value_set = [value for value in nested_list if isinstance(value, Complement) and
-                                      all(value in nested_list for nested_list in cont.to_dnf_nested_list())]
-                positive_value_set = [value for value in nested_list if not isinstance(value, Complement) and
-                                      all(value in nested_list for nested_list in cont.to_dnf_nested_list())]
+            self.add_contingency_information_to_graph(contingencies)
+
+            cont = Intersection(*(_effector_to_vennset(contingency.effector, contingency.type) for contingency in contingencies)).to_simplified_set()
+            dnf_of_cont = cont.to_dnf_nested_list()
+
+            for index, nested_list in enumerate(dnf_of_cont):
+
+                negative_value_set, positive_value_set = _get_positive_and_negative_states(nested_list, dnf_of_cont)
 
                 [_update_contingency_information(value_set) for value_set in positive_value_set]
                 [_update_contingency_information_for_complement(value_set) for value_set in negative_value_set]
 
-                #if self.potential_degradation:
                 positive_states = [value_set.value for value_set in positive_value_set]
                 negative_states = [value_set.expr.value for value_set in negative_value_set]
                 _add_possible_degraded_states(positive_states, negative_states)
