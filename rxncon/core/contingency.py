@@ -35,22 +35,21 @@ class Contingency:
 
     def to_structured(self):
         if isinstance(self.effector, StateEffector) and not self.effector.is_structured:
-            sc = self.clone()
+            equivs = StructEquivalences()
+            struct_components = {spec: spec.with_struct_index(index) for index, spec in
+                                 enumerate(self.target.components_lhs)}
 
-            struct_components = {spec: spec.with_struct_index(index) for index, spec in enumerate(self.target.components_lhs)}
-            updates = {}
             for spec in self.effector.expr.specs:
                 try:
-                    updates[spec] = spec.with_struct_from_spec(struct_components[spec.to_component_spec()])
+                    equivs.add_equivalence(QualSpec([], struct_components[spec.to_component_spec()]),
+                                           QualSpec([str(self.target)], spec.to_component_spec()))
                 except KeyError:
                     pass
-
-            sc.effector.expr.update_specs(updates)
+            sc = self.clone()
+            sc.effector = sc.effector.to_merged_struct_effector(equivs, None, [str(self.target)])
             return sc
         elif isinstance(self.effector, StateEffector) and self.effector.is_structured:
             return self
-
-
 
         sc = self.clone()
         sc.effector = sc.effector.to_merged_struct_effector()

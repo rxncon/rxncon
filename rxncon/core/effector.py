@@ -37,7 +37,7 @@ class BooleanContingencyName:
 
 
 class QualSpec:
-    def __init__(self, namespace: List[BooleanContingencyName], spec: Spec):
+    def __init__(self, namespace: List[str], spec: Spec):
         self.namespace = namespace
         self.spec      = spec
         self._name     = '.'.join(str(x) for x in namespace + [spec])
@@ -58,13 +58,13 @@ class QualSpec:
     def is_in_root_namespace(self):
         return not self.namespace
 
-    def with_prepended_namespace(self, extra_namespace: List[BooleanContingencyName]):
+    def with_prepended_namespace(self, extra_namespace: List[str]):
         new_namespace = deepcopy(extra_namespace) + deepcopy(self.namespace)
         return QualSpec(new_namespace, self.spec)
 
 
 def qual_spec_from_str(qualified_spec_str: str) -> QualSpec:
-    namespace = [BooleanContingencyName(x) for x in qualified_spec_str.split('.')[:-1]]
+    namespace = [x for x in qualified_spec_str.split('.')[:-1]]
     spec      = spec_from_str(qualified_spec_str.split('.')[-1])
 
     return QualSpec(namespace, spec)
@@ -105,7 +105,7 @@ class StructEquivalences:
 
         self.eq_classes.append([x.to_component_qual_spec() for x in eq_class])
 
-    def merge_with(self, other: 'StructEquivalences', other_base_namespace: List[BooleanContingencyName]):
+    def merge_with(self, other: 'StructEquivalences', other_base_namespace: List[str]):
         for other_eq_class in other.eq_classes:
             self.add_equivalence_class([x.with_prepended_namespace(other_base_namespace) for x in other_eq_class])
 
@@ -153,7 +153,7 @@ class Effector(metaclass=ABCMeta):
 
     def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
                                   counter: StructCounter=None,
-                                  cur_namespace: List[BooleanContingencyName]=None) -> 'Effector':
+                                  cur_namespace: List[str]=None) -> 'Effector':
         raise AssertionError
 
     def _init_to_struct_effector_args(self, glob_equivs, cur_index, cur_namespace):
@@ -194,7 +194,7 @@ class StateEffector(Effector):
 
     def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
                                   counter: StructCounter=None,
-                                  cur_namespace: List[BooleanContingencyName]=None):
+                                  cur_namespace: List[str]=None):
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
 
         state = deepcopy(self.expr)
@@ -250,7 +250,7 @@ class NotEffector(Effector):
 
     def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
                                   counter: StructCounter=None,
-                                  cur_namespace: List[BooleanContingencyName]=None):
+                                  cur_namespace: List[str]=None):
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         return NotEffector(self.expr.to_merged_struct_effector(glob_equivs, counter, cur_namespace), name=self.name)
 
@@ -274,12 +274,12 @@ class NaryEffector(Effector):
 
     def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
                                   counter: StructCounter=None,
-                                  cur_namespace: List[BooleanContingencyName]=None):
+                                  cur_namespace: List[str]=None):
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         glob_equivs.merge_with(self.equivs, cur_namespace)
 
-        return self.__class__(*(x.to_struct_effector(
-            glob_equivs, counter, cur_namespace + [BooleanContingencyName(self.name)]) for x in self.exprs), name=self.name)
+        return type(self)(*(x.to_merged_struct_effector(
+            glob_equivs, counter, cur_namespace + [self.name]) for x in self.exprs), name=self.name)
 
 
 class AndEffector(NaryEffector):

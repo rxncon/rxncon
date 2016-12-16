@@ -76,7 +76,7 @@ def contingency_list_entry_from_strs(subject_str, verb_str, object_str) -> Conti
         # object : Boolean contingency + '#' + reactant equivs.
         name = object_str.split('#')[0]
         equivs_strs = [s.split(',') for s in object_str.split('#')[1:]]
-        equivs_dict = {int(i): qual_spec_from_str(qual_spec_str).with_prepended_namespace([BooleanContingencyName(name)])
+        equivs_dict = {int(i): qual_spec_from_str(qual_spec_str).with_prepended_namespace([name])
                        for i, qual_spec_str in equivs_strs}
         equivs = StructEquivalences()
         for index, spec in enumerate(subject.components_lhs):
@@ -91,8 +91,8 @@ def contingency_list_entry_from_strs(subject_str, verb_str, object_str) -> Conti
             object = state_from_str(object_str)
         except SyntaxError:
             strs = [x.strip() for x in object_str.split(',')]
-            object = (qual_spec_from_str(strs[0]).with_prepended_namespace([subject]),
-                      qual_spec_from_str(strs[1]).with_prepended_namespace([subject]))
+            object = (qual_spec_from_str(strs[0]).with_prepended_namespace([subject.name]),
+                      qual_spec_from_str(strs[1]).with_prepended_namespace([subject.name]))
 
     return ContingencyListEntry(subject, verb, object)
 
@@ -154,7 +154,7 @@ def _dereference_boolean_contingency_effectors(self: Effector,
         self.name = name
         try:
             self.equivs.merge_with(equivs, [])
-        except NameError:
+        except AttributeError:
             self.equivs = equivs
     elif isinstance(self, StateEffector):
         pass
