@@ -514,10 +514,6 @@ def test_regulatory_graph_for_degradation_no_contingency():
                               ('A_[b]--B_[a]', 'D_deg_A_ON_A_[b]--B_[a]', EdgeInteractionType.AND),
                               ('D_deg_A_ON_A_[b]--B_[a]', 'B_[a]--0', EdgeInteractionType.produce)])
 
-
-    reg_graph = _create_regulatory_graph(test_case.quick_string)
-    gml_system = XGMML(reg_graph, "reactions_only")
-#    gml_system.to_file("test_deg.xgmml")
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
