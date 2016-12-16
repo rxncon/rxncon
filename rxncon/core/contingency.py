@@ -49,8 +49,10 @@ class Contingency:
             return sc
         elif isinstance(self.effector, StateEffector) and self.effector.is_structured:
             return self
-        else:
-            sc = self.clone()
-            sc.effector = sc.effector.to_struct_effector()
-            return sc
+
+
+
+        sc = self.clone()
+        sc.effector = sc.effector.to_merged_struct_effector()
+        return sc
 

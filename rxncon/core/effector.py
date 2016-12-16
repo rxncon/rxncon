@@ -151,9 +151,9 @@ class Effector(metaclass=ABCMeta):
     def is_structured(self) -> bool:
         raise NotImplementedError
 
-    def to_struct_effector(self, glob_equivs: StructEquivalences=None,
-                           counter: StructCounter=None,
-                           cur_namespace: List[BooleanContingencyName]=None) -> 'Effector':
+    def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
+                                  counter: StructCounter=None,
+                                  cur_namespace: List[BooleanContingencyName]=None) -> 'Effector':
         raise AssertionError
 
     def _init_to_struct_effector_args(self, glob_equivs, cur_index, cur_namespace):
@@ -192,9 +192,9 @@ class StateEffector(Effector):
     def is_structured(self) -> bool:
         return self.expr.is_structured
 
-    def to_struct_effector(self, glob_equivs: StructEquivalences=None,
-                           counter: StructCounter=None,
-                           cur_namespace: List[BooleanContingencyName]=None):
+    def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
+                                  counter: StructCounter=None,
+                                  cur_namespace: List[BooleanContingencyName]=None):
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
 
         state = deepcopy(self.expr)
@@ -248,11 +248,11 @@ class NotEffector(Effector):
     def is_structured(self):
         return self.expr.is_structured
 
-    def to_struct_effector(self, glob_equivs: StructEquivalences=None,
-                           counter: StructCounter=None,
-                           cur_namespace: List[BooleanContingencyName]=None):
+    def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
+                                  counter: StructCounter=None,
+                                  cur_namespace: List[BooleanContingencyName]=None):
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
-        return NotEffector(self.expr.to_struct_effector(glob_equivs, counter, cur_namespace), name=self.name)
+        return NotEffector(self.expr.to_merged_struct_effector(glob_equivs, counter, cur_namespace), name=self.name)
 
 
 class NaryEffector(Effector):
@@ -270,11 +270,11 @@ class NaryEffector(Effector):
 
     @property
     def is_structured(self) -> bool:
-        return False
+        return all(x.is_structured for x in self.exprs)
 
-    def to_struct_effector(self, glob_equivs: StructEquivalences=None,
-                           counter: StructCounter=None,
-                           cur_namespace: List[BooleanContingencyName]=None):
+    def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
+                                  counter: StructCounter=None,
+                                  cur_namespace: List[BooleanContingencyName]=None):
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         glob_equivs.merge_with(self.equivs, cur_namespace)
 
