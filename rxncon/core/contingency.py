@@ -1,7 +1,7 @@
 from enum import unique
 from copy import deepcopy
 
-from rxncon.core.effector import Effector, StructEquivalences, QualSpec, StateEffector
+from rxncon.core.effector import Effector, StructEquivalences, QualSpec, StateEffector, TrivialStructEquivalences
 from rxncon.core.reaction import Reaction
 from rxncon.util.utils import OrderedEnum
 
@@ -34,7 +34,9 @@ class Contingency:
         return deepcopy(self)
 
     def to_structured(self):
-        if isinstance(self.effector, StateEffector) and not self.effector.is_structured:
+        if isinstance(self.effector, StateEffector) and self.effector.is_structured:
+            return self
+        elif isinstance(self.effector, StateEffector) and not self.effector.is_structured:
             equivs = StructEquivalences()
             struct_components = {spec: spec.with_struct_index(index) for index, spec in
                                  enumerate(self.target.components_lhs)}
@@ -48,10 +50,17 @@ class Contingency:
             sc = self.clone()
             sc.effector = sc.effector.to_merged_struct_effector(equivs, None, [str(self.target)])
             return sc
-        elif isinstance(self.effector, StateEffector) and self.effector.is_structured:
-            return self
+        elif self.effector.is_structured:
+            sc = self.clone()
+            sc.effector = sc.effector.to_merged_struct_effector()
+            return sc
+        else:
+            sc = self.clone()
 
-        sc = self.clone()
-        sc.effector = sc.effector.to_merged_struct_effector()
-        return sc
+            struct_components = {spec: spec.with_struct_index(index) for index, spec in
+                                 enumerate(self.target.components_lhs)}
+
+            sc.effector = sc.effector.to_merged_struct_effector(TrivialStructEquivalences(struct_components), None, None)
+            return sc
+
 

@@ -1,6 +1,6 @@
 import re
 from abc import ABCMeta, abstractproperty
-from typing import List, Optional
+from typing import List, Optional, Dict
 from copy import deepcopy
 
 from rxncon.core.spec import spec_from_str, Spec
@@ -122,6 +122,41 @@ class StructEquivalences:
     def indices_in_root_namespace(self):
         return [qspec.spec.struct_index for eq_class in self.eq_classes for qspec in eq_class if qspec.is_in_root_namespace]
 
+
+class TrivialStructEquivalences(StructEquivalences):
+    def __init__(self, initial_struct_specs: Dict[Spec, Spec]=None):
+        if not initial_struct_specs:
+            self.struct_specs = {}
+        else:
+            self.struct_specs = initial_struct_specs
+
+        self.cur_index = 2
+
+    def __str__(self):
+        return 'TrivialStructEquivalences'
+
+    def add_equivalence(self, first_qual_spec: QualSpec, second_qual_spec: QualSpec):
+        pass
+
+    def add_equivalence_class(self, eq_class: List[QualSpec]):
+        pass
+
+    def merge_with(self, other: 'StructEquivalences', other_base_namespace: List[str]):
+        pass
+
+    def find_unqualified_spec(self, qual_spec: QualSpec):
+        try:
+            struct_spec = deepcopy(self.struct_specs[qual_spec.spec.to_component_spec()])
+            struct_spec.locus = deepcopy(qual_spec.spec.locus)
+            return struct_spec
+        except KeyError:
+            self.struct_specs[qual_spec.spec.to_component_spec()] = \
+                deepcopy(qual_spec.spec.to_component_spec().with_struct_index(self.cur_index))
+            self.cur_index += 1
+            return self.find_unqualified_spec(qual_spec)
+
+    def indices_in_root_namespace(self):
+        return [x for x in range(self.cur_index)]
 
 class StructCounter:
     def __init__(self):

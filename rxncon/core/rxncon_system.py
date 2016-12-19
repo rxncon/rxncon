@@ -206,7 +206,13 @@ class RxnConSystem:
                 raise AssertionError
 
         for contingency in self.contingencies:
+            try:
+                equivs = contingency.effector.equivs
+            except AttributeError:
+                equivs = None
+
             contingency.effector = expanded_effector(contingency.effector)
+            contingency.effector.equivs = equivs
 
     def _structure_contingencies(self):
         self.contingencies = [c.to_structured() for c in self.contingencies]

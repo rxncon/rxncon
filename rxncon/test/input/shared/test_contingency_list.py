@@ -60,3 +60,28 @@ def test_simple_namespace():
     assert state_from_str('A@1_[ab]--B@2_[ba]') in effector.states
     assert state_from_str('A@1_[ac]--C@3_[ca]') in effector.states
     assert state_from_str('A@1_[ad]--D@4_[da]') in effector.states
+
+
+def test_from_pheromone_model():
+    cles = [
+        cle_from_str('Ste4_[Ste5]_ppi+_Ste5_[Ste4]', '!', 'Ste4_[Gpa1]--0'),
+        cle_from_str('Ste4_[Ste5]_ppi+_Ste5_[Ste4]', 'K+', 'Ste5_[Ste5]--Ste5_[Ste5]'),
+        cle_from_str('Ste4_[Ste5]_ppi+_Ste5_[Ste4]', 'K+', '<Ste5Ste5Ste4>#1,Ste5@0#0,Ste4@3'),
+        cle_from_str('<Ste5Ste5Ste4>', 'AND', 'Ste5@0_[Ste5]--Ste5@2_[Ste5]'),
+        cle_from_str('<Ste5Ste5Ste4>', 'AND', 'Ste4@3_[Ste5]--Ste5@2_[Ste4]'),
+    ]
+
+    contingencies = contingencies_from_contingency_list_entries(cles)
+
+    for c in contingencies:
+        print()
+        print(c.to_structured())
+
+
+
+
+
+
+
+
+
