@@ -31,7 +31,8 @@ class XGMML:
         xgmml = [self._header_string(), self._nodes_string(), self._edges_string(), self._footer_string()]
         return "\n".join(xgmml)
 
-    def to_file(self, file_path: str) -> None:
+    def to_file(self, file_path: str, force: bool= False) -> None:
+
         """
         Writes the xgmml graph into a file.
 
@@ -48,7 +49,9 @@ class XGMML:
         """
         path, file = os.path.split(file_path)
         if path and os.path.exists(path):
-            if not os.path.isfile(file_path):
+            if force:
+                self._write_to_file(file_path)
+            elif not os.path.isfile(file_path):
                 self._write_to_file(file_path)
             else:
                 raise FileExistsError("{0} exists! remove file and run again".format(file_path))
@@ -56,6 +59,8 @@ class XGMML:
             if not os.path.isfile(file):
                 self._write_to_file(file_path)
             else:
+                if force:
+                    self._write_to_file(file_path)
                 print(os.path.dirname(file_path))
                 raise FileExistsError("{0} exists! remove file and run again".format(file_path))
         elif path and not os.path.exists(path):
@@ -110,9 +115,11 @@ class XGMML:
                 label = id
 
             node = '<node id="{id}" label="{label}">'.format(id=id, label=label)
-            node += '<att name="{}" value="{}" />'.format("rxnconID", id)
-            for k, v in attr.items():
-                node += '<att name="{}" value="{}" />'.format(k, v)
+            node += '<att name="{}" value="{}" type="string"/>'.format("rxnconID", id)
+
+            for name, value in attr.items():
+                node += self._format_attribute(name, value)
+
             node += '</node>'
             nodes.append(node)
         return "\n".join(nodes)
@@ -129,11 +136,20 @@ class XGMML:
 
         for graph_edge in self.graph.edges(data=True):
             edge = '<edge source="{}" target="{}">'.format(graph_edge[0], graph_edge[1])
-            for k, v in graph_edge[2].items():
-                edge += '<att name="{}" value="{}"/>'.format(k, v)
+            for name, value in graph_edge[2].items():
+                edge += self._format_attribute(name, value)
+
             edge += '</edge>'
             edges.append(edge)
         return "\n".join(edges)
+
+    def _format_attribute(self, name, value):
+        if isinstance(value, float):
+            return '<att name="{}" value="{}" type="double"/>'.format(name, value)
+        elif isinstance(value, int):
+            return '<att name="{}" value="{}" type="integer"/>'.format(name, value)
+        else:
+            return '<att name="{}" value="{}" type="string"/>'.format(name, value)
 
 
 def map_layout2xgmml(no_layout_graph_str: str, template_file_str: str) -> str:

@@ -92,22 +92,22 @@ def test_simple_system():
                         <att name="name" value="test_graph" type="string"/>
                         <att name="shared name" value="test_graph" type="string"/>
 
-                        <node id="A_[b]--B_[a]" label="A_[b]--B_[a]"><att name="rxnconID" value="A_[b]--B_[a]" /><att name="type" value="state" /></node>
-                        <node id="B_[a]--0" label="B_[a]--0"><att name="rxnconID" value="B_[a]--0" /><att name="type" value="state" /></node>
-                        <node id="A_[(x)]-{p}" label="A_[(x)]-{p}"><att name="rxnconID" value="A_[(x)]-{p}" /><att name="type" value="state" /></node>
-                        <node id="A_[b]--0" label="A_[b]--0"><att name="rxnconID" value="A_[b]--0" /><att name="type" value="state" /></node>
-                        <node id="A_[b]_ppi+_B_[a]" label="A_[b]_ppi+_B_[a]"><att name="rxnconID" value="A_[b]_ppi+_B_[a]" /><att name="type" value="reaction" /></node>
-                        <node id="A_[(x)]-{0}" label="A_[(x)]-{0}"><att name="rxnconID" value="A_[(x)]-{0}" /><att name="type" value="state" /></node>
-                        <node id="C_p+_A_[(x)]" label="C_p+_A_[(x)]"><att name="rxnconID" value="C_p+_A_[(x)]" /><att name="type" value="reaction" /></node>
-                        <edge source="B_[a]--0" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="ss"/></edge>
-                        <edge source="A_[(x)]-{p}" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="!"/></edge>
-                        <edge source="A_[b]--0" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="ss"/></edge>
-                        <edge source="A_[b]_ppi+_B_[a]" target="A_[b]--B_[a]"><att name="interaction" value="produce"/></edge>
-                        <edge source="A_[b]_ppi+_B_[a]" target="A_[b]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[b]_ppi+_B_[a]" target="B_[a]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[(x)]-{0}" target="C_p+_A_[(x)]"><att name="interaction" value="ss"/></edge>
-                        <edge source="C_p+_A_[(x)]" target="A_[(x)]-{0}"><att name="interaction" value="consume"/></edge>
-                        <edge source="C_p+_A_[(x)]" target="A_[(x)]-{p}"><att name="interaction" value="produce"/></edge>
+                        <node id="A_[b]--0" label="A_[b]--0"><att name="rxnconID" value="A_[b]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="B_[a]--0" label="B_[a]--0"><att name="rxnconID" value="B_[a]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[b]--B_[a]" label="A_[b]--B_[a]"><att name="rxnconID" value="A_[b]--B_[a]" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[b]_ppi+_B_[a]" label="A_[b]_ppi+_B_[a]"><att name="rxnconID" value="A_[b]_ppi+_B_[a]" type="string"/><att name="type" value="reaction" type="string"/></node>
+                        <node id="A_[(x)]-{p}" label="A_[(x)]-{p}"><att name="rxnconID" value="A_[(x)]-{p}" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[(x)]-{0}" label="A_[(x)]-{0}"><att name="rxnconID" value="A_[(x)]-{0}" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="C_p+_A_[(x)]" label="C_p+_A_[(x)]"><att name="rxnconID" value="C_p+_A_[(x)]" type="string"/><att name="type" value="reaction" type="string"/></node>
+                        <edge source="A_[b]--0" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="B_[a]--0" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="A_[b]_ppi+_B_[a]" target="A_[b]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[b]_ppi+_B_[a]" target="B_[a]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[b]_ppi+_B_[a]" target="A_[b]--B_[a]"><att name="interaction" value="produce" type="string"/></edge>
+                        <edge source="A_[(x)]-{p}" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="!" type="string"/></edge>
+                        <edge source="A_[(x)]-{0}" target="C_p+_A_[(x)]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="C_p+_A_[(x)]" target="A_[(x)]-{p}"><att name="interaction" value="produce" type="string"/></edge>
+                        <edge source="C_p+_A_[(x)]" target="A_[(x)]-{0}"><att name="interaction" value="consume" type="string"/></edge>
                         </graph>"""
 
     assert _is_xgmml_export_test_case_correct(test_case_quick_str, expected_xgmml)
@@ -142,51 +142,51 @@ def  test_creating_writing_xgmml_from_regulatory_graph_simple_boolean():
                         <att name="name" value="test_graph" type="string"/>
                         <att name="shared name" value="test_graph" type="string"/>
 
-                        <node id="A_[c]--C_[a]" label="A_[c]--C_[a]"><att name="rxnconID" value="A_[c]--C_[a]" /><att name="type" value="state" /></node>
-                        <node id="A_[c]--0" label="A_[c]--0"><att name="rxnconID" value="A_[c]--0" /><att name="type" value="state" /></node>
-                        <node id="A_[c]_ppi+_C_[a]" label="A_[c]_ppi+_C_[a]"><att name="rxnconID" value="A_[c]_ppi+_C_[a]" /><att name="type" value="reaction" /></node>
-                        <node id="A_[b]--B_[a]" label="A_[b]--B_[a]"><att name="rxnconID" value="A_[b]--B_[a]" /><att name="type" value="state" /></node>
-                        <node id="D_p+_C_[(x)]" label="D_p+_C_[(x)]"><att name="rxnconID" value="D_p+_C_[(x)]" /><att name="type" value="reaction" /></node>
-                        <node id="A_[(x)]-{p}" label="A_[(x)]-{p}"><att name="rxnconID" value="A_[(x)]-{p}" /><att name="type" value="state" /></node>
-                        <node id="A_[(x)]-{0}" label="A_[(x)]-{0}"><att name="rxnconID" value="A_[(x)]-{0}" /><att name="type" value="state" /></node>
-                        <node id="A_[b]_ppi+_B_[a]" label="A_[b]_ppi+_B_[a]"><att name="rxnconID" value="A_[b]_ppi+_B_[a]" /><att name="type" value="reaction" /></node>
-                        <node id="C_p+_A_[(x)]" label="C_p+_A_[(x)]"><att name="rxnconID" value="C_p+_A_[(x)]" /><att name="type" value="reaction" /></node>
-                        <node id="comp" label="comp"><att name="rxnconID" value="comp" /><att name="type" value="boolean_and" /></node>
-                        <node id="A_[d]--D_[a]" label="A_[d]--D_[a]"><att name="rxnconID" value="A_[d]--D_[a]" /><att name="type" value="state" /></node>
-                        <node id="C_[a]--0" label="C_[a]--0"><att name="rxnconID" value="C_[a]--0" /><att name="type" value="state" /></node>
-                        <node id="A_[d]_ppi+_D_[a]" label="A_[d]_ppi+_D_[a]"><att name="rxnconID" value="A_[d]_ppi+_D_[a]" /><att name="type" value="reaction" /></node>
-                        <node id="C_[(x)]-{p}" label="C_[(x)]-{p}"><att name="rxnconID" value="C_[(x)]-{p}" /><att name="type" value="state" /></node>
-                        <node id="C_[(x)]-{0}" label="C_[(x)]-{0}"><att name="rxnconID" value="C_[(x)]-{0}" /><att name="type" value="state" /></node>
-                        <node id="B_[a]--0" label="B_[a]--0"><att name="rxnconID" value="B_[a]--0" /><att name="type" value="state" /></node>
-                        <node id="A_[b]--0" label="A_[b]--0"><att name="rxnconID" value="A_[b]--0" /><att name="type" value="state" /></node>
-                        <node id="A_[d]--0" label="A_[d]--0"><att name="rxnconID" value="A_[d]--0" /><att name="type" value="state" /></node>
-                        <node id="D_[a]--0" label="D_[a]--0"><att name="rxnconID" value="D_[a]--0" /><att name="type" value="state" /></node>
-                        <edge source="A_[c]--C_[a]" target="comp"><att name="interaction" value="AND"/></edge>
-                        <edge source="A_[c]--0" target="A_[c]_ppi+_C_[a]"><att name="interaction" value="ss"/></edge>
-                        <edge source="A_[c]_ppi+_C_[a]" target="A_[c]--C_[a]"><att name="interaction" value="produce"/></edge>
-                        <edge source="A_[c]_ppi+_C_[a]" target="C_[a]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[c]_ppi+_C_[a]" target="A_[c]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="D_p+_C_[(x)]" target="C_[(x)]-{p}"><att name="interaction" value="produce"/></edge>
-                        <edge source="D_p+_C_[(x)]" target="C_[(x)]-{0}"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[(x)]-{p}" target="comp"><att name="interaction" value="AND"/></edge>
-                        <edge source="A_[(x)]-{0}" target="C_p+_A_[(x)]"><att name="interaction" value="ss"/></edge>
-                        <edge source="A_[b]_ppi+_B_[a]" target="A_[b]--B_[a]"><att name="interaction" value="produce"/></edge>
-                        <edge source="A_[b]_ppi+_B_[a]" target="A_[b]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[b]_ppi+_B_[a]" target="B_[a]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="C_p+_A_[(x)]" target="A_[(x)]-{p}"><att name="interaction" value="produce"/></edge>
-                        <edge source="C_p+_A_[(x)]" target="A_[(x)]-{0}"><att name="interaction" value="consume"/></edge>
-                        <edge source="comp" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="!"/></edge>
-                        <edge source="A_[d]--D_[a]" target="comp"><att name="interaction" value="AND"/></edge>
-                        <edge source="C_[a]--0" target="A_[c]_ppi+_C_[a]"><att name="interaction" value="ss"/></edge>
-                        <edge source="A_[d]_ppi+_D_[a]" target="A_[d]--D_[a]"><att name="interaction" value="produce"/></edge>
-                        <edge source="A_[d]_ppi+_D_[a]" target="A_[d]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[d]_ppi+_D_[a]" target="D_[a]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="C_[(x)]-{p}" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="!"/></edge>
-                        <edge source="C_[(x)]-{0}" target="D_p+_C_[(x)]"><att name="interaction" value="ss"/></edge>
-                        <edge source="B_[a]--0" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="ss"/></edge>
-                        <edge source="A_[b]--0" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="ss"/></edge>
-                        <edge source="A_[d]--0" target="A_[d]_ppi+_D_[a]"><att name="interaction" value="ss"/></edge>
-                        <edge source="D_[a]--0" target="A_[d]_ppi+_D_[a]"><att name="interaction" value="ss"/></edge>
+                        <node id="A_[d]--0" label="A_[d]--0"><att name="rxnconID" value="A_[d]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[b]--B_[a]" label="A_[b]--B_[a]"><att name="rxnconID" value="A_[b]--B_[a]" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="D_p+_C_[(x)]" label="D_p+_C_[(x)]"><att name="rxnconID" value="D_p+_C_[(x)]" type="string"/><att name="type" value="reaction" type="string"/></node>
+                        <node id="A_[c]--0" label="A_[c]--0"><att name="rxnconID" value="A_[c]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[b]--0" label="A_[b]--0"><att name="rxnconID" value="A_[b]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[b]_ppi+_B_[a]" label="A_[b]_ppi+_B_[a]"><att name="rxnconID" value="A_[b]_ppi+_B_[a]" type="string"/><att name="type" value="reaction" type="string"/></node>
+                        <node id="A_[c]--C_[a]" label="A_[c]--C_[a]"><att name="rxnconID" value="A_[c]--C_[a]" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="comp" label="comp"><att name="rxnconID" value="comp" type="string"/><att name="type" value="boolean_and" type="string"/></node>
+                        <node id="A_[d]_ppi+_D_[a]" label="A_[d]_ppi+_D_[a]"><att name="rxnconID" value="A_[d]_ppi+_D_[a]" type="string"/><att name="type" value="reaction" type="string"/></node>
+                        <node id="C_[a]--0" label="C_[a]--0"><att name="rxnconID" value="C_[a]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="C_[(x)]-{0}" label="C_[(x)]-{0}"><att name="rxnconID" value="C_[(x)]-{0}" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[c]_ppi+_C_[a]" label="A_[c]_ppi+_C_[a]"><att name="rxnconID" value="A_[c]_ppi+_C_[a]" type="string"/><att name="type" value="reaction" type="string"/></node>
+                        <node id="C_p+_A_[(x)]" label="C_p+_A_[(x)]"><att name="rxnconID" value="C_p+_A_[(x)]" type="string"/><att name="type" value="reaction" type="string"/></node>
+                        <node id="C_[(x)]-{p}" label="C_[(x)]-{p}"><att name="rxnconID" value="C_[(x)]-{p}" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[(x)]-{p}" label="A_[(x)]-{p}"><att name="rxnconID" value="A_[(x)]-{p}" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[d]--D_[a]" label="A_[d]--D_[a]"><att name="rxnconID" value="A_[d]--D_[a]" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="D_[a]--0" label="D_[a]--0"><att name="rxnconID" value="D_[a]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[(x)]-{0}" label="A_[(x)]-{0}"><att name="rxnconID" value="A_[(x)]-{0}" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="B_[a]--0" label="B_[a]--0"><att name="rxnconID" value="B_[a]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <edge source="A_[d]--0" target="A_[d]_ppi+_D_[a]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="D_p+_C_[(x)]" target="C_[(x)]-{p}"><att name="interaction" value="produce" type="string"/></edge>
+                        <edge source="D_p+_C_[(x)]" target="C_[(x)]-{0}"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[c]--0" target="A_[c]_ppi+_C_[a]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="A_[b]--0" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="A_[b]_ppi+_B_[a]" target="A_[b]--B_[a]"><att name="interaction" value="produce" type="string"/></edge>
+                        <edge source="A_[b]_ppi+_B_[a]" target="B_[a]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[b]_ppi+_B_[a]" target="A_[b]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[c]--C_[a]" target="comp"><att name="interaction" value="AND" type="string"/></edge>
+                        <edge source="comp" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="!" type="string"/></edge>
+                        <edge source="A_[d]_ppi+_D_[a]" target="A_[d]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[d]_ppi+_D_[a]" target="A_[d]--D_[a]"><att name="interaction" value="produce" type="string"/></edge>
+                        <edge source="A_[d]_ppi+_D_[a]" target="D_[a]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="C_[a]--0" target="A_[c]_ppi+_C_[a]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="C_[(x)]-{0}" target="D_p+_C_[(x)]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="A_[c]_ppi+_C_[a]" target="A_[c]--C_[a]"><att name="interaction" value="produce" type="string"/></edge>
+                        <edge source="A_[c]_ppi+_C_[a]" target="A_[c]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[c]_ppi+_C_[a]" target="C_[a]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="C_p+_A_[(x)]" target="A_[(x)]-{0}"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="C_p+_A_[(x)]" target="A_[(x)]-{p}"><att name="interaction" value="produce" type="string"/></edge>
+                        <edge source="C_[(x)]-{p}" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="!" type="string"/></edge>
+                        <edge source="A_[(x)]-{p}" target="comp"><att name="interaction" value="AND" type="string"/></edge>
+                        <edge source="A_[d]--D_[a]" target="comp"><att name="interaction" value="AND" type="string"/></edge>
+                        <edge source="D_[a]--0" target="A_[d]_ppi+_D_[a]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="A_[(x)]-{0}" target="C_p+_A_[(x)]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="B_[a]--0" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="ss" type="string"/></edge>
                         </graph>'''
 
     assert _is_xgmml_export_test_case_correct(test_case_quick_str, expected_xgmml)
@@ -224,73 +224,73 @@ def test_creating_writing_xgmml_from_regulatory_graph_complex_boolean():
                         <att name="name" value="test_graph" type="string"/>
                         <att name="shared name" value="test_graph" type="string"/>
 
-                        <node id="A_[B]_ppi+_B_[A]" label="A_[B]_ppi+_B_[A]"><att name="rxnconID" value="A_[B]_ppi+_B_[A]" /><att name="type" value="reaction" /></node>
-                        <node id="A_[G]--G_[A]" label="A_[G]--G_[A]"><att name="rxnconID" value="A_[G]--G_[A]" /><att name="type" value="state" /></node>
-                        <node id="comp2" label="comp2"><att name="rxnconID" value="comp2" /><att name="type" value="boolean_and" /></node>
-                        <node id="A_[C]_ppi+_C_[A]" label="A_[C]_ppi+_C_[A]"><att name="rxnconID" value="A_[C]_ppi+_C_[A]" /><att name="type" value="reaction" /></node>
-                        <node id="A_[D]_ppi+_D_[A]" label="A_[D]_ppi+_D_[A]"><att name="rxnconID" value="A_[D]_ppi+_D_[A]" /><att name="type" value="reaction" /></node>
-                        <node id="A_[F]--F_[A]" label="A_[F]--F_[A]"><att name="rxnconID" value="A_[F]--F_[A]" /><att name="type" value="state" /></node>
-                        <node id="A_[B]--0" label="A_[B]--0"><att name="rxnconID" value="A_[B]--0" /><att name="type" value="state" /></node>
-                        <node id="G_[A]--0" label="G_[A]--0"><att name="rxnconID" value="G_[A]--0" /><att name="type" value="state" /></node>
-                        <node id="A_[E]--E_[A]" label="A_[E]--E_[A]"><att name="rxnconID" value="A_[E]--E_[A]" /><att name="type" value="state" /></node>
-                        <node id="A_[C]--0" label="A_[C]--0"><att name="rxnconID" value="A_[C]--0" /><att name="type" value="state" /></node>
-                        <node id="F_[A]--0" label="F_[A]--0"><att name="rxnconID" value="F_[A]--0" /><att name="type" value="state" /></node>
-                        <node id="D_[A]--0" label="D_[A]--0"><att name="rxnconID" value="D_[A]--0" /><att name="type" value="state" /></node>
-                        <node id="comp3" label="comp3"><att name="rxnconID" value="comp3" /><att name="type" value="boolean_and" /></node>
-                        <node id="E_[A]--0" label="E_[A]--0"><att name="rxnconID" value="E_[A]--0" /><att name="type" value="state" /></node>
-                        <node id="A_[F]_ppi+_F_[A]" label="A_[F]_ppi+_F_[A]"><att name="rxnconID" value="A_[F]_ppi+_F_[A]" /><att name="type" value="reaction" /></node>
-                        <node id="A_[E]_ppi+_E_[A]" label="A_[E]_ppi+_E_[A]"><att name="rxnconID" value="A_[E]_ppi+_E_[A]" /><att name="type" value="reaction" /></node>
-                        <node id="comp" label="comp"><att name="rxnconID" value="comp" /><att name="type" value="boolean_and" /></node>
-                        <node id="A_[F]--0" label="A_[F]--0"><att name="rxnconID" value="A_[F]--0" /><att name="type" value="state" /></node>
-                        <node id="A_[C]--C_[A]" label="A_[C]--C_[A]"><att name="rxnconID" value="A_[C]--C_[A]" /><att name="type" value="state" /></node>
-                        <node id="B_[A]--0" label="B_[A]--0"><att name="rxnconID" value="B_[A]--0" /><att name="type" value="state" /></node>
-                        <node id="A_[E]--0" label="A_[E]--0"><att name="rxnconID" value="A_[E]--0" /><att name="type" value="state" /></node>
-                        <node id="comp1" label="comp1"><att name="rxnconID" value="comp1" /><att name="type" value="boolean_or" /></node>
-                        <node id="A_[G]_ppi+_G_[A]" label="A_[G]_ppi+_G_[A]"><att name="rxnconID" value="A_[G]_ppi+_G_[A]" /><att name="type" value="reaction" /></node>
-                        <node id="A_[D]--D_[A]" label="A_[D]--D_[A]"><att name="rxnconID" value="A_[D]--D_[A]" /><att name="type" value="state" /></node>
-                        <node id="A_[G]--0" label="A_[G]--0"><att name="rxnconID" value="A_[G]--0" /><att name="type" value="state" /></node>
-                        <node id="A_[B]--B_[A]" label="A_[B]--B_[A]"><att name="rxnconID" value="A_[B]--B_[A]" /><att name="type" value="state" /></node>
-                        <node id="C_[A]--0" label="C_[A]--0"><att name="rxnconID" value="C_[A]--0" /><att name="type" value="state" /></node>
-                        <node id="A_[D]--0" label="A_[D]--0"><att name="rxnconID" value="A_[D]--0" /><att name="type" value="state" /></node>
-                        <edge source="A_[B]_ppi+_B_[A]" target="A_[B]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[B]_ppi+_B_[A]" target="A_[B]--B_[A]"><att name="interaction" value="produce"/></edge>
-                        <edge source="A_[B]_ppi+_B_[A]" target="B_[A]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[G]--G_[A]" target="comp3"><att name="interaction" value="AND"/></edge>
-                        <edge source="comp2" target="comp"><att name="interaction" value="AND"/></edge>
-                        <edge source="A_[C]_ppi+_C_[A]" target="A_[C]--C_[A]"><att name="interaction" value="produce"/></edge>
-                        <edge source="A_[C]_ppi+_C_[A]" target="C_[A]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[C]_ppi+_C_[A]" target="A_[C]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[D]_ppi+_D_[A]" target="D_[A]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[D]_ppi+_D_[A]" target="A_[D]--D_[A]"><att name="interaction" value="produce"/></edge>
-                        <edge source="A_[D]_ppi+_D_[A]" target="A_[D]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[F]--F_[A]" target="comp3"><att name="interaction" value="AND"/></edge>
-                        <edge source="A_[B]--0" target="A_[B]_ppi+_B_[A]"><att name="interaction" value="ss"/></edge>
-                        <edge source="G_[A]--0" target="A_[G]_ppi+_G_[A]"><att name="interaction" value="ss"/></edge>
-                        <edge source="A_[E]--E_[A]" target="comp2"><att name="interaction" value="AND"/></edge>
-                        <edge source="A_[C]--0" target="A_[C]_ppi+_C_[A]"><att name="interaction" value="ss"/></edge>
-                        <edge source="F_[A]--0" target="A_[F]_ppi+_F_[A]"><att name="interaction" value="ss"/></edge>
-                        <edge source="D_[A]--0" target="A_[D]_ppi+_D_[A]"><att name="interaction" value="ss"/></edge>
-                        <edge source="comp3" target="comp1"><att name="interaction" value="OR"/></edge>
-                        <edge source="E_[A]--0" target="A_[E]_ppi+_E_[A]"><att name="interaction" value="ss"/></edge>
-                        <edge source="A_[F]_ppi+_F_[A]" target="F_[A]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[F]_ppi+_F_[A]" target="A_[F]--F_[A]"><att name="interaction" value="produce"/></edge>
-                        <edge source="A_[F]_ppi+_F_[A]" target="A_[F]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[E]_ppi+_E_[A]" target="E_[A]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[E]_ppi+_E_[A]" target="A_[E]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[E]_ppi+_E_[A]" target="A_[E]--E_[A]"><att name="interaction" value="produce"/></edge>
-                        <edge source="comp" target="A_[B]_ppi+_B_[A]"><att name="interaction" value="!"/></edge>
-                        <edge source="A_[F]--0" target="A_[F]_ppi+_F_[A]"><att name="interaction" value="ss"/></edge>
-                        <edge source="A_[C]--C_[A]" target="comp1"><att name="interaction" value="OR"/></edge>
-                        <edge source="B_[A]--0" target="A_[B]_ppi+_B_[A]"><att name="interaction" value="ss"/></edge>
-                        <edge source="A_[E]--0" target="A_[E]_ppi+_E_[A]"><att name="interaction" value="ss"/></edge>
-                        <edge source="comp1" target="comp"><att name="interaction" value="AND"/></edge>
-                        <edge source="A_[G]_ppi+_G_[A]" target="A_[G]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[G]_ppi+_G_[A]" target="G_[A]--0"><att name="interaction" value="consume"/></edge>
-                        <edge source="A_[G]_ppi+_G_[A]" target="A_[G]--G_[A]"><att name="interaction" value="produce"/></edge>
-                        <edge source="A_[D]--D_[A]" target="comp2"><att name="interaction" value="AND"/></edge>
-                        <edge source="A_[G]--0" target="A_[G]_ppi+_G_[A]"><att name="interaction" value="ss"/></edge>
-                        <edge source="C_[A]--0" target="A_[C]_ppi+_C_[A]"><att name="interaction" value="ss"/></edge>
-                        <edge source="A_[D]--0" target="A_[D]_ppi+_D_[A]"><att name="interaction" value="ss"/></edge>
+                        <node id="A_[C]--C_[A]" label="A_[C]--C_[A]"><att name="rxnconID" value="A_[C]--C_[A]" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="C_[A]--0" label="C_[A]--0"><att name="rxnconID" value="C_[A]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[D]--0" label="A_[D]--0"><att name="rxnconID" value="A_[D]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[F]--F_[A]" label="A_[F]--F_[A]"><att name="rxnconID" value="A_[F]--F_[A]" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[E]--E_[A]" label="A_[E]--E_[A]"><att name="rxnconID" value="A_[E]--E_[A]" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="G_[A]--0" label="G_[A]--0"><att name="rxnconID" value="G_[A]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[B]--B_[A]" label="A_[B]--B_[A]"><att name="rxnconID" value="A_[B]--B_[A]" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="comp2" label="comp2"><att name="rxnconID" value="comp2" type="string"/><att name="type" value="boolean_and" type="string"/></node>
+                        <node id="A_[G]--G_[A]" label="A_[G]--G_[A]"><att name="rxnconID" value="A_[G]--G_[A]" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[E]--0" label="A_[E]--0"><att name="rxnconID" value="A_[E]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[B]--0" label="A_[B]--0"><att name="rxnconID" value="A_[B]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="comp" label="comp"><att name="rxnconID" value="comp" type="string"/><att name="type" value="boolean_and" type="string"/></node>
+                        <node id="A_[B]_ppi+_B_[A]" label="A_[B]_ppi+_B_[A]"><att name="rxnconID" value="A_[B]_ppi+_B_[A]" type="string"/><att name="type" value="reaction" type="string"/></node>
+                        <node id="B_[A]--0" label="B_[A]--0"><att name="rxnconID" value="B_[A]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[D]--D_[A]" label="A_[D]--D_[A]"><att name="rxnconID" value="A_[D]--D_[A]" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[C]--0" label="A_[C]--0"><att name="rxnconID" value="A_[C]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="comp1" label="comp1"><att name="rxnconID" value="comp1" type="string"/><att name="type" value="boolean_or" type="string"/></node>
+                        <node id="F_[A]--0" label="F_[A]--0"><att name="rxnconID" value="F_[A]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[E]_ppi+_E_[A]" label="A_[E]_ppi+_E_[A]"><att name="rxnconID" value="A_[E]_ppi+_E_[A]" type="string"/><att name="type" value="reaction" type="string"/></node>
+                        <node id="A_[G]--0" label="A_[G]--0"><att name="rxnconID" value="A_[G]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[C]_ppi+_C_[A]" label="A_[C]_ppi+_C_[A]"><att name="rxnconID" value="A_[C]_ppi+_C_[A]" type="string"/><att name="type" value="reaction" type="string"/></node>
+                        <node id="A_[D]_ppi+_D_[A]" label="A_[D]_ppi+_D_[A]"><att name="rxnconID" value="A_[D]_ppi+_D_[A]" type="string"/><att name="type" value="reaction" type="string"/></node>
+                        <node id="comp3" label="comp3"><att name="rxnconID" value="comp3" type="string"/><att name="type" value="boolean_and" type="string"/></node>
+                        <node id="A_[F]_ppi+_F_[A]" label="A_[F]_ppi+_F_[A]"><att name="rxnconID" value="A_[F]_ppi+_F_[A]" type="string"/><att name="type" value="reaction" type="string"/></node>
+                        <node id="D_[A]--0" label="D_[A]--0"><att name="rxnconID" value="D_[A]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[F]--0" label="A_[F]--0"><att name="rxnconID" value="A_[F]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="E_[A]--0" label="E_[A]--0"><att name="rxnconID" value="E_[A]--0" type="string"/><att name="type" value="state" type="string"/></node>
+                        <node id="A_[G]_ppi+_G_[A]" label="A_[G]_ppi+_G_[A]"><att name="rxnconID" value="A_[G]_ppi+_G_[A]" type="string"/><att name="type" value="reaction" type="string"/></node>
+                        <edge source="A_[C]--C_[A]" target="comp1"><att name="interaction" value="OR" type="string"/></edge>
+                        <edge source="C_[A]--0" target="A_[C]_ppi+_C_[A]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="A_[D]--0" target="A_[D]_ppi+_D_[A]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="A_[F]--F_[A]" target="comp3"><att name="interaction" value="AND" type="string"/></edge>
+                        <edge source="A_[E]--E_[A]" target="comp2"><att name="interaction" value="AND" type="string"/></edge>
+                        <edge source="G_[A]--0" target="A_[G]_ppi+_G_[A]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="comp2" target="comp"><att name="interaction" value="AND" type="string"/></edge>
+                        <edge source="A_[G]--G_[A]" target="comp3"><att name="interaction" value="AND" type="string"/></edge>
+                        <edge source="A_[E]--0" target="A_[E]_ppi+_E_[A]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="A_[B]--0" target="A_[B]_ppi+_B_[A]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="comp" target="A_[B]_ppi+_B_[A]"><att name="interaction" value="!" type="string"/></edge>
+                        <edge source="A_[B]_ppi+_B_[A]" target="B_[A]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[B]_ppi+_B_[A]" target="A_[B]--B_[A]"><att name="interaction" value="produce" type="string"/></edge>
+                        <edge source="A_[B]_ppi+_B_[A]" target="A_[B]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="B_[A]--0" target="A_[B]_ppi+_B_[A]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="A_[D]--D_[A]" target="comp2"><att name="interaction" value="AND" type="string"/></edge>
+                        <edge source="A_[C]--0" target="A_[C]_ppi+_C_[A]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="comp1" target="comp"><att name="interaction" value="AND" type="string"/></edge>
+                        <edge source="F_[A]--0" target="A_[F]_ppi+_F_[A]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="A_[E]_ppi+_E_[A]" target="A_[E]--E_[A]"><att name="interaction" value="produce" type="string"/></edge>
+                        <edge source="A_[E]_ppi+_E_[A]" target="A_[E]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[E]_ppi+_E_[A]" target="E_[A]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[G]--0" target="A_[G]_ppi+_G_[A]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="A_[C]_ppi+_C_[A]" target="A_[C]--C_[A]"><att name="interaction" value="produce" type="string"/></edge>
+                        <edge source="A_[C]_ppi+_C_[A]" target="C_[A]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[C]_ppi+_C_[A]" target="A_[C]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[D]_ppi+_D_[A]" target="A_[D]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[D]_ppi+_D_[A]" target="D_[A]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[D]_ppi+_D_[A]" target="A_[D]--D_[A]"><att name="interaction" value="produce" type="string"/></edge>
+                        <edge source="comp3" target="comp1"><att name="interaction" value="OR" type="string"/></edge>
+                        <edge source="A_[F]_ppi+_F_[A]" target="A_[F]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[F]_ppi+_F_[A]" target="F_[A]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[F]_ppi+_F_[A]" target="A_[F]--F_[A]"><att name="interaction" value="produce" type="string"/></edge>
+                        <edge source="D_[A]--0" target="A_[D]_ppi+_D_[A]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="A_[F]--0" target="A_[F]_ppi+_F_[A]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="E_[A]--0" target="A_[E]_ppi+_E_[A]"><att name="interaction" value="ss" type="string"/></edge>
+                        <edge source="A_[G]_ppi+_G_[A]" target="A_[G]--G_[A]"><att name="interaction" value="produce" type="string"/></edge>
+                        <edge source="A_[G]_ppi+_G_[A]" target="G_[A]--0"><att name="interaction" value="consume" type="string"/></edge>
+                        <edge source="A_[G]_ppi+_G_[A]" target="A_[G]--0"><att name="interaction" value="consume" type="string"/></edge>
                         </graph>"""
 
     assert _is_xgmml_export_test_case_correct(test_case_quick_str, expected_xgmml)
