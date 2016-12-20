@@ -115,10 +115,13 @@ class RxnConSystem:
         return states
 
     def complementary_states_for_component(self, component: Spec, state: State) -> List[State]:
-        for group in self.states_for_component_grouped(component.to_non_struct_spec()).values():
-            if state.to_non_structured_state() in group:
-                complements = [x for x in group if x != state.to_non_structured_state()]
-                return complements
+        if not state.is_structured:
+            for group in self.states_for_component_grouped(component).values():
+                if state in group:
+                    return [x for x in group if x != state]
+        else:
+            complements = self.complementary_states_for_component(component.to_non_struct_spec(), state.to_non_structured())
+            return [x.to_structured_from_state(state) for x in complements]
 
     def _calculate_components(self):
         components = []
@@ -134,21 +137,21 @@ class RxnConSystem:
     def _calculate_produced_states(self):
         states = []
         for reaction in self.reactions:
-            states += [state.to_non_structured_state() for state in reaction.produced_states]
+            states += [state.to_non_structured() for state in reaction.produced_states]
 
         self._produced_states = list(set(states))
 
     def _calculate_consumed_states(self):
         states = []
         for reaction in self.reactions:
-            states += [state.to_non_structured_state() for state in reaction.consumed_states]
+            states += [state.to_non_structured() for state in reaction.consumed_states]
 
         self._consumed_states = list(set(states))
 
     def _calculate_synthesised_states(self):
         states = []
         for reaction in self.reactions:
-            states += [state.to_non_structured_state() for state in reaction.synthesised_states]
+            states += [state.to_non_structured() for state in reaction.synthesised_states]
 
         self._synthesised_states = list(set(states))
 
@@ -183,7 +186,8 @@ class RxnConSystem:
                 if effector.expr.is_elemental:
                     return effector
                 else:
-                    elemental_states = [state for state in self.states if state.is_subset_of(effector.expr)]
+                    elemental_states = [state.to_structured_from_state(effector.expr)
+                                        for state in self.states if state.is_subset_of(effector.expr)]
                     assert elemental_states, 'Could not find elemental states which are subset of the non-elemental ' \
                                              'state {}'.format(effector.expr)
                     assert all(state.is_elemental for state in elemental_states)
@@ -191,28 +195,24 @@ class RxnConSystem:
                     multi_or_effector.name = effector.name
                     return multi_or_effector
             elif isinstance(effector, AndEffector):
-                and_effector = AndEffector(*(expanded_effector(x) for x in effector.exprs))
-                and_effector.name = effector.name
+                and_effector        = AndEffector(*(expanded_effector(x) for x in effector.exprs))
+                and_effector.name   = effector.name
+                and_effector.equivs = effector.equivs
                 return and_effector
             elif isinstance(effector, OrEffector):
-                or_effector = OrEffector(*(expanded_effector(x) for x in effector.exprs))
-                or_effector.name = effector.name
+                or_effector        = OrEffector(*(expanded_effector(x) for x in effector.exprs))
+                or_effector.name   = effector.name
+                or_effector.equivs = effector.equivs
                 return or_effector
             elif isinstance(effector, NotEffector):
-                not_effector = NotEffector(expanded_effector(effector.expr))
+                not_effector      = NotEffector(expanded_effector(effector.expr))
                 not_effector.name = effector.name
                 return not_effector
             else:
                 raise AssertionError
 
         for contingency in self.contingencies:
-            try:
-                equivs = contingency.effector.equivs
-            except AttributeError:
-                equivs = None
-
             contingency.effector = expanded_effector(contingency.effector)
-            contingency.effector.equivs = equivs
 
     def _structure_contingencies(self):
         self.contingencies = [c.to_structured() for c in self.contingencies]
@@ -220,6 +220,6 @@ class RxnConSystem:
     def _missing_states(self):
         required_states = []
         for contingency in self.contingencies:
-            required_states += [state.to_non_structured_state() for state in contingency.effector.states if not state.is_global]
+            required_states += [state.to_non_structured() for state in contingency.effector.states if not state.is_global]
 
         return [state for state in required_states if state not in self.states]

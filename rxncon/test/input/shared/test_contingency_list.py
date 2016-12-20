@@ -78,6 +78,32 @@ def test_from_pheromone_model():
         print(c.to_structured())
 
 
+def test_insulin_homodimer():
+    cles = [
+        cle_from_str('IR_ap+_IR_[JM(Y972)]', '!', '<IRstar>#0,<IR-Ins>.IR@0'),
+        cle_from_str('<IRstar>', 'AND', '<IR-phos>'),
+        cle_from_str('<IRstar>', 'AND', '<IR-Ins>'),
+        cle_from_str('<IRstar>', 'EQV', '<IR-phos>.IR@0,<IR-Ins>.IR@0'),
+        cle_from_str('<IR-phos>', 'AND', 'IR@0_[TK(Y1158)]-{P}'),
+        cle_from_str('<IR-phos>', 'AND', 'IR@0_[TK(Y1162)]-{P}'),
+        cle_from_str('<IR-phos>', 'AND', 'IR@0_[TK(Y1163)]-{P}'),
+        cle_from_str('<IR-Ins>', 'AND', 'IR@0_[IRBD]--IR@1_[IRBD]'),
+        cle_from_str('<IR-Ins>', 'AND', '<IR01-Ins>'),
+        cle_from_str('<IR-Ins>', 'EQV', 'IR@0,<IR01-Ins>.IR@0'),
+        cle_from_str('<IR-Ins>', 'EQV', 'IR@1,<IR01-Ins>.IR@1'),
+        cle_from_str('<IR01-Ins>', 'OR', 'IR@0_[lig]--insulin@2_[IR]'),
+        cle_from_str('<IR01-Ins>', 'OR', 'IR@1_[lig]--insulin@3_[IR]'),
+    ]
+
+    states = contingencies_from_contingency_list_entries(cles)[0].to_structured().effector.states
+
+    assert state_from_str('IR@0_[TK(Y1158)]-{p}') in states
+    assert state_from_str('IR@0_[TK(Y1162)]-{p}') in states
+    assert state_from_str('IR@0_[TK(Y1163)]-{p}') in states
+    assert state_from_str('IR@0_[IRBD]--IR@2_[IRBD]') in states
+    assert state_from_str('IR@0_[lig]--insulin@3_[IR]') in states
+    assert state_from_str('IR@2_[lig]--insulin@4_[IR]') in states
+
 
 
 

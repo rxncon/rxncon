@@ -112,6 +112,9 @@ class Complex:
     def __str__(self):
         return '.'.join(str(mol) for mol in self.mols)
 
+    def __repr__(self):
+        return 'Complex<{}>'.format(str(self))
+
     @property
     def is_reactant(self):
         return any(mol.is_reactant for mol in self.mols)
@@ -220,15 +223,16 @@ class Parameter:
         self.name, self.value = name, value
 
     def __str__(self):
-        if not self.value:
+        if self.value is None:
             return self.name
-        elif not self.name:
+        elif self.name is None:
             return self.value
         else:
             return '{} = {}'.format(self.name, self.value)
 
     def __repr__(self):
         return str(self)
+
 
 class InitialCondition:
     def __init__(self, complex: Complex, value: Parameter):
@@ -272,6 +276,33 @@ def calc_positive_solutions(rxncon_sys: RxnConSystem, solution: Dict[State, bool
         combos = product(*(rxncon_sys.complementary_states_for_component(spec.to_component_spec(), state) for spec in state.specs))
         return [list(combo) for combo in combos if is_satisfiable(combo)]
 
+    def structure_states(states: List[State]) -> List[State]:
+        cur_index = max(spec.struct_index for state in states for spec in state.specs if spec.is_structured)
+
+        spec_to_index = {}
+
+        struct_states = []
+
+        for state in states:
+            if state.is_structured:
+                struct_states.append(state)
+                continue
+
+            for spec in state.specs:
+                if spec.is_structured:
+                    continue
+
+                try:
+                    state = state.to_structured_from_spec(spec.with_struct_index(spec_to_index[spec.to_component_spec()]))
+                except KeyError:
+                    state = state.to_structured_from_spec(spec.with_struct_index(cur_index))
+                    cur_index += 1
+                    spec_to_index[spec.to_component_spec()] = cur_index
+
+            struct_states.append(state)
+
+        return struct_states
+
     trues  = [state for state, val in solution.items() if val]
     falses = [state for state, val in solution.items() if not val]
 
@@ -283,7 +314,7 @@ def calc_positive_solutions(rxncon_sys: RxnConSystem, solution: Dict[State, bool
     solutions = []
 
     for positivized_false in positivized_falses:
-        possible_solution = trues + positivized_false
+        possible_solution = list(set(structure_states(trues + positivized_false)))
         if is_satisfiable(possible_solution):
             solutions.append(possible_solution)
 
@@ -310,21 +341,26 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             elif isinstance(eff, NotEffector):
                 return Complement(parse_effector(eff.expr))
             elif isinstance(eff, OrEffector):
-                return Union(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
+                return Union(*(parse_effector(x) for x in eff.exprs))
             elif isinstance(eff, AndEffector):
-                return Intersection(parse_effector(eff.left_expr), parse_effector(eff.right_expr))
+                return Intersection(*(parse_effector(x) for x in eff.exprs))
             else:
                 raise AssertionError
 
-        if contingency.type in [ContingencyType.requirement, ContingencyType.positive]:
+        if contingency.type in [ContingencyType.requirement]:
             return parse_effector(contingency.effector)
-        elif contingency.type in [ContingencyType.inhibition, ContingencyType.negative]:
+        elif contingency.type in [ContingencyType.inhibition]:
             return Complement(parse_effector(contingency.effector))
         else:
             return UniversalSet()
 
     def calc_rule(reaction: Reaction, cont_soln: List[State]) -> Rule:
         def calc_complexes(terms: List[ReactionTerm], states: List[State]) -> List[Complex]:
+            if not all(x.is_structured for x in states):
+                unstructs = [x for x in states if not x.is_structured]
+                raise AssertionError('Error in building rule for Reaction {}, States {} appear unstructured'
+                                     .format(str(reaction), ', '.join(str(x) for x in unstructs)))
+
             states = copy(states)
             builder = ComplexExprBuilder()
             struct_index = 0
@@ -338,6 +374,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
                     struct_index += 1
 
                 states += struct_states
+
+            assert all(x.is_structured for x in states)
 
             for state in states:
                 for func in STATE_TO_COMPLEX_BUILDER_FN[state.repr_def]:
@@ -355,8 +393,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
     rules = []
 
     for reaction in rxncon_sys.reactions:
-        solutions = Intersection(*[venn_from_contingency(x) for x
-                                   in rxncon_sys.contingencies_for_reaction(reaction)]).calc_solutions()
+        solutions = Intersection(*(venn_from_contingency(x) for x
+                                   in rxncon_sys.contingencies_for_reaction(reaction))).calc_solutions()
 
         positive_solutions = []
         for solution in solutions:

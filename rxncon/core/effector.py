@@ -84,10 +84,12 @@ class StructEquivalences:
         found_second = None
         for eq_class in self.eq_classes:
             if first_qual_spec in eq_class:
-                eq_class.append(second_qual_spec)
+                if second_qual_spec not in eq_class:
+                    eq_class.append(second_qual_spec)
                 found_first = eq_class
             elif second_qual_spec in eq_class:
-                eq_class.append(first_qual_spec)
+                if first_qual_spec not in eq_class:
+                    eq_class.append(first_qual_spec)
                 found_second = eq_class
 
         if found_first and found_second:
@@ -100,7 +102,8 @@ class StructEquivalences:
     def add_equivalence_class(self, eq_class: List[QualSpec]):
         for existing_class in self.eq_classes:
             if next((x for x in existing_class if x.to_component_qual_spec() in eq_class), False):
-                existing_class += [x.to_component_qual_spec() for x in eq_class]
+                for elem in eq_class:
+                    self.add_equivalence(elem.to_component_qual_spec(), existing_class[0])
                 return
 
         self.eq_classes.append([x.to_component_qual_spec() for x in eq_class])
@@ -324,6 +327,9 @@ class AndEffector(NaryEffector):
         else:
             return 'AndEffector({0})'.format(','.join(str(x) for x in self.exprs))
 
+    def __repr__(self) -> str:
+        return str(self)
+
     def __eq__(self, other: Effector) -> bool:
         return isinstance(other, AndEffector) and self.name == other.name and self.exprs == other.exprs
 
@@ -334,6 +340,9 @@ class OrEffector(NaryEffector):
             return 'OrEffector{0}({1})'.format(self.name, ','.join(str(x) for x in self.exprs))
         else:
             return 'OrEffector({0})'.format(','.join(str(x) for x in self.exprs))
+
+    def __repr__(self) -> str:
+        return str(self)
 
     def __eq__(self, other: Effector) -> bool:
         return isinstance(other, OrEffector) and self.name == other.name and \

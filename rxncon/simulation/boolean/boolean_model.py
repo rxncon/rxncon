@@ -218,7 +218,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
     def factor_from_contingency(contingency: Contingency) -> VennSet:
         def parse_effector(eff: Effector) -> VennSet:
             if isinstance(eff, StateEffector):
-                return ValueSet(StateTarget(eff.expr.to_non_structured_state()))
+                return ValueSet(StateTarget(eff.expr.to_non_structured()))
             elif isinstance(eff, NotEffector):
                 return Complement(parse_effector(eff.expr))
             elif isinstance(eff, OrEffector):

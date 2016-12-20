@@ -131,7 +131,7 @@ class RegulatoryGraph():
 
     def _add_information_from_effector_to_graph(self, effector, edge_type, target_name) -> None:
         if isinstance(effector, StateEffector):
-            name = str(effector.expr.to_non_structured_state())
+            name = str(effector.expr.to_non_structured())
             if re.match("^\[[/w]*\]?", name):
                 self._add_node_and_edge(name, NodeType.input, edge_type, target_name)
             else:

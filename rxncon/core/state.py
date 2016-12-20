@@ -273,13 +273,43 @@ class State:
 
         self.vars = new_vars
 
-    def to_non_structured_state(self) -> 'State':
+    def to_non_structured(self) -> 'State':
         non_struct_vars = deepcopy(self.vars)
         for k, v in non_struct_vars.items():
             if isinstance(v, Spec):
                 non_struct_vars[k] = v.to_non_struct_spec()
 
         return State(self.definition, non_struct_vars)
+
+    def to_structured_from_spec(self, spec: Spec) -> 'State':
+        assert spec.struct_index is not None
+        struct_vars = deepcopy(self.vars)
+        for k, v in struct_vars.items():
+            if isinstance(v, Spec):
+                if v.struct_index is not None:
+                    continue
+                elif spec.to_non_struct_spec().to_component_spec() == v.to_component_spec():
+                    v.struct_index = spec.struct_index
+                    break
+
+        return State(self.definition, struct_vars)
+
+    def to_structured_from_state(self, state: 'State') -> 'State':
+        other_vars = deepcopy(state.vars)
+        struct_vars = deepcopy(self.vars)
+
+        for k, v in struct_vars.items():
+            if isinstance(v, Spec):
+                if v.struct_index is not None:
+                    continue
+
+                for kp, vp in other_vars.items():
+                    if isinstance(vp, Spec) and vp.struct_index is not None and vp.to_non_struct_spec().is_superspec_of(v):
+                        v.struct_index = vp.struct_index
+                        other_vars[kp] = vp.to_non_struct_spec()
+                        break
+
+        return State(self.definition, struct_vars)
 
     @property
     def components(self) -> List[Spec]:
@@ -314,7 +344,7 @@ class FullyNeutralState(State):
     def __eq__(self, other: 'State') -> bool:
         return isinstance(other, FullyNeutralState)
 
-    def to_non_structured_state(self):
+    def to_non_structured(self):
         return self
 
     @property

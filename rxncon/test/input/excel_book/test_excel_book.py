@@ -1,19 +1,20 @@
 import os
 
 from rxncon.input.excel_book.excel_book import ExcelBook
-from rxncon.core.reaction import reaction_from_str
+from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_rxncon
 
 CELL_CYCLE_XLS = os.path.join(os.path.dirname(__file__), 'cell_cycle_toy_model.xls')
-PHEROMONE_XLS  = os.path.join(os.path.dirname(__file__), 'pheromone_structured.xls')
+INSULIN  = os.path.join(os.path.dirname(__file__), '../../../../test/insulin.xls')
 SPS_XLS        = os.path.join(os.path.dirname(__file__), 'sps.xls')
 
 
-def test_pheromone():
-    book = ExcelBook(PHEROMONE_XLS)
+def test_insulin():
+    book = ExcelBook(INSULIN)
     system = book.rxncon_system
-    cs = system.contingencies_for_reaction(reaction_from_str('Ste4_[Ste5]_ppi+_Ste5_[Ste4]'))
 
-    for c in cs:
+    rbm = rule_based_model_from_rxncon(system)
+
+    for r in rbm.rules:
         print()
-        print(c)
+        print(r)
 

@@ -190,7 +190,7 @@ class Mol:
 
     def _validate(self):
         for (spec, state_def), state in self.states.items():
-            assert state.to_non_structured_state() in self.mol_def.valid_states[(spec, state_def)]
+            assert state.to_non_structured() in self.mol_def.valid_states[(spec, state_def)]
 
 
 @typecheck

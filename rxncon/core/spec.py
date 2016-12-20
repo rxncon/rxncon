@@ -61,6 +61,10 @@ class Spec(ABC):
         return other.is_subspec_of(self)
 
     @property
+    def is_structured(self):
+        return self.struct_index is not None
+
+    @property
     def is_component_spec(self) -> bool:
         return self.has_resolution(LocusResolution.component)
 
