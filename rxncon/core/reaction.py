@@ -492,7 +492,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{} -> $y#$y-{LIC}'
+        '$y#$y-{0} -> $y#$y-{LIC}'
     ),
     ReactionDef(
         STATE_DEFS,
