@@ -115,8 +115,8 @@ class RegulatoryGraph:
 
             if isinstance(eff, StateEffector):
                 if con_type is ContingencyType.inhibition:
-                    return Complement(ValueSet(eff.expr.to_non_structured_state()))
-                return ValueSet(eff.expr.to_non_structured_state())
+                    return Complement(ValueSet(eff.expr.to_non_structured()))
+                return ValueSet(eff.expr.to_non_structured())
             elif isinstance(eff, NotEffector):
                 if con_type is ContingencyType.inhibition:
                     return _effector_to_vennset(eff.expr)
@@ -482,7 +482,7 @@ class RegulatoryGraph:
                 self._add_edge(source=str(name), target=target_name, interaction=edge_type)
 
             if isinstance(effector, StateEffector):
-                name = str(effector.expr.to_non_structured_state())
+                name = str(effector.expr.to_non_structured())
                 if re.match("^\[[/w]*\]?", name):
                     add_node_and_edge(name, NodeType.input, edge_type, target_name)
                 else:
