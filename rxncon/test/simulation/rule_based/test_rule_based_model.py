@@ -1,6 +1,6 @@
 from rxncon.input.quick.quick import Quick
-from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_rxncon, calc_positive_solutions
-from rxncon.core.state import state_from_str
+from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_rxncon
+
 
 def test_simple_system():
     rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p}

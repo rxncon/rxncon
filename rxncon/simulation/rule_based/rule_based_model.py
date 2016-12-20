@@ -264,63 +264,6 @@ class RuleBasedModel:
             parameters, observables, rules
 
 
-def calc_positive_solutions(rxncon_sys: RxnConSystem, solution: Dict[State, bool]) -> List[List[State]]:
-    def is_satisfiable(states: Iterable[State]) -> bool:
-        for pair in combinations(states, 2):
-            if pair[0].is_mutually_exclusive_with(pair[1]):
-                return False
-
-        return True
-
-    def complementary_state_combos(state: State) -> List[List[State]]:
-        combos = product(*(rxncon_sys.complementary_states_for_component(spec.to_component_spec(), state) for spec in state.specs))
-        return [list(combo) for combo in combos if is_satisfiable(combo)]
-
-    def structure_states(states: List[State]) -> List[State]:
-        cur_index = max(spec.struct_index for state in states for spec in state.specs if spec.is_structured)
-
-        spec_to_index = {}
-
-        struct_states = []
-
-        for state in states:
-            if state.is_structured:
-                struct_states.append(state)
-                continue
-
-            for spec in state.specs:
-                if spec.is_structured:
-                    continue
-
-                try:
-                    state = state.to_structured_from_spec(spec.with_struct_index(spec_to_index[spec.to_component_spec()]))
-                except KeyError:
-                    state = state.to_structured_from_spec(spec.with_struct_index(cur_index))
-                    cur_index += 1
-                    spec_to_index[spec.to_component_spec()] = cur_index
-
-            struct_states.append(state)
-
-        return struct_states
-
-    trues  = [state for state, val in solution.items() if val]
-    falses = [state for state, val in solution.items() if not val]
-
-    if not falses:
-        return [trues]
-
-    positivized_falses = [list(chain(*x)) for x in product(*(complementary_state_combos(state) for state in falses))]
-
-    solutions = []
-
-    for positivized_false in positivized_falses:
-        possible_solution = list(set(structure_states(trues + positivized_false)))
-        if is_satisfiable(possible_solution):
-            solutions.append(possible_solution)
-
-    return solutions
-
-
 def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
     def mol_defs_from_rxncon(rxncon_sys: RxnConSystem) -> Dict[Spec, MolDef]:
         mol_defs = {}
@@ -353,6 +296,66 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             return Complement(parse_effector(contingency.effector))
         else:
             return UniversalSet()
+
+    def calc_positive_solutions(rxncon_sys: RxnConSystem, solution: Dict[State, bool]) -> List[List[State]]:
+        def is_satisfiable(states: Iterable[State]) -> bool:
+            for pair in combinations(states, 2):
+                if pair[0].is_mutually_exclusive_with(pair[1]):
+                    return False
+
+            return True
+
+        def complementary_state_combos(state: State) -> List[List[State]]:
+            combos = product(
+                *(rxncon_sys.complementary_states_for_component(spec.to_component_spec(), state) for spec in
+                  state.specs))
+            return [list(combo) for combo in combos if is_satisfiable(combo)]
+
+        def structure_states(states: List[State]) -> List[State]:
+            cur_index = max(spec.struct_index for state in states for spec in state.specs if spec.is_structured)
+
+            spec_to_index = {}
+
+            struct_states = []
+
+            for state in states:
+                if state.is_structured:
+                    struct_states.append(state)
+                    continue
+
+                for spec in state.specs:
+                    if spec.is_structured:
+                        continue
+
+                    try:
+                        state = state.to_structured_from_spec(
+                            spec.with_struct_index(spec_to_index[spec.to_component_spec()]))
+                    except KeyError:
+                        state = state.to_structured_from_spec(spec.with_struct_index(cur_index))
+                        cur_index += 1
+                        spec_to_index[spec.to_component_spec()] = cur_index
+
+                struct_states.append(state)
+
+            return struct_states
+
+        trues = [state for state, val in solution.items() if val]
+        falses = [state for state, val in solution.items() if not val]
+
+        if not falses:
+            return [trues]
+
+        positivized_falses = [list(chain(*x)) for x in
+                              product(*(complementary_state_combos(state) for state in falses))]
+
+        solutions = []
+
+        for positivized_false in positivized_falses:
+            possible_solution = list(set(structure_states(trues + positivized_false)))
+            if is_satisfiable(possible_solution):
+                solutions.append(possible_solution)
+
+        return solutions
 
     def calc_rule(reaction: Reaction, cont_soln: List[State]) -> Rule:
         def calc_complexes(terms: List[ReactionTerm], states: List[State]) -> List[Complex]:
