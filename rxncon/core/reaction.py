@@ -8,6 +8,8 @@ from rxncon.util.utils import members
 SPEC_REGEX_MATCHING     = '([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
 SPEC_REGEX_NON_MATCHING = '(?:[A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
 
+OUTPUT_REACTION_REGEX   = '^\[[\w-]*\]$'
+
 BIDIRECTIONAL_VERBS = [
     'ppi', 'ipi', 'i', 'bind'
 ]
@@ -660,6 +662,57 @@ class Reaction:
         return [component for component in self.components_rhs if component not in self.components_lhs]
 
 
+class OutputReaction(Reaction):
+    def __init__(self, name):
+        self.name      = name
+        self.terms_lhs = []
+        self.terms_rhs = []
+
+    def __eq__(self, other: Reaction):
+        return isinstance(other, OutputReaction) and self.name == other.name
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return 'OutputReaction<{}>'.format(self.name)
+
+    @property
+    def components_rhs(self) -> List[Spec]:
+        return []
+
+    @property
+    def consumed_states(self) -> List[State]:
+        return []
+
+    @property
+    def degraded_states(self) -> List[State]:
+        return []
+
+    @property
+    def components_lhs(self) -> List[Spec]:
+        return []
+
+    @property
+    def synthesised_states(self) -> List[State]:
+        return []
+
+    @property
+    def degraded_components(self) -> List[Spec]:
+        return []
+
+    @property
+    def synthesised_components(self) -> List[Spec]:
+        return []
+
+    @property
+    def produced_states(self) -> List[State]:
+        return []
+
+    def invalidate_state_cache(self):
+        pass
+
+
 def matching_reaction_def(repr: str) -> Optional[ReactionDef]:
     return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_repr(repr)), None)
 
@@ -704,6 +757,10 @@ def reaction_from_str(repr: str, standardize=True) -> Reaction:
         return vars
 
     repr = repr.strip()
+
+    if re.match(OUTPUT_REACTION_REGEX, repr):
+        return OutputReaction(repr)
+
     reaction_def = matching_reaction_def(repr)
 
     if not reaction_def:

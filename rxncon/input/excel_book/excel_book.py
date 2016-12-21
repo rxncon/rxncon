@@ -6,7 +6,7 @@ from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.input.shared.contingency_list import contingencies_from_contingency_list_entries, \
     contingency_list_entry_from_strs, ContingencyListEntry
 from rxncon.input.shared.reaction_preprocess import split_bidirectional_reaction_str
-from rxncon.core.reaction import Reaction, reaction_from_str
+from rxncon.core.reaction import Reaction, reaction_from_str, OutputReaction
 from rxncon.core.contingency import Contingency
 
 
@@ -38,6 +38,7 @@ class ExcelBook:
         self._validate_book()
         self._load_reaction_list()
         self._load_contingency_list_entries()
+        self._construct_output_reactions()
         self._construct_contingencies()
         self._construct_rxncon_system()
 
@@ -89,6 +90,10 @@ class ExcelBook:
                 row[CONTINGENCY_LIST_COLUMN_MODIFIER].value
             )
             self._contingency_list_entries.append(entry)
+
+    def _construct_output_reactions(self):
+        self._reactions += [cle.subject for cle in self._contingency_list_entries
+                            if isinstance(cle.subject, OutputReaction)]
 
     def _construct_contingencies(self):
         self._contingencies = contingencies_from_contingency_list_entries(self._contingency_list_entries)

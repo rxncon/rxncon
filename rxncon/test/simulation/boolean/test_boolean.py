@@ -9,6 +9,11 @@ from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, R
 
 def target_from_str(target_str: str):
     try:
+        return StateTarget(state_from_str(target_str))
+    except SyntaxError:
+        pass
+
+    try:
         if '#' in target_str:
             rxn_str, index_strs = target_str.split('#')
 
@@ -23,11 +28,6 @@ def target_from_str(target_str: str):
             return target
         else:
             return ReactionTarget(reaction_from_str(target_str))
-    except SyntaxError:
-        pass
-
-    try:
-        return StateTarget(state_from_str(target_str))
     except SyntaxError:
         pass
 

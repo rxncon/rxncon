@@ -157,6 +157,11 @@ def test_ppi_structured_index():
     state = state_from_str('X@4--Z@3')
     assert elems_eq([(spec.component_name, spec.struct_index) for spec in state.specs], [('X', 4), ('Z', 3)])
 
+
+def test_ppi_mutual_exclusivity():
+    assert state_from_str('A_[x]--B_[y]').is_mutually_exclusive_with(state_from_str('A_[x]--C_[z]'))
+
+
 ###                          ###
 # Test self-interaction states #
 ###                          ###
