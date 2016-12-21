@@ -8,7 +8,7 @@ from rxncon.simulation.rule_based.bngl_from_rule_based_model import bngl_from_ru
 CELL_CYCLE_XLS = os.path.join(os.path.dirname(__file__), 'cell_cycle_toy_model.xls')
 INSULIN  = os.path.join(os.path.dirname(__file__), '../../../../test/insulin.xls')
 SPS_XLS        = os.path.join(os.path.dirname(__file__), 'sps.xls')
-PHEROMONE_XLS = os.path.join(os.path.dirname(__file__), 'pheromone_structured.xls')
+PHEROMONE_XLS = os.path.join(os.path.dirname(__file__), 'pheromone.xls')
 
 def test_insulin():
     book = ExcelBook(INSULIN)

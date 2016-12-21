@@ -472,7 +472,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
 
     for reaction in (x for x in rxncon_sys.reactions if not isinstance(x, OutputReaction)):
         solutions = Intersection(*(venn_from_contingency(x) for x
-                                   in rxncon_sys.contingencies_for_reaction(reaction))).calc_solutions()
+                                   in rxncon_sys.s_contingencies_for_reaction(reaction))).calc_solutions()
 
         positive_solutions = []
         for solution in solutions:
