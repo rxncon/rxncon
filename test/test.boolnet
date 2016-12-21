@@ -1,10 +1,33 @@
-targets, factors
-R0, (S0 & (S1 | S2) & (S3 | S4))
-R1, ((S1 | S2) & (S4 | S3) & (S3 | S5))
-R2, (S1 & (S2 | S1) & (S4 | S3) & (S3 | S5))
-S0, S0
-S1, ((S2 | S1) & (S4 | S3) & (S1 | (S2 & R0)))
-S2, (S2 & (S2 | S1) & (S4 | S3) & !((S2 & R0)))
-S3, ((S1 | S2) & (S3 | S4) & (S5 | S3) & ((R2 & (S4 | (S3 & R1)) & (S5 | (S3 & R1))) | (S3 & !((S3 & R1)))))
-S4, ((S1 | S2) & (S3 | S4) & ((R1 & (S3 | (S5 & R2 & S4))) | (S4 & !((S5 & R2 & S4)))))
-S5, ((S3 | S5) & ((R1 & (S3 | (S4 & S5 & R2))) | (S5 & !((S4 & S5 & R2)))))
+begin model
+begin parameters
+NumA		100
+NumB		100
+NumC		100
+k		1.0
+end parameters
+
+begin molecule types
+A(xD,zR~0~p)
+B(yD)
+C()
+end molecule types
+
+begin seed species
+A(xD,zR~0)	NumA
+B(yD)	NumB
+C()	NumC
+end seed species
+
+begin observables
+
+end observables
+
+begin reaction rules
+A(xD,zR~p) + B(yD) -> B(yD!1).A(xD!1,zR~p)   k
+B(yD!1).A(xD!1) -> A(xD) + B(yD)   k
+C() + A(zR~0) -> C() + A(zR~p)   k
+end reaction rules
+
+end model
+
+simulate_nf({suffix=>nf,t_end=>100,n_steps=>50});

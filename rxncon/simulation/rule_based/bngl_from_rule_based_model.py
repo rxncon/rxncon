@@ -47,7 +47,7 @@ def bngl_from_rule_based_model(rule_based_model: RuleBasedModel, settings=BNGLSe
         return 'begin reaction rules\n{0}\nend reaction rules\n'.format('\n'.join(rules))
 
     def footer_str() -> str:
-        return 'end model\n\ngenerate_network(max_iter=>{0}, max_agg=>{1})\nsimulate({{method=>\"{2}\",t_end=>{3},n_steps=>{4}}})\n'\
+        return 'end model\n\nsimulate_nf({{suffix=>nf,t_end=>100,n_steps=>50}});\n'\
             .format(settings.maximal_iteration,
                     settings.maximal_aggregate,
                     settings.simulation_method.value,
