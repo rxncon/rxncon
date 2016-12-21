@@ -444,7 +444,126 @@ REACTION_DEFS = [
         },
         '$x# + $y#$y-{0} -> $x# + $y#$y-{truncated}'
     ),
-]
+    ReactionDef(
+        STATE_DEFS,
+        'satellite',
+        '$x_SAT_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{0} -> $y#$y-{SAT}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'DuplicationPlaque',
+        '$x_DUP_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{SAT} -> $y#$y-{DUP}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'SPBDuplication',
+        '$x_SPB_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{DUP} -> $y#$y-{SPB}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'SPBSeparation',
+        '$x_SEP_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{SPB} -> $y#$y-{0}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'DNAlicensing',
+        '$x_LIC_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{0} -> $y#$y-{LIC}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'DNAreplicationInitiation',
+        '$x_RepInit_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{LIC} -> $y#$y-{RepInit}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'DNAreplication',
+        '$x_REP_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{RepInit} -> $y#$y-{REP}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'DNAsegregation',
+        '$x_SEG_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{REP} -> $y#$y-{0}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'CYTpolarisation',
+        '$x_POL_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{0} -> $y#$y-{POL}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'CYTbudding',
+        '$x_BUD_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{POL} -> $y#$y-{BUD}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'CYTisotropic',
+        '$x_ISO_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{BUD} -> $y#$y-{ISO}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'CYTokinesis',
+        '$x_CYT_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$y#$y-{ISO} -> $y#$y-{0}'
+    )]
 
 
 class Reaction:

@@ -1,8 +1,6 @@
-from typing import Tuple
 import os
 import click
 
-from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.input.excel_book.excel_book import ExcelBook
 from rxncon.simulation.rule_graph.regulatory_graph import RegulatoryGraph
 from rxncon.simulation.rule_graph.graphML import map_layout2xgmml
