@@ -204,7 +204,6 @@ def map_layout2xgmml(no_layout_graph_str: str, template_file_str: str) -> str:
         for no_layout_node in node_list_no_layout:
             rxnconID = _get_rxnconID(no_layout_node)
             if rxnconID in template_coordinates:
-                #node_name = no_layout_node.getAttribute('label')
                 element = xmldoc_no_layout.createElement("graphics")
                 element.setAttribute("x", template_coordinates[rxnconID]["x"])
                 element.setAttribute("y", template_coordinates[rxnconID]["y"])
