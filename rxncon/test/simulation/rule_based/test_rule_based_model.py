@@ -19,9 +19,14 @@ def test_calc_positive_solutions():
                           C_p+_A_[(r)]
                           D_ub+_A_[(r)]""").rxncon_system
 
-    for x in rule_based_model_from_rxncon(rxncon_sys).rules:
+    rbm = rule_based_model_from_rxncon(rxncon_sys)
+
+    for x in rbm.rules:
         print(x)
 
+    print()
+    for ic in rbm.initial_conditions:
+        print(ic)
 
 
 def test_2():
@@ -40,6 +45,10 @@ def test_2():
     print()
     for rule in rbm.rules:
         print(rule)
+
+    print()
+    for ic in rbm.initial_conditions:
+        print(ic)
 
 def test_3():
     rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C

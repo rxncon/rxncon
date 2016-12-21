@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Tuple, List
 
-from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel, MolDef, Complex, SiteName, SiteModifier, \
+from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel, MolDef, Complex, \
     InitialCondition, Mol, Parameter, Rule, Observable
 
 
@@ -24,20 +24,23 @@ def bngl_from_rule_based_model(rule_based_model: RuleBasedModel, settings=BNGLSe
         return 'begin model'
 
     def molecule_types_str() -> str:
-        molecule_types = [str_from_mol_def(mol_def) for mol_def in sorted(rule_based_model.mol_defs)]
+        molecule_types = [str_from_mol_def(mol_def) for mol_def in sorted(rule_based_model.mol_defs, key=lambda x: x.name)]
         return 'begin molecule types\n{0}\nend molecule types\n'.format('\n'.join(molecule_types))
 
     def seed_species_str() -> str:
         seeded_species = [str_from_initial_condition(initial_condition) for initial_condition in rule_based_model.initial_conditions]
-        return 'begin seed species\n{0}\nend seed species\n'.format('\n'.join(seeded_species))
+        return 'begin seed species\n{0}\nend seed species\n'.format('\n'.join(sorted(seeded_species)))
 
     def parameters_str() -> str:
-        parameters = [str_from_parameter(parameter) for parameter in rule_based_model.parameters]
-        return 'begin parameters\n{0}\nend parameters\n'.format('\n'.join(parameters))
+        parameters = [str_from_parameter(parameter) for parameter
+                      in rule_based_model.parameters +
+                      [ic.value for ic in rule_based_model.initial_conditions] +
+                      rule_based_model.rate_parameters]
+        return 'begin parameters\n{0}\nend parameters\n'.format('\n'.join(sorted(parameters)))
 
     def observables_str() -> str:
         observables = [str_from_observable(observable) for observable in rule_based_model.observables]
-        return 'begin observables\n{0}\nend observables\n'.format('\n'.join(observables))
+        return 'begin observables\n{0}\nend observables\n'.format('\n'.join(sorted(observables)))
 
     def reaction_rules_str() -> str:
         rules = [str_from_rule(rule) for rule in rule_based_model.rules]
@@ -63,23 +66,23 @@ def bngl_from_rule_based_model(rule_based_model: RuleBasedModel, settings=BNGLSe
 
 
 def str_from_mol_def(mol_def: MolDef) -> str:
-    def site_str(site_def: Tuple[SiteName, List[SiteModifier]]) -> str:
+    def site_str(site_def: Tuple[str, List[str]]) -> str:
         return '~'.join([site_def[0]] + site_def[1])
 
     return '{0}({1})'.format(mol_def.name, ','.join(site_str(x) for x in mol_def.site_defs.items()))
 
 
 def str_from_mol(mol: Mol) -> str:
-    def site_str(site: SiteName) -> str:
+    def site_str(site: str) -> str:
         s = site
-        if mol.site_to_mod[site]:
+        if site in mol.site_to_mod.keys():
             s += '~{}'.format(mol.site_to_mod[site])
-        if mol.site_to_bond[site]:
-            s += '!{}'.format(mol.site_to_bond[site])
+        if site in mol.site_to_bond.keys():
+            s += '!{}'.format(mol.site_to_bond[site]) if mol.site_to_bond[site] is not None else ''
 
         return s
 
-    return '{0}({1})'.format(mol.name, ','.join(site_str(x) for x in mol.sites if mol.site_has_state(x)))
+    return '{0}({1})'.format(mol.name, ','.join(site_str(x) for x in mol.sites))
 
 
 def str_from_complex(complex: Complex) -> str:
@@ -99,7 +102,14 @@ def str_from_parameter(parameter: Parameter) -> str:
 
 
 def str_from_observable(observable: Observable) -> str:
-    return 'Molecules\t{0}\t{1}'.format(observable.name, str_from_complex(observable.complex))
+    def clean(name: str) -> str:
+        bad_chars = ['-', '[', ']']
+        for bad_char in bad_chars:
+            name = name.replace(bad_char, '')
+
+        return name
+
+    return 'Molecules\t{0}\t{1}'.format(clean(observable.name), str_from_complex(observable.complex))
 
 
 def str_from_rule(rule: Rule) -> str:

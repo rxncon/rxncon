@@ -3,12 +3,16 @@ from itertools import combinations, product, chain
 from copy import copy, deepcopy
 
 from rxncon.core.rxncon_system import RxnConSystem
-from rxncon.core.reaction import Reaction, ReactionTerm
+from rxncon.core.reaction import Reaction, ReactionTerm, OutputReaction
 from rxncon.core.state import State, StateModifier
-from rxncon.core.spec import Spec
+from rxncon.core.spec import Spec, spec_from_str
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
 from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet
+
+
+NEUTRAL_MOD = '0'
+INITIAL_MOLECULE_COUNT = 100
 
 
 class MolDef:
@@ -31,6 +35,18 @@ class MolDef:
     def sites(self):
         return self.site_defs.keys()
 
+    def create_neutral_complex(self) -> 'Complex':
+        spec = spec_from_str(self.name)
+        site_to_mod  = {}
+        site_to_bond = {}
+        for site, mods in self.site_defs.items():
+            if mods:
+                site_to_mod[site] = NEUTRAL_MOD
+            else:
+                site_to_bond[site] = None
+
+        return Complex([Mol(spec, site_to_mod, site_to_bond, False)])
+
 
 class MolDefBuilder:
     def __init__(self, name: str):
@@ -49,7 +65,7 @@ class MolDefBuilder:
 
 
 class Mol:
-    def __init__(self, spec: Spec, site_to_mod: Dict[str, Optional[str]], site_to_bond: Dict[str, int], is_reactant: bool):
+    def __init__(self, spec: Spec, site_to_mod: Dict[str, Optional[str]], site_to_bond: Dict[str, Optional[int]], is_reactant: bool):
         assert spec.is_component_spec
         self.spec         = spec
         self.site_to_mod  = site_to_mod
@@ -58,7 +74,7 @@ class Mol:
 
     def __str__(self):
         mod_str  = ','.join('{}{}'.format(site, '~' + mod if mod else '') for site, mod in self.site_to_mod.items())
-        bond_str = ','.join('{}{}'.format(site, '!' + str(bond) if bond else '') for site, bond in self.site_to_bond.items())
+        bond_str = ','.join('{}{}'.format(site, '!' + str(bond) if bond is not None else '') for site, bond in self.site_to_bond.items())
 
         strs = []
         if mod_str:
@@ -74,6 +90,10 @@ class Mol:
     @property
     def name(self):
         return self.spec.component_name
+
+    @property
+    def sites(self):
+        return list(set(list(self.site_to_mod.keys()) + list(self.site_to_bond.keys())))
 
 
 def site_name(spec: Spec) -> str:
@@ -126,13 +146,13 @@ class ComplexExprBuilder:
         self._current_bond = 0
         self._bonds        = []  # type: List[Tuple[Spec, Spec]]
 
-    def build(self) -> List[Complex]:
+    def build(self, only_reactants: bool=True) -> List[Complex]:
         complexes = []
 
         for group in self._grouped_specs():
             possible_complex = Complex([self._mol_builders[spec].build() for spec in group])
 
-            if possible_complex.is_reactant:
+            if not only_reactants or (only_reactants and possible_complex.is_reactant):
                 complexes.append(possible_complex)
 
         return complexes
@@ -218,17 +238,19 @@ STATE_TO_MOL_DEF_BUILDER_FN = {
 
 
 class Parameter:
-    def __init__(self, name: Optional[str], value: Optional[str]):
-        assert name or value
+    def __init__(self, name: str, value: str):
+        assert name and value
         self.name, self.value = name, value
 
+    def __eq__(self, other: 'Parameter'):
+        assert isinstance(other, Parameter)
+        return self.name == other.name and self.value == other.value
+
+    def __hash__(self):
+        return hash(str(self))
+
     def __str__(self):
-        if self.value is None:
-            return self.name
-        elif self.name is None:
-            return self.value
-        else:
-            return '{} = {}'.format(self.name, self.value)
+        return self.name
 
     def __repr__(self):
         return str(self)
@@ -238,10 +260,22 @@ class InitialCondition:
     def __init__(self, complex: Complex, value: Parameter):
         self.complex, self.value = complex, value
 
+    def __str__(self):
+        return '{} {}'.format(str(self.complex), str(self.value))
+
+    def __repr__(self):
+        return 'InitialCondition<{}>'.format(str(self))
+
 
 class Observable:
     def __init__(self, name: str, complex: Complex):
         self.name, self.complex = name, complex
+
+    def __str__(self):
+        return '{} {}'.format(self.name, str(self.complex))
+
+    def __repr__(self):
+        return 'Observable<{}>'.format(str(self))
 
 
 class Rule:
@@ -262,6 +296,10 @@ class RuleBasedModel:
                  observables: List[Observable], rules: List[Rule]):
         self.mol_defs, self.initial_conditions, self.parameters, self.observables, self.rules = mol_defs, initial_conditions, \
             parameters, observables, rules
+
+    @property
+    def rate_parameters(self):
+        return sorted(set(rule.rate for rule in self.rules), key=lambda x: x.name)
 
 
 def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
@@ -340,10 +378,11 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             return struct_states
 
         trues = [state for state, val in solution.items() if val]
-        falses = [state for state, val in solution.items() if not val]
+        falses = [state for state, val in solution.items() if not val
+                  and not any(state.is_mutually_exclusive_with(x) for x in trues)]
 
         if not falses:
-            return [trues]
+            return [trues] if is_satisfiable(trues) else []
 
         positivized_falses = [list(chain(*x)) for x in
                               product(*(complementary_state_combos(state) for state in falses))]
@@ -389,13 +428,49 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         lhs = calc_complexes(reaction.terms_lhs, cont_soln)
         rhs = calc_complexes(reaction.terms_rhs, cont_soln)
 
-        return Rule(lhs, rhs, Parameter('k', None), parent_reaction=reaction)
+        rate = Parameter('k', '1.0')
+
+        return Rule(lhs, rhs, rate, parent_reaction=reaction)
+
+    def calc_initial_conditions(mol_defs: List[MolDef]) -> List[InitialCondition]:
+        return \
+            [InitialCondition(mol_def.create_neutral_complex(),
+                              Parameter('Num{}'.format(mol_def.name), str(INITIAL_MOLECULE_COUNT))) for mol_def in mol_defs]
+
+    def calc_observables(rxncon_sys: RxnConSystem) -> List[Observable]:
+        def observable_complex(states: List[State]) -> Complex:
+            builder = ComplexExprBuilder()
+
+            assert all(x.is_structured for x in states)
+
+            for state in states:
+                for func in STATE_TO_COMPLEX_BUILDER_FN[state.repr_def]:
+                    func(state, builder)
+
+            complexes = builder.build(only_reactants=False)
+
+            assert len(complexes) == 1
+            return complexes[0]
+
+        observables = []
+        output_rxns = [rxn for rxn in rxncon_sys.reactions if isinstance(rxn, OutputReaction)]
+        for rxn in output_rxns:
+            solns = Intersection(*(venn_from_contingency(x) for x
+                                   in rxncon_sys.contingencies_for_reaction(rxn))).calc_solutions()
+            positive_solns = []
+            for soln in solns:
+                positive_solns += calc_positive_solutions(rxncon_sys, soln)
+
+            for index, positive_soln in enumerate(positive_solns):
+                observables.append(Observable('{}{}'.format(rxn.name, index), observable_complex(positive_soln)))
+
+        return observables
 
     mol_defs = list(mol_defs_from_rxncon(rxncon_sys).values())
 
     rules = []
 
-    for reaction in rxncon_sys.reactions:
+    for reaction in (x for x in rxncon_sys.reactions if not isinstance(x, OutputReaction)):
         solutions = Intersection(*(venn_from_contingency(x) for x
                                    in rxncon_sys.contingencies_for_reaction(reaction))).calc_solutions()
 
@@ -406,4 +481,4 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         for positive_solution in positive_solutions:
             rules.append(calc_rule(reaction, positive_solution))
 
-    return RuleBasedModel(mol_defs, [], [], [], rules)
+    return RuleBasedModel(mol_defs, calc_initial_conditions(mol_defs), [], calc_observables(rxncon_sys), rules)
