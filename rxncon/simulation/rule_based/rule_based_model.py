@@ -89,7 +89,7 @@ class Mol:
 
     @property
     def name(self):
-        return self.spec.component_name
+        return str(self.spec.to_non_struct_spec())
 
     @property
     def sites(self):
@@ -306,7 +306,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
     def mol_defs_from_rxncon(rxncon_sys: RxnConSystem) -> Dict[Spec, MolDef]:
         mol_defs = {}
         for spec in rxncon_sys.components():
-            builder = MolDefBuilder(spec.component_name)
+            builder = MolDefBuilder(str(spec))
             for state in rxncon_sys.states_for_component(spec):
                 for func in STATE_TO_MOL_DEF_BUILDER_FN[state.repr_def]:
                     func(state, builder)
