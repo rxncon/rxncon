@@ -48,13 +48,16 @@ class RxnConSystem:
         return self._components
 
     def contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
+        assert reaction in self.reactions
         return [x for x in self.contingencies if x.target == reaction]
 
     def q_contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
+        assert reaction in self.reactions
         return [x for x in self.contingencies if x.target == reaction and x.type
                 in [ContingencyType.positive, ContingencyType.negative]]
 
     def s_contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
+        assert reaction in self.reactions
         return [x for x in self.contingencies if x.target == reaction and x.type
                 in [ContingencyType.requirement, ContingencyType.inhibition]]
 
