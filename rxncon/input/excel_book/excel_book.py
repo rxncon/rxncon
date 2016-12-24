@@ -17,6 +17,8 @@ SHEET_REACTION_DEFINITION = 'ReactionDefinition'
 SHEET_REACTION_LIST       = 'ReactionList'
 SHEET_CONTINGENCY_LIST    = 'ContingencyList'
 
+NECESSARY_SHEETS = [SHEET_REACTION_LIST, SHEET_CONTINGENCY_LIST]
+
 HEADER_ROW = 1
 DATA_ROW   = 2
 
@@ -61,9 +63,7 @@ class ExcelBook:
         self._xlrd_book = xlrd.open_workbook(self.filename)
 
     def _validate_book(self):
-        expected_sheets = [SHEET_COMPONENT_LIST, SHEET_REACTION_DEFINITION, SHEET_REACTION_LIST, SHEET_CONTINGENCY_LIST]
-
-        if not all(sheet in self._xlrd_book.sheet_names() for sheet in expected_sheets):
+        if not all(sheet in self._xlrd_book.sheet_names() for sheet in NECESSARY_SHEETS):
             raise SyntaxError('Excel book does not contain expected sheets')
 
     def _determine_column_numbers(self):
@@ -74,7 +74,7 @@ class ExcelBook:
                 self._column_reaction_full_name = num
 
         sheet = self._xlrd_book.sheet_by_name(SHEET_CONTINGENCY_LIST)
-        row = list(sheet.get_rows())[HEADER_ROW]
+        row   = list(sheet.get_rows())[HEADER_ROW]
         for num, header in enumerate(row):
             if header.value == CONTINGENCY_LIST_COLUMN_TARGET:
                 self._column_contingency_target = num

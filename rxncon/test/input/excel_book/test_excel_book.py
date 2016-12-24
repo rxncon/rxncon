@@ -1,45 +1,32 @@
 import os
+import pytest
 
 from rxncon.input.excel_book.excel_book import ExcelBook
-from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_rxncon
-from rxncon.simulation.rule_based.bngl_from_rule_based_model import bngl_from_rule_based_model
+from rxncon.core.reaction import reaction_from_str
+
+MISSING_NECESSARY_SHEET_XLS   = os.path.join(os.path.dirname(__file__), 'missing_necessary_sheet.xls')
+MISSING_UNNECESSARY_SHEET_XLS = os.path.join(os.path.dirname(__file__), 'missing_unnecessary_sheet.xls')
+SHUFFLED_COLUMNS_XLS          = os.path.join(os.path.dirname(__file__), 'shuffled_columns.xls')
 
 
-CELL_CYCLE_XLS = os.path.join(os.path.dirname(__file__), 'cell_cycle_toy_model.xls')
-INSULIN  = os.path.join(os.path.dirname(__file__), '../../../../test/insulin.xls')
-SPS_XLS        = os.path.join(os.path.dirname(__file__), 'sps.xls')
-PHEROMONE_XLS = os.path.join(os.path.dirname(__file__), 'pheromone.xls')
-
-def test_insulin():
-    book = ExcelBook(INSULIN)
-    system = book.rxncon_system
-
-    rbm = rule_based_model_from_rxncon(system)
-
-    # for r in rbm.rules:
-    #     print()
-    #     print(r)
-    #
-    # for o in rbm.observables:
-    #     print()
-    #     print(o)
-
-    print(bngl_from_rule_based_model(rbm))
+def test_missing_necessary_sheet():
+    with pytest.raises(SyntaxError):
+        excel = ExcelBook(MISSING_NECESSARY_SHEET_XLS)
 
 
-def test_pheromone():
-    book = ExcelBook(PHEROMONE_XLS)
-    system = book.rxncon_system
+def test_missing_unnecessary_sheet():
+    rxncon_system = ExcelBook(MISSING_UNNECESSARY_SHEET_XLS).rxncon_system
 
-    rbm = rule_based_model_from_rxncon(system)
+    expected_reactions = ['A_[x]_ppi+_B_[y]', 'A_[x]_ppi-_B_[y]', 'C_p+_A_[(z)]']
 
-    # for r in rbm.rules:
-    #     print()
-    #     print(r)
-    #
-    # for o in rbm.observables:
-    #     print()
-    #     print(o)
+    for rxn in expected_reactions:
+        assert reaction_from_str(rxn) in rxncon_system.reactions
 
-    print(bngl_from_rule_based_model(rbm))
 
+def test_shuffled_columns():
+    rxncon_system = ExcelBook(SHUFFLED_COLUMNS_XLS).rxncon_system
+
+    expected_reactions = ['A_[x]_ppi+_B_[y]', 'A_[x]_ppi-_B_[y]', 'C_p+_A_[(z)]']
+
+    for rxn in expected_reactions:
+        assert reaction_from_str(rxn) in rxncon_system.reactions
