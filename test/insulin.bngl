@@ -1,0 +1,116 @@
+begin model
+begin parameters
+NumGrb2		100
+NumIR		100
+NumIRS		100
+NumPI3K		100
+NumPhospholipids		100
+NumSOS		100
+NumShc		100
+Numinsulin		100
+NumuPPase1		100
+NumuPPase2		100
+NumuPPase3		100
+NumuPPase4		100
+NumuPPase5		100
+NumuPPase6		100
+NumuPPase7		100
+k		1.0
+end parameters
+
+begin molecule types
+Grb2(SOSD,SH2D)
+IR(TKDY1163R~0~p,TKDY1158R~0~p,ligD,JMY972D,TKDY1162R~p~0,JMDY972R~0~p,IRBDD)
+IRS(YD,PhospholipidsD,PTBD,YR~p~0)
+PI3K(SH2D)
+Phospholipids(IRSD)
+SOS(Grb2D)
+Shc(PTBD,Y317R~0~p,YY239R~0~p,YYD,YD)
+insulin(IRD)
+uPPase1()
+uPPase2()
+uPPase3()
+uPPase4()
+uPPase5()
+uPPase6()
+uPPase7()
+end molecule types
+
+begin seed species
+Grb2(SOSD,SH2D)	NumGrb2
+IR(ligD,JMY972D,TKDY1162R~0,TKDY1163R~0,TKDY1158R~0,JMDY972R~0,IRBDD)	NumIR
+IRS(YD,PhospholipidsD,PTBD,YR~0)	NumIRS
+PI3K(SH2D)	NumPI3K
+Phospholipids(IRSD)	NumPhospholipids
+SOS(Grb2D)	NumSOS
+Shc(YYD,Y317R~0,YY239R~0,PTBD,YD)	NumShc
+insulin(IRD)	Numinsulin
+uPPase1()	NumuPPase1
+uPPase2()	NumuPPase2
+uPPase3()	NumuPPase3
+uPPase4()	NumuPPase4
+uPPase5()	NumuPPase5
+uPPase6()	NumuPPase6
+uPPase7()	NumuPPase7
+end seed species
+
+begin observables
+Molecules	Grb2SOS0	SOS(Grb2D!2).IRS(YD!1).Grb2(SOSD!2,SH2D!1)
+Molecules	Grb2SOS1	Shc(YYD!2).SOS(Grb2D!1).Grb2(SOSD!1,SH2D!2)
+Molecules	PI3K0	PI3K(SH2D!1).IRS(YD!1)
+end observables
+
+begin reaction rules
+IR(IRBDD) + IR(IRBDD) -> IR(IRBDD!1).IR(IRBDD!1)   k
+IR(IRBDD!1).IR(IRBDD!1) -> IR(IRBDD) + IR(IRBDD)   k
+IR(ligD,IRBDD!1).IR(ligD,IRBDD!1) + insulin(IRD) -> insulin(IRD!2).IR(ligD,IRBDD!1).IR(ligD!2,IRBDD!1)   k
+insulin(IRD!1).IR(ligD!1) -> IR(ligD) + insulin(IRD)   k
+insulin(IRD!3).IR(TKDY1158R~0,ligD!3,IRBDD!2).insulin(IRD!1).IR(ligD!1,IRBDD!2) -> insulin(IRD!3).IR(TKDY1158R~p,ligD!3,IRBDD!2).insulin(IRD!1).IR(ligD!1,IRBDD!2)   k
+IR(TKDY1158R~0,ligD,IRBDD!2).insulin(IRD!1).IR(ligD!1,IRBDD!2) -> IR(TKDY1158R~p,ligD,IRBDD!2).insulin(IRD!1).IR(ligD!1,IRBDD!2)   k
+insulin(IRD!2).IR(TKDY1158R~0,ligD!2,IRBDD!1).IR(ligD,IRBDD!1) -> insulin(IRD!2).IR(TKDY1158R~p,ligD!2,IRBDD!1).IR(ligD,IRBDD!1)   k
+insulin(IRD!3).IR(TKDY1162R~0,ligD!3,IRBDD!2).insulin(IRD!1).IR(ligD!1,IRBDD!2) -> insulin(IRD!3).IR(TKDY1162R~p,ligD!3,IRBDD!2).insulin(IRD!1).IR(ligD!1,IRBDD!2)   k
+IR(TKDY1162R~0,ligD,IRBDD!2).insulin(IRD!1).IR(ligD!1,IRBDD!2) -> IR(TKDY1162R~p,ligD,IRBDD!2).insulin(IRD!1).IR(ligD!1,IRBDD!2)   k
+insulin(IRD!2).IR(TKDY1162R~0,ligD!2,IRBDD!1).IR(ligD,IRBDD!1) -> insulin(IRD!2).IR(TKDY1162R~p,ligD!2,IRBDD!1).IR(ligD,IRBDD!1)   k
+insulin(IRD!3).IR(TKDY1163R~0,ligD!3,IRBDD!2).insulin(IRD!1).IR(ligD!1,IRBDD!2) -> insulin(IRD!3).IR(TKDY1163R~p,ligD!3,IRBDD!2).insulin(IRD!1).IR(ligD!1,IRBDD!2)   k
+IR(TKDY1163R~0,ligD,IRBDD!2).insulin(IRD!1).IR(ligD!1,IRBDD!2) -> IR(TKDY1163R~p,ligD,IRBDD!2).insulin(IRD!1).IR(ligD!1,IRBDD!2)   k
+insulin(IRD!2).IR(TKDY1163R~0,ligD!2,IRBDD!1).IR(ligD,IRBDD!1) -> insulin(IRD!2).IR(TKDY1163R~p,ligD!2,IRBDD!1).IR(ligD,IRBDD!1)   k
+insulin(IRD!3).insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD!3,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,JMDY972R~0,IRBDD!2) -> insulin(IRD!3).insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD!3,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,JMDY972R~p,IRBDD!2)   k
+insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,JMDY972R~0,IRBDD!2) -> insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,JMDY972R~p,IRBDD!2)   k
+insulin(IRD!2).IR(ligD,IRBDD!1).IR(ligD!2,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,JMDY972R~0,IRBDD!1) -> insulin(IRD!2).IR(ligD,IRBDD!1).IR(ligD!2,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,JMDY972R~p,IRBDD!1)   k
+IR(JMDY972R~p,JMY972D) + Phospholipids(IRSD!1).IRS(PhospholipidsD!1,PTBD) -> Phospholipids(IRSD!1).IRS(PhospholipidsD!1,PTBD!2).IR(JMDY972R~p,JMY972D!2)   k
+IRS(PTBD!1).IR(JMY972D!1) -> IR(JMY972D) + IRS(PTBD)   k
+Phospholipids(IRSD) + IRS(PhospholipidsD) -> Phospholipids(IRSD!1).IRS(PhospholipidsD!1)   k
+Phospholipids(IRSD!1).IRS(PhospholipidsD!1) -> Phospholipids(IRSD) + IRS(PhospholipidsD)   k
+insulin(IRD!4).IRS(PTBD!3,YR~0).insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD!4,JMY972D!3,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!2) -> insulin(IRD!4).IRS(PTBD!3,YR~p).insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD!4,JMY972D!3,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!2)   k
+IRS(PTBD!3,YR~0).insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD,JMY972D!3,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!2) -> IRS(PTBD!3,YR~p).insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD,JMY972D!3,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!2)   k
+insulin(IRD!3).IRS(PTBD!2,YR~0).IR(ligD,IRBDD!1).IR(ligD!3,JMY972D!2,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!1) -> insulin(IRD!3).IRS(PTBD!2,YR~p).IR(ligD,IRBDD!1).IR(ligD!3,JMY972D!2,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!1)   k
+SOS(Grb2D) + Grb2(SOSD) -> SOS(Grb2D!1).Grb2(SOSD!1)   k
+SOS(Grb2D!1).Grb2(SOSD!1) -> SOS(Grb2D) + Grb2(SOSD)   k
+IRS(YD,YR~p) + Grb2(SH2D) -> IRS(YD!1,YR~p).Grb2(SH2D!1)   k
+IRS(YD!1).Grb2(SH2D!1) -> IRS(YD) + Grb2(SH2D)   k
+IR(JMDY972R~p,JMY972D) + Shc(PTBD) -> Shc(PTBD!1).IR(JMDY972R~p,JMY972D!1)   k
+Shc(PTBD!1).IR(JMY972D!1) -> IR(JMY972D) + Shc(PTBD)   k
+insulin(IRD!4).Shc(YY239R~0,PTBD!3).insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD!4,JMY972D!3,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!2) -> insulin(IRD!4).Shc(YY239R~p,PTBD!3).insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD!4,JMY972D!3,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!2)   k
+Shc(YY239R~0,PTBD!3).insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD,JMY972D!3,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!2) -> Shc(YY239R~p,PTBD!3).insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD,JMY972D!3,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!2)   k
+insulin(IRD!3).Shc(YY239R~0,PTBD!2).IR(ligD,IRBDD!1).IR(ligD!3,JMY972D!2,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!1) -> insulin(IRD!3).Shc(YY239R~p,PTBD!2).IR(ligD,IRBDD!1).IR(ligD!3,JMY972D!2,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!1)   k
+insulin(IRD!4).Shc(Y317R~0,PTBD!3).insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD!4,JMY972D!3,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!2) -> insulin(IRD!4).Shc(Y317R~p,PTBD!3).insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD!4,JMY972D!3,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!2)   k
+Shc(Y317R~0,PTBD!3).insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD,JMY972D!3,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!2) -> Shc(Y317R~p,PTBD!3).insulin(IRD!1).IR(ligD!1,IRBDD!2).IR(ligD,JMY972D!3,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!2)   k
+insulin(IRD!3).Shc(Y317R~0,PTBD!2).IR(ligD,IRBDD!1).IR(ligD!3,JMY972D!2,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!1) -> insulin(IRD!3).Shc(Y317R~p,PTBD!2).IR(ligD,IRBDD!1).IR(ligD!3,JMY972D!2,TKDY1162R~p,TKDY1163R~p,TKDY1158R~p,IRBDD!1)   k
+Shc(YY239R~p,YYD) + Grb2(SH2D) -> Shc(YY239R~p,YYD!1).Grb2(SH2D!1)   k
+Shc(YYD!1).Grb2(SH2D!1) -> Shc(YYD) + Grb2(SH2D)   k
+Shc(Y317R~p,YD) + Grb2(SH2D) -> Shc(Y317R~p,YD!1).Grb2(SH2D!1)   k
+Shc(YD!1).Grb2(SH2D!1) -> Shc(YD) + Grb2(SH2D)   k
+PI3K(SH2D) + IRS(YD,YR~p) -> PI3K(SH2D!1).IRS(YD!1,YR~p)   k
+PI3K(SH2D!1).IRS(YD!1) -> PI3K(SH2D) + IRS(YD)   k
+IR(TKDY1158R~p) + uPPase1() -> IR(TKDY1158R~0) + uPPase1()   k
+IR(TKDY1162R~p) + uPPase2() -> IR(TKDY1162R~0) + uPPase2()   k
+IR(TKDY1163R~p) + uPPase3() -> IR(TKDY1163R~0) + uPPase3()   k
+uPPase4() + IR(JMDY972R~p) -> uPPase4() + IR(JMDY972R~0)   k
+uPPase5() + IRS(YR~p) -> uPPase5() + IRS(YR~0)   k
+uPPase6() + Shc(YY239R~p) -> uPPase6() + Shc(YY239R~0)   k
+uPPase7() + Shc(Y317R~p) -> uPPase7() + Shc(Y317R~0)   k
+end reaction rules
+
+end model
+
+simulate_nf({suffix=>nf,t_end=>100,n_steps=>50});

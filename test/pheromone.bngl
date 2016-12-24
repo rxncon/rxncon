@@ -1,0 +1,547 @@
+begin model
+begin parameters
+NumDig1		100
+NumDig1		100
+NumDig2		100
+NumDig2		100
+NumFar1		100
+NumFar1		100
+NumFus3		100
+NumFus3		100
+NumGpa1		100
+NumGpa1		100
+NumKss1		100
+NumKss1		100
+NumMsg5		100
+NumMsg5		100
+NumPher		100
+NumPtp		100
+NumPtp		100
+NumSst2		100
+NumSst2		100
+NumSte11		100
+NumSte11		100
+NumSte12		100
+NumSte12		100
+NumSte2		100
+NumSte2		100
+NumSte20		100
+NumSte20		100
+NumSte4		100
+NumSte4		100
+NumSte5		100
+NumSte5		100
+NumSte7		100
+NumSte7		100
+NumUC100		100
+NumUC101		100
+NumUC102		100
+NumUC103		100
+NumUC104		100
+NumUC105		100
+NumUC106		100
+NumUC107		100
+NumUC108		100
+NumUC109		100
+NumUC110		100
+NumUC111		100
+NumUC112		100
+NumUC113		100
+NumUC114		100
+NumUC115		100
+NumUC116		100
+NumUC117		100
+NumUC118		100
+NumUC119		100
+NumUC12		100
+NumUC120		100
+NumUC121		100
+NumUC122		100
+NumUC123		100
+NumUC124		100
+NumUC125		100
+NumUC126		100
+NumUC127		100
+NumUC128		100
+NumUC129		100
+NumUC130		100
+NumUC131		100
+NumUC132		100
+NumUC133		100
+NumUC134		100
+NumUC17		100
+NumUC18		100
+NumUC19		100
+NumUC20		100
+NumUC53		100
+NumUC54		100
+NumUC56		100
+NumUC83		100
+NumUC84		100
+NumUC85		100
+NumUC86		100
+NumUC87		100
+NumUC88		100
+NumUC89		100
+NumUC9		100
+NumUC90		100
+NumUC91		100
+NumUC92		100
+NumUC93		100
+NumUC94		100
+NumUC95		100
+NumUC96		100
+NumUC97		100
+NumUC99		100
+NumYck		100
+NumYck		100
+k		1.0
+end parameters
+
+begin molecule types
+Dig1(MAPKR~p~0,MAPKD,Ste12D)
+Dig1()
+Dig2(MAPKR~0~p,MAPKD,Ste12D)
+Dig2()
+Far1(T306R~p~0,MAPKD,S87R~0~p)
+Far1()
+Fus3(DockD,Y182R~p~0,T180R~p~0)
+Fus3()
+Gpa1(Ste2D,Ste4D,GnPR~0~gtp)
+Gpa1()
+Kss1(DockD,T183R~p~0,Y185R~p~0)
+Kss1()
+Msg5(MAPKD)
+Msg5()
+Pher(Ste2D)
+Ptp()
+Ptp(MAPKD)
+Sst2(Ste2D,S539R~0~p,MAPKD)
+Sst2()
+Ste11()
+Ste11(FeedbackR~0~p,S302R~p~0,S306R~p~0,MAPKD,T307R~0~p,Ste5D)
+Ste12(MAPKD,Dig1D,Dig2D)
+Ste12()
+Ste2()
+Ste2(Gpa1D,PherD,Sst2D,S338orS339R~p~0,YckD)
+Ste20(Ste4D)
+Ste20()
+Ste4(Ste5D,Gpa1D,Ste20D)
+Ste4()
+Ste5(Ste5D,Ste7D,Ste4D,MAPKD,Ste11D)
+Ste5()
+Ste7(Ste5D,MAPKD,S359R~p~0,T363R~p~0,S363R~0~p)
+Ste7()
+UC100()
+UC101()
+UC102()
+UC103()
+UC104()
+UC105()
+UC106()
+UC107()
+UC108()
+UC109()
+UC110()
+UC111()
+UC112()
+UC113()
+UC114()
+UC115()
+UC116()
+UC117()
+UC118()
+UC119()
+UC12()
+UC120()
+UC121()
+UC122()
+UC123()
+UC124()
+UC125()
+UC126()
+UC127()
+UC128()
+UC129()
+UC130()
+UC131()
+UC132()
+UC133()
+UC134()
+UC17()
+UC18()
+UC19()
+UC20()
+UC53()
+UC54()
+UC56()
+UC83()
+UC84()
+UC85()
+UC86()
+UC87()
+UC88()
+UC89()
+UC9()
+UC90()
+UC91()
+UC92()
+UC93()
+UC94()
+UC95()
+UC96()
+UC97()
+UC99()
+Yck(Ste2D)
+Yck()
+end molecule types
+
+begin seed species
+Dig1()	NumDig1
+Dig1(MAPKR~0,Ste12D,MAPKD)	NumDig1
+Dig2()	NumDig2
+Dig2(MAPKR~0,Ste12D,MAPKD)	NumDig2
+Far1()	NumFar1
+Far1(T306R~0,MAPKD,S87R~0)	NumFar1
+Fus3()	NumFus3
+Fus3(DockD,Y182R~0,T180R~0)	NumFus3
+Gpa1()	NumGpa1
+Gpa1(Ste2D,Ste4D,GnPR~0)	NumGpa1
+Kss1()	NumKss1
+Kss1(DockD,T183R~0,Y185R~0)	NumKss1
+Msg5()	NumMsg5
+Msg5(MAPKD)	NumMsg5
+Pher(Ste2D)	NumPher
+Ptp()	NumPtp
+Ptp(MAPKD)	NumPtp
+Sst2()	NumSst2
+Sst2(Ste2D,S539R~0,MAPKD)	NumSst2
+Ste11()	NumSte11
+Ste11(S306R~0,MAPKD,Ste5D,FeedbackR~0,S302R~0,T307R~0)	NumSte11
+Ste12()	NumSte12
+Ste12(MAPKD,Dig1D,Dig2D)	NumSte12
+Ste2()	NumSte2
+Ste2(Gpa1D,Sst2D,S338orS339R~0,YckD,PherD)	NumSte2
+Ste20()	NumSte20
+Ste20(Ste4D)	NumSte20
+Ste4()	NumSte4
+Ste4(Ste5D,Ste20D,Gpa1D)	NumSte4
+Ste5()	NumSte5
+Ste5(Ste5D,Ste4D,MAPKD,Ste7D,Ste11D)	NumSte5
+Ste7()	NumSte7
+Ste7(Ste5D,MAPKD,S359R~0,T363R~0,S363R~0)	NumSte7
+UC100()	NumUC100
+UC101()	NumUC101
+UC102()	NumUC102
+UC103()	NumUC103
+UC104()	NumUC104
+UC105()	NumUC105
+UC106()	NumUC106
+UC107()	NumUC107
+UC108()	NumUC108
+UC109()	NumUC109
+UC110()	NumUC110
+UC111()	NumUC111
+UC112()	NumUC112
+UC113()	NumUC113
+UC114()	NumUC114
+UC115()	NumUC115
+UC116()	NumUC116
+UC117()	NumUC117
+UC118()	NumUC118
+UC119()	NumUC119
+UC12()	NumUC12
+UC120()	NumUC120
+UC121()	NumUC121
+UC122()	NumUC122
+UC123()	NumUC123
+UC124()	NumUC124
+UC125()	NumUC125
+UC126()	NumUC126
+UC127()	NumUC127
+UC128()	NumUC128
+UC129()	NumUC129
+UC130()	NumUC130
+UC131()	NumUC131
+UC132()	NumUC132
+UC133()	NumUC133
+UC134()	NumUC134
+UC17()	NumUC17
+UC18()	NumUC18
+UC19()	NumUC19
+UC20()	NumUC20
+UC53()	NumUC53
+UC54()	NumUC54
+UC56()	NumUC56
+UC83()	NumUC83
+UC84()	NumUC84
+UC85()	NumUC85
+UC86()	NumUC86
+UC87()	NumUC87
+UC88()	NumUC88
+UC89()	NumUC89
+UC9()	NumUC9
+UC90()	NumUC90
+UC91()	NumUC91
+UC92()	NumUC92
+UC93()	NumUC93
+UC94()	NumUC94
+UC95()	NumUC95
+UC96()	NumUC96
+UC97()	NumUC97
+UC99()	NumUC99
+Yck()	NumYck
+Yck(Ste2D)	NumYck
+end seed species
+
+begin observables
+
+end observables
+
+begin reaction rules
+Pher(Ste2D) + Ste2(PherD) -> Ste2(PherD!1).Pher(Ste2D!1)   k
+Ste2(PherD!1).Pher(Ste2D!1) -> Pher(Ste2D) + Ste2(PherD)   k
+Ste2(Gpa1D) + Gpa1(Ste2D) -> Ste2(Gpa1D!1).Gpa1(Ste2D!1)   k
+Ste2(Gpa1D!1).Gpa1(Ste2D!1) -> Ste2(Gpa1D) + Gpa1(Ste2D)   k
+Gpa1(Ste4D) + Ste4(Ste5D,Ste20D,Gpa1D) -> Ste4(Ste5D,Ste20D,Gpa1D!1).Gpa1(Ste4D!1)   k
+Ste4(Gpa1D!1).Gpa1(Ste4D!1) -> Gpa1(Ste4D) + Ste4(Gpa1D)   k
+Gpa1(GnPR~0) -> Gpa1(GnPR~gtp)   k
+Gpa1(GnPR~gtp) -> Gpa1(GnPR~0)   k
+Ste2(YckD,S338orS339R~0,Sst2D) + Sst2(Ste2D,MAPKD) -> Sst2(Ste2D!1,MAPKD).Ste2(YckD,S338orS339R~0,Sst2D!1)   k
+Sst2(Ste2D!1).Ste2(Sst2D!1) -> Ste2(Sst2D) + Sst2(Ste2D)   k
+Ste2() + UC9() -> Ste2() + UC9() + Ste2(Gpa1D,YckD,S338orS339R~0,Sst2D,PherD)   k
+Ste2(Sst2D,S338orS339R~0,YckD) + Yck(Ste2D) -> Yck(Ste2D!1).Ste2(Sst2D,S338orS339R~0,YckD!1)   k
+Yck(Ste2D!1).Ste2(YckD!1) -> Ste2(YckD) + Yck(Ste2D)   k
+Yck(Ste2D!1).Ste2(YckD!1,S338orS339R~0) -> Yck(Ste2D!1).Ste2(YckD!1,S338orS339R~p)   k
+Ste2(S338orS339R~p) + UC12() -> UC12()   k
+Fus3(DockD,Y182R~p,T180R~p) + Sst2(Ste2D,S539R~p,MAPKD) -> Sst2(Ste2D,S539R~p,MAPKD!1).Fus3(DockD!1,Y182R~p,T180R~p)   k
+Fus3(DockD,Y182R~p,T180R~0) + Sst2(Ste2D,S539R~p,MAPKD) -> Sst2(Ste2D,S539R~p,MAPKD!1).Fus3(DockD!1,Y182R~p,T180R~0)   k
+Fus3(DockD,Y182R~0,T180R~p) + Sst2(Ste2D,S539R~p,MAPKD) -> Sst2(Ste2D,S539R~p,MAPKD!1).Fus3(DockD!1,Y182R~0,T180R~p)   k
+Sst2(MAPKD!1).Fus3(DockD!1) -> Fus3(DockD) + Sst2(MAPKD)   k
+Kss1(DockD,T183R~p,Y185R~p) + Sst2(Ste2D,S539R~p,MAPKD) -> Sst2(Ste2D,S539R~p,MAPKD!1).Kss1(DockD!1,T183R~p,Y185R~p)   k
+Kss1(DockD,T183R~0,Y185R~p) + Sst2(Ste2D,S539R~p,MAPKD) -> Sst2(Ste2D,S539R~p,MAPKD!1).Kss1(DockD!1,T183R~0,Y185R~p)   k
+Kss1(DockD,T183R~p,Y185R~0) + Sst2(Ste2D,S539R~p,MAPKD) -> Sst2(Ste2D,S539R~p,MAPKD!1).Kss1(DockD!1,T183R~p,Y185R~0)   k
+Sst2(MAPKD!1).Kss1(DockD!1) -> Kss1(DockD) + Sst2(MAPKD)   k
+Sst2(S539R~0,MAPKD!1).Fus3(DockD!1,Y182R~p,T180R~p) -> Sst2(S539R~p,MAPKD!1).Fus3(DockD!1,Y182R~p,T180R~p)   k
+Sst2(S539R~0,MAPKD!1).Fus3(DockD!1,Y182R~p,T180R~0) -> Sst2(S539R~p,MAPKD!1).Fus3(DockD!1,Y182R~p,T180R~0)   k
+Sst2(S539R~0,MAPKD!1).Fus3(DockD!1,Y182R~0,T180R~p) -> Sst2(S539R~p,MAPKD!1).Fus3(DockD!1,Y182R~0,T180R~p)   k
+Sst2(S539R~0,MAPKD!1).Kss1(DockD!1,T183R~p,Y185R~p) -> Sst2(S539R~p,MAPKD!1).Kss1(DockD!1,T183R~p,Y185R~p)   k
+Sst2(S539R~0,MAPKD!1).Kss1(DockD!1,T183R~0,Y185R~p) -> Sst2(S539R~p,MAPKD!1).Kss1(DockD!1,T183R~0,Y185R~p)   k
+Sst2(S539R~0,MAPKD!1).Kss1(DockD!1,T183R~p,Y185R~0) -> Sst2(S539R~p,MAPKD!1).Kss1(DockD!1,T183R~p,Y185R~0)   k
+UC17() + Sst2() -> UC17()   k
+UC18() + Sst2() -> UC18() + Sst2(Ste2D,S539R~0,MAPKD) + Sst2()   k
+UC19() + Gpa1() -> UC19()   k
+UC20() + Gpa1() -> UC20() + Gpa1(Ste2D,Ste4D,GnPR~0) + Gpa1()   k
+Ste5(Ste5D) + Ste5(Ste5D) -> Ste5(Ste5D!1).Ste5(Ste5D!1)   k
+Ste5(Ste5D!1).Ste5(Ste5D!1) -> Ste5(Ste5D) + Ste5(Ste5D)   k
+Ste5(Ste4D) + Ste4(Gpa1D,Ste5D) -> Ste5(Ste4D!1).Ste4(Gpa1D,Ste5D!1)   k
+Ste5(Ste4D!1).Ste4(Ste5D!1) -> Ste5(Ste4D) + Ste4(Ste5D)   k
+Ste20(Ste4D) + Ste4(Gpa1D,Ste20D) -> Ste20(Ste4D!1).Ste4(Gpa1D,Ste20D!1)   k
+Ste20(Ste4D!1).Ste4(Ste20D!1) -> Ste20(Ste4D) + Ste4(Ste20D)   k
+Ste5(Ste11D) + Ste11(Ste5D,MAPKD) -> Ste11(Ste5D!1,MAPKD).Ste5(Ste11D!1)   k
+Ste11(Ste5D!1).Ste5(Ste11D!1) -> Ste5(Ste11D) + Ste11(Ste5D)   k
+Ste5(Ste7D) + Ste7(Ste5D,MAPKD) -> Ste7(Ste5D!1,MAPKD).Ste5(Ste7D!1)   k
+Ste7(Ste5D!1).Ste5(Ste7D!1) -> Ste5(Ste7D) + Ste7(Ste5D)   k
+Fus3(DockD) + Ste5(MAPKD) -> Ste5(MAPKD!1).Fus3(DockD!1)   k
+Ste5(MAPKD!1).Fus3(DockD!1) -> Fus3(DockD) + Ste5(MAPKD)   k
+Kss1(DockD) + Ste5(MAPKD) -> Ste5(MAPKD!1).Kss1(DockD!1)   k
+Ste5(MAPKD!1).Kss1(DockD!1) -> Kss1(DockD) + Ste5(MAPKD)   k
+Ste20() + Ste11(S302R~0) -> Ste20() + Ste11(S302R~p)   k
+Ste20() + Ste11(S306R~0) -> Ste20() + Ste11(S306R~p)   k
+Ste20() + Ste11(T307R~0) -> Ste20() + Ste11(T307R~p)   k
+Ste7(S359R~0) + Ste11(S302R~p,S306R~p,T307R~p) -> Ste7(S359R~p) + Ste11(S302R~p,S306R~p,T307R~p)   k
+Ste7(S359R~0) + Ste11(S302R~0,S306R~p,T307R~p) -> Ste7(S359R~p) + Ste11(S302R~0,S306R~p,T307R~p)   k
+Ste7(S359R~0) + Ste11(S302R~p,S306R~p,T307R~0) -> Ste7(S359R~p) + Ste11(S302R~p,S306R~p,T307R~0)   k
+Ste7(S359R~0) + Ste11(S302R~0,S306R~p,T307R~0) -> Ste7(S359R~p) + Ste11(S302R~0,S306R~p,T307R~0)   k
+Ste7(S359R~0) + Ste11(S302R~p,S306R~0,T307R~0) -> Ste7(S359R~p) + Ste11(S302R~p,S306R~0,T307R~0)   k
+Ste7(S359R~0) + Ste11(S302R~0,S306R~0,T307R~p) -> Ste7(S359R~p) + Ste11(S302R~0,S306R~0,T307R~p)   k
+Ste7(S359R~0) + Ste11(S302R~p,S306R~0,T307R~p) -> Ste7(S359R~p) + Ste11(S302R~p,S306R~0,T307R~p)   k
+Ste7(T363R~0) + Ste11(S302R~p,S306R~p,T307R~p) -> Ste7(T363R~p) + Ste11(S302R~p,S306R~p,T307R~p)   k
+Ste7(T363R~0) + Ste11(S302R~0,S306R~p,T307R~p) -> Ste7(T363R~p) + Ste11(S302R~0,S306R~p,T307R~p)   k
+Ste7(T363R~0) + Ste11(S302R~p,S306R~p,T307R~0) -> Ste7(T363R~p) + Ste11(S302R~p,S306R~p,T307R~0)   k
+Ste7(T363R~0) + Ste11(S302R~0,S306R~p,T307R~0) -> Ste7(T363R~p) + Ste11(S302R~0,S306R~p,T307R~0)   k
+Ste7(T363R~0) + Ste11(S302R~p,S306R~0,T307R~0) -> Ste7(T363R~p) + Ste11(S302R~p,S306R~0,T307R~0)   k
+Ste7(T363R~0) + Ste11(S302R~0,S306R~0,T307R~p) -> Ste7(T363R~p) + Ste11(S302R~0,S306R~0,T307R~p)   k
+Ste7(T363R~0) + Ste11(S302R~p,S306R~0,T307R~p) -> Ste7(T363R~p) + Ste11(S302R~p,S306R~0,T307R~p)   k
+Ste7(MAPKD,S359R~p,T363R~p) + Fus3(T180R~0) -> Ste7(MAPKD,S359R~p,T363R~p) + Fus3(T180R~p)   k
+Ste7(MAPKD,S359R~p,T363R~0) + Fus3(T180R~0) -> Ste7(MAPKD,S359R~p,T363R~0) + Fus3(T180R~p)   k
+Ste7(MAPKD,S359R~0,T363R~p) + Fus3(T180R~0) -> Ste7(MAPKD,S359R~0,T363R~p) + Fus3(T180R~p)   k
+Ste7(MAPKD,S359R~p,T363R~p) + Fus3(Y182R~0) -> Ste7(MAPKD,S359R~p,T363R~p) + Fus3(Y182R~p)   k
+Ste7(MAPKD,S359R~p,T363R~0) + Fus3(Y182R~0) -> Ste7(MAPKD,S359R~p,T363R~0) + Fus3(Y182R~p)   k
+Ste7(MAPKD,S359R~0,T363R~p) + Fus3(Y182R~0) -> Ste7(MAPKD,S359R~0,T363R~p) + Fus3(Y182R~p)   k
+Kss1(T183R~0) + Ste7(Ste5D!2,MAPKD,S359R~0,T363R~p).Ste5(Ste7D!2) -> Kss1(T183R~p) + Ste7(Ste5D!2,MAPKD,S359R~0,T363R~p).Ste5(Ste7D!2)   k
+Kss1(T183R~0) + Ste7(Ste5D!1,MAPKD,S359R~p).Ste5(Ste7D!1) -> Kss1(T183R~p) + Ste7(Ste5D!1,MAPKD,S359R~p).Ste5(Ste7D!1)   k
+Ste7(Ste5D,MAPKD!1,S359R~0,T363R~p).Kss1(DockD!1,T183R~0) -> Ste7(Ste5D,MAPKD!1,S359R~0,T363R~p).Kss1(DockD!1,T183R~p)   k
+Ste7(Ste5D,MAPKD!1,S359R~p).Kss1(DockD!1,T183R~0) -> Ste7(Ste5D,MAPKD!1,S359R~p).Kss1(DockD!1,T183R~p)   k
+Ste7(Ste5D,MAPKD!2,S359R~0,T363R~p).Kss1(DockD!2,T183R~0) -> Ste7(Ste5D,MAPKD!2,S359R~0,T363R~p).Kss1(DockD!2,T183R~p)   k
+Kss1(T183R~0) + Ste7(Ste5D,MAPKD,S359R~0,T363R~p) -> Kss1(T183R~p) + Ste7(Ste5D,MAPKD,S359R~0,T363R~p)   k
+Ste7(Ste5D,MAPKD!2,S359R~p).Kss1(DockD!2,T183R~0) -> Ste7(Ste5D,MAPKD!2,S359R~p).Kss1(DockD!2,T183R~p)   k
+Kss1(T183R~0) + Ste7(Ste5D,MAPKD,S359R~p) -> Kss1(T183R~p) + Ste7(Ste5D,MAPKD,S359R~p)   k
+Kss1(Y185R~0) + Ste7(Ste5D!2,MAPKD,S359R~0,T363R~p).Ste5(Ste7D!2) -> Kss1(Y185R~p) + Ste7(Ste5D!2,MAPKD,S359R~0,T363R~p).Ste5(Ste7D!2)   k
+Kss1(Y185R~0) + Ste7(Ste5D!1,MAPKD,S359R~p).Ste5(Ste7D!1) -> Kss1(Y185R~p) + Ste7(Ste5D!1,MAPKD,S359R~p).Ste5(Ste7D!1)   k
+Ste7(Ste5D,MAPKD!1,S359R~0,T363R~p).Kss1(DockD!1,Y185R~0) -> Ste7(Ste5D,MAPKD!1,S359R~0,T363R~p).Kss1(DockD!1,Y185R~p)   k
+Ste7(Ste5D,MAPKD!1,S359R~p).Kss1(DockD!1,Y185R~0) -> Ste7(Ste5D,MAPKD!1,S359R~p).Kss1(DockD!1,Y185R~p)   k
+Ste7(Ste5D,MAPKD!2,S359R~0,T363R~p).Kss1(DockD!2,Y185R~0) -> Ste7(Ste5D,MAPKD!2,S359R~0,T363R~p).Kss1(DockD!2,Y185R~p)   k
+Kss1(Y185R~0) + Ste7(Ste5D,MAPKD,S359R~0,T363R~p) -> Kss1(Y185R~p) + Ste7(Ste5D,MAPKD,S359R~0,T363R~p)   k
+Ste7(Ste5D,MAPKD!2,S359R~p).Kss1(DockD!2,Y185R~0) -> Ste7(Ste5D,MAPKD!2,S359R~p).Kss1(DockD!2,Y185R~p)   k
+Kss1(Y185R~0) + Ste7(Ste5D,MAPKD,S359R~p) -> Kss1(Y185R~p) + Ste7(Ste5D,MAPKD,S359R~p)   k
+Fus3(DockD,Y182R~p) + Ptp(MAPKD) -> Fus3(DockD!1,Y182R~p).Ptp(MAPKD!1)   k
+Fus3(DockD!1).Ptp(MAPKD!1) -> Fus3(DockD) + Ptp(MAPKD)   k
+Kss1(DockD,Y185R~p) + Ptp(MAPKD) -> Kss1(DockD!1,Y185R~p).Ptp(MAPKD!1)   k
+Kss1(DockD!1).Ptp(MAPKD!1) -> Kss1(DockD) + Ptp(MAPKD)   k
+Fus3(DockD!1,Y182R~p).Ptp(MAPKD!1) -> Fus3(DockD!1,Y182R~0).Ptp(MAPKD!1)   k
+Kss1(DockD!1,Y185R~p).Ptp(MAPKD!1) -> Kss1(DockD!1,Y185R~0).Ptp(MAPKD!1)   k
+Fus3(DockD,Y182R~p,T180R~p) + Msg5(MAPKD) -> Msg5(MAPKD!1).Fus3(DockD!1,Y182R~p,T180R~p)   k
+Fus3(DockD,Y182R~p,T180R~0) + Msg5(MAPKD) -> Msg5(MAPKD!1).Fus3(DockD!1,Y182R~p,T180R~0)   k
+Fus3(DockD,Y182R~0,T180R~p) + Msg5(MAPKD) -> Msg5(MAPKD!1).Fus3(DockD!1,Y182R~0,T180R~p)   k
+Msg5(MAPKD!1).Fus3(DockD!1) -> Fus3(DockD) + Msg5(MAPKD)   k
+Kss1(DockD,T183R~p,Y185R~p) + Msg5(MAPKD) -> Msg5(MAPKD!1).Kss1(DockD!1,T183R~p,Y185R~p)   k
+Kss1(DockD,T183R~p,Y185R~0) + Msg5(MAPKD) -> Msg5(MAPKD!1).Kss1(DockD!1,T183R~p,Y185R~0)   k
+Kss1(DockD,T183R~0,Y185R~p) + Msg5(MAPKD) -> Msg5(MAPKD!1).Kss1(DockD!1,T183R~0,Y185R~p)   k
+Msg5(MAPKD!1).Kss1(DockD!1) -> Kss1(DockD) + Msg5(MAPKD)   k
+Msg5(MAPKD!1).Fus3(DockD!1,Y182R~p) -> Msg5(MAPKD!1).Fus3(DockD!1,Y182R~0)   k
+Msg5(MAPKD!1).Fus3(DockD!1,Y182R~0,T180R~p) -> Msg5(MAPKD!1).Fus3(DockD!1,Y182R~0,T180R~0)   k
+Msg5(MAPKD!1).Kss1(DockD!1,Y185R~p) -> Msg5(MAPKD!1).Kss1(DockD!1,Y185R~0)   k
+Msg5(MAPKD!1).Kss1(DockD!1,T183R~p,Y185R~0) -> Msg5(MAPKD!1).Kss1(DockD!1,T183R~0,Y185R~0)   k
+Fus3(DockD) + Ste7(Ste5D,MAPKD) -> Ste7(Ste5D,MAPKD!1).Fus3(DockD!1)   k
+Ste7(MAPKD!1).Fus3(DockD!1) -> Fus3(DockD) + Ste7(MAPKD)   k
+Kss1(DockD) + Ste7(Ste5D,MAPKD) -> Ste7(Ste5D,MAPKD!1).Kss1(DockD!1)   k
+Ste7(MAPKD!1).Kss1(DockD!1) -> Kss1(DockD) + Ste7(MAPKD)   k
+Fus3(DockD,Y182R~p,T180R~p) + Ste11(FeedbackR~0,MAPKD,Ste5D) -> Ste11(FeedbackR~0,MAPKD!1,Ste5D).Fus3(DockD!1,Y182R~p,T180R~p)   k
+Fus3(DockD,Y182R~p,T180R~0) + Ste11(FeedbackR~0,MAPKD,Ste5D) -> Ste11(FeedbackR~0,MAPKD!1,Ste5D).Fus3(DockD!1,Y182R~p,T180R~0)   k
+Fus3(DockD,Y182R~0,T180R~p) + Ste11(FeedbackR~0,MAPKD,Ste5D) -> Ste11(FeedbackR~0,MAPKD!1,Ste5D).Fus3(DockD!1,Y182R~0,T180R~p)   k
+Ste11(MAPKD!1).Fus3(DockD!1) -> Fus3(DockD) + Ste11(MAPKD)   k
+Kss1(DockD,T183R~p,Y185R~p) + Ste11(FeedbackR~0,MAPKD,Ste5D) -> Ste11(FeedbackR~0,MAPKD!1,Ste5D).Kss1(DockD!1,T183R~p,Y185R~p)   k
+Kss1(DockD,T183R~0,Y185R~p) + Ste11(FeedbackR~0,MAPKD,Ste5D) -> Ste11(FeedbackR~0,MAPKD!1,Ste5D).Kss1(DockD!1,T183R~0,Y185R~p)   k
+Kss1(DockD,T183R~p,Y185R~0) + Ste11(FeedbackR~0,MAPKD,Ste5D) -> Ste11(FeedbackR~0,MAPKD!1,Ste5D).Kss1(DockD!1,T183R~p,Y185R~0)   k
+Ste11(MAPKD!1).Kss1(DockD!1) -> Kss1(DockD) + Ste11(MAPKD)   k
+Ste11(FeedbackR~0,MAPKD!1,Ste5D).Fus3(DockD!1,Y182R~p,T180R~p) -> Ste11(FeedbackR~p,MAPKD!1,Ste5D).Fus3(DockD!1,Y182R~p,T180R~p)   k
+Ste11(FeedbackR~0,MAPKD!1,Ste5D).Fus3(DockD!1,Y182R~p,T180R~0) -> Ste11(FeedbackR~p,MAPKD!1,Ste5D).Fus3(DockD!1,Y182R~p,T180R~0)   k
+Ste11(FeedbackR~0,MAPKD!1,Ste5D).Fus3(DockD!1,Y182R~0,T180R~p) -> Ste11(FeedbackR~p,MAPKD!1,Ste5D).Fus3(DockD!1,Y182R~0,T180R~p)   k
+Ste11(FeedbackR~0,MAPKD!1,Ste5D).Kss1(DockD!1,T183R~p,Y185R~p) -> Ste11(FeedbackR~p,MAPKD!1,Ste5D).Kss1(DockD!1,T183R~p,Y185R~p)   k
+Ste11(FeedbackR~0,MAPKD!1,Ste5D).Kss1(DockD!1,T183R~0,Y185R~p) -> Ste11(FeedbackR~p,MAPKD!1,Ste5D).Kss1(DockD!1,T183R~0,Y185R~p)   k
+Ste11(FeedbackR~0,MAPKD!1,Ste5D).Kss1(DockD!1,T183R~p,Y185R~0) -> Ste11(FeedbackR~p,MAPKD!1,Ste5D).Kss1(DockD!1,T183R~p,Y185R~0)   k
+UC53() + Ste11() -> UC53()   k
+Ste11() + UC54() -> Ste11() + UC54() + Ste11(S306R~0,MAPKD,Ste5D,FeedbackR~0,S302R~0,T307R~0)   k
+Fus3(DockD,Y182R~p,T180R~p) + Ste7(Ste5D,MAPKD) -> Fus3(DockD,Y182R~p,T180R~p)   k
+Fus3(DockD,Y182R~p,T180R~0) + Ste7(Ste5D,MAPKD) -> Fus3(DockD,Y182R~p,T180R~0)   k
+Fus3(DockD,Y182R~0,T180R~p) + Ste7(Ste5D,MAPKD) -> Fus3(DockD,Y182R~0,T180R~p)   k
+Ste7() + UC56() -> Ste7() + UC56() + Ste7(Ste5D,MAPKD,S359R~0,T363R~0,S363R~0)   k
+Dig1(Ste12D) + Ste12(Dig1D) -> Ste12(Dig1D!1).Dig1(Ste12D!1)   k
+Ste12(Dig1D!1).Dig1(Ste12D!1) -> Dig1(Ste12D) + Ste12(Dig1D)   k
+Dig2(Ste12D) + Ste12(Dig2D) -> Ste12(Dig2D!1).Dig2(Ste12D!1)   k
+Ste12(Dig2D!1).Dig2(Ste12D!1) -> Dig2(Ste12D) + Ste12(Dig2D)   k
+Kss1(DockD) + Ste12(MAPKD) -> Ste12(MAPKD!1).Kss1(DockD!1)   k
+Ste12(MAPKD!1).Kss1(DockD!1) -> Kss1(DockD) + Ste12(MAPKD)   k
+Fus3(DockD) + Ste12(MAPKD) -> Ste12(MAPKD!1).Fus3(DockD!1)   k
+Ste12(MAPKD!1).Fus3(DockD!1) -> Fus3(DockD) + Ste12(MAPKD)   k
+Dig1(MAPKR~0,MAPKD) + Fus3(DockD,Y182R~p,T180R~p) -> Fus3(DockD!1,Y182R~p,T180R~p).Dig1(MAPKR~0,MAPKD!1)   k
+Dig1(MAPKR~0,MAPKD) + Fus3(DockD,Y182R~0,T180R~p) -> Fus3(DockD!1,Y182R~0,T180R~p).Dig1(MAPKR~0,MAPKD!1)   k
+Dig1(MAPKR~0,MAPKD) + Fus3(DockD,Y182R~p,T180R~0) -> Fus3(DockD!1,Y182R~p,T180R~0).Dig1(MAPKR~0,MAPKD!1)   k
+Fus3(DockD!1).Dig1(MAPKD!1) -> Dig1(MAPKD) + Fus3(DockD)   k
+Kss1(DockD,T183R~p,Y185R~p) + Dig1(MAPKR~0,MAPKD) -> Kss1(DockD!1,T183R~p,Y185R~p).Dig1(MAPKR~0,MAPKD!1)   k
+Kss1(DockD,T183R~p,Y185R~0) + Dig1(MAPKR~0,MAPKD) -> Kss1(DockD!1,T183R~p,Y185R~0).Dig1(MAPKR~0,MAPKD!1)   k
+Kss1(DockD,T183R~0,Y185R~p) + Dig1(MAPKR~0,MAPKD) -> Kss1(DockD!1,T183R~0,Y185R~p).Dig1(MAPKR~0,MAPKD!1)   k
+Kss1(DockD!1).Dig1(MAPKD!1) -> Kss1(DockD) + Dig1(MAPKD)   k
+Fus3(DockD!1,Y182R~p,T180R~p).Dig1(MAPKR~0,MAPKD!1) -> Fus3(DockD!1,Y182R~p,T180R~p).Dig1(MAPKR~p,MAPKD!1)   k
+Fus3(DockD!1,Y182R~p,T180R~0).Dig1(MAPKR~0,MAPKD!1) -> Fus3(DockD!1,Y182R~p,T180R~0).Dig1(MAPKR~p,MAPKD!1)   k
+Fus3(DockD!1,Y182R~0,T180R~p).Dig1(MAPKR~0,MAPKD!1) -> Fus3(DockD!1,Y182R~0,T180R~p).Dig1(MAPKR~p,MAPKD!1)   k
+Kss1(DockD!1,T183R~p,Y185R~p).Dig1(MAPKR~0,MAPKD!1) -> Kss1(DockD!1,T183R~p,Y185R~p).Dig1(MAPKR~p,MAPKD!1)   k
+Kss1(DockD!1,T183R~0,Y185R~p).Dig1(MAPKR~0,MAPKD!1) -> Kss1(DockD!1,T183R~0,Y185R~p).Dig1(MAPKR~p,MAPKD!1)   k
+Kss1(DockD!1,T183R~p,Y185R~0).Dig1(MAPKR~0,MAPKD!1) -> Kss1(DockD!1,T183R~p,Y185R~0).Dig1(MAPKR~p,MAPKD!1)   k
+Fus3(DockD,Y182R~p,T180R~p) + Dig2(MAPKR~0,MAPKD) -> Fus3(DockD!1,Y182R~p,T180R~p).Dig2(MAPKR~0,MAPKD!1)   k
+Fus3(DockD,Y182R~0,T180R~p) + Dig2(MAPKR~0,MAPKD) -> Fus3(DockD!1,Y182R~0,T180R~p).Dig2(MAPKR~0,MAPKD!1)   k
+Fus3(DockD,Y182R~p,T180R~0) + Dig2(MAPKR~0,MAPKD) -> Fus3(DockD!1,Y182R~p,T180R~0).Dig2(MAPKR~0,MAPKD!1)   k
+Fus3(DockD!1).Dig2(MAPKD!1) -> Fus3(DockD) + Dig2(MAPKD)   k
+Kss1(DockD,T183R~p,Y185R~p) + Dig2(MAPKR~0,MAPKD) -> Kss1(DockD!1,T183R~p,Y185R~p).Dig2(MAPKR~0,MAPKD!1)   k
+Kss1(DockD,T183R~p,Y185R~0) + Dig2(MAPKR~0,MAPKD) -> Kss1(DockD!1,T183R~p,Y185R~0).Dig2(MAPKR~0,MAPKD!1)   k
+Kss1(DockD,T183R~0,Y185R~p) + Dig2(MAPKR~0,MAPKD) -> Kss1(DockD!1,T183R~0,Y185R~p).Dig2(MAPKR~0,MAPKD!1)   k
+Kss1(DockD!1).Dig2(MAPKD!1) -> Kss1(DockD) + Dig2(MAPKD)   k
+Fus3(DockD!1,Y182R~p,T180R~p).Dig2(MAPKR~0,MAPKD!1) -> Fus3(DockD!1,Y182R~p,T180R~p).Dig2(MAPKR~p,MAPKD!1)   k
+Fus3(DockD!1,Y182R~p,T180R~0).Dig2(MAPKR~0,MAPKD!1) -> Fus3(DockD!1,Y182R~p,T180R~0).Dig2(MAPKR~p,MAPKD!1)   k
+Fus3(DockD!1,Y182R~0,T180R~p).Dig2(MAPKR~0,MAPKD!1) -> Fus3(DockD!1,Y182R~0,T180R~p).Dig2(MAPKR~p,MAPKD!1)   k
+Kss1(DockD!1,T183R~p,Y185R~p).Dig2(MAPKR~0,MAPKD!1) -> Kss1(DockD!1,T183R~p,Y185R~p).Dig2(MAPKR~p,MAPKD!1)   k
+Kss1(DockD!1,T183R~0,Y185R~p).Dig2(MAPKR~0,MAPKD!1) -> Kss1(DockD!1,T183R~0,Y185R~p).Dig2(MAPKR~p,MAPKD!1)   k
+Kss1(DockD!1,T183R~p,Y185R~0).Dig2(MAPKR~0,MAPKD!1) -> Kss1(DockD!1,T183R~p,Y185R~0).Dig2(MAPKR~p,MAPKD!1)   k
+Dig2() + Ste12(MAPKD,Dig1D,Dig2D) -> Dig2(MAPKR~0,Ste12D,MAPKD) + Dig2() + Ste12(MAPKD,Dig1D,Dig2D)   k
+Far1() + Ste12(MAPKD,Dig1D,Dig2D) -> Far1() + Ste12(MAPKD,Dig1D,Dig2D) + Far1(S87R~0,MAPKD,T306R~0)   k
+Fus3() + Ste12(MAPKD,Dig1D,Dig2D) -> Fus3() + Ste12(MAPKD,Dig1D,Dig2D) + Fus3(DockD,Y182R~0,T180R~0)   k
+Gpa1() + Ste12(MAPKD,Dig1D,Dig2D) -> Gpa1(Ste2D,Ste4D,GnPR~0) + Gpa1() + Ste12(MAPKD,Dig1D,Dig2D)   k
+Msg5() + Ste12(MAPKD,Dig1D,Dig2D) -> Msg5() + Ste12(MAPKD,Dig1D,Dig2D) + Msg5(MAPKD)   k
+Ptp() + Ste12(MAPKD,Dig1D,Dig2D) -> Ptp(MAPKD) + Ptp() + Ste12(MAPKD,Dig1D,Dig2D)   k
+Sst2() + Ste12(MAPKD,Dig1D,Dig2D) -> Sst2(Ste2D,S539R~0,MAPKD) + Sst2() + Ste12(MAPKD,Dig1D,Dig2D)   k
+Ste2() + Ste12(MAPKD,Dig1D,Dig2D) -> Ste2() + Ste12(MAPKD,Dig1D,Dig2D) + Ste2(Gpa1D,YckD,S338orS339R~0,Sst2D,PherD)   k
+Ste12() + Ste12(MAPKD,Dig1D,Dig2D) -> Ste12() + Ste12(MAPKD,Dig1D,Dig2D) + Ste12(MAPKD,Dig1D,Dig2D)   k
+Fus3(Y182R~p,T180R~p) + Ste12(MAPKD,Dig1D,Dig2D) -> Fus3(Y182R~p,T180R~p)   k
+Fus3(Y182R~p,T180R~0) + Ste12(MAPKD,Dig1D,Dig2D) -> Fus3(Y182R~p,T180R~0)   k
+Fus3(Y182R~0,T180R~p) + Ste12(MAPKD,Dig1D,Dig2D) -> Fus3(Y182R~0,T180R~p)   k
+Far1(T306R~0,MAPKD) + Fus3(DockD,Y182R~p,T180R~p) -> Fus3(DockD!1,Y182R~p,T180R~p).Far1(T306R~0,MAPKD!1)   k
+Far1(T306R~0,MAPKD) + Fus3(DockD,Y182R~0,T180R~p) -> Fus3(DockD!1,Y182R~0,T180R~p).Far1(T306R~0,MAPKD!1)   k
+Far1(T306R~0,MAPKD) + Fus3(DockD,Y182R~p,T180R~0) -> Fus3(DockD!1,Y182R~p,T180R~0).Far1(T306R~0,MAPKD!1)   k
+Fus3(DockD!1).Far1(MAPKD!1) -> Far1(MAPKD) + Fus3(DockD)   k
+Fus3(DockD!1,Y182R~p,T180R~p).Far1(T306R~0,MAPKD!1) -> Fus3(DockD!1,Y182R~p,T180R~p).Far1(T306R~p,MAPKD!1)   k
+Fus3(DockD!1,Y182R~p,T180R~0).Far1(T306R~0,MAPKD!1) -> Fus3(DockD!1,Y182R~p,T180R~0).Far1(T306R~p,MAPKD!1)   k
+Fus3(DockD!1,Y182R~0,T180R~p).Far1(T306R~0,MAPKD!1) -> Fus3(DockD!1,Y182R~0,T180R~p).Far1(T306R~p,MAPKD!1)   k
+Far1(T306R~0,MAPKD) + Kss1(DockD,T183R~p,Y185R~p) -> Kss1(DockD!1,T183R~p,Y185R~p).Far1(T306R~0,MAPKD!1)   k
+Far1(T306R~0,MAPKD) + Kss1(DockD,T183R~p,Y185R~0) -> Kss1(DockD!1,T183R~p,Y185R~0).Far1(T306R~0,MAPKD!1)   k
+Far1(T306R~0,MAPKD) + Kss1(DockD,T183R~0,Y185R~p) -> Kss1(DockD!1,T183R~0,Y185R~p).Far1(T306R~0,MAPKD!1)   k
+Kss1(DockD!1).Far1(MAPKD!1) -> Far1(MAPKD) + Kss1(DockD)   k
+Kss1(DockD!1,T183R~p,Y185R~p).Far1(T306R~0,MAPKD!1) -> Kss1(DockD!1,T183R~p,Y185R~p).Far1(T306R~p,MAPKD!1)   k
+Kss1(DockD!1,T183R~0,Y185R~p).Far1(T306R~0,MAPKD!1) -> Kss1(DockD!1,T183R~0,Y185R~p).Far1(T306R~p,MAPKD!1)   k
+Kss1(DockD!1,T183R~p,Y185R~0).Far1(T306R~0,MAPKD!1) -> Kss1(DockD!1,T183R~p,Y185R~0).Far1(T306R~p,MAPKD!1)   k
+UC83() + Dig1(MAPKR~p) -> UC83() + Dig1(MAPKR~0)   k
+Dig2(MAPKR~p) + UC84() -> Dig2(MAPKR~0) + UC84()   k
+Far1(S87R~p) + UC85() -> Far1(S87R~0) + UC85()   k
+Far1(T306R~p) + UC86() -> Far1(T306R~0) + UC86()   k
+UC87() + Fus3(T180R~p) -> UC87() + Fus3(T180R~0)   k
+Fus3(Y182R~p) + UC88() -> Fus3(Y182R~0) + UC88()   k
+Kss1(T183R~p) + UC89() -> Kss1(T183R~0) + UC89()   k
+Kss1(Y185R~p) + UC90() -> Kss1(Y185R~0) + UC90()   k
+UC91() + Sst2(S539R~p) -> UC91() + Sst2(S539R~0)   k
+Ste2(S338orS339R~p) + UC92() -> Ste2(S338orS339R~0) + UC92()   k
+UC93() + Ste7(S359R~p) -> UC93() + Ste7(S359R~0)   k
+UC94() + Ste7(S363R~p) -> UC94() + Ste7(S363R~0)   k
+Ste11(S302R~p) + UC95() -> Ste11(S302R~0) + UC95()   k
+Ste11(S306R~p) + UC96() -> Ste11(S306R~0) + UC96()   k
+UC97() + Ste11(T307R~p) -> UC97() + Ste11(T307R~0)   k
+UC99() -> UC99() + Pher(Ste2D)   k
+UC100() + Dig1() -> Dig1(MAPKR~0,Ste12D,MAPKD) + UC100() + Dig1()   k
+UC101() + Dig2() -> Dig2(MAPKR~0,Ste12D,MAPKD) + UC101() + Dig2()   k
+UC102() + Far1() -> UC102() + Far1() + Far1(S87R~0,MAPKD,T306R~0)   k
+UC103() + Fus3() -> UC103() + Fus3(DockD,Y182R~0,T180R~0) + Fus3()   k
+UC104() + Gpa1() -> UC104() + Gpa1(Ste2D,Ste4D,GnPR~0) + Gpa1()   k
+UC105() + Kss1() -> UC105() + Kss1(DockD,T183R~0,Y185R~0) + Kss1()   k
+Msg5() + UC106() -> Msg5() + UC106() + Msg5(MAPKD)   k
+UC107() + Ptp() -> Ptp(MAPKD) + UC107() + Ptp()   k
+UC108() + Sst2() -> UC108() + Sst2(Ste2D,S539R~0,MAPKD) + Sst2()   k
+UC109() + Ste2() -> UC109() + Ste2() + Ste2(Gpa1D,YckD,S338orS339R~0,Sst2D,PherD)   k
+Ste4() + UC110() -> Ste4() + Ste4(Gpa1D,Ste20D,Ste5D) + UC110()   k
+UC111() + Ste5() -> Ste5(Ste5D,Ste11D,Ste4D,Ste7D,MAPKD) + UC111() + Ste5()   k
+UC112() + Ste7() -> UC112() + Ste7() + Ste7(Ste5D,MAPKD,S359R~0,T363R~0,S363R~0)   k
+Ste11() + UC113() -> Ste11() + Ste11(S306R~0,MAPKD,Ste5D,FeedbackR~0,S302R~0,T307R~0) + UC113()   k
+UC114() + Ste12() -> UC114() + Ste12() + Ste12(MAPKD,Dig1D,Dig2D)   k
+Ste20() + UC115() -> Ste20(Ste4D) + Ste20() + UC115()   k
+Yck() + UC116() -> Yck() + Yck(Ste2D) + UC116()   k
+Dig1() + UC117() -> UC117()   k
+Dig2() + UC118() -> UC118()   k
+Far1() + UC119() -> UC119()   k
+UC120() + Fus3() -> UC120()   k
+UC121() + Gpa1() -> UC121()   k
+Kss1() + UC122() -> UC122()   k
+UC123() + Msg5() -> UC123()   k
+Pher() + UC124() -> UC124()   k
+UC125() + Ptp() -> UC125()   k
+UC126() + Sst2() -> UC126()   k
+Ste11() + UC127() -> UC127()   k
+UC128() + Ste12() -> UC128()   k
+Ste2() + UC129() -> UC129()   k
+UC130() + Ste20() -> UC130()   k
+UC131() + Ste4() -> UC131()   k
+UC132() + Ste5() -> UC132()   k
+UC133() + Ste7() -> UC133()   k
+UC134() + Yck() -> UC134()   k
+end reaction rules
+
+end model
+
+simulate_nf({suffix=>nf,t_end=>100,n_steps=>50});

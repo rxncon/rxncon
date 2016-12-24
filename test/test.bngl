@@ -1,0 +1,33 @@
+begin model
+begin parameters
+NumA		100
+NumB		100
+NumC		100
+k		1.0
+end parameters
+
+begin molecule types
+A(xD,zR~0~p)
+B(yD)
+C()
+end molecule types
+
+begin seed species
+A(zR~0,xD)	NumA
+B(yD)	NumB
+C()	NumC
+end seed species
+
+begin observables
+
+end observables
+
+begin reaction rules
+A(zR~p,xD) + B(yD) -> B(yD!1).A(zR~p,xD!1)   k   # A_[x]_ppi+_B_[y]
+B(yD!1).A(xD!1) -> A(xD) + B(yD)   k   # A_[x]_ppi-_B_[y]
+A(zR~0) + C() -> A(zR~p) + C()   k   # C_p+_A_[(z)]
+end reaction rules
+
+end model
+
+simulate_nf({suffix=>nf,t_end=>100,n_steps=>50});
