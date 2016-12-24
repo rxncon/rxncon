@@ -1,17 +1,16 @@
 import re
 from typing import List
-from typecheck import typecheck
 
 from rxncon.input.shared.contingency_list import contingencies_from_contingency_list_entries, \
-    contingency_list_entry_from_strs
+    contingency_list_entry_from_strs, ContingencyListEntry
 from rxncon.core.reaction import reaction_from_str
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reaction
 from rxncon.core.contingency import Contingency
-from rxncon.input.shared.contingency_list import ContingencyListEntry
+from rxncon.input.shared.reaction_preprocess import split_bidirectional_reaction_str
+
 
 class Quick:
-    @typecheck
     def __init__(self, rxncon_str: str):
         self.quick_input = rxncon_str.split('\n')
         self.rxncon_system = None               # type: RxnConSystem
@@ -34,18 +33,21 @@ class Quick:
                     self._add_reaction_from_string(reaction_string)
                 self._add_contingency_list_entries(contingency_strings, reaction_string)
 
-    @typecheck
-    def _add_reaction_from_string(self, full_reaction_str: str):
-        reaction = reaction_from_str(full_reaction_str)
-        self._reactions.append(reaction)
+    def _add_reaction_from_string(self, reaction_str: str):
+        reaction_strs = split_bidirectional_reaction_str(reaction_str)
+        for rxn in reaction_strs:
+            reaction = reaction_from_str(rxn)
+            self._reactions.append(reaction)
 
-    @typecheck
-    def _add_contingency_list_entries(self, contingency_strings: List[str], reaction_string: str):
+    def _add_contingency_list_entries(self, contingency_strings: List[str], reaction_str: str):
         for cont in contingency_strings:
             cont = cont.strip()
             cont_type = cont.split()[0]
             modifier = cont.split()[-1]
-            entry = contingency_list_entry_from_strs(reaction_string, cont_type, modifier)
+
+            #  If the verb is bidirectional, only apply the contingency to the forward direction.
+            reaction_strs = split_bidirectional_reaction_str(reaction_str)
+            entry = contingency_list_entry_from_strs(reaction_strs[0], cont_type, modifier)
             self._contingency_list_entries.append(entry)
 
     def _construct_contingencies(self):
