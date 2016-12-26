@@ -5,7 +5,7 @@ from copy import copy, deepcopy
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reaction, ReactionTerm, OutputReaction
 from rxncon.core.state import State, StateModifier
-from rxncon.core.spec import Spec, spec_from_str
+from rxncon.core.spec import Spec
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
 from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet
@@ -19,24 +19,23 @@ class MolDef:
     def __init__(self, name: str, site_defs: Dict[str, List[str]]):
         self.name, self.site_defs = name, site_defs
 
-    def __str__(self):
+    def __str__(self) -> str:
         site_strs = []
         for site_name, site_def in self.site_defs.items():
             site_strs.append('{0}:{1}'.format(site_name, '~'.join(x for x in site_def))) if site_def else site_strs.append(site_name)
         return '{0}({1})'.format(self.name, ','.join(site_strs))
 
-    def __repr__(self):
-        return str(self)
+    def __repr__(self) -> str:
+        return 'MolDef<{}>'.format(str(self))
 
-    def mods_for_site(self, site: str):
+    def mods_for_site(self, site: str) -> List[str]:
         return self.site_defs[site]
 
     @property
-    def sites(self):
-        return self.site_defs.keys()
+    def sites(self) -> List[str]:
+        return list(self.site_defs.keys())
 
     def create_neutral_complex(self) -> 'Complex':
-        spec = spec_from_str(self.name)
         site_to_mod  = {}
         site_to_bond = {}
         for site, mods in self.site_defs.items():
@@ -45,15 +44,15 @@ class MolDef:
             else:
                 site_to_bond[site] = None
 
-        return Complex([Mol(spec, site_to_mod, site_to_bond, False)])
+        return Complex([Mol(self.name, site_to_mod, site_to_bond, False)])
 
 
 class MolDefBuilder:
-    def __init__(self, name: str):
-        self.name      = name  # type: str
-        self.site_defs = {}    # type: Dict[str, List[str]]
+    def __init__(self, spec: Spec):
+        self.name      = str(spec.to_non_struct_spec())  # type: str
+        self.site_defs = {}                              # type: Dict[str, List[str]]
 
-    def build(self):
+    def build(self) -> MolDef:
         return MolDef(self.name, self.site_defs)
 
     def add_site(self, site: Spec):
@@ -65,16 +64,17 @@ class MolDefBuilder:
 
 
 class Mol:
-    def __init__(self, spec: Spec, site_to_mod: Dict[str, Optional[str]], site_to_bond: Dict[str, Optional[int]], is_reactant: bool):
-        assert spec.is_component_spec
-        self.spec         = spec
+    def __init__(self, name: str, site_to_mod: Dict[str, Optional[str]], site_to_bond: Dict[str, Optional[int]], is_reactant: bool):
+        self.name         = name
         self.site_to_mod  = site_to_mod
         self.site_to_bond = site_to_bond
         self.is_reactant  = is_reactant
 
-    def __str__(self):
-        mod_str  = ','.join('{}{}'.format(site, '~' + mod if mod else '') for site, mod in self.site_to_mod.items())
-        bond_str = ','.join('{}{}'.format(site, '!' + str(bond) if bond is not None else '') for site, bond in self.site_to_bond.items())
+    def __str__(self) -> str:
+        mod_str  = ','.join('{}{}'.format(site, '~' + mod if mod else '')
+                            for site, mod in sorted(self.site_to_mod.items()))
+        bond_str = ','.join('{}{}'.format(site, '!' + str(bond) if bond is not None else '')
+                            for site, bond in sorted(self.site_to_bond.items()))
 
         strs = []
         if mod_str:
@@ -82,17 +82,25 @@ class Mol:
         if bond_str:
             strs.append(bond_str)
 
-        return '{}({})'.format(self.spec.component_name, ','.join(strs))
+        return '{}({})'.format(self.name, ','.join(strs))
 
-    def __repr__(self):
-        return str(self)
+    def __repr__(self) -> str:
+        return 'Mol<{}>'.format(str(self))
+
+    def __eq__(self, other: 'Mol') -> bool:
+        return self.name  == other.name and self.site_to_mod == other.site_to_mod and self.site_to_bond == other.site_to_bond \
+            and self.is_reactant == other.is_reactant
+
+    def __lt__(self, other: 'Mol') -> bool:
+        if self.name != other.name:
+            return self.name < other.name
+        elif str(self) == str(other):
+            return self.is_reactant < other.is_reactant
+        else:
+            return str(self) < str(other)
 
     @property
-    def name(self):
-        return str(self.spec.to_non_struct_spec())
-
-    @property
-    def sites(self):
+    def sites(self) -> List[str]:
         return list(set(list(self.site_to_mod.keys()) + list(self.site_to_bond.keys())))
 
 
@@ -110,13 +118,13 @@ def site_name(spec: Spec) -> str:
 
 class MolBuilder:
     def __init__(self, spec: Spec, is_reactant: bool=False):
-        self.spec         = spec
+        self.name         = str(spec.to_non_struct_spec())
         self.site_to_mod  = {}  # type: Dict[str, str]
         self.site_to_bond = {}  # type: Dict[str, int]
         self.is_reactant  = is_reactant
 
     def build(self) -> Mol:
-        return Mol(self.spec, self.site_to_mod, self.site_to_bond, self.is_reactant)
+        return Mol(self.name, self.site_to_mod, self.site_to_bond, self.is_reactant)
 
     def set_bond_index(self, spec: Spec, bond_index: Optional[int]):
         self.site_to_bond[site_name(spec)] = bond_index
@@ -127,13 +135,19 @@ class MolBuilder:
 
 class Complex:
     def __init__(self, mols: List[Mol]):
-        self.mols  = mols
+        self.mols = sorted(mols)
 
     def __str__(self):
         return '.'.join(str(mol) for mol in self.mols)
 
     def __repr__(self):
         return 'Complex<{}>'.format(str(self))
+
+    def __eq__(self, other: 'Complex') -> bool:
+        return self.mols == other.mols
+
+    def __lt__(self, other: 'Complex') -> bool:
+        return self.mols < other.mols
 
     @property
     def is_reactant(self):
@@ -280,7 +294,7 @@ class Observable:
 
 class Rule:
     def __init__(self, lhs: List[Complex], rhs: List[Complex], rate: Parameter, parent_reaction: Reaction=None):
-        self.lhs, self.rhs, self.rate = lhs, rhs, rate
+        self.lhs, self.rhs, self.rate = sorted(lhs), sorted(rhs), rate
         self.parent_reaction = parent_reaction
 
     def __str__(self):
@@ -306,7 +320,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
     def mol_defs_from_rxncon(rxncon_sys: RxnConSystem) -> Dict[Spec, MolDef]:
         mol_defs = {}
         for spec in rxncon_sys.components():
-            builder = MolDefBuilder(str(spec))
+            builder = MolDefBuilder(spec)
             for state in rxncon_sys.states_for_component(spec):
                 for func in STATE_TO_MOL_DEF_BUILDER_FN[state.repr_def]:
                     func(state, builder)
