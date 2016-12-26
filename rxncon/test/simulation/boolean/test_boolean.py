@@ -249,16 +249,15 @@ def test_deg_with_interaction_as_requirement():
                                                        D_p+_A_[(r)]
                                                        C_deg_A; ! A_[x]--B_[y]""").rxncon_system)
 
-    target_to_factor = {str(rule.target): rule.factor for rule in boolean_model.update_rules}
+    assert boolean_model.reaction_target_by_name('C_deg_A').degraded_targets    == [target_from_str('A_[x]--B_[y]')]
+    assert boolean_model.reaction_target_by_name('C_deg_A').consumed_targets    == []
+    assert boolean_model.reaction_target_by_name('C_deg_A').produced_targets    == []
+    assert boolean_model.reaction_target_by_name('C_deg_A').synthesised_targets == []
 
-    assert target_from_str('C_deg_A#0/1') in target_to_factor['A_[x]--B_[y]'].values
-    assert target_from_str('C_deg_A') in target_to_factor['A_[x]--B_[y]'].values
-
-    assert target_from_str('C_deg_A#0/1') not in target_to_factor['A_[x]--0'].values
-    assert target_from_str('C_deg_A') not in target_to_factor['A_[x]--0'].values
-
-    assert target_from_str('C_deg_A#0/1') not in target_to_factor['A_[(r)]-{p}'].values
-    assert target_from_str('C_deg_A') not in target_to_factor['A_[(r)]-{p}'].values
+    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').degraded_targets    == [target_from_str('A_[x]--B_[y]')]
+    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').consumed_targets    == [target_from_str('A_[x]--B_[y]')]
+    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').produced_targets    == [target_from_str('B_[y]--0')]
+    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').synthesised_targets == []
 
 
 def test_deg_with_interaction_as_inhibition():
@@ -266,11 +265,15 @@ def test_deg_with_interaction_as_inhibition():
                                                        D_p+_A_[(r)]
                                                        C_deg_A; x A_[x]--B_[y]""").rxncon_system)
 
-    target_to_factor = {str(rule.target): rule.factor for rule in boolean_model.update_rules}
+    assert boolean_model.reaction_target_by_name('C_deg_A').degraded_targets    == [target_from_str('A_[x]--B_[y]')]
+    assert boolean_model.reaction_target_by_name('C_deg_A').consumed_targets    == []
+    assert boolean_model.reaction_target_by_name('C_deg_A').produced_targets    == []
+    assert boolean_model.reaction_target_by_name('C_deg_A').synthesised_targets == []
 
-    for r in boolean_model.update_rules:
-        print()
-        print(r)
+    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').degraded_targets    == [target_from_str('A_[x]--B_[y]')]
+    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').consumed_targets    == [target_from_str('A_[x]--B_[y]')]
+    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').produced_targets    == [target_from_str('B_[y]--0')]
+    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').synthesised_targets == []
 
 
 

@@ -13,15 +13,23 @@ from rxncon.core.rxncon_system import RxnConSystem
 
 
 class BooleanModel:
-    def __init__(self, update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig'):
-
-        self.update_rules = update_rules
+    def __init__(self, state_targets: List['StateTarget'], reaction_targets: List['ReactionTarget'],
+                 update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig'):
+        self.update_rules       = update_rules
         self.initial_conditions = initial_conditions
+        self._state_targets     = {str(x): x for x in state_targets}
+        self._reaction_targets  = {str(x): x for x in reaction_targets}
         self._validate_update_rules()
         self._validate_initial_conditions()
 
     def set_initial_condition(self, target: 'Target', value: bool):
         self.initial_conditions.set_target(target, value)
+
+    def state_target_by_name(self, name: str) -> 'StateTarget':
+        return self._state_targets[name]
+
+    def reaction_target_by_name(self, name: str) -> 'ReactionTarget':
+        return self._reaction_targets[name]
 
     def _validate_update_rules(self):
         all_lhs_targets = []
@@ -402,7 +410,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
     calc_reaction_rules()
     calc_state_rules()
 
-    return BooleanModel(reaction_rules + state_rules, initial_conditions(reaction_targets, state_targets))
+    return BooleanModel(state_targets, reaction_targets, reaction_rules + state_rules,
+                        initial_conditions(reaction_targets, state_targets))
 
 
 ### SIMULATION STUFF ###

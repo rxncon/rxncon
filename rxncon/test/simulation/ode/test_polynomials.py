@@ -1,56 +1,57 @@
 import pytest
 
-import rxncon.simulation.ode.polynomials as pol
+from rxncon.simulation.ode.polynomials import Polynomial, PolynomialTerm, Symbol, TrivialMonomial, Monomial, \
+    TrivialMulSymbol, MonomialFactor
 
 
 ### MONOMIAL ALGEBRA ###
 def test_monomial_multiplication_positive_powers():
-    x = pol.Symbol('x')
-    y = pol.Symbol('y')
-    z = pol.Symbol('z')
+    x = Symbol('x')
+    y = Symbol('y')
+    z = Symbol('z')
 
-    first_monomial = pol.Monomial({pol.MonomialFactor(x, 2), pol.MonomialFactor(y, 3), pol.MonomialFactor(z, 4)})
-    second_monomial = pol.Monomial({pol.MonomialFactor(x, 1), pol.MonomialFactor(y, 1), pol.MonomialFactor(z, 1)})
+    first_monomial = Monomial({MonomialFactor(x, 2), MonomialFactor(y, 3), MonomialFactor(z, 4)})
+    second_monomial = Monomial({MonomialFactor(x, 1), MonomialFactor(y, 1), MonomialFactor(z, 1)})
 
     assert first_monomial * second_monomial == \
-           pol.Monomial({pol.MonomialFactor(x, 3), pol.MonomialFactor(y, 4), pol.MonomialFactor(z, 5)})
+           Monomial({MonomialFactor(x, 3), MonomialFactor(y, 4), MonomialFactor(z, 5)})
 
 
 def test_monomial_multiplication_mixed_sign_powers():
-    x = pol.Symbol('x')
-    y = pol.Symbol('y')
-    z = pol.Symbol('z')
+    x = Symbol('x')
+    y = Symbol('y')
+    z = Symbol('z')
 
-    first_monomial = pol.Monomial({pol.MonomialFactor(x, 2), pol.MonomialFactor(y, 3), pol.MonomialFactor(z, 4)})
-    second_monomial = pol.Monomial({pol.MonomialFactor(x, 1), pol.MonomialFactor(y, -3), pol.MonomialFactor(z, 1)})
+    first_monomial = Monomial({MonomialFactor(x, 2), MonomialFactor(y, 3), MonomialFactor(z, 4)})
+    second_monomial = Monomial({MonomialFactor(x, 1), MonomialFactor(y, -3), MonomialFactor(z, 1)})
 
     assert first_monomial * second_monomial == \
-           pol.Monomial({pol.MonomialFactor(x, 3), pol.MonomialFactor(z, 5)})
+           Monomial({MonomialFactor(x, 3), MonomialFactor(z, 5)})
 
 
 def test_monomial_multiplication_to_trivial():
-    x = pol.Symbol('x')
-    y = pol.Symbol('y')
-    z = pol.Symbol('z')
+    x = Symbol('x')
+    y = Symbol('y')
+    z = Symbol('z')
 
-    first_monomial = pol.Monomial({pol.MonomialFactor(x, 2), pol.MonomialFactor(y, -3), pol.MonomialFactor(z, 4)})
-    second_monomial = pol.Monomial({pol.MonomialFactor(x, -2), pol.MonomialFactor(z, -4), pol.MonomialFactor(y, 3)})
+    first_monomial = Monomial({MonomialFactor(x, 2), MonomialFactor(y, -3), MonomialFactor(z, 4)})
+    second_monomial = Monomial({MonomialFactor(x, -2), MonomialFactor(z, -4), MonomialFactor(y, 3)})
 
-    assert first_monomial * second_monomial == pol.Monomial({pol.MonomialFactor(pol.TrivialMulSymbol(), 0)})
-    assert second_monomial * first_monomial == pol.TrivialMonomial()
+    assert first_monomial * second_monomial == Monomial({MonomialFactor(TrivialMulSymbol(), 0)})
+    assert second_monomial * first_monomial == TrivialMonomial()
 
 
 def test_monomial_symbols():
-    x = pol.Symbol('x')
-    y = pol.Symbol('y')
-    z = pol.Symbol('z')
+    x = Symbol('x')
+    y = Symbol('y')
+    z = Symbol('z')
 
-    pol.Monomial({pol.MonomialFactor(x, 2), pol.MonomialFactor(y, 3), pol.MonomialFactor(z, 4)})
+    Monomial({MonomialFactor(x, 2), MonomialFactor(y, 3), MonomialFactor(z, 4)})
 
-    assert pol.Monomial({pol.MonomialFactor(x, 2), pol.MonomialFactor(y, 3), pol.MonomialFactor(z, 4)}).symbols == \
-        {x, y, z}
+    assert Monomial({MonomialFactor(x, 2), MonomialFactor(y, 3), MonomialFactor(z, 4)}).symbols == \
+           {x, y, z}
 
-    assert pol.Monomial({pol.MonomialFactor(x, 2), pol.MonomialFactor(y, 3)}).symbols == {x, y}
+    assert Monomial({MonomialFactor(x, 2), MonomialFactor(y, 3)}).symbols == {x, y}
 
 
 ### POLYNOMIAL ALGEBRA ###
@@ -79,8 +80,8 @@ def test_polynomial_subtraction(one_x, one_y, two_x_minus_two_y, const_one):
 
 
 def test_polynomial_symbols(two_x, x_sq_minus_y_sq):
-    x = pol.Symbol('x')
-    y = pol.Symbol('y')
+    x = Symbol('x')
+    y = Symbol('y')
 
     assert two_x.symbols == {x}
     assert x_sq_minus_y_sq.symbols == {x, y}
@@ -89,91 +90,91 @@ def test_polynomial_symbols(two_x, x_sq_minus_y_sq):
 ### TEST FIXTURES ###
 @pytest.fixture
 def const_one():
-    x = pol.TrivialMulSymbol()
-    one = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 0)}), 1.0)
+    x = TrivialMulSymbol()
+    one = PolynomialTerm(Monomial({MonomialFactor(x, 0)}), 1.0)
 
-    return pol.Polynomial({one})
+    return Polynomial({one})
 
 @pytest.fixture
 def one_x():
-    x = pol.Symbol('x')
-    one_x = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1)}), 1.0)
+    x = Symbol('x')
+    one_x = PolynomialTerm(Monomial({MonomialFactor(x, 1)}), 1.0)
 
-    return pol.Polynomial({one_x})
+    return Polynomial({one_x})
 
 
 @pytest.fixture
 def one_y():
-    y = pol.Symbol('y')
-    one_y = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(y, 1)}), 1.0)
+    y = Symbol('y')
+    one_y = PolynomialTerm(Monomial({MonomialFactor(y, 1)}), 1.0)
 
-    return pol.Polynomial({one_y})
+    return Polynomial({one_y})
 
 
 @pytest.fixture
 def two_x():
-    x = pol.Symbol('x')
-    term_two_x = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1)}), 2.0)
+    x = Symbol('x')
+    term_two_x = PolynomialTerm(Monomial({MonomialFactor(x, 1)}), 2.0)
 
-    return pol.Polynomial({term_two_x})
+    return Polynomial({term_two_x})
 
 
 @pytest.fixture
 def x_plus_y():
-    x = pol.Symbol('x')
-    y = pol.Symbol('y')
-    term_x = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1)}), 1.0)
-    term_y = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(y, 1)}), 1.0)
+    x = Symbol('x')
+    y = Symbol('y')
+    term_x = PolynomialTerm(Monomial({MonomialFactor(x, 1)}), 1.0)
+    term_y = PolynomialTerm(Monomial({MonomialFactor(y, 1)}), 1.0)
 
-    return pol.Polynomial({term_x, term_y})
+    return Polynomial({term_x, term_y})
 
 
 @pytest.fixture
 def two_x_plus_two_y():
-    x = pol.Symbol('x')
-    y = pol.Symbol('y')
-    term_two_x = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1)}), 2.0)
-    term_two_y = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(y, 1)}), 2.0)
+    x = Symbol('x')
+    y = Symbol('y')
+    term_two_x = PolynomialTerm(Monomial({MonomialFactor(x, 1)}), 2.0)
+    term_two_y = PolynomialTerm(Monomial({MonomialFactor(y, 1)}), 2.0)
 
-    return pol.Polynomial({term_two_x, term_two_y})
+    return Polynomial({term_two_x, term_two_y})
 
 
 @pytest.fixture
 def two_x_minus_two_y():
-    x = pol.Symbol('x')
-    y = pol.Symbol('y')
-    term_two_x = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1)}), 2.0)
-    term_minus_two_y = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(y, 1)}), -2.0)
+    x = Symbol('x')
+    y = Symbol('y')
+    term_two_x = PolynomialTerm(Monomial({MonomialFactor(x, 1)}), 2.0)
+    term_minus_two_y = PolynomialTerm(Monomial({MonomialFactor(y, 1)}), -2.0)
 
-    return pol.Polynomial({term_two_x, term_minus_two_y})
+    return Polynomial({term_two_x, term_minus_two_y})
 
 
 @pytest.fixture
 def x_minus_y():
-    x = pol.Symbol('x')
-    y = pol.Symbol('y')
-    term_x = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1)}), 1.0)
-    term_minus_y = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(y, 1)}), -1.0)
+    x = Symbol('x')
+    y = Symbol('y')
+    term_x = PolynomialTerm(Monomial({MonomialFactor(x, 1)}), 1.0)
+    term_minus_y = PolynomialTerm(Monomial({MonomialFactor(y, 1)}), -1.0)
 
-    return pol.Polynomial({term_x, term_minus_y})
+    return Polynomial({term_x, term_minus_y})
 
 
 @pytest.fixture
 def x_sq_minus_y_sq():
-    x = pol.Symbol('x')
-    y = pol.Symbol('y')
-    term_x_sq = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 2)}), 1.0)
-    term_minus_y_sq = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(y, 2)}), -1.0)
+    x = Symbol('x')
+    y = Symbol('y')
+    term_x_sq = PolynomialTerm(Monomial({MonomialFactor(x, 2)}), 1.0)
+    term_minus_y_sq = PolynomialTerm(Monomial({MonomialFactor(y, 2)}), -1.0)
 
-    return pol.Polynomial({term_x_sq, term_minus_y_sq})
+    return Polynomial({term_x_sq, term_minus_y_sq})
 
 
 @pytest.fixture
 def x_sq_plus_two_xy_plus_y_sq():
-    x = pol.Symbol('x')
-    y = pol.Symbol('y')
-    term_2xy = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1), pol.MonomialFactor(y, 1)}), 2.0)
-    term_x_sq = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 2)}), 1.0)
-    term_y_sq = pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(y, 2)}), 1.0)
+    x = Symbol('x')
+    y = Symbol('y')
+    term_2xy = PolynomialTerm(Monomial({MonomialFactor(x, 1), MonomialFactor(y, 1)}), 2.0)
+    term_x_sq = PolynomialTerm(Monomial({MonomialFactor(x, 2)}), 1.0)
+    term_y_sq = PolynomialTerm(Monomial({MonomialFactor(y, 2)}), 1.0)
 
-    return pol.Polynomial({term_x_sq, term_y_sq, term_2xy})
+    return Polynomial({term_x_sq, term_y_sq, term_2xy})

@@ -1,20 +1,20 @@
 import pytest
 import math
 
-import rxncon.simulation.ode.polynomials as pol
-import rxncon.simulation.ode.ode as ode
+from rxncon.simulation.ode.polynomials import Polynomial, PolynomialTerm, Symbol, Monomial, MonomialFactor
+from rxncon.simulation.ode.ode import ODE, ODESystem
 
 
 def test_simple_ode_system(first_lotke_volterra_ode, second_lotke_volterra_ode):
-    ode_sys = ode.ODESystem([first_lotke_volterra_ode, second_lotke_volterra_ode])
-    assert isinstance(ode_sys, ode.ODESystem)
+    ode_sys = ODESystem([first_lotke_volterra_ode, second_lotke_volterra_ode])
+    assert isinstance(ode_sys, ODESystem)
 
 
 def test_doubly_defined_time_derivatives(first_lotke_volterra_ode, second_lotke_volterra_ode):
-    second_lotke_volterra_ode.time_derivative = pol.Symbol('x')
+    second_lotke_volterra_ode.time_derivative = Symbol('x')
 
     with pytest.raises(AssertionError):
-        ode_sys = ode.ODESystem([first_lotke_volterra_ode, second_lotke_volterra_ode])
+        ode_sys = ODESystem([first_lotke_volterra_ode, second_lotke_volterra_ode])
 
 
 def test_single_ode_to_py_code(first_lotke_volterra_ode, second_lotke_volterra_ode, first_ode_codes, second_ode_codes):
@@ -82,28 +82,28 @@ def test_ode_odeint(lotke_volterra_system):
 
 @pytest.fixture
 def lotke_volterra_system(first_lotke_volterra_ode, second_lotke_volterra_ode):
-    return ode.ODESystem([first_lotke_volterra_ode, second_lotke_volterra_ode])
+    return ODESystem([first_lotke_volterra_ode, second_lotke_volterra_ode])
 
 @pytest.fixture
 def first_lotke_volterra_ode():
     # return dx/dt = x - x*y
-    x = pol.Symbol('x')
-    y = pol.Symbol('y')
-    rhs = pol.Polynomial({pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1)}), 1),
-                          pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1), pol.MonomialFactor(y, 1)}), -1)})
+    x = Symbol('x')
+    y = Symbol('y')
+    rhs = Polynomial({PolynomialTerm(Monomial({MonomialFactor(x, 1)}), 1),
+                      PolynomialTerm(Monomial({MonomialFactor(x, 1), MonomialFactor(y, 1)}), -1)})
 
-    return ode.ODE(x, rhs)
+    return ODE(x, rhs)
 
 
 @pytest.fixture
 def second_lotke_volterra_ode():
     # return dy/dt = x*y - y
-    x = pol.Symbol('x')
-    y = pol.Symbol('y')
-    rhs = pol.Polynomial({pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(y, 1)}), -1),
-                          pol.PolynomialTerm(pol.Monomial({pol.MonomialFactor(x, 1), pol.MonomialFactor(y, 1)}), 1)})
+    x = Symbol('x')
+    y = Symbol('y')
+    rhs = Polynomial({PolynomialTerm(Monomial({MonomialFactor(y, 1)}), -1),
+                      PolynomialTerm(Monomial({MonomialFactor(x, 1), MonomialFactor(y, 1)}), 1)})
 
-    return ode.ODE(y, rhs)
+    return ODE(y, rhs)
 
 
 @pytest.fixture
