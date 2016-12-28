@@ -81,7 +81,14 @@ def test_nested_list_form():
 
 
 def test_calc_solutions():
-    print(venn_from_str('(1) & ~(1)', int).calc_solutions())
+    # Contradiction should give no solutions.
+    assert venn_from_str('( a ) & ~( a )', str).calc_solutions() == []
+    # Tautology should give empty dict as solution.
+    assert venn_from_str('( a ) | ~( a )', str).calc_solutions() == [{}]
+
+    assert {'a': True, 'b': False} in venn_from_str('a | ~( b )', str).calc_solutions()
+    assert {'a': True, 'b': True} in venn_from_str('a | ~( b )', str).calc_solutions()
+    assert {'a': False, 'b': False} in venn_from_str('a | ~( b )', str).calc_solutions()
 
 
 # Test the superset / subset relationships
