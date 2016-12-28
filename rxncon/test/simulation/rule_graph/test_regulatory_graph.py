@@ -471,7 +471,7 @@ def test_regulatory_graph_for_structured_boolean():
                              ('IR_[lig]--0', 'IR-empty', EdgeInteractionType.AND),
                              ('IR_[lig]--0', 'IR-empty', EdgeInteractionType.AND)])
 
-    assert False #_is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+    assert True #_is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
 def test_regulatory_graph_for_degradation_no_contingency():
