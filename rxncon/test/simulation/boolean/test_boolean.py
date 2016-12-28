@@ -158,7 +158,7 @@ def test_deg_without_contingency():
         assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
 
 
-def test_deg_with_contingency():
+def test_deg_with_requirement():
     boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(res)]
                                                        D_ub+_A_[(res)]
                                                        D_p+_A_[(other)]
@@ -186,6 +186,16 @@ def test_deg_with_contingency():
 
     for update_rule in boolean_model.update_rules:
         assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+
+def test_deg_with_inhibition():
+    boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(res)]
+                                                       D_ub+_A_[(res)]
+                                                       D_p+_A_[(other)]
+                                                       C_deg_A; x A_[(res)]-{p}""").rxncon_system)
+
+    assert len(boolean_model.reaction_target_by_name('C_deg_A').degraded_targets) == 2
+    assert target_from_str('A_[(res)]-{0}') in boolean_model.reaction_target_by_name('C_deg_A').degraded_targets
+    assert target_from_str('A_[(res)]-{ub}') in boolean_model.reaction_target_by_name('C_deg_A').degraded_targets
 
 
 def test_deg_with_boolean_contingency():
@@ -262,19 +272,25 @@ def test_deg_with_interaction_as_requirement():
 
 def test_deg_with_interaction_as_inhibition():
     boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
-                                                       D_p+_A_[(r)]
+                                                       A_[x]_ppi+_D_[z]
+                                                       A_[x]_ppi+_E_[w]
                                                        C_deg_A; x A_[x]--B_[y]""").rxncon_system)
 
-    assert boolean_model.reaction_target_by_name('C_deg_A').degraded_targets    == [target_from_str('A_[x]--B_[y]')]
-    assert boolean_model.reaction_target_by_name('C_deg_A').consumed_targets    == []
-    assert boolean_model.reaction_target_by_name('C_deg_A').produced_targets    == []
-    assert boolean_model.reaction_target_by_name('C_deg_A').synthesised_targets == []
+    for rxn in ['C_deg_A', 'C_deg_A#0/1', 'C_deg_A#0/2']:
+        target = boolean_model.reaction_target_by_name(rxn)
+        assert not target.synthesised_targets
+        assert target_from_str('A_[x]--0') in target.degraded_targets
+        assert target_from_str('A_[x]--D_[z]') in target.degraded_targets
+        assert target_from_str('A_[x]--E_[w]') in target.degraded_targets
 
-    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').degraded_targets    == [target_from_str('A_[x]--B_[y]')]
-    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').consumed_targets    == [target_from_str('A_[x]--B_[y]')]
-    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').produced_targets    == [target_from_str('B_[y]--0')]
-    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').synthesised_targets == []
-
+        if not target.consumed_targets:
+            assert not target.produced_targets
+        elif target.consumed_targets == [target_from_str('A_[x]--D_[z]')]:
+            assert target.produced_targets == [target_from_str('D_[z]--0')]
+        elif target.consumed_targets == [target_from_str('A_[x]--E_[w]')]:
+            assert target.produced_targets == [target_from_str('E_[w]--0')]
+        else:
+            raise AssertionError
 
 
 def test_smooth_production_sources():

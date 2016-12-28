@@ -1,6 +1,6 @@
 import functools
 import operator
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Iterable
 from collections import OrderedDict
 from itertools import product
 import re
@@ -199,7 +199,7 @@ class Complement(UnarySet):
 
 
 class NarySet(Set):
-    def __init__(self, *exprs: Set):
+    def __init__(self, *exprs: Iterable[Set]):
         self.exprs = exprs
 
     @property

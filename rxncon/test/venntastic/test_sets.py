@@ -80,6 +80,10 @@ def test_nested_list_form():
     assert EmptySet().to_dnf_nested_list() == [[EmptySet()]]
 
 
+def test_calc_solutions():
+    print(venn_from_str('(1) & ~(1)', int).calc_solutions())
+
+
 # Test the superset / subset relationships
 def test_superset_subset_for_unary_sets():
     assert UniversalSet() == ValueSet(None)

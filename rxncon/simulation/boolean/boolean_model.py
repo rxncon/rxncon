@@ -177,6 +177,10 @@ class StateTarget(Target):
     def is_mutually_exclusive_with(self, other: 'StateTarget'):
         return self._state_parent.is_mutually_exclusive_with(other._state_parent)
 
+    def complementary_state_targets(self, rxnconsys: RxnConSystem, component: Spec) -> List['StateTarget']:
+        others = rxnconsys.complementary_states_for_component(component, self._state_parent)
+        return [StateTarget(x) for x in others]
+
 
 class ComponentStateTarget(StateTarget):
     def __init__(self, component: Spec):
@@ -280,25 +284,26 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                     reaction_target_to_factor[target] = factor
 
     def update_degradations_with_contingencies():
-        for reaction_target, contingency_factor in reaction_target_to_factor.items():
-            # First case: reaction with a non-trivial contingency should degrade only the states appearing
-            # in the contingency that are connected to the degraded component.
-            if reaction_target.degraded_components and not contingency_factor.is_equivalent_to(UniversalSet()):
-                for degraded_component in reaction_target.degraded_components:
-                    if ComponentStateTarget(degraded_component) in component_state_targets:
-                        reaction_target.degraded_targets.append(ComponentStateTarget(degraded_component))
-                    else:
-                        reaction_target.degraded_targets += [state_target for state_target in contingency_factor.values
-                                                             if degraded_component in state_target.components]
+        def degraded_state_targets(component: Spec, soln: Dict[StateTarget, bool]) -> List[StateTarget]:
+            # soln evaluates to False if solution is tautology.
+            if not soln and ComponentStateTarget(component) in component_state_targets:
+                return [ComponentStateTarget(component)]
+            elif not soln:
+                return [StateTarget(x) for x in rxncon_sys.states_for_component(component)]
+            else:
+                trues  = [target for target, val in soln.items() if val]
+                falses = [target for target, val in soln.items() if not val]
+                for target in falses:
+                    trues += target.complementary_state_targets(rxncon_sys, component)
 
-            # Second case: reaction with a trivial contingency should degrade all states for the degraded component.
-            elif reaction_target.degraded_components and contingency_factor.is_equivalent_to(UniversalSet()):
-                for degraded_component in reaction_target.degraded_components:
-                    if ComponentStateTarget(degraded_component) in component_state_targets:
-                        reaction_target.degraded_targets.append(ComponentStateTarget(degraded_component))
-                    else:
-                        reaction_target.degraded_targets += \
-                            [StateTarget(x) for x in rxncon_sys.states_for_component(degraded_component)]
+                return trues
+
+        for reaction_target, contingency_factor in reaction_target_to_factor.items():
+            solns = contingency_factor.calc_solutions()
+            assert len(solns) == 1
+            soln = solns[0]
+            for degraded_component in reaction_target.degraded_components:
+                reaction_target.degraded_targets += degraded_state_targets(degraded_component, soln)
 
     def update_degradations_for_interaction_states():
         def state_exclusive_with_contingency(state: StateTarget, contingency_factor: VennSet) -> bool:
