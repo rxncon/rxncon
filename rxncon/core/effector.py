@@ -40,7 +40,7 @@ class QualSpec:
     def __init__(self, namespace: List[str], spec: Spec):
         self.namespace = namespace
         self.spec      = spec
-        self._name     = '.'.join(str(x) for x in namespace + [spec])
+        self._name     = '.'.join(namespace + [str(spec)])
 
     def __str__(self) -> str:
         return self._name
@@ -51,14 +51,14 @@ class QualSpec:
     def __eq__(self, other: 'QualSpec') -> bool:
         return self.namespace == other.namespace and self.spec == other.spec
 
-    def to_component_qual_spec(self):
+    def to_component_qual_spec(self) -> 'QualSpec':
         return QualSpec(self.namespace, self.spec.to_component_spec())
 
     @property
-    def is_in_root_namespace(self):
+    def is_in_root_namespace(self) -> bool:
         return not self.namespace
 
-    def with_prepended_namespace(self, extra_namespace: List[str]):
+    def with_prepended_namespace(self, extra_namespace: List[str]) -> 'QualSpec':
         new_namespace = deepcopy(extra_namespace) + deepcopy(self.namespace)
         return QualSpec(new_namespace, self.spec)
 
@@ -74,7 +74,7 @@ class StructEquivalences:
     def __init__(self):
         self.eq_classes = []
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '\n'.join(str(x) for x in self.eq_classes)
 
     def add_equivalence(self, first_qual_spec: QualSpec, second_qual_spec: QualSpec):
@@ -147,7 +147,7 @@ class TrivialStructEquivalences(StructEquivalences):
     def merge_with(self, other: 'StructEquivalences', other_base_namespace: List[str]):
         pass
 
-    def find_unqualified_spec(self, qual_spec: QualSpec):
+    def find_unqualified_spec(self, qual_spec: QualSpec) -> Spec:
         try:
             struct_spec = deepcopy(self.struct_specs[qual_spec.spec.to_component_spec()])
             struct_spec.locus = deepcopy(qual_spec.spec.locus)
@@ -158,7 +158,7 @@ class TrivialStructEquivalences(StructEquivalences):
             self.cur_index += 1
             return self.find_unqualified_spec(qual_spec)
 
-    def indices_in_root_namespace(self):
+    def indices_in_root_namespace(self) -> List[int]:
         return [x for x in range(self.cur_index)]
 
 class StructCounter:
@@ -192,7 +192,7 @@ class Effector(metaclass=ABCMeta):
     def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
                                   counter: StructCounter=None,
                                   cur_namespace: List[str]=None) -> 'Effector':
-        raise AssertionError
+        raise NotImplementedError
 
     def _init_to_struct_effector_args(self, glob_equivs, cur_index, cur_namespace):
         if not glob_equivs:
@@ -208,7 +208,6 @@ class Effector(metaclass=ABCMeta):
 class StateEffector(Effector):
     def __init__(self, expr: State):
         self.expr = expr
-
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -232,11 +231,9 @@ class StateEffector(Effector):
 
     def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
                                   counter: StructCounter=None,
-                                  cur_namespace: List[str]=None):
+                                  cur_namespace: List[str]=None) -> Effector:
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
-
         state = deepcopy(self.expr)
-
         updates = {}
 
         for spec in state.specs:
@@ -255,7 +252,7 @@ class StateEffector(Effector):
 
         return StateEffector(state)
 
-    def _generate_index(self, glob_equivs: StructEquivalences, cur_index: StructCounter):
+    def _generate_index(self, glob_equivs: StructEquivalences, cur_index: StructCounter) -> int:
         index = cur_index.value
         while index in glob_equivs.indices_in_root_namespace():
             cur_index.increment()
@@ -283,12 +280,12 @@ class NotEffector(Effector):
         return self.expr.states
 
     @property
-    def is_structured(self):
+    def is_structured(self) -> bool:
         return self.expr.is_structured
 
     def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
                                   counter: StructCounter=None,
-                                  cur_namespace: List[str]=None):
+                                  cur_namespace: List[str]=None) -> Effector:
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         return NotEffector(self.expr.to_merged_struct_effector(glob_equivs, counter, cur_namespace), name=self.name)
 
@@ -312,7 +309,7 @@ class NaryEffector(Effector):
 
     def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
                                   counter: StructCounter=None,
-                                  cur_namespace: List[str]=None):
+                                  cur_namespace: List[str]=None) -> Effector:
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         glob_equivs.merge_with(self.equivs, cur_namespace)
 

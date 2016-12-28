@@ -99,6 +99,10 @@ class Mol:
         else:
             return str(self) < str(other)
 
+    def is_equivalent_to(self, other: 'Mol') -> bool:
+        assert isinstance(other, Mol)
+        return self.name == other.name and self.site_to_bond == other.site_to_bond and self.site_to_mod == other.site_to_mod
+
     @property
     def sites(self) -> List[str]:
         return list(set(list(self.site_to_mod.keys()) + list(self.site_to_bond.keys())))
@@ -148,6 +152,9 @@ class Complex:
 
     def __lt__(self, other: 'Complex') -> bool:
         return self.mols < other.mols
+
+    def is_equivalent_to(self, other: 'Complex') -> bool:
+        return True
 
     @property
     def is_reactant(self):
@@ -253,7 +260,6 @@ STATE_TO_MOL_DEF_BUILDER_FN = {
 
 class Parameter:
     def __init__(self, name: str, value: str):
-        assert name and value
         self.name, self.value = name, value
 
     def __eq__(self, other: 'Parameter'):
@@ -496,3 +502,57 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             rules.append(calc_rule(reaction, positive_solution))
 
     return RuleBasedModel(mol_defs, calc_initial_conditions(mol_defs), [], calc_observables(rxncon_sys), rules)
+
+
+def mol_from_str(mol_str: str) -> Mol:
+    name, config_str = mol_str.split('(')
+    assert config_str[-1] == ')'
+    site_strs = config_str[:-1].split(',')
+
+    site_to_mod  = {}
+    site_to_bond = {}
+
+    for site_str in site_strs:
+        if '~' not in site_str and '!' not in site_str:
+            site_to_bond[site_str] = None
+        elif '~' not in site_str:
+            site, bond = site_str.split('!')
+            site_to_bond[site] = bond
+        elif '!' not in site_str:
+            site, mod = site_str.split('~')
+            site_to_mod[site] = mod
+        else:
+            raise AssertionError
+
+    return Mol(name, site_to_mod, site_to_bond, False)
+
+
+def complex_from_str(complex_str: str) -> Complex:
+    return Complex([mol_from_str(x) for x in complex_str.split('.')])
+
+
+def rule_from_str(rule_str: str) -> Rule:
+    lhs_strs = []
+    rhs_strs = []
+    rate     = None
+
+    current = lhs_strs
+    done = False
+
+    for part in rule_str.split():
+        if part == '+':
+            done = False
+            continue
+        elif part == '->':
+            done = False
+            current = rhs_strs
+        elif not done:
+            current.append(part)
+            done = True
+        elif done:
+            rate = Parameter(part, '')
+
+    return Rule([complex_from_str(x) for x in lhs_strs], [complex_from_str(x) for x in rhs_strs], rate)
+
+
+

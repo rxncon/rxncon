@@ -1,5 +1,10 @@
 from rxncon.input.quick.quick import Quick
-from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_rxncon
+from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_rxncon, rule_from_str
+
+
+def test_rule_from_str():
+    x = rule_from_str('A(x) + B(y) -> A(x!1).B(y!1) k')
+    print()
 
 
 def test_simple_system():

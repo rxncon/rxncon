@@ -14,6 +14,7 @@ BIDIRECTIONAL_VERBS = [
     'ppi', 'ipi', 'i', 'bind'
 ]
 
+
 class ReactionTerm:
     def __init__(self, specs: List[Spec], states: List[State]):
         assert all(spec.is_component_spec for spec in specs)
@@ -23,7 +24,7 @@ class ReactionTerm:
         return isinstance(other, ReactionTerm) and self.states == other.states
 
     def __str__(self) -> str:
-        return 'ReactionTerm<{0}>states:{1}'.format(','.join(str(spec) for spec in self.specs), ','.join(str(x) for x in self.states))
+        return 'ReactionTerm<{0}:{1}>'.format(','.join(str(spec) for spec in self.specs), ','.join(str(x) for x in self.states))
 
     def __repr__(self) -> str:
         return str(self)
