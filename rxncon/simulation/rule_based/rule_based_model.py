@@ -1,6 +1,7 @@
 from typing import Dict, List, Optional, Tuple, Iterable
 from itertools import combinations, product, chain, permutations
 from copy import copy, deepcopy
+from collections import defaultdict
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reaction, ReactionTerm, OutputReaction
@@ -109,6 +110,9 @@ class Mol:
     def bonds(self) -> List[int]:
         return [x for x in self.site_to_bond.values() if x is not None]
 
+    def sites_by_bond(self, bond: int) -> List[str]:
+        return [s for s, b in self.site_to_bond.items() if b is not None and bond == b]
+
     def with_relabeled_bonds(self, bond_to_bond: Dict[int, int]) -> 'Mol':
         new_mol = self.clone()
         for site, old_bond in new_mol.site_to_bond.items():
@@ -116,6 +120,7 @@ class Mol:
                 new_mol.site_to_bond[site] = bond_to_bond[old_bond]
 
         return new_mol
+
 
 def site_name(spec: Spec) -> str:
     bad_chars = ['[', ']', '/', '(', ')']
@@ -149,8 +154,9 @@ class MolBuilder:
 class Complex:
     def __init__(self, mols: List[Mol]):
         self.mols = sorted(mols)
-        if not self.bonds:
-            assert len(self.mols) == 1
+
+        self._assert_bonds_connected()
+        self._assert_mols_connected()
 
     def __str__(self):
         return '.'.join(str(mol) for mol in self.mols)
@@ -167,6 +173,30 @@ class Complex:
     @property
     def bonds(self):
         return sorted(set(bond for mol in self.mols for bond in mol.bonds))
+
+    def neighbors(self, mol: Mol) -> List[Mol]:
+        neighbors = []
+        for bond in mol.bonds:
+            mols = self.mols_by_bond(bond)
+            if len(mols) == 1:
+                # Intra-particle bond
+                continue
+            assert len(mols) == 2
+            if mols[0] == mols[1]:
+                # Homodimer
+                neighbors.append(mols[0])
+                continue
+            if mols[0] == mol:
+                neighbors.append(mols[1])
+            elif mols[1] == mol:
+                neighbors.append(mols[0])
+            else:
+                raise AssertionError
+
+        return neighbors
+
+    def mols_by_bond(self, bond: int) -> List[Mol]:
+        return [mol for mol in self.mols if mol.has_bond(bond)]
 
     def is_equivalent_to(self, other: 'Complex') -> bool:
         if self == other:
@@ -191,6 +221,29 @@ class Complex:
     @property
     def is_reactant(self):
         return any(mol.is_reactant for mol in self.mols)
+
+    def _assert_mols_connected(self):
+        connected = []
+        to_visit  = [self.mols[0]]
+        while to_visit:
+            current = to_visit.pop()
+            neighbors = self.neighbors(current)
+            for neighbor in neighbors:
+                if neighbor not in connected and neighbor not in to_visit:
+                    to_visit.append(neighbor)
+
+            connected.append(current)
+
+        assert sorted(connected) == self.mols
+
+    def _assert_bonds_connected(self):
+        bond_to_site_count = defaultdict(int)
+
+        for mol in self.mols:
+            for bond in mol.bonds:
+                bond_to_site_count[bond] += len(mol.sites_by_bond(bond))
+
+        assert all(site_count == 2 for _, site_count in bond_to_site_count.items())
 
 
 class ComplexExprBuilder:
