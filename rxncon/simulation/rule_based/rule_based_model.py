@@ -1,5 +1,5 @@
 from typing import Dict, List, Optional, Tuple, Iterable
-from itertools import combinations, product, chain
+from itertools import combinations, product, chain, permutations
 from copy import copy, deepcopy
 
 from rxncon.core.rxncon_system import RxnConSystem
@@ -64,14 +64,14 @@ class MolDefBuilder:
 
 
 class Mol:
-    def __init__(self, name: str, site_to_mod: Dict[str, Optional[str]], site_to_bond: Dict[str, Optional[int]], is_reactant: bool):
+    def __init__(self, name: str, site_to_mod: Dict[str, str], site_to_bond: Dict[str, Optional[int]], is_reactant: bool):
         self.name         = name
         self.site_to_mod  = site_to_mod
         self.site_to_bond = site_to_bond
         self.is_reactant  = is_reactant
 
     def __str__(self) -> str:
-        mod_str  = ','.join('{}{}'.format(site, '~' + mod if mod else '')
+        mod_str  = ','.join('{}{}'.format(site, '~' + mod)
                             for site, mod in sorted(self.site_to_mod.items()))
         bond_str = ','.join('{}{}'.format(site, '!' + str(bond) if bond is not None else '')
                             for site, bond in sorted(self.site_to_bond.items()))
@@ -88,25 +88,34 @@ class Mol:
         return 'Mol<{}>'.format(str(self))
 
     def __eq__(self, other: 'Mol') -> bool:
-        return self.name  == other.name and self.site_to_mod == other.site_to_mod and self.site_to_bond == other.site_to_bond \
-            and self.is_reactant == other.is_reactant
+        # This equality skips checking the is_reactant property, since it does not appear
+        # in the BNGL representation.
+        return self.name  == other.name and self.site_to_mod == other.site_to_mod and self.site_to_bond == other.site_to_bond
 
     def __lt__(self, other: 'Mol') -> bool:
-        if self.name != other.name:
-            return self.name < other.name
-        elif str(self) == str(other):
-            return self.is_reactant < other.is_reactant
-        else:
-            return str(self) < str(other)
+        return str(self) < str(other)
 
-    def is_equivalent_to(self, other: 'Mol') -> bool:
-        assert isinstance(other, Mol)
-        return self.name == other.name and self.site_to_bond == other.site_to_bond and self.site_to_mod == other.site_to_mod
+    def clone(self) -> 'Mol':
+        return deepcopy(self)
+
+    def has_bond(self, bond: int) -> bool:
+        return bond in self.bonds
 
     @property
     def sites(self) -> List[str]:
         return list(set(list(self.site_to_mod.keys()) + list(self.site_to_bond.keys())))
 
+    @property
+    def bonds(self) -> List[int]:
+        return [x for x in self.site_to_bond.values() if x is not None]
+
+    def with_relabeled_bonds(self, bond_to_bond: Dict[int, int]) -> 'Mol':
+        new_mol = self.clone()
+        for site, old_bond in new_mol.site_to_bond.items():
+            if old_bond is not None:
+                new_mol.site_to_bond[site] = bond_to_bond[old_bond]
+
+        return new_mol
 
 def site_name(spec: Spec) -> str:
     bad_chars = ['[', ']', '/', '(', ')']
@@ -140,6 +149,8 @@ class MolBuilder:
 class Complex:
     def __init__(self, mols: List[Mol]):
         self.mols = sorted(mols)
+        if not self.bonds:
+            assert len(self.mols) == 1
 
     def __str__(self):
         return '.'.join(str(mol) for mol in self.mols)
@@ -153,8 +164,29 @@ class Complex:
     def __lt__(self, other: 'Complex') -> bool:
         return self.mols < other.mols
 
+    @property
+    def bonds(self):
+        return sorted(set(bond for mol in self.mols for bond in mol.bonds))
+
     def is_equivalent_to(self, other: 'Complex') -> bool:
-        return True
+        if self == other:
+            return True
+        if len(self.mols) != len(other.mols) or \
+                sorted(mol.name for mol in self.mols) != sorted(mol.name for mol in other.mols) or \
+                len(self.bonds) != len(other.bonds):
+            return False
+
+        my_bonds = self.bonds
+
+        for new_bonds in permutations(other.bonds):
+            bond_to_bond = {other_bond: my_bond for other_bond, my_bond in zip(new_bonds, my_bonds)}
+            if self == other.with_relabeled_bonds(bond_to_bond):
+                return True
+
+        return False
+
+    def with_relabeled_bonds(self, bond_to_bond: Dict[int, int]) -> 'Complex':
+        return Complex([mol.with_relabeled_bonds(bond_to_bond) for mol in self.mols])
 
     @property
     def is_reactant(self):

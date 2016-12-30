@@ -1,11 +1,16 @@
 from rxncon.input.quick.quick import Quick
-from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_rxncon, rule_from_str
+from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_rxncon, rule_from_str, complex_from_str
 
 
 def test_rule_from_str():
     x = rule_from_str('A(x) + B(y) -> A(x!1).B(y!1) k')
     print()
 
+def test_complex_from_str():
+    a = complex_from_str('A(x!1,r~p).B(rr~0,y!1)')
+    b = complex_from_str('B(rr~0,y!4).A(x!4,r~p)')
+
+    print()
 
 def test_simple_system():
     rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p}
