@@ -395,6 +395,43 @@ class Rule:
     def __repr__(self):
         return str(self)
 
+    def __eq__(self, other: 'Rule') -> bool:
+        return self.lhs == other.lhs and self.rhs == other.lhs and \
+               self.rate == other.rate and self.parent_reaction == other.parent_reaction
+
+    def is_equivalent_to(self, other: 'Rule') -> bool:
+        if len(self.lhs) != len(other.lhs) or len(self.rhs) != len(other.rhs) or self.rate.name != other.rate.name:
+            return False
+
+        if self == other:
+            return True
+
+        my_lhs = deepcopy(self.lhs)
+        my_rhs = deepcopy(self.rhs)
+
+        other_lhs = deepcopy(other.lhs)
+        other_rhs = deepcopy(other.rhs)
+
+        for complex in my_lhs + my_rhs:
+            complex.found = False
+
+        for complex in other_lhs + other_rhs:
+            complex.visited = False
+
+        for my_complex in my_lhs:
+            for other_complex in other_lhs:
+                if my_complex.is_equivalent_to(other_complex) and not other_complex.visited:
+                    my_complex.found = True
+                    other_complex.visited = True
+
+        for my_complex in my_rhs:
+            for other_complex in other_rhs:
+                if my_complex.is_equivalent_to(other_complex) and not other_complex.visited:
+                    my_complex.found = True
+                    other_complex.visited = True
+
+        return all(complex.found for complex in my_lhs + my_rhs) and \
+               all(complex.visited for complex in other_lhs and other_rhs)
 
 class RuleBasedModel:
     def __init__(self, mol_defs: List[MolDef], initial_conditions: List[InitialCondition], parameters: List[Parameter],
@@ -638,6 +675,3 @@ def rule_from_str(rule_str: str) -> Rule:
             rate = Parameter(part, '')
 
     return Rule([complex_from_str(x) for x in lhs_strs], [complex_from_str(x) for x in rhs_strs], rate)
-
-
-

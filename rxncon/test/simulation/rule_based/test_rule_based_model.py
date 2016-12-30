@@ -9,6 +9,8 @@ from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_
 def test_complex_from_str_equivalent():
     complex_classes = [
         ['A()', 'A()'],
+        ['A(x!1).A(x!1)', 'A(x!2).A(x!2)'],
+        ['A(x!1).A(y!1)', 'A(y!3).A(x!3)'],
         ['A(x!1,r~p).B(rr~0,y!1,cc!2).C(c!2)', 'B(rr~0,y!4,cc!1).A(x!4,r~p).C(c!1)']
     ]
 
@@ -44,14 +46,27 @@ def test_invalid_complexes():
         c = complex_from_str('A(x!1).B(y!2)')
 
 
-def test_rule_from_str():
-    x = rule_from_str('A(x) + B(y) -> A(x!1).B(y!1) k')
-    print()
+def test_rule_from_str_equivalent():
+    rule_classes = [
+        ['A(x) + B(y) -> A(x!1).B(y!1) k', 'B(y) + A(x) -> A(x!1).B(y!1) k', 'B(y) + A(x) -> B(y!4).A(x!4) k'],
+        ['A(x) + A(x,r~p) -> A(x!1,r~p).A(x!1) kk', 'A(x) + A(x,r~p) -> A(x!2).A(x!2,r~p) kk']
+    ]
+
+    for rule_class in rule_classes:
+        for first_rule, second_rule in combinations(rule_class, 2):
+            assert rule_from_str(first_rule).is_equivalent_to(rule_from_str(second_rule))
+            assert rule_from_str(second_rule).is_equivalent_to(rule_from_str(first_rule))
 
 
+def test_rule_from_str_inequivalent():
+    rule_classes = [
+        ['A(x) + A(y,r~p) -> A(x!1,r~p).A(y!1) kk', 'A(x) + A(y,r~p) -> A(y!1).A(x!1,r~p) kk']
+    ]
 
-
-
+    for rule_class in rule_classes:
+        for first_rule, second_rule in combinations(rule_class, 2):
+            assert rule_from_str(first_rule).is_equivalent_to(rule_from_str(second_rule))
+            assert rule_from_str(second_rule).is_equivalent_to(rule_from_str(first_rule))
 
 
 
