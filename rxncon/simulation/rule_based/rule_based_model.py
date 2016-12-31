@@ -349,7 +349,7 @@ STATE_TO_MOL_DEF_BUILDER_FN = {
 
 
 class Parameter:
-    def __init__(self, name: str, value: str):
+    def __init__(self, name: str, value: Optional[str]):
         self.name, self.value = name, value
 
     def __eq__(self, other: 'Parameter'):
@@ -376,6 +376,8 @@ class InitialCondition:
     def __repr__(self):
         return 'InitialCondition<{}>'.format(str(self))
 
+    def is_equivalent_to(self, other: 'InitialCondition') -> bool:
+        return self.complex.is_equivalent_to(other.complex) and self.value.name == other.value.name
 
 class Observable:
     def __init__(self, name: str, complex: Complex):
@@ -683,6 +685,11 @@ def rule_from_str(rule_str: str) -> Rule:
             current.append(part)
             done = True
         elif done:
-            rate = Parameter(part, '')
+            rate = Parameter(part, None)
 
     return Rule([complex_from_str(x) for x in lhs_strs], [complex_from_str(x) for x in rhs_strs], rate)
+
+
+def initial_condition_from_str(ic_str: str) -> InitialCondition:
+    complex_str, param = ic_str.split()
+    return InitialCondition(complex_from_str(complex_str), Parameter(param, None))

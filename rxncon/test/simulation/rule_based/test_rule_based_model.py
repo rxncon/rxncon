@@ -2,7 +2,8 @@ from itertools import combinations
 import pytest
 
 from rxncon.input.quick.quick import Quick
-from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_rxncon, rule_from_str, complex_from_str
+from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_rxncon, rule_from_str, complex_from_str, \
+    initial_condition_from_str
 
 
 # Test the *_from_str functions.
@@ -72,7 +73,7 @@ def test_rule_from_str_inequivalent():
 
 # Test simple rxncon systems.
 
-def test_simple_system():
+def test_single_requirement_modification():
     rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p}
                                              A_[b]_ppi-_B_[a]
                                              C_p+_A_[(r)]
@@ -90,45 +91,139 @@ def test_simple_system():
     for actual_rule in rbm.rules:
         assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
 
+    expected_ics = [
+        'A(bD,rR~0) NumA',
+        'B(aD) NumB',
+        'D() NumD',
+        'C() NumC'
+    ]
 
-# def test_calc_positive_solutions():
-#     rxncon_sys = Quick("""A_[b]_ppi+_B_[a]; x A_[(r)]-{p}
-#                           E_[x]_ppi+_B_[a]
-#                           C_p+_A_[(r)]
-#                           D_ub+_A_[(r)]""").rxncon_system
-#
-#     rbm = rule_based_model_from_rxncon(rxncon_sys)
-#
-#     for x in rbm.rules:
-#         print(x)
-#
-#     print()
-#     for ic in rbm.initial_conditions:
-#         print(ic)
-#
-#
-# def test_2():
-#     rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
-#                                              C_ppi+_D
-#                                              B_ppi+_E
-#                                              B_ppi+_F
-#                                              A_ppi+_B; x <comp1>
-#                                              <comp1>; OR <comp1C1>
-#                                              <comp1>; OR <comp2C1>
-#                                              <comp1C1>; AND A--C
-#                                              <comp1C1>; AND C--D
-#                                              <comp2C1>; AND B--F
-#                                              <comp2C1>; AND B--E''').rxncon_system)
-#
-#     print()
-#     for rule in rbm.rules:
-#         print(rule)
-#
-#     print()
-#     for ic in rbm.initial_conditions:
-#         print(ic)
-#
-# def test_3():
+    for actual_ic in rbm.initial_conditions:
+        assert any(initial_condition_from_str(ic).is_equivalent_to(actual_ic) for ic in expected_ics)
+
+
+def test_single_inhibition_modification():
+    rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; x A_[(r)]-{p}
+                                             E_[x]_ppi+_B_[a]
+                                             C_p+_A_[(r)]
+                                             D_ub+_A_[(r)]""").rxncon_system)
+
+    expected_rules = [
+        'A(rR~ub,bD) + B(aD) -> A(rR~ub,bD!1).B(aD!1) k',
+        'A(rR~0,bD) + B(aD) -> A(rR~0,bD!1).B(aD!1) k',
+        'B(aD) + E(xD) -> B(aD!1).E(xD!1) k',
+        'A(rR~0) + C() -> A(rR~p) + C() k',
+        'A(rR~0) + D() -> A(rR~ub) + D() k'
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+    expected_ics = [
+        'A(bD,rR~0) NumA',
+        'B(aD) NumB',
+        'D() NumD',
+        'C() NumC',
+        'E(xD) NumE'
+    ]
+
+    for actual_ic in rbm.initial_conditions:
+        assert any(initial_condition_from_str(ic).is_equivalent_to(actual_ic) for ic in expected_ics)
+
+
+def test_single_inhibition_interaction():
+    rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; x A_[(r)]-{p}
+                                             E_[x]_ppi+_B_[a]
+                                             C_p+_A_[(r)]
+                                             D_ub+_A_[(r)]""").rxncon_system)
+
+    expected_rules = [
+        'A(rR~ub,bD) + B(aD) -> A(rR~ub,bD!1).B(aD!1) k',
+        'A(rR~0,bD) + B(aD) -> A(rR~0,bD!1).B(aD!1) k',
+        'B(aD) + E(xD) -> B(aD!1).E(xD!1) k',
+        'A(rR~0) + C() -> A(rR~p) + C() k',
+        'A(rR~0) + D() -> A(rR~ub) + D() k'
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+    expected_ics = [
+        'A(bD,rR~0) NumA',
+        'B(aD) NumB',
+        'D() NumD',
+        'C() NumC',
+        'E(xD) NumE'
+    ]
+
+    for actual_ic in rbm.initial_conditions:
+        assert any(initial_condition_from_str(ic).is_equivalent_to(actual_ic) for ic in expected_ics)
+
+
+def test_boolean_requirement_interaction():
+    rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
+                                             C_ppi+_D
+                                             B_ppi+_E
+                                             B_ppi+_F
+                                             A_ppi+_B; ! <comp1>
+                                             <comp1>; OR <comp1C1>
+                                             <comp1>; OR <comp2C1>
+                                             <comp1C1>; AND A--C
+                                             <comp1C1>; AND C--D
+                                             <comp2C1>; AND B--F
+                                             <comp2C1>; AND B--E''').rxncon_system)
+
+    expected_rules = [
+        'A(CD) + C(AD) -> A(CD!1).C(AD!1) k',
+        'C(DD) + D(CD) -> C(DD!1).D(CD!1) k',
+        'B(ED) + E(BD) -> B(ED!1).E(BD!1) k',
+        'B(FD) + F(BD) -> B(FD!1).F(BD!1) k',
+        'A(BD,CD) + B(AD,ED!2,FD!1).E(BD!2).F(BD!1) -> A(BD!3,CD).B(AD!3,ED!2,FD!1).E(BD!2).F(BD!1) k',  # B--F, B--E, NOT A--C
+        'A(BD,CD!2).C(AD!2,DD) + B(AD,ED!3,FD!1).E(BD!3).F(BD!1) -> A(BD!4,CD!2).B(AD!4,ED!3,FD!1).C(AD!2,DD).E(BD!3).F(BD!1) k',  # B--F, B--E, A--C, NOT C--D
+        'A(BD,CD!1).C(AD!1,DD!2).D(CD!2) + B(AD) -> A(BD!3,CD!1).B(AD!3).C(AD!1,DD!2).D(CD!2) k',  # A--C, C--D
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+
+def test_boolean_inhibition_interaction():
+    rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
+                                             C_ppi+_D
+                                             B_ppi+_E
+                                             B_ppi+_F
+                                             A_ppi+_B; x <comp1>
+                                             <comp1>; OR <comp1C1>
+                                             <comp1>; OR <comp2C1>
+                                             <comp1C1>; AND A--C
+                                             <comp1C1>; AND C--D
+                                             <comp2C1>; AND B--F
+                                             <comp2C1>; AND B--E''').rxncon_system)
+
+    expected_rules = [
+        'A(CD) + C(AD) -> A(CD!1).C(AD!1) k',
+        'C(DD) + D(CD) -> C(DD!1).D(CD!1) k',
+        'B(ED) + E(BD) -> B(ED!1).E(BD!1) k',
+        'B(FD) + F(BD) -> B(FD!1).F(BD!1) k',
+        'A(BD,CD) + B(AD,FD) -> A(BD!1,CD).B(AD!1,FD) k',
+        'A(BD,CD) + B(AD,ED,FD!1).F(BD!1) -> A(BD!2,CD).B(AD!2,ED,FD!1).F(BD!1) k',
+        'A(BD,CD!1).C(AD!1,DD) + B(AD,FD) -> A(BD!2,CD!1).B(AD!2,FD).C(AD!1,DD) k',
+        'A(BD,CD!1).C(AD!1,DD) + B(AD,ED,FD!2).F(BD!2) -> A(BD!3,CD!1).B(AD!3,ED,FD!2).C(AD!1,DD).F(BD!2) k',
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+
+                # def test_3():
 #     rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
 #                                              C_ppi+_D
 #                                              B_ppi+_E
