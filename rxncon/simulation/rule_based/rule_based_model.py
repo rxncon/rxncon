@@ -2,6 +2,7 @@ from typing import Dict, List, Optional, Tuple, Iterable
 from itertools import combinations, product, chain, permutations
 from copy import copy, deepcopy
 from collections import defaultdict
+from re import match
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reaction, ReactionTerm, OutputReaction
@@ -14,7 +15,7 @@ from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Compleme
 
 NEUTRAL_MOD = '0'
 INITIAL_MOLECULE_COUNT = 100
-
+SITE_NAME_REGEX = '^[a-zA-Z0-9]+$'
 
 class MolDef:
     def __init__(self, name: str, site_defs: Dict[str, List[str]]):
@@ -70,6 +71,7 @@ class Mol:
         self.site_to_mod  = site_to_mod
         self.site_to_bond = site_to_bond
         self.is_reactant  = is_reactant
+        self._assert_valid_site_names()
 
     def __str__(self) -> str:
         mod_str  = ','.join('{}{}'.format(site, '~' + mod)
@@ -121,6 +123,9 @@ class Mol:
 
         return new_mol
 
+    def _assert_valid_site_names(self):
+        for site in self.sites:
+            assert match(SITE_NAME_REGEX, site), 'Invalid site name: {}'.format(site)
 
 def site_name(spec: Spec) -> str:
     bad_chars = ['[', ']', '/', '(', ')']
@@ -423,15 +428,19 @@ class Rule:
                 if my_complex.is_equivalent_to(other_complex) and not other_complex.visited:
                     my_complex.found = True
                     other_complex.visited = True
+                    break
 
         for my_complex in my_rhs:
             for other_complex in other_rhs:
                 if my_complex.is_equivalent_to(other_complex) and not other_complex.visited:
                     my_complex.found = True
                     other_complex.visited = True
+                    break
 
-        return all(complex.found for complex in my_lhs + my_rhs) and \
-               all(complex.visited for complex in other_lhs and other_rhs)
+        eq = all(complex.found for complex in my_lhs + my_rhs) and \
+             all(complex.visited for complex in other_lhs and other_rhs)
+
+        return eq
 
 class RuleBasedModel:
     def __init__(self, mol_defs: List[MolDef], initial_conditions: List[InitialCondition], parameters: List[Parameter],
@@ -635,7 +644,9 @@ def mol_from_str(mol_str: str) -> Mol:
     site_to_bond = {}
 
     for site_str in site_strs:
-        if '~' not in site_str and '!' not in site_str:
+        if not site_str:
+            continue
+        elif '~' not in site_str and '!' not in site_str:
             site_to_bond[site_str] = None
         elif '~' not in site_str:
             site, bond = site_str.split('!')

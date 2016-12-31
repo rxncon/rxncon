@@ -49,7 +49,8 @@ def test_invalid_complexes():
 def test_rule_from_str_equivalent():
     rule_classes = [
         ['A(x) + B(y) -> A(x!1).B(y!1) k', 'B(y) + A(x) -> A(x!1).B(y!1) k', 'B(y) + A(x) -> B(y!4).A(x!4) k'],
-        ['A(x) + A(x,r~p) -> A(x!1,r~p).A(x!1) kk', 'A(x) + A(x,r~p) -> A(x!2).A(x!2,r~p) kk']
+        ['A(x) + A(x,r~p) -> A(x!1,r~p).A(x!1) kk', 'A(x) + A(x,r~p) -> A(x!2).A(x!2,r~p) kk'],
+        ['C() + A(rR~0) -> C() + A(rR~p) k', 'A(rR~0) + C() -> A(rR~p) + C() k']
     ]
 
     for rule_class in rule_classes:
@@ -69,6 +70,7 @@ def test_rule_from_str_inequivalent():
             assert rule_from_str(second_rule).is_equivalent_to(rule_from_str(first_rule))
 
 
+# Test simple rxncon systems.
 
 def test_simple_system():
     rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p}
@@ -76,69 +78,77 @@ def test_simple_system():
                                              C_p+_A_[(r)]
                                              D_p-_A_[(r)]""").rxncon_system)
 
-    print()
-    for rule in rbm.rules:
-        print(rule)
+    expected_rules = [
+        'A(rR~p,bD) + B(aD) -> A(rR~p,bD!1).B(aD!1) k',
+        'A(bD!1).B(aD!1) -> A(bD) + B(aD) k',
+        'C() + A(rR~0) -> C() + A(rR~p) k',
+        'A(rR~p) + D() -> A(rR~0) + D() k'
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
 
 
-def test_calc_positive_solutions():
-    rxncon_sys = Quick("""A_[b]_ppi+_B_[a]; x A_[(r)]-{p}
-                          E_[x]_ppi+_B_[a]
-                          C_p+_A_[(r)]
-                          D_ub+_A_[(r)]""").rxncon_system
-
-    rbm = rule_based_model_from_rxncon(rxncon_sys)
-
-    for x in rbm.rules:
-        print(x)
-
-    print()
-    for ic in rbm.initial_conditions:
-        print(ic)
-
-
-def test_2():
-    rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
-                                             C_ppi+_D
-                                             B_ppi+_E
-                                             B_ppi+_F
-                                             A_ppi+_B; x <comp1>
-                                             <comp1>; OR <comp1C1>
-                                             <comp1>; OR <comp2C1>
-                                             <comp1C1>; AND A--C
-                                             <comp1C1>; AND C--D
-                                             <comp2C1>; AND B--F
-                                             <comp2C1>; AND B--E''').rxncon_system)
-
-    print()
-    for rule in rbm.rules:
-        print(rule)
-
-    print()
-    for ic in rbm.initial_conditions:
-        print(ic)
-
-def test_3():
-    rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
-                                             C_ppi+_D
-                                             B_ppi+_E
-                                             A_ppi+_B; x <comp1>
-                                             <comp1>; AND <comp1C1>
-                                             <comp1>; AND <comp2C1>
-                                             <comp1C1>; OR A--C
-                                             <comp1C1>; OR C--D
-                                             <comp2C1>; OR A--C
-                                             <comp2C1>; OR B--E''').rxncon_system)
-
-    print()
-    for rule in rbm.rules:
-        print(rule)
-
-
-def test_mutually_exclusive_bindings():
-    rbm = rule_based_model_from_rxncon(Quick('''C_[A]_ppi+_A_[x]
-                                             D_[A]_ppi+_A_[x]
-                                             B_p+_A; x C_[A]--A_[x]''').rxncon_system)
-    print()
-    for rule in rbm.rules:
-        print(rule)
+# def test_calc_positive_solutions():
+#     rxncon_sys = Quick("""A_[b]_ppi+_B_[a]; x A_[(r)]-{p}
+#                           E_[x]_ppi+_B_[a]
+#                           C_p+_A_[(r)]
+#                           D_ub+_A_[(r)]""").rxncon_system
+#
+#     rbm = rule_based_model_from_rxncon(rxncon_sys)
+#
+#     for x in rbm.rules:
+#         print(x)
+#
+#     print()
+#     for ic in rbm.initial_conditions:
+#         print(ic)
+#
+#
+# def test_2():
+#     rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
+#                                              C_ppi+_D
+#                                              B_ppi+_E
+#                                              B_ppi+_F
+#                                              A_ppi+_B; x <comp1>
+#                                              <comp1>; OR <comp1C1>
+#                                              <comp1>; OR <comp2C1>
+#                                              <comp1C1>; AND A--C
+#                                              <comp1C1>; AND C--D
+#                                              <comp2C1>; AND B--F
+#                                              <comp2C1>; AND B--E''').rxncon_system)
+#
+#     print()
+#     for rule in rbm.rules:
+#         print(rule)
+#
+#     print()
+#     for ic in rbm.initial_conditions:
+#         print(ic)
+#
+# def test_3():
+#     rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
+#                                              C_ppi+_D
+#                                              B_ppi+_E
+#                                              A_ppi+_B; x <comp1>
+#                                              <comp1>; AND <comp1C1>
+#                                              <comp1>; AND <comp2C1>
+#                                              <comp1C1>; OR A--C
+#                                              <comp1C1>; OR C--D
+#                                              <comp2C1>; OR A--C
+#                                              <comp2C1>; OR B--E''').rxncon_system)
+#
+#     print()
+#     for rule in rbm.rules:
+#         print(rule)
+#
+#
+# def test_mutually_exclusive_bindings():
+#     rbm = rule_based_model_from_rxncon(Quick('''C_[A]_ppi+_A_[x]
+#                                              D_[A]_ppi+_A_[x]
+#                                              B_p+_A; x C_[A]--A_[x]''').rxncon_system)
+#     print()
+#     for rule in rbm.rules:
+#         print(rule)
