@@ -223,27 +223,19 @@ def test_boolean_inhibition_interaction():
         assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
 
 
-                # def test_3():
-#     rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
-#                                              C_ppi+_D
-#                                              B_ppi+_E
-#                                              A_ppi+_B; x <comp1>
-#                                              <comp1>; AND <comp1C1>
-#                                              <comp1>; AND <comp2C1>
-#                                              <comp1C1>; OR A--C
-#                                              <comp1C1>; OR C--D
-#                                              <comp2C1>; OR A--C
-#                                              <comp2C1>; OR B--E''').rxncon_system)
-#
-#     print()
-#     for rule in rbm.rules:
-#         print(rule)
-#
-#
-# def test_mutually_exclusive_bindings():
-#     rbm = rule_based_model_from_rxncon(Quick('''C_[A]_ppi+_A_[x]
-#                                              D_[A]_ppi+_A_[x]
-#                                              B_p+_A; x C_[A]--A_[x]''').rxncon_system)
-#     print()
-#     for rule in rbm.rules:
-#         print(rule)
+def test_mutually_exclusive_bindings():
+    rbm = rule_based_model_from_rxncon(Quick('''C_[A]_ppi+_A_[x]
+                                             D_[A]_ppi+_A_[x]
+                                             B_p+_A; x C_[A]--A_[x]''').rxncon_system)
+
+    expected_rules = [
+        'A(xD) + C(AD) -> A(xD!1).C(AD!1) k',
+        'A(xD) + D(AD) -> A(xD!1).D(AD!1) k',
+        'A(BR~0,xD) + B() -> A(BR~p,xD) + B() k',
+        'A(BR~0,xD!1).D(AD!1) + B() -> A(BR~p,xD!1).D(AD!1) + B() k'
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
