@@ -299,6 +299,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 return trues
 
         for reaction_target, contingency_factor in reaction_target_to_factor.items():
+            if not reaction_target.degraded_components:
+                continue
             solns = contingency_factor.calc_solutions()
             assert len(solns) == 1
             soln = solns[0]
