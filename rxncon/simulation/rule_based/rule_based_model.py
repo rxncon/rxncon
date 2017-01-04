@@ -1,7 +1,7 @@
 from typing import Dict, List, Optional, Tuple, Iterable
 from itertools import combinations, product, chain, permutations, count
 from copy import copy, deepcopy
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from re import match
 
 from rxncon.core.rxncon_system import RxnConSystem
@@ -608,8 +608,10 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
 
             return struct_states
 
-        trues = [state for state, val in solution.items() if val]
-        falses = [state for state, val in solution.items() if not val
+        ordered_solution = OrderedDict(sorted(solution.items(), key=lambda x: x[0]))
+
+        trues  = [state for state, val in ordered_solution.items() if val]
+        falses = [state for state, val in ordered_solution.items() if not val
                   and not any(state.is_mutually_exclusive_with(x) for x in trues)]
 
         if not falses:
@@ -621,7 +623,11 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         solutions = []
 
         for positivized_false in positivized_falses:
-            possible_solution = list(set(structure_states(trues + positivized_false)))
+            possible_solution = []
+            for soln_state in structure_states(trues + positivized_false):
+                if soln_state not in possible_solution:
+                    possible_solution.append(soln_state)
+
             if is_satisfiable(possible_solution):
                 solutions.append(possible_solution)
 
@@ -706,7 +712,6 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
                                 in rxncon_sys.s_contingencies_for_reaction(reaction)))
 
         cont_set = with_connectivity_constraints(cont_set)
-
         solutions = cont_set.calc_solutions()
 
         positive_solutions = []
@@ -714,7 +719,9 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             positive_solutions += calc_positive_solutions(rxncon_sys, solution)
 
         for positive_solution in positive_solutions:
-            rules.append(calc_rule(reaction, positive_solution))
+            rule = calc_rule(reaction, positive_solution)
+            if not any(rule.is_equivalent_to(existing) for existing in rules):
+                rules.append(rule)
 
     return RuleBasedModel(mol_defs, calc_initial_conditions(mol_defs), [], calc_observables(rxncon_sys), rules)
 

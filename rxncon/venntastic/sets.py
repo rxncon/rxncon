@@ -101,7 +101,20 @@ class Set:
         return None
 
     def _make_val_to_sym_dict(self, existing_dict: Optional[OrderedDict]=None) -> OrderedDict:
-        vals = list(set(self.values))
+        vals = []
+
+        for v in self.values:
+            found = False
+            for existing in vals:
+                try:
+                    if v == existing:
+                        found = True
+                        break
+                except AttributeError:
+                    pass
+
+            if not found:
+                vals.append(v)
 
         if existing_dict:
             d = existing_dict
