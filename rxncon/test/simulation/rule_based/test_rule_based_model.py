@@ -2,8 +2,8 @@ from itertools import combinations
 import pytest
 
 from rxncon.input.quick.quick import Quick
-from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_rxncon, rule_from_str, complex_from_str, \
-    initial_condition_from_str
+from rxncon.simulation.rule_based.rule_based_model import *
+from rxncon.core.state import state_from_str
 
 
 # Test the *_from_str functions.
@@ -71,8 +71,32 @@ def test_rule_from_str_inequivalent():
             assert rule_from_str(second_rule).is_equivalent_to(rule_from_str(first_rule))
 
 
-# Test simple rxncon systems.
+# Test some of the rule_based_model_from_rxncon parts.
+def test_calc_state_paths():
+    states = [state_from_str(x) for x in ('A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'B@2_[bbb]--D@4_[d]',
+                                          'D@4_[dd]--E@5_[e]', 'E@5_[(r)]-{p}', 'A@0_[(x)]-{p}', 'B@2_[(z)]-{p}')]
 
+    actual_state_to_paths = calc_state_paths(states)
+
+    expected_state_to_paths = {
+        'A@0_[(x)]-{p}':      [[]],
+        'A@0_[a]--B@2_[b]':   [[]],
+        'B@2_[(z)]-{p}':      [['A@0_[a]--B@2_[b]']],
+        'B@2_[bb]--C@3_[c]':  [['A@0_[a]--B@2_[b]']],
+        'B@2_[bbb]--D@4_[d]': [['A@0_[a]--B@2_[b]']],
+        'D@4_[dd]--E@5_[e]':  [['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]']],
+        'E@5_[(r)]-{p}':      [['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'D@4_[dd]--E@5_[e]']],
+    }
+
+    for state, paths in expected_state_to_paths.items():
+        print()
+        print(state)
+        print(actual_state_to_paths[state_from_str(state)])
+        print([[state_from_str(s) for s in path] for path in paths])
+        assert actual_state_to_paths[state_from_str(state)] == [[state_from_str(s) for s in path] for path in paths]
+
+
+# Test simple rxncon systems.
 def test_single_requirement_modification():
     rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p}
                                              A_[b]_ppi-_B_[a]

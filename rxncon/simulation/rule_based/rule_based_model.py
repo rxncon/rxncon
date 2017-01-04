@@ -457,6 +457,65 @@ class RuleBasedModel:
         return sorted(set(rule.rate for rule in self.rules), key=lambda x: x.name)
 
 
+def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
+    specs = sorted(set(spec.to_component_spec() for state in states for spec in state.specs), key=lambda x: x.struct_index)
+
+    def spec_to_bond_states(spec: Spec) -> List[State]:
+        assert spec.is_component_spec and spec.is_structured
+        return [state for state in states if spec in (s.to_component_spec() for s in state.specs) if len(state.specs) == 2]
+
+    def neighbor(spec: Spec, state: State) -> Spec:
+        assert spec.is_component_spec and spec.is_structured and len(state.specs) == 2
+        return [neigh_spec.to_component_spec() for neigh_spec in state.specs if neigh_spec.to_component_spec() != spec][0]
+
+    spec_paths = {spec: [] for spec in specs}  # type: Dict[Spec, List[List[State]]]
+
+    for state in states:
+        state.visited = False
+
+    def visit_nodes(current_path: List[State], current_spec: Spec):
+        spec_paths[current_spec].append(current_path)
+        for state in (state for state in spec_to_bond_states(current_spec) if not state.visited):
+            state.visited = True
+            visit_nodes(current_path + [state], neighbor(current_spec, state))
+
+    for spec in specs:
+        if spec.struct_index > 1:
+            break
+        visit_nodes([], spec)
+
+    state_paths = {state: [] for state in states}  # type: Dict[State, List[List[State]]]
+    for state in states:
+        for spec in state.specs:
+            state_paths[state].append([s for s in spec_paths[spec.to_component_spec()] if s != state])
+
+    for state in states:
+        del state.visited
+
+    return state_paths
+
+
+def with_connectivity_constraints(cont_set: VennSet) -> VennSet:
+    dnf_terms = cont_set.to_dnf_list()
+    connected_dnf_terms = []
+
+    for dnf_term in dnf_terms:
+        states = deepcopy([state for state in dnf_term.values if state])
+        state_paths = calc_state_paths(states)
+
+        constraint = UniversalSet()
+        for state in states:
+            state_constraints = [Complement(ValueSet(state))]
+            for path in state_paths[state]:
+                state_constraints.append(Intersection(*(ValueSet(x) for x in path)))
+
+            constraint = Intersection(constraint, Union(*state_constraints))
+
+        connected_dnf_terms.append(Intersection(dnf_term, constraint.to_dnf_set()))
+
+    return Union(*connected_dnf_terms)
+
+
 def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
     def mol_defs_from_rxncon(rxncon_sys: RxnConSystem) -> Dict[Spec, MolDef]:
         mol_defs = {}
@@ -489,63 +548,6 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             return Complement(parse_effector(contingency.effector))
         else:
             return UniversalSet()
-
-    def with_connectivity_constraints(cont_set: VennSet) -> VennSet:
-        def calc_state_paths(states: List[State]) -> Dict[Spec, List[List[State]]]:
-            specs = sorted(set(spec for state in states for spec in state.specs), key=lambda x: x.struct_index)
-
-            def spec_to_bond_states(spec: Spec) -> List[State]:
-                return [state for state in states if spec in state.specs if len(state.specs) == 2]
-
-            def neighbor(spec: Spec, state: State) -> Spec:
-                assert len(state.specs) == 2
-                return [neigh_spec for neigh_spec in state.specs if neigh_spec != spec][0]
-
-            spec_paths = {spec: [] for spec in specs}  # type: Dict[Spec, List[List[State]]]
-
-            for state in states:
-                state.visited = False
-
-            def visit_nodes(current_path: List[State], current_spec: Spec):
-                spec_paths[current_spec].append(current_path)
-                for state in (state for state in spec_to_bond_states(current_spec) if not state.visited):
-                    state.visited = True
-                    visit_nodes(current_path + [state], neighbor(current_spec, state))
-
-            for spec in specs:
-                if spec.struct_index > 1:
-                    break
-                visit_nodes([], spec)
-
-            state_paths = {state: [] for state in states}  # type: Dict[Spec, List[List[State]]]
-            for state in states:
-                for path_segments in product(*(spec_paths[x] for x in state.specs)):
-                    state_path = list(set(x for segment in path_segments for x in segment))
-                    state_paths[state].append(state_path)
-
-            for state in states:
-                del state.visited
-
-            return state_paths
-
-        dnf_terms = cont_set.to_dnf_list()
-        connected_dnf_terms = []
-
-        for dnf_term in dnf_terms:
-            states = deepcopy([state for state in dnf_term.values if state])
-            state_paths = calc_state_paths(states)
-
-            constraint = UniversalSet()
-            for state in states:
-                state_constraints = [Complement(ValueSet(state))]
-                for path in state_paths[state]:
-                    state_constraints.append(Intersection(*(ValueSet(x) for x in path)))
-
-                constraint = Intersection(constraint, Union(*state_constraints))
-
-            connected_dnf_terms.append(Intersection(dnf_term, constraint.to_dnf_set()))
-
-        return Union(*connected_dnf_terms)
 
     def calc_positive_solutions(rxncon_sys: RxnConSystem, solution: Dict[State, bool]) -> List[List[State]]:
         def is_satisfiable(states: Iterable[State]) -> bool:

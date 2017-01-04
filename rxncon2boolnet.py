@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from typing import Tuple
 import os
 import click
