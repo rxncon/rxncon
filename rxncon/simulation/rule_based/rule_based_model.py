@@ -1,5 +1,5 @@
 from typing import Dict, List, Optional, Tuple, Iterable
-from itertools import combinations, product, chain, permutations
+from itertools import combinations, product, chain, permutations, count
 from copy import copy, deepcopy
 from collections import defaultdict
 from re import match
@@ -471,23 +471,40 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
     spec_paths = {spec: [] for spec in specs}  # type: Dict[Spec, List[List[State]]]
 
     for state in states:
-        state.visited = False
+        state.visited = []
 
-    def visit_nodes(current_path: List[State], current_spec: Spec):
+    nums = count(1)
+
+    def visit_nodes(current_path: List[State], current_spec: Spec, current_num: int):
         spec_paths[current_spec].append(current_path)
-        for state in (state for state in spec_to_bond_states(current_spec) if not state.visited):
-            state.visited = True
-            visit_nodes(current_path + [state], neighbor(current_spec, state))
+        bonds_to_visit = [state for state in spec_to_bond_states(current_spec) if current_num not in state.visited]
+        for i, state in enumerate(bonds_to_visit):
+            if i == 0:
+                next_num = current_num
+            else:
+                next_num = next(nums)
+
+            for s in current_path + [state]:
+                s.visited.append(next_num)
+
+            visit_nodes(current_path + [state], neighbor(current_spec, state), next_num)
 
     for spec in specs:
         if spec.struct_index > 1:
             break
-        visit_nodes([], spec)
+        visit_nodes([], spec, 0)
 
     state_paths = {state: [] for state in states}  # type: Dict[State, List[List[State]]]
     for state in states:
         for spec in state.specs:
-            state_paths[state].append([s for s in spec_paths[spec.to_component_spec()] if s != state])
+            for spec_path in spec_paths[spec.to_component_spec()]:
+                if len(spec_path) > 0 and spec_path[-1] == state:
+                    path = spec_path[:-1]
+                else:
+                    path = spec_path
+
+                if path not in state_paths[state]:
+                    state_paths[state].append(path)
 
     for state in states:
         del state.visited

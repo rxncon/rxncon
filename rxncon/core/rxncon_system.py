@@ -183,7 +183,7 @@ class RxnConSystem:
                 if len(state_list) == 1:
                     return StateEffector(state_list[0])
                 else:
-                    return OrEffector(MultiOrEffector(state_list[1:]), StateEffector(state_list[0]))
+                    return OrEffector(*(StateEffector(x) for x in state_list))
 
             if isinstance(effector, StateEffector):
                 if effector.expr.is_elemental:
@@ -195,7 +195,7 @@ class RxnConSystem:
                                              'state {}'.format(effector.expr)
                     assert all(state.is_elemental for state in elemental_states)
                     multi_or_effector = MultiOrEffector(elemental_states)
-                    multi_or_effector.name = effector.name
+                    multi_or_effector.name = str(effector.expr)
                     return multi_or_effector
             elif isinstance(effector, AndEffector):
                 and_effector        = AndEffector(*(expanded_effector(x) for x in effector.exprs))

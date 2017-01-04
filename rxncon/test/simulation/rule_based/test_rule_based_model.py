@@ -72,7 +72,14 @@ def test_rule_from_str_inequivalent():
 
 
 # Test some of the rule_based_model_from_rxncon parts.
-def test_calc_state_paths():
+def test_calc_state_paths_simply_connected():
+    #  E
+    #  |
+    #  D   C
+    #   \ /
+    #    B
+    #    |
+    #    A
     states = [state_from_str(x) for x in ('A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'B@2_[bbb]--D@4_[d]',
                                           'D@4_[dd]--E@5_[e]', 'E@5_[(r)]-{p}', 'A@0_[(x)]-{p}', 'B@2_[(z)]-{p}')]
 
@@ -89,11 +96,38 @@ def test_calc_state_paths():
     }
 
     for state, paths in expected_state_to_paths.items():
-        print()
-        print(state)
-        print(actual_state_to_paths[state_from_str(state)])
-        print([[state_from_str(s) for s in path] for path in paths])
         assert actual_state_to_paths[state_from_str(state)] == [[state_from_str(s) for s in path] for path in paths]
+
+
+def test_calc_state_paths_non_simply_connected():
+        #  D---C
+        #   \ /
+        #    B
+        #    |
+        #    A
+        states = [state_from_str(x) for x in ('A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'B@2_[bbb]--D@4_[d]',
+                                              'C@3_[cc]--D@4_[dd]', 'D@4_[(x)]-{p}', 'C@3_[(x)]-{p}',
+                                              'A@0_[(x)]-{p}', 'B@2_[(x)]-{p}')]
+
+        actual_state_to_paths = calc_state_paths(states)
+
+        for state, paths in actual_state_to_paths.items():
+            print()
+            print(state)
+            print(paths)
+
+        # expected_state_to_paths = {
+        #     'A@0_[(x)]-{p}': [[]],
+        #     'A@0_[a]--B@2_[b]': [[]],
+        #     'B@2_[(z)]-{p}': [['A@0_[a]--B@2_[b]']],
+        #     'B@2_[bb]--C@3_[c]': [['A@0_[a]--B@2_[b]']],
+        #     'B@2_[bbb]--D@4_[d]': [['A@0_[a]--B@2_[b]']],
+        #     'D@4_[dd]--E@5_[e]': [['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]']],
+        #     'E@5_[(r)]-{p}': [['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'D@4_[dd]--E@5_[e]']],
+        # }
+        #
+        # for state, paths in expected_state_to_paths.items():
+        #     assert actual_state_to_paths[state_from_str(state)] == [[state_from_str(s) for s in path] for path in paths]
 
 
 # Test simple rxncon systems.
