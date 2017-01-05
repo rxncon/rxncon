@@ -686,8 +686,21 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 return trues
 
         for reaction_target, contingency_factor in reaction_target_to_factor.items():
-            if not reaction_target.degraded_components:
+            # No contingencies.
+            if contingency_factor.is_equivalent_to(UniversalSet()):
+                for degraded_component in reaction_target.degraded_components:
+                    reaction_target.degraded_targets += degraded_state_targets(degraded_component, {})
                 continue
+
+            # Make sure the contingency concerns the object, not the subject of the degradation.
+            contingency_components = []
+
+            for state in contingency_factor.values:
+                contingency_components.extend(state.components)
+
+            if not any(x in reaction_target.degraded_components for x in contingency_components):
+                continue
+
             solns = contingency_factor.calc_solutions()
             assert len(solns) == 1
             soln = solns[0]
