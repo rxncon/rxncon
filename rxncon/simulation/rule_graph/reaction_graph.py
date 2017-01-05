@@ -29,15 +29,15 @@ INTERACTION_STATES = {
     ],
     # Self-interaction state.
     '$x--[$y]': [
-        lambda state: _add_node(state.specs[0]),
-        lambda state: _add_node(state.specs[1])
+        lambda state, builder: builder.add_node(state.specs[0]),
+        lambda state, builder: builder.add_node(state.specs[1])
     ],
 }
 
 class ReactionGraph:
     def __init__(self, rxncon_system: RxnConSystem):
         self.rxncon_system = rxncon_system
-        self.reaction_graph = DiGraph()
+        #self.reaction_graph = DiGraph()
 
     def to_graph(self):
         for reaction in self.rxncon_system.reactions:
@@ -65,8 +65,16 @@ class ReactionGraph:
     def is_trans(self, reaction: Reaction) -> bool:
         return not self.is_cis(reaction)
 
-    def _add_node(self, node_id: str, type: NodeType, label: str):
+
+class GraphBuilder():
+    def __init__(self):
+        self._reaction_graph = DiGraph()
+
+    def add_node(self, node_id: str, type: NodeType, label: str):
         self.reaction_graph.add_node(node_id, label=label, type=type)
 
-    def _add_edge(self, source: str, target: str, width: EdgeWith, type: EdgeType):
+    def add_edge(self, source: str, target: str, width: EdgeWith, type: EdgeType):
         self.reaction_graph.add_edge(source, target, interaction=type, width=width)
+
+    def get_graph(self):
+        return self._reaction_graph
