@@ -8,6 +8,19 @@ from rxncon.venntastic.sets import venn_from_str
 
 
 def target_from_str(target_str: str):
+    """
+    Generates a target from string input.
+
+    Args:
+        target_str: The string representation of a StateTarget, ReactionTarget or ComponentStateTarget.
+
+    Returns:
+        A Target object e.g. StateTarget, ReactionTarget or ComponentStateTarget
+
+    Raises:
+        SyntaxError: If the string does not correspond to a predefined Target object an error is raised.
+
+    """
     try:
         return StateTarget(state_from_str(target_str))
     except SyntaxError:
@@ -38,6 +51,20 @@ def target_from_str(target_str: str):
 
 
 def test_simple_system():
+    """
+    Testing a system of 4 reactions and 1 contingency.
+
+    Note:
+        The system contains 11 rules.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If the number of rules differ from the expected number or if the factor of a rule is not
+            equivalent to the expectation an error is thrown.
+
+    """
     boolean_model = boolean_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p}
                                                     A_[b]_ppi-_B_[a]
                                                     C_p+_A_[(r)]
@@ -70,6 +97,17 @@ def test_simple_system():
 
 
 def test_simple_system_with_input_state():
+    """
+    Testing a system of four reaction, one state contingency and one input contingency.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If the number of rules differ from the expected number or if the factor of a rule is not
+            equivalent to the expectation an error is thrown.
+
+    """
     boolean_model = boolean_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p} ; ! [BLAAT]
                                                         A_[b]_ppi-_B_[a]
                                                         C_p+_A_[(r)]
@@ -103,6 +141,20 @@ def test_simple_system_with_input_state():
 
 
 def test_trsl_trsc_deg():
+    """
+    Testing translation, transcription and degradation reactions.
+
+    Note:
+        The system of 4 reactions is translated into 11 rules.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If the number of rules differ from the expected number or if the factor of a rule is not
+            equivalent to the expectation an error is thrown.
+
+    """
     boolean_model = boolean_model_from_rxncon(Quick("""PolII_trsc_TargetGene
                                                        Ribo_trsl_TargetmRNA
                                                        Nuclease_deg_TargetmRNA
@@ -129,6 +181,20 @@ def test_trsl_trsc_deg():
 
 
 def test_deg_without_contingency():
+    """
+    Testing a degradation reaction without contingencies.
+
+    Note:
+        A system of 4 reactions is translated into 12 rules.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If the number of rules differ from the expected number or if the factor of a rule is not
+            equivalent to the expectation an error is thrown.
+
+    """
     boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(res)]
                                                        D_ub+_A_[(res)]
                                                        D_p+_A_[(other)]
@@ -199,6 +265,24 @@ def test_deg_with_inhibition():
 
 
 def test_deg_with_boolean_contingency():
+    """
+    Testing a degradation reaction with boolean contingencies.
+
+    Note:
+        A system of 3 reactions and one boolean contingency is translated into 7 rules.
+
+        The C_deg_A reaction will be split into two ReactionTargets, one degrading A_[(r1)]-{p}, the other
+        degrading A_[(r2)]-{p}. This choice which variant degrades which A is not deterministic, so the test splits
+        into two branches here.
+
+    Returns:
+        None:
+
+    Raises:
+        AssertionError: If the factor is not equivalent to one of the variations of the degradation reaction and if
+        the factor of a rule is not equivalent to the expectation an error is thrown.
+
+    """
     boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(r1)]
                                                        D_p+_A_[(r2)]
                                                        C_deg_A; ! <X>
@@ -209,26 +293,32 @@ def test_deg_with_boolean_contingency():
 
     target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
 
-    # The C_deg_A reaction will be split into two ReactionTargets, one degrading A_[(r1)]-{p}, the other
-    # degrading A_[(r2)]-{p}. This choice is not deterministic, so the test splits into two branches here.
+    # C_deg_A degrades of A_[(r1)]-{p}, C_deg_A#1 degrades A_[(r2)]-{p}
     if target_to_factor[target_from_str('C_deg_A')].is_equivalent_to(venn_from_str('( {} & C & A_[(r1)]-{{p}} )'.format(A), target_from_str)):
-        # C_deg_A degrades of A_[(r1)]-{p}, C_deg_A#1 degrades A_[(r2)]-{p}
+
         expected_rules = {
             'C_deg_A':      '( {} & C & A_[(r1)]-{{p}} )'.format(A),
             'C_deg_A#1':    '( {} & C & A_[(r2)]-{{p}} )'.format(A),
             'A_[(r1)]-{p}': '( {} & ~( C_deg_A ) & ( A_[(r1)]-{{p}} | ( B_p+_A_[(r1)] & A_[(r1)]-{{0}} )))'.format(A),
             'A_[(r2)]-{p}': '( {} & ~( C_deg_A#1 ) & ( A_[(r2)]-{{p}} | ( D_p+_A_[(r2)] & A_[(r2)]-{{0}} )))'.format(A),
+            'B': 'B',
+            'C': 'C',
+            'D': 'D'
         }
 
         for target_str, factor_str in expected_rules.items():
             assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
+    # C_deg_A degrades of A_[(r2)]-{p}, C_deg_A#1 degrades A_[(r1)]-{p}
     elif target_to_factor[target_from_str('C_deg_A')].is_equivalent_to(venn_from_str('( {} & C & A_[(r2)]-{{p}} )'.format(A), target_from_str)):
-        # C_deg_A degrades of A_[(r2)]-{p}, C_deg_A#1 degrades A_[(r1)]-{p}
+
         expected_rules = {
             'C_deg_A':      '( {} & C & A_[(r2)]-{{p}} )'.format(A),
             'C_deg_A#1':    '( {} & C & A_[(r1)]-{{p}} )'.format(A),
             'A_[(r1)]-{p}': '( {} & ~( C_deg_A#1 ) & ( A_[(r1)]-{{p}} | ( B_p+_A_[(r1)] & A_[(r1)]-{{0}} )))'.format(A),
             'A_[(r2)]-{p}': '( {} & ~( C_deg_A ) & ( A_[(r2)]-{{p}} | ( D_p+_A_[(r2)] & A_[(r2)]-{{0}} )))'.format(A),
+            'B': 'B',
+            'C': 'C',
+            'D': 'D'
         }
 
         for target_str, factor_str in expected_rules.items():
@@ -238,10 +328,21 @@ def test_deg_with_boolean_contingency():
 
 
 def test_deg_with_interaction():
+    """
+    Testing degradation of interaction reaction.
+
+    Note:
+        A system of 2 reactions is translated to 7 rules.
+        We have a variation of C_deg_A, because if we have the interaction state A_[x]--B_[y],  B_[y]--0 can be
+        produced otherwise not.
+
+    Returns:
+        None
+
+    """
     boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
                                                        D_p+_A_[(r)]
                                                        C_deg_A""").rxncon_system)
-
     target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
 
     expected_rules = {
@@ -294,12 +395,24 @@ def test_deg_with_interaction_as_inhibition():
 
 
 def test_smooth_production_sources():
+    """
+    Testing smoothing function.
+
+    Note:
+        Only the update rule for A_[b]--0 is tested.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If update rule for A_[b]--0 is not as expected.
+
+    """
     boolean_model = boolean_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p}
                                                     A_[b]_ppi-_B_[a]
                                                     C_p+_A_[(r)]
                                                     D_p-_A_[(r)]""").rxncon_system, SmoothingStrategy.smooth_production_sources)
 
-    # Just check the update rule for 'A_[b]--0'.
     expected = '(( A_[(r)]-{p} | A_[(r)]-{0} ) & ( A_[b]--0 | A_[b]--B_[a] )) & ' \
                '( A_[b]_ppi-_B_[a] & ( A_[b]--B_[a] | ( A_[b]_ppi+_B_[a] & A_[b]--0 & B_[a]--0 )) | ' \
                '( A_[b]--0 & ~( A_[b]_ppi+_B_[a] & A_[b]--0 & B_[a]--0 )))'
