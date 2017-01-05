@@ -4,6 +4,7 @@ import pytest
 from rxncon.input.quick.quick import Quick
 from rxncon.simulation.rule_based.rule_based_model import *
 from rxncon.core.state import state_from_str
+from rxncon.venntastic.sets import venn_from_str, ValueSet
 
 
 # Test the *_from_str functions.
@@ -111,23 +112,68 @@ def test_calc_state_paths_non_simply_connected():
 
         actual_state_to_paths = calc_state_paths(states)
 
-        for state, paths in actual_state_to_paths.items():
-            print()
-            print(state)
-            print(paths)
+        expected_state_to_paths = {
+            'A@0_[(x)]-{p}': [[]],
+            'A@0_[a]--B@2_[b]': [
+                [],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bbb]--D@4_[d]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bb]--C@3_[c]']
+            ],
+            'B@2_[(x)]-{p}': [
+                ['A@0_[a]--B@2_[b]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bbb]--D@4_[d]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bb]--C@3_[c]']
+            ],
+            'B@2_[bb]--C@3_[c]': [
+                ['A@0_[a]--B@2_[b]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bbb]--D@4_[d]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]']
+            ],
+            'B@2_[bbb]--D@4_[d]': [
+                ['A@0_[a]--B@2_[b]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bb]--C@3_[c]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]']
+            ],
+            'C@3_[(x)]-{p}': [
+                ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]']
+            ],
+            'C@3_[cc]--D@4_[dd]': [
+                ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]']
+            ],
+            'D@4_[(x)]-{p}': [
+                ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]']
+            ]
+        }
 
-        # expected_state_to_paths = {
-        #     'A@0_[(x)]-{p}': [[]],
-        #     'A@0_[a]--B@2_[b]': [[]],
-        #     'B@2_[(z)]-{p}': [['A@0_[a]--B@2_[b]']],
-        #     'B@2_[bb]--C@3_[c]': [['A@0_[a]--B@2_[b]']],
-        #     'B@2_[bbb]--D@4_[d]': [['A@0_[a]--B@2_[b]']],
-        #     'D@4_[dd]--E@5_[e]': [['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]']],
-        #     'E@5_[(r)]-{p}': [['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'D@4_[dd]--E@5_[e]']],
-        # }
-        #
-        # for state, paths in expected_state_to_paths.items():
-        #     assert actual_state_to_paths[state_from_str(state)] == [[state_from_str(s) for s in path] for path in paths]
+        for state, paths in expected_state_to_paths.items():
+            assert len(actual_state_to_paths[state_from_str(state)]) == len(paths)
+            for path in paths:
+                assert [state_from_str(x) for x in path] in actual_state_to_paths[state_from_str(state)]
+
+
+def test_with_connectivity_constraints():
+    first_states  = [ValueSet(state_from_str(x)) for x in ('B@9_[(x)]-{p}', 'X@0_[xc]--C@2_[cx]', 'B@9_[be]--E@4_[eb]', 'C@2_[cb]--B@9_[bc]',
+                                                           'E@4_[w]--W@8_[w]', 'E@4_[u]--Y@3_[q]', 'W@8_[t]--Y@3_[a]')]
+    second_states = [ValueSet(state_from_str(x)) for x in ('F@5_[fg]--G@6_[gf]', 'G@6_[gh]--H@7_[hg]', 'K@1_[kf]--F@5_[fk]', 'K@1_[(x)]-{p}')]
+
+    contingency = Union(Intersection(*first_states), Intersection(*second_states))
+
+    connected = with_connectivity_constraints(contingency)
+
+    print(connected)
+
+    # print('Not connected:')
+    # for soln in contingency.calc_solutions():
+    #     print(soln)
+    #
+    # print()
+    #
+    # print('Connected:')
+    # for soln in connected.calc_solutions():
+    #     print(soln)
 
 
 # Test simple rxncon systems.
@@ -245,13 +291,10 @@ def test_boolean_requirement_interaction():
         'A(BD,CD!1).C(AD!1,DD!2).D(CD!2) + B(AD) -> A(BD!3,CD!1).B(AD!3).C(AD!1,DD!2).D(CD!2) k',  # A--C, C--D
     ]
 
-    # assert len(rbm.rules) == len(expected_rules)
+    assert len(rbm.rules) == len(expected_rules)
 
     for actual_rule in rbm.rules:
-        print(actual_rule)
-
-    # for actual_rule in rbm.rules:
-    #     assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
 
 
 def test_boolean_inhibition_interaction():
