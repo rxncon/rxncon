@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    <graph directed="1"  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.cs.rpi.edu/XGMML">
+    <att name="selected" value="1" type="boolean" />
+    <att name="name" value="Template2.xgmml" type="string"/>
+    <att name="shared name" value="Template2.xgmml" type="string"/>
+    
+<node id="Snf4_[Gal83]--0" label="Snf4_[Gal83]--0"><att name="rxnconID" value="Snf4_[Gal83]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf1_[Cterminus]--0" label="Snf1_[Cterminus]--0"><att name="rxnconID" value="Snf1_[Cterminus]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf1_[Snf1RD]--Gal83_[Snf1]" label="Snf1_[Snf1RD]--Gal83_[Snf1]"><att name="rxnconID" value="Snf1_[Snf1RD]--Gal83_[Snf1]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf1_[activationloop(Ser214)]-{0}" label="Snf1_[activationloop(Ser214)]-{0}"><att name="rxnconID" value="Snf1_[activationloop(Ser214)]-{0}" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf1_[Cterminus]_ppi-_Snf4_[Snf1]" label="Snf1_[Cterminus]_ppi-_Snf4_[Snf1]"><att name="rxnconID" value="Snf1_[Cterminus]_ppi-_Snf4_[Snf1]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Sip2_[Snf4]_ppi-_Snf4_[Sip2]" label="Sip2_[Snf4]_ppi-_Snf4_[Sip2]"><att name="rxnconID" value="Sip2_[Snf4]_ppi-_Snf4_[Sip2]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Sip2_[Snf4]--Snf4_[Sip2]" label="Sip2_[Snf4]--Snf4_[Sip2]"><att name="rxnconID" value="Sip2_[Snf4]--Snf4_[Sip2]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf1_[Snf1RD]--Sip1_[Snf1]" label="Snf1_[Snf1RD]--Sip1_[Snf1]"><att name="rxnconID" value="Snf1_[Snf1RD]--Sip1_[Snf1]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Mig1_[(Snf1)]-{0}" label="Mig1_[(Snf1)]-{0}"><att name="rxnconID" value="Mig1_[(Snf1)]-{0}" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Sak1_[Snf1]_ppi+_Snf1_[Sak1]" label="Sak1_[Snf1]_ppi+_Snf1_[Sak1]"><att name="rxnconID" value="Sak1_[Snf1]_ppi+_Snf1_[Sak1]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Hxk2_[(loc)]-{nucleus}" label="Hxk2_[(loc)]-{nucleus}"><att name="rxnconID" value="Hxk2_[(loc)]-{nucleus}" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Glc7_[Reg1]--0" label="Glc7_[Reg1]--0"><att name="rxnconID" value="Glc7_[Reg1]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf1_[Sak1]--0" label="Snf1_[Sak1]--0"><att name="rxnconID" value="Snf1_[Sak1]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf4_[Sip1]_ppi+_Sip1_[ASC]" label="Snf4_[Sip1]_ppi+_Sip1_[ASC]"><att name="rxnconID" value="Snf4_[Sip1]_ppi+_Sip1_[ASC]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Glc7_[Reg1]_ppi+_Reg1_[Glc7]" label="Glc7_[Reg1]_ppi+_Reg1_[Glc7]"><att name="rxnconID" value="Glc7_[Reg1]_ppi+_Reg1_[Glc7]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Gal83_[Snf4]_ppi+_Snf4_[Gal83]" label="Gal83_[Snf4]_ppi+_Snf4_[Gal83]"><att name="rxnconID" value="Gal83_[Snf4]_ppi+_Snf4_[Gal83]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Snf4_[Gal83]_ppi-_Gal83_[GBD]" label="Snf4_[Gal83]_ppi-_Gal83_[GBD]"><att name="rxnconID" value="Snf4_[Gal83]_ppi-_Gal83_[GBD]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Snf4_[Snf1]--0" label="Snf4_[Snf1]--0"><att name="rxnconID" value="Snf4_[Snf1]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf4_[Sip2]_ppi-_Sip2_[ASC]" label="Snf4_[Sip2]_ppi-_Sip2_[ASC]"><att name="rxnconID" value="Snf4_[Sip2]_ppi-_Sip2_[ASC]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Snf1_[Snf1RD]_ppi-_Gal83_[Snf1]" label="Snf1_[Snf1RD]_ppi-_Gal83_[Snf1]"><att name="rxnconID" value="Snf1_[Snf1RD]_ppi-_Gal83_[Snf1]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="XX_p+_Snf1_[activationloop(Ser214)]" label="XX_p+_Snf1_[activationloop(Ser214)]"><att name="rxnconID" value="XX_p+_Snf1_[activationloop(Ser214)]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="IR_ap+_IR_[JM(Y972)]" label="IR_ap+_IR_[JM(Y972)]"><att name="rxnconID" value="IR_ap+_IR_[JM(Y972)]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Insulin_[IR]_i+_IR_[IBD]" label="Insulin_[IR]_i+_IR_[IBD]"><att name="rxnconID" value="Insulin_[IR]_i+_IR_[IBD]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Snf1_p+_Mig1_[(Snf1)]" label="Snf1_p+_Mig1_[(Snf1)]"><att name="rxnconID" value="Snf1_p+_Mig1_[(Snf1)]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Insulin_[IR]--IR_[IBD]" label="Insulin_[IR]--IR_[IBD]"><att name="rxnconID" value="Insulin_[IR]--IR_[IBD]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Mig1_[(Snf1)]-{p}" label="Mig1_[(Snf1)]-{p}"><att name="rxnconID" value="Mig1_[(Snf1)]-{p}" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf4_[Sip1]--Sip1_[ASC]" label="Snf4_[Sip1]--Sip1_[ASC]"><att name="rxnconID" value="Snf4_[Sip1]--Sip1_[ASC]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf4_[Gal83]_ppi+_Gal83_[GBD]" label="Snf4_[Gal83]_ppi+_Gal83_[GBD]"><att name="rxnconID" value="Snf4_[Gal83]_ppi+_Gal83_[GBD]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Hxk2_[K6M15]--Mig1_[hxk2]" label="Hxk2_[K6M15]--Mig1_[hxk2]"><att name="rxnconID" value="Hxk2_[K6M15]--Mig1_[hxk2]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf4_[Gal83]--Gal83_[GBD]" label="Snf4_[Gal83]--Gal83_[GBD]"><att name="rxnconID" value="Snf4_[Gal83]--Gal83_[GBD]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf1_[activationloop(Ser214)]-{p}" label="Snf1_[activationloop(Ser214)]-{p}"><att name="rxnconID" value="Snf1_[activationloop(Ser214)]-{p}" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Gal83_[Snf4]--0" label="Gal83_[Snf4]--0"><att name="rxnconID" value="Gal83_[Snf4]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf1_[Snf1RD]_ppi+_Gal83_[Snf1]" label="Snf1_[Snf1RD]_ppi+_Gal83_[Snf1]"><att name="rxnconID" value="Snf1_[Snf1RD]_ppi+_Gal83_[Snf1]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Sak1_[Snf1]--0" label="Sak1_[Snf1]--0"><att name="rxnconID" value="Sak1_[Snf1]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Mig1_[hxk2]--0" label="Mig1_[hxk2]--0"><att name="rxnconID" value="Mig1_[hxk2]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="XX_nimp_Mig1" label="XX_nimp_Mig1"><att name="rxnconID" value="XX_nimp_Mig1" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Snf1_nexp_Mig1" label="Snf1_nexp_Mig1"><att name="rxnconID" value="Snf1_nexp_Mig1" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Sip2_[Snf4]--0" label="Sip2_[Snf4]--0"><att name="rxnconID" value="Sip2_[Snf4]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Mig1_[(loc)]-{nucleus}" label="Mig1_[(loc)]-{nucleus}"><att name="rxnconID" value="Mig1_[(loc)]-{nucleus}" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Glc7_p-_Mig1_[(Glc7)]" label="Glc7_p-_Mig1_[(Glc7)]"><att name="rxnconID" value="Glc7_p-_Mig1_[(Glc7)]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Glc7_p-_Snf1_[activationloop(Thr210)]" label="Glc7_p-_Snf1_[activationloop(Thr210)]"><att name="rxnconID" value="Glc7_p-_Snf1_[activationloop(Thr210)]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="IR_[JM(Y972)]-{p}" label="IR_[JM(Y972)]-{p}"><att name="rxnconID" value="IR_[JM(Y972)]-{p}" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Sip2_[Snf1]--0" label="Sip2_[Snf1]--0"><att name="rxnconID" value="Sip2_[Snf1]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Gal83_[GBD]--0" label="Gal83_[GBD]--0"><att name="rxnconID" value="Gal83_[GBD]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Hxk2_[K6M15]--0" label="Hxk2_[K6M15]--0"><att name="rxnconID" value="Hxk2_[K6M15]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="IR_[IBD]--0" label="IR_[IBD]--0"><att name="rxnconID" value="IR_[IBD]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf4_[Sip2]_ppi+_Sip2_[ASC]" label="Snf4_[Sip2]_ppi+_Sip2_[ASC]"><att name="rxnconID" value="Snf4_[Sip2]_ppi+_Sip2_[ASC]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="ADP_[Snf4]--0" label="ADP_[Snf4]--0"><att name="rxnconID" value="ADP_[Snf4]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf1_[Cterminus]--Snf4_[Snf1]" label="Snf1_[Cterminus]--Snf4_[Snf1]"><att name="rxnconID" value="Snf1_[Cterminus]--Snf4_[Snf1]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Elm1_p+_Snf1_[activationloop(Thr210)]" label="Elm1_p+_Snf1_[activationloop(Thr210)]"><att name="rxnconID" value="Elm1_p+_Snf1_[activationloop(Thr210)]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="IR_[JM(Y972)]-{0}" label="IR_[JM(Y972)]-{0}"><att name="rxnconID" value="IR_[JM(Y972)]-{0}" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Tos3_p+_Snf1_[activationloop(Thr210)]" label="Tos3_p+_Snf1_[activationloop(Thr210)]"><att name="rxnconID" value="Tos3_p+_Snf1_[activationloop(Thr210)]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Snf4_[CBS]_i+_ADP_[Snf4]" label="Snf4_[CBS]_i+_ADP_[Snf4]"><att name="rxnconID" value="Snf4_[CBS]_i+_ADP_[Snf4]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Gal83_[Snf1]--0" label="Gal83_[Snf1]--0"><att name="rxnconID" value="Gal83_[Snf1]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Mig1C_[dnab]_bind-_SUC2geneGene_[Mig1C]" label="Mig1C_[dnab]_bind-_SUC2geneGene_[Mig1C]"><att name="rxnconID" value="Mig1C_[dnab]_bind-_SUC2geneGene_[Mig1C]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Snf1_[Snf1RD]_ppi-_Sip1_[Snf1]" label="Snf1_[Snf1RD]_ppi-_Sip1_[Snf1]"><att name="rxnconID" value="Snf1_[Snf1RD]_ppi-_Sip1_[Snf1]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Reg1_[Glc7]--0" label="Reg1_[Glc7]--0"><att name="rxnconID" value="Reg1_[Glc7]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Mig1-{p}" label="Mig1-{p}"><att name="rxnconID" value="Mig1-{p}" type="string"/><att name="type" value="boolean_or" type="string"/></node>
+<node id="Snf1_[activationloop(Thr210)]-{0}" label="Snf1_[activationloop(Thr210)]-{0}"><att name="rxnconID" value="Snf1_[activationloop(Thr210)]-{0}" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf1_[Cterminus]_ppi+_Snf4_[Snf1]" label="Snf1_[Cterminus]_ppi+_Snf4_[Snf1]"><att name="rxnconID" value="Snf1_[Cterminus]_ppi+_Snf4_[Snf1]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Sip2_[Snf4]_ppi+_Snf4_[Sip2]" label="Sip2_[Snf4]_ppi+_Snf4_[Sip2]"><att name="rxnconID" value="Sip2_[Snf4]_ppi+_Snf4_[Sip2]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Sip1_[Snf4]_ppi-_Snf4_[Sip1]" label="Sip1_[Snf4]_ppi-_Snf4_[Sip1]"><att name="rxnconID" value="Sip1_[Snf4]_ppi-_Snf4_[Sip1]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Sak1_[Snf1]_ppi-_Snf1_[Sak1]" label="Sak1_[Snf1]_ppi-_Snf1_[Sak1]"><att name="rxnconID" value="Sak1_[Snf1]_ppi-_Snf1_[Sak1]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Sip1_[Snf4]_ppi+_Snf4_[Sip1]" label="Sip1_[Snf4]_ppi+_Snf4_[Sip1]"><att name="rxnconID" value="Sip1_[Snf4]_ppi+_Snf4_[Sip1]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Sak1_p+_Snf1_[activationloop(Thr210)]" label="Sak1_p+_Snf1_[activationloop(Thr210)]"><att name="rxnconID" value="Sak1_p+_Snf1_[activationloop(Thr210)]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Sip1_[Snf4]--0" label="Sip1_[Snf4]--0"><att name="rxnconID" value="Sip1_[Snf4]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf1_[Snf1RD]--0" label="Snf1_[Snf1RD]--0"><att name="rxnconID" value="Snf1_[Snf1RD]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="POLII_trsc_SUC2geneGene" label="POLII_trsc_SUC2geneGene"><att name="rxnconID" value="POLII_trsc_SUC2geneGene" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Hxk2_[K6M15]_ppi-_Mig1_[hxk2]" label="Hxk2_[K6M15]_ppi-_Mig1_[hxk2]"><att name="rxnconID" value="Hxk2_[K6M15]_ppi-_Mig1_[hxk2]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Snf4_[Sip2]--Sip2_[ASC]" label="Snf4_[Sip2]--Sip2_[ASC]"><att name="rxnconID" value="Snf4_[Sip2]--Sip2_[ASC]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf4_[CBS]--0" label="Snf4_[CBS]--0"><att name="rxnconID" value="Snf4_[CBS]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Sip1_[Snf1]--0" label="Sip1_[Snf1]--0"><att name="rxnconID" value="Sip1_[Snf1]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Gal83_[Snf4]--Snf4_[Gal83]" label="Gal83_[Snf4]--Snf4_[Gal83]"><att name="rxnconID" value="Gal83_[Snf4]--Snf4_[Gal83]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Mig1_[SUC2gene]--SUC2gene_[Mig1]" label="Mig1_[SUC2gene]--SUC2gene_[Mig1]"><att name="rxnconID" value="Mig1_[SUC2gene]--SUC2gene_[Mig1]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf4_[Sip2]--0" label="Snf4_[Sip2]--0"><att name="rxnconID" value="Snf4_[Sip2]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Mig1-{0}" label="Mig1-{0}"><att name="rxnconID" value="Mig1-{0}" type="string"/><att name="type" value="boolean_or" type="string"/></node>
+<node id="Mig1C_[dnab]--SUC2geneGene_[Mig1C]" label="Mig1C_[dnab]--SUC2geneGene_[Mig1C]"><att name="rxnconID" value="Mig1C_[dnab]--SUC2geneGene_[Mig1C]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="xx_nimp_Hxk2" label="xx_nimp_Hxk2"><att name="rxnconID" value="xx_nimp_Hxk2" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Mig1_[(loc)]-{0}" label="Mig1_[(loc)]-{0}"><att name="rxnconID" value="Mig1_[(loc)]-{0}" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf1_[Snf1RD]--Sip2_[Snf1]" label="Snf1_[Snf1RD]--Sip2_[Snf1]"><att name="rxnconID" value="Snf1_[Snf1RD]--Sip2_[Snf1]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf1_[Snf1RD]_ppi-_Sip2_[Snf1]" label="Snf1_[Snf1RD]_ppi-_Sip2_[Snf1]"><att name="rxnconID" value="Snf1_[Snf1RD]_ppi-_Sip2_[Snf1]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Mig1_[SUC2gene]_i+_SUC2gene_[Mig1]" label="Mig1_[SUC2gene]_i+_SUC2gene_[Mig1]"><att name="rxnconID" value="Mig1_[SUC2gene]_i+_SUC2gene_[Mig1]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Snf1-{p}" label="Snf1-{p}"><att name="rxnconID" value="Snf1-{p}" type="string"/><att name="type" value="boolean_or" type="string"/></node>
+<node id="Mig1_[SUC2gene]--0" label="Mig1_[SUC2gene]--0"><att name="rxnconID" value="Mig1_[SUC2gene]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf1_[activationloop(Thr210)]-{p}" label="Snf1_[activationloop(Thr210)]-{p}"><att name="rxnconID" value="Snf1_[activationloop(Thr210)]-{p}" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Mig1_[(Glc7)]-{p}" label="Mig1_[(Glc7)]-{p}"><att name="rxnconID" value="Mig1_[(Glc7)]-{p}" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf4_[CBS]_i-_ADP_[Snf4]" label="Snf4_[CBS]_i-_ADP_[Snf4]"><att name="rxnconID" value="Snf4_[CBS]_i-_ADP_[Snf4]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Insulin_[IR]--0" label="Insulin_[IR]--0"><att name="rxnconID" value="Insulin_[IR]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf4_[Sip1]--0" label="Snf4_[Sip1]--0"><att name="rxnconID" value="Snf4_[Sip1]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Sip1_[Snf4]--Snf4_[Sip1]" label="Sip1_[Snf4]--Snf4_[Sip1]"><att name="rxnconID" value="Sip1_[Snf4]--Snf4_[Sip1]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Glc7_[Reg1]_ppi-_Reg1_[Glc7]" label="Glc7_[Reg1]_ppi-_Reg1_[Glc7]"><att name="rxnconID" value="Glc7_[Reg1]_ppi-_Reg1_[Glc7]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Hxk2_[K6M15]_ppi+_Mig1_[hxk2]" label="Hxk2_[K6M15]_ppi+_Mig1_[hxk2]"><att name="rxnconID" value="Hxk2_[K6M15]_ppi+_Mig1_[hxk2]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Mig1C_[dnab]_bind+_SUC2geneGene_[Mig1C]" label="Mig1C_[dnab]_bind+_SUC2geneGene_[Mig1C]"><att name="rxnconID" value="Mig1C_[dnab]_bind+_SUC2geneGene_[Mig1C]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Snf1_[Snf1RD]_ppi+_Sip1_[Snf1]" label="Snf1_[Snf1RD]_ppi+_Sip1_[Snf1]"><att name="rxnconID" value="Snf1_[Snf1RD]_ppi+_Sip1_[Snf1]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Sip2_[ASC]--0" label="Sip2_[ASC]--0"><att name="rxnconID" value="Sip2_[ASC]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf4_[Sip1]_ppi-_Sip1_[ASC]" label="Snf4_[Sip1]_ppi-_Sip1_[ASC]"><att name="rxnconID" value="Snf4_[Sip1]_ppi-_Sip1_[ASC]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Snf1_[Snf1RD]_ppi+_Sip2_[Snf1]" label="Snf1_[Snf1RD]_ppi+_Sip2_[Snf1]"><att name="rxnconID" value="Snf1_[Snf1RD]_ppi+_Sip2_[Snf1]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Insulin_[IR]_i-_IR_[IBD]" label="Insulin_[IR]_i-_IR_[IBD]"><att name="rxnconID" value="Insulin_[IR]_i-_IR_[IBD]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Hxk2_[(loc)]-{0}" label="Hxk2_[(loc)]-{0}"><att name="rxnconID" value="Hxk2_[(loc)]-{0}" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Gal83_[Snf4]_ppi-_Snf4_[Gal83]" label="Gal83_[Snf4]_ppi-_Snf4_[Gal83]"><att name="rxnconID" value="Gal83_[Snf4]_ppi-_Snf4_[Gal83]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Mig1_[SUC2gene]_i-_SUC2gene_[Mig1]" label="Mig1_[SUC2gene]_i-_SUC2gene_[Mig1]"><att name="rxnconID" value="Mig1_[SUC2gene]_i-_SUC2gene_[Mig1]" type="string"/><att name="type" value="reaction" type="string"/></node>
+<node id="Sak1_[Snf1]--Snf1_[Sak1]" label="Sak1_[Snf1]--Snf1_[Sak1]"><att name="rxnconID" value="Sak1_[Snf1]--Snf1_[Sak1]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Mig1_[(Glc7)]-{0}" label="Mig1_[(Glc7)]-{0}"><att name="rxnconID" value="Mig1_[(Glc7)]-{0}" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Glc7_[Reg1]--Reg1_[Glc7]" label="Glc7_[Reg1]--Reg1_[Glc7]"><att name="rxnconID" value="Glc7_[Reg1]--Reg1_[Glc7]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="SUC2geneGene_[Mig1C]--0" label="SUC2geneGene_[Mig1C]--0"><att name="rxnconID" value="SUC2geneGene_[Mig1C]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Snf4_[CBS]--ADP_[Snf4]" label="Snf4_[CBS]--ADP_[Snf4]"><att name="rxnconID" value="Snf4_[CBS]--ADP_[Snf4]" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="SUC2gene_[Mig1]--0" label="SUC2gene_[Mig1]--0"><att name="rxnconID" value="SUC2gene_[Mig1]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Mig1C_[dnab]--0" label="Mig1C_[dnab]--0"><att name="rxnconID" value="Mig1C_[dnab]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<node id="Sip1_[ASC]--0" label="Sip1_[ASC]--0"><att name="rxnconID" value="Sip1_[ASC]--0" type="string"/><att name="type" value="state" type="string"/></node>
+<edge source="Snf4_[Gal83]--0" target="Gal83_[Snf4]_ppi+_Snf4_[Gal83]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf4_[Gal83]--0" target="Snf4_[Gal83]_ppi+_Gal83_[GBD]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[Cterminus]--0" target="Snf1_[Cterminus]_ppi+_Snf4_[Snf1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]--Gal83_[Snf1]" target="Snf1_[Snf1RD]_ppi-_Gal83_[Snf1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]--Gal83_[Snf1]" target="Snf1_p+_Mig1_[(Snf1)]"><att name="interaction" value="!" type="string"/></edge>
+<edge source="Snf1_[activationloop(Ser214)]-{0}" target="XX_p+_Snf1_[activationloop(Ser214)]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[Cterminus]_ppi-_Snf4_[Snf1]" target="Snf4_[Snf1]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf1_[Cterminus]_ppi-_Snf4_[Snf1]" target="Snf1_[Cterminus]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf1_[Cterminus]_ppi-_Snf4_[Snf1]" target="Snf1_[Cterminus]--Snf4_[Snf1]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Sip2_[Snf4]_ppi-_Snf4_[Sip2]" target="Sip2_[Snf4]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Sip2_[Snf4]_ppi-_Snf4_[Sip2]" target="Snf4_[Sip2]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Sip2_[Snf4]_ppi-_Snf4_[Sip2]" target="Sip2_[Snf4]--Snf4_[Sip2]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Sip2_[Snf4]--Snf4_[Sip2]" target="Snf1_[Cterminus]_ppi+_Snf4_[Snf1]"><att name="interaction" value="!" type="string"/></edge>
+<edge source="Sip2_[Snf4]--Snf4_[Sip2]" target="Sip2_[Snf4]_ppi-_Snf4_[Sip2]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]--Sip1_[Snf1]" target="Snf1_[Snf1RD]_ppi-_Sip1_[Snf1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Mig1_[(Snf1)]-{0}" target="Mig1-{0}"><att name="interaction" value="OR" type="string"/></edge>
+<edge source="Mig1_[(Snf1)]-{0}" target="Snf1_p+_Mig1_[(Snf1)]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Sak1_[Snf1]_ppi+_Snf1_[Sak1]" target="Sak1_[Snf1]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Sak1_[Snf1]_ppi+_Snf1_[Sak1]" target="Sak1_[Snf1]--Snf1_[Sak1]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Sak1_[Snf1]_ppi+_Snf1_[Sak1]" target="Snf1_[Sak1]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Glc7_[Reg1]--0" target="Glc7_[Reg1]_ppi+_Reg1_[Glc7]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[Sak1]--0" target="Sak1_[Snf1]_ppi+_Snf1_[Sak1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf4_[Sip1]_ppi+_Sip1_[ASC]" target="Sip1_[ASC]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf4_[Sip1]_ppi+_Sip1_[ASC]" target="Snf4_[Sip1]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf4_[Sip1]_ppi+_Sip1_[ASC]" target="Snf4_[Sip1]--Sip1_[ASC]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Glc7_[Reg1]_ppi+_Reg1_[Glc7]" target="Glc7_[Reg1]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Glc7_[Reg1]_ppi+_Reg1_[Glc7]" target="Reg1_[Glc7]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Glc7_[Reg1]_ppi+_Reg1_[Glc7]" target="Glc7_[Reg1]--Reg1_[Glc7]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Gal83_[Snf4]_ppi+_Snf4_[Gal83]" target="Snf4_[Gal83]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Gal83_[Snf4]_ppi+_Snf4_[Gal83]" target="Gal83_[Snf4]--Snf4_[Gal83]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Gal83_[Snf4]_ppi+_Snf4_[Gal83]" target="Gal83_[Snf4]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf4_[Gal83]_ppi-_Gal83_[GBD]" target="Snf4_[Gal83]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf4_[Gal83]_ppi-_Gal83_[GBD]" target="Snf4_[Gal83]--Gal83_[GBD]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf4_[Gal83]_ppi-_Gal83_[GBD]" target="Gal83_[GBD]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf4_[Snf1]--0" target="Snf1_[Cterminus]_ppi+_Snf4_[Snf1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf4_[Sip2]_ppi-_Sip2_[ASC]" target="Snf4_[Sip2]--Sip2_[ASC]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf4_[Sip2]_ppi-_Sip2_[ASC]" target="Snf4_[Sip2]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf4_[Sip2]_ppi-_Sip2_[ASC]" target="Sip2_[ASC]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi-_Gal83_[Snf1]" target="Snf1_[Snf1RD]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi-_Gal83_[Snf1]" target="Snf1_[Snf1RD]--Gal83_[Snf1]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi-_Gal83_[Snf1]" target="Gal83_[Snf1]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="XX_p+_Snf1_[activationloop(Ser214)]" target="Snf1_[activationloop(Ser214)]-{p}"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="XX_p+_Snf1_[activationloop(Ser214)]" target="Snf1_[activationloop(Ser214)]-{0}"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="IR_ap+_IR_[JM(Y972)]" target="IR_[JM(Y972)]-{0}"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="IR_ap+_IR_[JM(Y972)]" target="IR_[JM(Y972)]-{p}"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Insulin_[IR]_i+_IR_[IBD]" target="Insulin_[IR]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Insulin_[IR]_i+_IR_[IBD]" target="Insulin_[IR]--IR_[IBD]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Insulin_[IR]_i+_IR_[IBD]" target="IR_[IBD]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1_p+_Mig1_[(Snf1)]" target="Mig1_[(Snf1)]-{0}"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1_p+_Mig1_[(Snf1)]" target="Mig1_[(Snf1)]-{p}"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Insulin_[IR]--IR_[IBD]" target="Insulin_[IR]_i-_IR_[IBD]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Insulin_[IR]--IR_[IBD]" target="IR_ap+_IR_[JM(Y972)]"><att name="interaction" value="!" type="string"/></edge>
+<edge source="Mig1_[(Snf1)]-{p}" target="Mig1-{p}"><att name="interaction" value="OR" type="string"/></edge>
+<edge source="Snf4_[Sip1]--Sip1_[ASC]" target="Snf4_[Sip1]_ppi-_Sip1_[ASC]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf4_[Gal83]_ppi+_Gal83_[GBD]" target="Snf4_[Gal83]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf4_[Gal83]_ppi+_Gal83_[GBD]" target="Snf4_[Gal83]--Gal83_[GBD]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf4_[Gal83]_ppi+_Gal83_[GBD]" target="Gal83_[GBD]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Hxk2_[K6M15]--Mig1_[hxk2]" target="Mig1_[SUC2gene]_i+_SUC2gene_[Mig1]"><att name="interaction" value="!" type="string"/></edge>
+<edge source="Hxk2_[K6M15]--Mig1_[hxk2]" target="xx_nimp_Hxk2"><att name="interaction" value="!" type="string"/></edge>
+<edge source="Hxk2_[K6M15]--Mig1_[hxk2]" target="Hxk2_[K6M15]_ppi-_Mig1_[hxk2]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Hxk2_[K6M15]--Mig1_[hxk2]" target="Snf1_p+_Mig1_[(Snf1)]"><att name="interaction" value="!" type="string"/></edge>
+<edge source="Snf4_[Gal83]--Gal83_[GBD]" target="Snf4_[Gal83]_ppi-_Gal83_[GBD]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[activationloop(Ser214)]-{p}" target="Snf1-{p}"><att name="interaction" value="OR" type="string"/></edge>
+<edge source="Gal83_[Snf4]--0" target="Gal83_[Snf4]_ppi+_Snf4_[Gal83]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi+_Gal83_[Snf1]" target="Snf1_[Snf1RD]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi+_Gal83_[Snf1]" target="Snf1_[Snf1RD]--Gal83_[Snf1]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi+_Gal83_[Snf1]" target="Gal83_[Snf1]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Sak1_[Snf1]--0" target="Sak1_[Snf1]_ppi+_Snf1_[Sak1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Mig1_[hxk2]--0" target="Hxk2_[K6M15]_ppi+_Mig1_[hxk2]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="XX_nimp_Mig1" target="Mig1_[(loc)]-{nucleus}"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="XX_nimp_Mig1" target="Mig1_[(loc)]-{0}"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1_nexp_Mig1" target="Mig1_[(loc)]-{nucleus}"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1_nexp_Mig1" target="Mig1_[(loc)]-{0}"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Sip2_[Snf4]--0" target="Sip2_[Snf4]_ppi+_Snf4_[Sip2]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Mig1_[(loc)]-{nucleus}" target="Snf1_nexp_Mig1"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Glc7_p-_Mig1_[(Glc7)]" target="Mig1_[(Glc7)]-{0}"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Glc7_p-_Mig1_[(Glc7)]" target="Mig1_[(Glc7)]-{p}"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Glc7_p-_Snf1_[activationloop(Thr210)]" target="Snf1_[activationloop(Thr210)]-{0}"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Glc7_p-_Snf1_[activationloop(Thr210)]" target="Snf1_[activationloop(Thr210)]-{p}"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Sip2_[Snf1]--0" target="Snf1_[Snf1RD]_ppi+_Sip2_[Snf1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Gal83_[GBD]--0" target="Snf4_[Gal83]_ppi+_Gal83_[GBD]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Hxk2_[K6M15]--0" target="Hxk2_[K6M15]_ppi+_Mig1_[hxk2]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="IR_[IBD]--0" target="Insulin_[IR]_i+_IR_[IBD]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf4_[Sip2]_ppi+_Sip2_[ASC]" target="Snf4_[Sip2]--Sip2_[ASC]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf4_[Sip2]_ppi+_Sip2_[ASC]" target="Snf4_[Sip2]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf4_[Sip2]_ppi+_Sip2_[ASC]" target="Sip2_[ASC]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="ADP_[Snf4]--0" target="Snf4_[CBS]_i+_ADP_[Snf4]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[Cterminus]--Snf4_[Snf1]" target="Glc7_p-_Snf1_[activationloop(Thr210)]"><att name="interaction" value="x" type="string"/></edge>
+<edge source="Snf1_[Cterminus]--Snf4_[Snf1]" target="Snf1_[Cterminus]_ppi-_Snf4_[Snf1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Elm1_p+_Snf1_[activationloop(Thr210)]" target="Snf1_[activationloop(Thr210)]-{0}"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Elm1_p+_Snf1_[activationloop(Thr210)]" target="Snf1_[activationloop(Thr210)]-{p}"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="IR_[JM(Y972)]-{0}" target="IR_ap+_IR_[JM(Y972)]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Tos3_p+_Snf1_[activationloop(Thr210)]" target="Snf1_[activationloop(Thr210)]-{0}"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Tos3_p+_Snf1_[activationloop(Thr210)]" target="Snf1_[activationloop(Thr210)]-{p}"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf4_[CBS]_i+_ADP_[Snf4]" target="Snf4_[CBS]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf4_[CBS]_i+_ADP_[Snf4]" target="Snf4_[CBS]--ADP_[Snf4]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf4_[CBS]_i+_ADP_[Snf4]" target="ADP_[Snf4]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Gal83_[Snf1]--0" target="Snf1_[Snf1RD]_ppi+_Gal83_[Snf1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Mig1C_[dnab]_bind-_SUC2geneGene_[Mig1C]" target="Mig1C_[dnab]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Mig1C_[dnab]_bind-_SUC2geneGene_[Mig1C]" target="SUC2geneGene_[Mig1C]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Mig1C_[dnab]_bind-_SUC2geneGene_[Mig1C]" target="Mig1C_[dnab]--SUC2geneGene_[Mig1C]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi-_Sip1_[Snf1]" target="Sip1_[Snf1]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi-_Sip1_[Snf1]" target="Snf1_[Snf1RD]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi-_Sip1_[Snf1]" target="Snf1_[Snf1RD]--Sip1_[Snf1]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Reg1_[Glc7]--0" target="Glc7_[Reg1]_ppi+_Reg1_[Glc7]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Mig1-{p}" target="Hxk2_[K6M15]_ppi+_Mig1_[hxk2]"><att name="interaction" value="x" type="string"/></edge>
+<edge source="Mig1-{p}" target="XX_nimp_Mig1"><att name="interaction" value="x" type="string"/></edge>
+<edge source="Snf1_[activationloop(Thr210)]-{0}" target="Elm1_p+_Snf1_[activationloop(Thr210)]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[activationloop(Thr210)]-{0}" target="Tos3_p+_Snf1_[activationloop(Thr210)]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[activationloop(Thr210)]-{0}" target="Sak1_p+_Snf1_[activationloop(Thr210)]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[Cterminus]_ppi+_Snf4_[Snf1]" target="Snf4_[Snf1]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1_[Cterminus]_ppi+_Snf4_[Snf1]" target="Snf1_[Cterminus]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1_[Cterminus]_ppi+_Snf4_[Snf1]" target="Snf1_[Cterminus]--Snf4_[Snf1]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Sip2_[Snf4]_ppi+_Snf4_[Sip2]" target="Sip2_[Snf4]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Sip2_[Snf4]_ppi+_Snf4_[Sip2]" target="Snf4_[Sip2]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Sip2_[Snf4]_ppi+_Snf4_[Sip2]" target="Sip2_[Snf4]--Snf4_[Sip2]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Sip1_[Snf4]_ppi-_Snf4_[Sip1]" target="Sip1_[Snf4]--Snf4_[Sip1]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Sip1_[Snf4]_ppi-_Snf4_[Sip1]" target="Snf4_[Sip1]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Sip1_[Snf4]_ppi-_Snf4_[Sip1]" target="Sip1_[Snf4]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Sak1_[Snf1]_ppi-_Snf1_[Sak1]" target="Sak1_[Snf1]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Sak1_[Snf1]_ppi-_Snf1_[Sak1]" target="Snf1_[Sak1]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Sak1_[Snf1]_ppi-_Snf1_[Sak1]" target="Sak1_[Snf1]--Snf1_[Sak1]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Sip1_[Snf4]_ppi+_Snf4_[Sip1]" target="Sip1_[Snf4]--Snf4_[Sip1]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Sip1_[Snf4]_ppi+_Snf4_[Sip1]" target="Snf4_[Sip1]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Sip1_[Snf4]_ppi+_Snf4_[Sip1]" target="Sip1_[Snf4]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Sak1_p+_Snf1_[activationloop(Thr210)]" target="Snf1_[activationloop(Thr210)]-{0}"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Sak1_p+_Snf1_[activationloop(Thr210)]" target="Snf1_[activationloop(Thr210)]-{p}"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Sip1_[Snf4]--0" target="Sip1_[Snf4]_ppi+_Snf4_[Sip1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]--0" target="Snf1_[Snf1RD]_ppi+_Sip1_[Snf1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]--0" target="Snf1_[Snf1RD]_ppi+_Gal83_[Snf1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]--0" target="Snf1_[Snf1RD]_ppi+_Sip2_[Snf1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Hxk2_[K6M15]_ppi-_Mig1_[hxk2]" target="Hxk2_[K6M15]--Mig1_[hxk2]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Hxk2_[K6M15]_ppi-_Mig1_[hxk2]" target="Mig1_[hxk2]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Hxk2_[K6M15]_ppi-_Mig1_[hxk2]" target="Hxk2_[K6M15]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf4_[Sip2]--Sip2_[ASC]" target="Snf4_[Sip2]_ppi-_Sip2_[ASC]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf4_[CBS]--0" target="Snf4_[CBS]_i+_ADP_[Snf4]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Sip1_[Snf1]--0" target="Snf1_[Snf1RD]_ppi+_Sip1_[Snf1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Gal83_[Snf4]--Snf4_[Gal83]" target="Snf1_[Cterminus]_ppi+_Snf4_[Snf1]"><att name="interaction" value="!" type="string"/></edge>
+<edge source="Gal83_[Snf4]--Snf4_[Gal83]" target="Gal83_[Snf4]_ppi-_Snf4_[Gal83]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Mig1_[SUC2gene]--SUC2gene_[Mig1]" target="Mig1_[SUC2gene]_i-_SUC2gene_[Mig1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Mig1_[SUC2gene]--SUC2gene_[Mig1]" target="POLII_trsc_SUC2geneGene"><att name="interaction" value="x" type="string"/></edge>
+<edge source="Snf4_[Sip2]--0" target="Snf4_[Sip2]_ppi+_Sip2_[ASC]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf4_[Sip2]--0" target="Sip2_[Snf4]_ppi+_Snf4_[Sip2]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Mig1-{0}" target="Snf1_nexp_Mig1"><att name="interaction" value="x" type="string"/></edge>
+<edge source="Mig1C_[dnab]--SUC2geneGene_[Mig1C]" target="Mig1C_[dnab]_bind-_SUC2geneGene_[Mig1C]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="xx_nimp_Hxk2" target="Hxk2_[(loc)]-{0}"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="xx_nimp_Hxk2" target="Hxk2_[(loc)]-{nucleus}"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Mig1_[(loc)]-{0}" target="XX_nimp_Mig1"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Mig1_[(loc)]-{0}" target="Mig1-{0}"><att name="interaction" value="OR" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]--Sip2_[Snf1]" target="Snf1_[Snf1RD]_ppi-_Sip2_[Snf1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi-_Sip2_[Snf1]" target="Snf1_[Snf1RD]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi-_Sip2_[Snf1]" target="Snf1_[Snf1RD]--Sip2_[Snf1]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi-_Sip2_[Snf1]" target="Sip2_[Snf1]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Mig1_[SUC2gene]_i+_SUC2gene_[Mig1]" target="SUC2gene_[Mig1]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Mig1_[SUC2gene]_i+_SUC2gene_[Mig1]" target="Mig1_[SUC2gene]--SUC2gene_[Mig1]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Mig1_[SUC2gene]_i+_SUC2gene_[Mig1]" target="Mig1_[SUC2gene]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1-{p}" target="Snf1_[Snf1RD]_ppi+_Gal83_[Snf1]"><att name="interaction" value="!" type="string"/></edge>
+<edge source="Mig1_[SUC2gene]--0" target="Mig1_[SUC2gene]_i+_SUC2gene_[Mig1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[activationloop(Thr210)]-{p}" target="Glc7_p-_Snf1_[activationloop(Thr210)]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf1_[activationloop(Thr210)]-{p}" target="Snf1-{p}"><att name="interaction" value="OR" type="string"/></edge>
+<edge source="Mig1_[(Glc7)]-{p}" target="Glc7_p-_Mig1_[(Glc7)]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Mig1_[(Glc7)]-{p}" target="Mig1-{p}"><att name="interaction" value="OR" type="string"/></edge>
+<edge source="Snf4_[CBS]_i-_ADP_[Snf4]" target="Snf4_[CBS]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf4_[CBS]_i-_ADP_[Snf4]" target="Snf4_[CBS]--ADP_[Snf4]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf4_[CBS]_i-_ADP_[Snf4]" target="ADP_[Snf4]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Insulin_[IR]--0" target="Insulin_[IR]_i+_IR_[IBD]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf4_[Sip1]--0" target="Snf4_[Sip1]_ppi+_Sip1_[ASC]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf4_[Sip1]--0" target="Sip1_[Snf4]_ppi+_Snf4_[Sip1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Sip1_[Snf4]--Snf4_[Sip1]" target="Snf1_[Cterminus]_ppi+_Snf4_[Snf1]"><att name="interaction" value="!" type="string"/></edge>
+<edge source="Sip1_[Snf4]--Snf4_[Sip1]" target="Sip1_[Snf4]_ppi-_Snf4_[Sip1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Glc7_[Reg1]_ppi-_Reg1_[Glc7]" target="Glc7_[Reg1]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Glc7_[Reg1]_ppi-_Reg1_[Glc7]" target="Reg1_[Glc7]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Glc7_[Reg1]_ppi-_Reg1_[Glc7]" target="Glc7_[Reg1]--Reg1_[Glc7]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Hxk2_[K6M15]_ppi+_Mig1_[hxk2]" target="Hxk2_[K6M15]--Mig1_[hxk2]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Hxk2_[K6M15]_ppi+_Mig1_[hxk2]" target="Mig1_[hxk2]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Hxk2_[K6M15]_ppi+_Mig1_[hxk2]" target="Hxk2_[K6M15]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Mig1C_[dnab]_bind+_SUC2geneGene_[Mig1C]" target="Mig1C_[dnab]--SUC2geneGene_[Mig1C]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Mig1C_[dnab]_bind+_SUC2geneGene_[Mig1C]" target="Mig1C_[dnab]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Mig1C_[dnab]_bind+_SUC2geneGene_[Mig1C]" target="SUC2geneGene_[Mig1C]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi+_Sip1_[Snf1]" target="Snf1_[Snf1RD]--Sip1_[Snf1]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi+_Sip1_[Snf1]" target="Snf1_[Snf1RD]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi+_Sip1_[Snf1]" target="Sip1_[Snf1]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Sip2_[ASC]--0" target="Snf4_[Sip2]_ppi+_Sip2_[ASC]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf4_[Sip1]_ppi-_Sip1_[ASC]" target="Sip1_[ASC]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf4_[Sip1]_ppi-_Sip1_[ASC]" target="Snf4_[Sip1]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf4_[Sip1]_ppi-_Sip1_[ASC]" target="Snf4_[Sip1]--Sip1_[ASC]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi+_Sip2_[Snf1]" target="Snf1_[Snf1RD]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi+_Sip2_[Snf1]" target="Snf1_[Snf1RD]--Sip2_[Snf1]"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Snf1_[Snf1RD]_ppi+_Sip2_[Snf1]" target="Sip2_[Snf1]--0"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Insulin_[IR]_i-_IR_[IBD]" target="Insulin_[IR]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Insulin_[IR]_i-_IR_[IBD]" target="Insulin_[IR]--IR_[IBD]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Insulin_[IR]_i-_IR_[IBD]" target="IR_[IBD]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Hxk2_[(loc)]-{0}" target="xx_nimp_Hxk2"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Gal83_[Snf4]_ppi-_Snf4_[Gal83]" target="Snf4_[Gal83]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Gal83_[Snf4]_ppi-_Snf4_[Gal83]" target="Gal83_[Snf4]--Snf4_[Gal83]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Gal83_[Snf4]_ppi-_Snf4_[Gal83]" target="Gal83_[Snf4]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Mig1_[SUC2gene]_i-_SUC2gene_[Mig1]" target="SUC2gene_[Mig1]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Mig1_[SUC2gene]_i-_SUC2gene_[Mig1]" target="Mig1_[SUC2gene]--SUC2gene_[Mig1]"><att name="interaction" value="consume" type="string"/></edge>
+<edge source="Mig1_[SUC2gene]_i-_SUC2gene_[Mig1]" target="Mig1_[SUC2gene]--0"><att name="interaction" value="produce" type="string"/></edge>
+<edge source="Sak1_[Snf1]--Snf1_[Sak1]" target="Sak1_[Snf1]_ppi-_Snf1_[Sak1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Sak1_[Snf1]--Snf1_[Sak1]" target="Snf1_[Snf1RD]_ppi+_Gal83_[Snf1]"><att name="interaction" value="!" type="string"/></edge>
+<edge source="Mig1_[(Glc7)]-{0}" target="Mig1-{0}"><att name="interaction" value="OR" type="string"/></edge>
+<edge source="Glc7_[Reg1]--Reg1_[Glc7]" target="Glc7_p-_Snf1_[activationloop(Thr210)]"><att name="interaction" value="!" type="string"/></edge>
+<edge source="Glc7_[Reg1]--Reg1_[Glc7]" target="Glc7_[Reg1]_ppi-_Reg1_[Glc7]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Glc7_[Reg1]--Reg1_[Glc7]" target="Glc7_p-_Mig1_[(Glc7)]"><att name="interaction" value="!" type="string"/></edge>
+<edge source="SUC2geneGene_[Mig1C]--0" target="Mig1C_[dnab]_bind+_SUC2geneGene_[Mig1C]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Snf4_[CBS]--ADP_[Snf4]" target="Snf1_[Cterminus]_ppi+_Snf4_[Snf1]"><att name="interaction" value="!" type="string"/></edge>
+<edge source="Snf4_[CBS]--ADP_[Snf4]" target="Snf4_[CBS]_i-_ADP_[Snf4]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="SUC2gene_[Mig1]--0" target="Mig1_[SUC2gene]_i+_SUC2gene_[Mig1]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Mig1C_[dnab]--0" target="Mig1C_[dnab]_bind+_SUC2geneGene_[Mig1C]"><att name="interaction" value="ss" type="string"/></edge>
+<edge source="Sip1_[ASC]--0" target="Snf4_[Sip1]_ppi+_Sip1_[ASC]"><att name="interaction" value="ss" type="string"/></edge>
+</graph>

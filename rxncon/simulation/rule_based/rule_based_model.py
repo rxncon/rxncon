@@ -522,13 +522,16 @@ def with_connectivity_constraints(cont_set: VennSet) -> VennSet:
 
         constraint = UniversalSet()
         for state in states:
+            if any(path == [] for path in state_paths[state]):
+                continue
+
             state_constraints = [Complement(ValueSet(state))]
             for path in state_paths[state]:
                 state_constraints.append(Intersection(*(ValueSet(x) for x in path)))
 
             constraint = Intersection(constraint, Union(*state_constraints))
 
-        connected_dnf_terms.append(Intersection(dnf_term, constraint.to_dnf_set()))
+        connected_dnf_terms.append(Intersection(dnf_term, constraint))
 
     return Union(*connected_dnf_terms)
 
