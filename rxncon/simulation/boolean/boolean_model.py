@@ -671,6 +671,12 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                     target.contingency_variant_index = index
                     reaction_target_to_factor[target] = factor
 
+    def update_degradations_with_component_states():
+        for reaction_target in reaction_target_to_factor.keys():
+            for degraded_component in reaction_target.degraded_components:
+                if ComponentStateTarget(degraded_component) in component_state_targets:
+                    reaction_target.degraded_targets.append(ComponentStateTarget(degraded_component))
+
     def update_degradations_with_contingencies():
         def degraded_state_targets(component: Spec, soln: Dict[StateTarget, bool]) -> List[StateTarget]:
             # soln evaluates to False if solution is tautology.
@@ -686,16 +692,17 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 return trues
 
         for reaction_target, contingency_factor in reaction_target_to_factor.items():
-            # No contingencies.
-            if contingency_factor.is_equivalent_to(UniversalSet()):
+            if contingency_factor.is_equivalent_to(UniversalSet()) and not reaction_target.degraded_components:
+                pass
+
+            if contingency_factor.is_equivalent_to(UniversalSet()) and reaction_target.degraded_components:
                 for degraded_component in reaction_target.degraded_components:
                     reaction_target.degraded_targets += degraded_state_targets(degraded_component, {})
-                continue
 
             # Make sure the contingency concerns the object, not the subject of the degradation.
             contingency_components = []
 
-            for state in contingency_factor.values:
+            for state in (state for state in contingency_factor.values if state):
                 contingency_components.extend(state.components)
 
             if not any(x in reaction_target.degraded_components for x in contingency_components):
@@ -786,7 +793,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             component_factor = Intersection(*(component_to_factor[x] for x in reaction_target.components_lhs))
             reaction_rules.append(UpdateRule(reaction_target, Intersection(component_factor, contingency_factor).to_simplified_set()))
 
-    def calc_state_rules() -> BooleanModel:
+    def calc_state_rules() -> None:
         """
         Calculates the rules of state targets.
 
@@ -860,6 +867,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
     calc_component_factors()
     calc_contingency_factors()
+    update_degradations_with_component_states()
     update_degradations_with_contingencies()
     update_degradations_for_interaction_states()
     update_syntheses_with_component_states()

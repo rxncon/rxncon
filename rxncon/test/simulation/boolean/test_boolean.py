@@ -253,6 +253,26 @@ def test_deg_with_requirement():
     for update_rule in boolean_model.update_rules:
         assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
 
+
+def test_deg_with_contingency_on_subject():
+    boolean_model = boolean_model_from_rxncon(Quick("""A_deg_B ; ! A-{p}
+                                                    C_p+_A""").rxncon_system)
+
+    assert len(boolean_model.update_rules) == 6
+
+    found_B, found_C = False, False
+
+    for update_rule in boolean_model.update_rules:
+        if update_rule.target == target_from_str('B'):
+            found_B = True
+            assert update_rule.factor == venn_from_str('B & ~( A_deg_B )', target_from_str)
+        elif update_rule.target == target_from_str('C'):
+            found_C = True
+            assert update_rule.factor == venn_from_str('C', target_from_str)
+
+    assert found_B and found_C
+
+
 def test_deg_with_inhibition():
     boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(res)]
                                                        D_ub+_A_[(res)]
