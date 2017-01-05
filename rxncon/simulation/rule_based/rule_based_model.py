@@ -514,13 +514,12 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
 
 def with_connectivity_constraints(cont_set: VennSet) -> VennSet:
     dnf_terms = cont_set.to_dnf_list()
-    connected_dnf_terms = []
+    constraint = UniversalSet()
 
     for dnf_term in dnf_terms:
         states = deepcopy([state for state in dnf_term.values if state])
         state_paths = calc_state_paths(states)
 
-        constraint = UniversalSet()
         for state in states:
             if any(path == [] for path in state_paths[state]):
                 continue
@@ -531,9 +530,7 @@ def with_connectivity_constraints(cont_set: VennSet) -> VennSet:
 
             constraint = Intersection(constraint, Union(*state_constraints))
 
-        connected_dnf_terms.append(Intersection(dnf_term, constraint))
-
-    return Union(*connected_dnf_terms)
+    return Intersection(cont_set, constraint)
 
 
 def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
