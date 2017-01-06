@@ -931,8 +931,10 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
             return '({})'.format(' & '.join(str_from_factor(x) for x in factor.exprs))
         elif isinstance(factor, Union):
             return '({})'.format(' | '.join(str_from_factor(x) for x in factor.exprs))
+        elif isinstance(factor, EmptySet):
+            return '0'
         else:
-            raise AssertionError
+            raise AssertionError('Could not parse factor {}'.format(factor))
 
     def str_from_update_rule(update_rule: UpdateRule) -> str:
         """
