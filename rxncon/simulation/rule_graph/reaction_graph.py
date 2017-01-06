@@ -2,6 +2,7 @@ from enum import Enum
 from networkx import DiGraph
 from rxncon.core.reaction import Reaction
 from rxncon.core.rxncon_system import RxnConSystem
+from rxncon.core.spec import Spec
 
 
 class EdgeWith(Enum):
@@ -21,6 +22,56 @@ class NodeType(Enum):
     domain    = '40'
     residue   = '20'
 
+
+def get_node_id(specification: Spec, node_type: NodeType):
+    """
+    Building the respective node_id
+
+    Args:
+        specification: Specification of an elemental state
+        node_type: type of the node to get the proper ID
+
+    Returns:
+        The string ID of the node corresponding to asked conditions.
+
+    Raises:
+        AssertionError if non of the conditions are fulfilled.
+
+    """
+
+    if node_type == NodeType.component:
+        return specification.component_name
+
+    if node_type == NodeType.domain and specification.locus.domain:
+        return '{0}_[{1}]'.format(specification.component_name, specification.locus.domain)
+
+    if node_type == NodeType.residue and specification.locus.residue:
+            return str(specification)
+
+    raise AssertionError
+
+def get_node_label(specification: Spec, node_type: NodeType):
+    """
+    Asks for a label a specific specification resolution.
+
+    Args:
+        specification:
+        node_type:
+
+    Returns:
+
+    """
+    if node_type == NodeType.component:
+        return specification.component_name
+
+    if node_type == NodeType.domain and specification.locus.domain:
+        return specification.locus.domain
+
+    if node_type == NodeType.residue and specification.locus.residue:
+            return specification.locus.residue
+
+    raise AssertionError
+
 INTERACTION_STATES = {
     # Interaction state.
     '$x--$y': [
@@ -29,8 +80,9 @@ INTERACTION_STATES = {
     ],
     # Self-interaction state.
     '$x--[$y]': [
-        lambda state, builder: builder.add_node(state.specs[0]),
-        lambda state, builder: builder.add_node(state.specs[1])
+        lambda state, builder: builder.add_node(node_id=get_node_id(state.specs[0], NodeType.component), type=NodeType.component, label=state.specs[0].component_name),
+        lambda state, builder: builder.add_node(node_id=state.specs[1], type=NodeType.domain, label=state.specs[1]),
+        lambda state, builder: builder.add_edge()
     ],
 }
 
