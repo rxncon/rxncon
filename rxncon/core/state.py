@@ -38,7 +38,8 @@ class StateModifier(OrderedEnum):
     bud	  	  = 'bud'
     iso 	  = 'iso'
     cyt 	  = 'cyt'
-
+    myr       = 'myr'
+    ac        = 'ac'
 
 def state_modifier_from_str(modifier_str: str) -> StateModifier:
     try:

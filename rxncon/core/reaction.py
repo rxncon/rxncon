@@ -566,7 +566,48 @@ REACTION_DEFS = [
             '$y': (ProteinSpec, LocusResolution.residue)
         },
         '$y#$y-{ISO} -> $y#$y-{0}'
-    )]
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'acetylation',
+        '$x_Ac+_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$x# + $y#$y-{0} -> $x# + $y#$y-{Ac}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'Myristoylation',
+        '$x_Myr+_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$x# + $y#$y-{0} -> $x# + $y#$y-{Myr}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'deacetylation',
+        '$x_Ac-_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$x# + $y#$y-{Ac} -> $x# + $y#$y-{0}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'demyrstoylation',
+        '$x_Myr-_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$x# + $y#$y-{Myr} -> $x# + $y#$y-{0}'
+    )
+]
 
 
 class Reaction:
