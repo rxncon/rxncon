@@ -255,6 +255,8 @@ def spec_from_str(spec_str: str) -> Spec:
             if name.endswith(suffix.value):
                 name = name[:len(name) - len(suffix.value)]
                 return suffix_to_spec[suffix](name, struct_index, locus)
+            elif name.lower().endswith(suffix.value.lower()):
+                raise SyntaxError('Please use correct capitalization \'{}\' in component \'{}\'.'.format(suffix.value, name))
 
         raise SyntaxError('Could not parse spec component_name {}'.format(name))
 

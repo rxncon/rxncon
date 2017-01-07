@@ -292,12 +292,17 @@ class NotEffector(Effector):
 
 class NaryEffector(Effector):
     def __init__(self, *exprs, **kwargs):
+        self.exprs = exprs
+
         try:
             self.name = kwargs['name']
         except KeyError:
             pass
-        self.exprs  = exprs
-        self.equivs = StructEquivalences()
+
+        try:
+            self.equivs = kwargs['equivs']
+        except KeyError:
+            self.equivs = StructEquivalences()
 
     @property
     def states(self) -> List[State]:

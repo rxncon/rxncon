@@ -1,4 +1,5 @@
 import re
+import logging
 from typing import Dict, List, Union, Tuple, Optional
 from collections import defaultdict
 
@@ -10,7 +11,9 @@ from rxncon.core.effector import StateEffector, NotEffector, OrEffector, Effecto
 from rxncon.core.reaction import Reaction
 from rxncon.core.reaction import reaction_from_str
 from rxncon.core.state import state_from_str, State
+from rxncon.util.utils import current_function_name
 
+logger = logging.getLogger(__name__)
 
 class ContingencyListEntry:
     def __init__(self, subject: Union[Reaction, BooleanContingencyName],
@@ -52,6 +55,8 @@ class BooleanContingencyNameWithEquivs(BooleanContingencyName):
 def contingency_list_entry_from_strs(subject_str, verb_str, object_str) -> ContingencyListEntry:
     subject_str, verb_str, object_str = subject_str.strip(), verb_str.lower().strip(), object_str.strip()
 
+    logger.debug('{}: {} / {} / {}'.format(current_function_name(), subject_str, verb_str, object_str))
+
     if re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
         # subject: Boolean contingency,
         # verb   : Boolean operator,
@@ -86,13 +91,12 @@ def contingency_list_entry_from_strs(subject_str, verb_str, object_str) -> Conti
                 pass
 
         object = BooleanContingencyNameWithEquivs(name, equivs)
+    elif verb == BooleanOperator.op_eqv:
+        strs = [x.strip() for x in object_str.split(',')]
+        object = (qual_spec_from_str(strs[0]).with_prepended_namespace([subject.name]),
+                  qual_spec_from_str(strs[1]).with_prepended_namespace([subject.name]))
     else:
-        try:
-            object = state_from_str(object_str)
-        except SyntaxError:
-            strs = [x.strip() for x in object_str.split(',')]
-            object = (qual_spec_from_str(strs[0]).with_prepended_namespace([subject.name]),
-                      qual_spec_from_str(strs[1]).with_prepended_namespace([subject.name]))
+        object = state_from_str(object_str)
 
     return ContingencyListEntry(subject, verb, object)
 
@@ -147,6 +151,8 @@ def _dereference_boolean_contingency_effectors(self: Effector,
                                                effector_table: Dict[BooleanContingencyName, Effector],
                                                equivalence_table: Dict[BooleanContingencyName, List[Tuple[QualSpec, QualSpec]]]):
     if isinstance(self, _BooleanContingencyEffector):
+        logger.debug('_dereference_boolean_contingency_effectors: {}'.format(self.expr.name))
+
         name   = self.expr.name
         equivs = self.equivs
         self.__class__ = effector_table[self.expr].__class__

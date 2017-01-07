@@ -81,9 +81,11 @@ class ReactionDef:
     def validate_vars(self, vars: Dict[str, Any]):
         for var, val in vars.items():
             assert isinstance(val, self.vars_def[var][0]), \
-                '{0} is of type {1}, required to be of type {2}'.format(var, type(val), self.vars_def[var][0])
+                'In Reaction {0}: {1} is of type {2}, required to be of type {3}\nVariables: {4}'\
+                .format(self.repr_def, var, type(val), self.vars_def[var][0], vars)
             assert val.has_resolution(self.vars_def[var][1]), \
-                '{0} is of resolution {1}, required to be of resolution {2}'.format(var, val.resolution, self.vars_def[var][1])
+                'In Reaction {0}: {1} is of resolution {2}, required to be of resolution {3}\nVariables: {4}'\
+                .format(self.repr_def, var, val.resolution, self.vars_def[var][1], vars)
 
     def terms_lhs_from_vars(self, vars: Dict[str, Any]) -> List[ReactionTerm]:
         return [self._parse_term(x, vars) for x in self.reactant_defs_lhs]
@@ -652,6 +654,10 @@ class Reaction:
         return [spec for term in self.terms_rhs for spec in term.specs]
 
     @property
+    def components_lhs_structured(self):
+        return [spec.with_struct_index(i) for i, spec in enumerate(self.components_lhs)]
+
+    @property
     def consumed_states(self) -> List[State]:
         if self._consumed_states is None:
             self._consumed_states = []
@@ -766,13 +772,11 @@ def reaction_from_str(repr: str, standardize=True) -> Reaction:
 
         for key in keys:
             required_type = reaction_def.vars_def[key][0]
-            if not isinstance(vars[key], required_type):
+            if not isinstance(vars[key], required_type) and isinstance(vars[key], ProteinSpec):
                 if required_type is GeneSpec:
                     vars[key] = vars[key].to_dna_component_spec()
                 elif required_type is MRNASpec:
                     vars[key] = vars[key].to_mrna_component_spec()
-                elif required_type is ProteinSpec:
-                    vars[key] = vars[key].to_protein_component_spec()
                 else:
                     raise NotImplementedError
 
