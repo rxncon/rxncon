@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class RxnConSystem:
-    def __init__(self, reactions: List[Reaction], contingencies: List[Contingency]):
+    def __init__(self, reactions: List[Reaction], contingencies: List[Contingency]) -> None:
         self.reactions     = reactions
         self.contingencies = contingencies
 
@@ -104,8 +104,8 @@ class RxnConSystem:
         return [x for x in self.states if component.to_non_struct_spec() in x.components]
 
     def states_for_component_grouped(self, component: Spec) -> Dict[Spec, List[State]]:
-        states = self.states_for_component(component)
-        grouped = defaultdict(list)
+        states = self.states_for_component(component)  # type: List[State]
+        grouped = defaultdict(list)                    # type: Dict[Spec, List[State]]
 
         while states:
             state = states.pop()
@@ -119,7 +119,7 @@ class RxnConSystem:
         return grouped
 
     def complementary_states(self, state: State) -> List[State]:
-        states = []
+        states = []  # type: List[State]
         for component in state.components:
             states += self.complementary_states_for_component(component, state)
 

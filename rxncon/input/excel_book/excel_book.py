@@ -32,7 +32,7 @@ CONTINGENCY_LIST_COLUMN_MODIFIER = '!Modifier'
 logger = logging.getLogger(__name__)
 
 class ExcelBook:
-    def __init__(self, filename: str):
+    def __init__(self, filename: str) -> None:
         self.filename           = filename
         self._xlrd_book         = None   # type: xlrd.Book
         self._reactions         = []     # type: List[Reaction]
@@ -40,10 +40,10 @@ class ExcelBook:
         self._contingencies     = []     # type: List[Contingency]
         self._rxncon_system     = None   # type: RxnConSystem
 
-        self._column_reaction_full_name   = None
-        self._column_contingency_target   = None
-        self._column_contingency_type     = None
-        self._column_contingency_modifier = None
+        self._column_reaction_full_name   = None  # type: int
+        self._column_contingency_target   = None  # type: int
+        self._column_contingency_type     = None  # type: int
+        self._column_contingency_modifier = None  # type: int
 
         self._open_file()
         self._validate_book()
