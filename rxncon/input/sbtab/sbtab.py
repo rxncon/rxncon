@@ -1,21 +1,18 @@
-from typing import List, Optional, Callable, Union
-import typecheck as tc
-
+from typing import List, Optional, Callable, Union, Dict
 import re
 
 
 class SBtabData:
-    @tc.typecheck
-    def __init__(self, input: List[List[str]]):
-        self.version = None
-        self.entries = []
-        self.document_name = None
-        self.table_type = None
-        self.table_name = None
+    def __init__(self, input: List[List[str]]) -> None:
+        self.version       = None  # type: Optional[str]
+        self.entries       = []    # type: List[EntryBase]
+        self.document_name = None  # type: str
+        self.table_type    = None  # type: str
+        self.table_name    = None  # type: str
 
-        self._input = input
-        self._column_names = []
-        self._entry_class = None
+        self._input        = input
+        self._column_names = []    # type: List[str]
+        self._entry_class  = None  # type: ignore
 
         self._parse_header()
         self._parse_column_names()
@@ -67,12 +64,11 @@ class SBtabData:
 
 
 class ValidatedSBtabData(SBtabData):
-    @tc.typecheck
-    def __init__(self, input: List[List[str]], definition: SBtabData):
+    def __init__(self, input: List[List[str]], definition: SBtabData) -> None:
         super().__init__(input)
 
         self._definition = definition
-        self._field_postprocessors = {}
+        self._field_postprocessors = {}  # type: Dict[str, Callable[[str], Union[str, float, bool, int]]]
         self._construct_field_postprocessors()
         self._entry_class.field_postprocessors = {_field_name_from_column_name(col): func
                                                   for col, func in self._field_postprocessors.items()}
@@ -98,7 +94,6 @@ class ValidatedSBtabData(SBtabData):
             entry.postprocess()
 
 
-@tc.typecheck
 def sbtab_data_from_file(filename: str, separator='\t', definitions: Optional[SBtabData]=None):
     sbtab_input = []
 
@@ -154,10 +149,8 @@ def _field_name_from_column_name(column_name: str) -> str:
 def _field_postprocessor_for_type_string(type_string: str) -> Callable[[str], Union[str, float, bool, int]]:
     if type_string is None or type_string == 'string':
         return lambda value: value
-
     elif type_string == 'float':
         return lambda value: float(value)
-
     elif type_string == 'Boolean':
         def str2bool(x: str):
             if x in ['1', 'True']:
@@ -168,10 +161,8 @@ def _field_postprocessor_for_type_string(type_string: str) -> Callable[[str], Un
                 raise ValueError
 
         return str2bool
-
     elif type_string == 'integer':
         return lambda value: int(value)
-
     elif type_string == '{+,-,0}':
         def str2sign(x: str):
             if x not in ['+', '-', '0']:
@@ -179,6 +170,5 @@ def _field_postprocessor_for_type_string(type_string: str) -> Callable[[str], Un
 
             return x
         return str2sign
-
     else:
         raise TypeError

@@ -23,7 +23,7 @@ class ReactionTerm:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ReactionTerm):
             return NotImplemented
-        return isinstance(other, ReactionTerm) and self.states == other.states
+        return self.states == other.states
 
     def __str__(self) -> str:
         return 'ReactionTerm<{0}:{1}>'.format(','.join(str(spec) for spec in self.specs), ','.join(str(x) for x in self.states))

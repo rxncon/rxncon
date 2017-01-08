@@ -128,8 +128,8 @@ class ExcelBook:
             self._cont_list_entries.append(entry)
 
     def _construct_output_reactions(self):
-        self._reactions += [cle.subject for cle in self._cont_list_entries
-                            if isinstance(cle.subject, OutputReaction)]
+        self._reactions += [cle.subj for cle in self._cont_list_entries
+                            if isinstance(cle.subj, OutputReaction)]
 
     def _construct_contingencies(self):
         self._contingencies = contingencies_from_contingency_list_entries(self._cont_list_entries)
