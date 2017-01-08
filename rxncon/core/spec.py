@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from abc import ABC
-from typing import Optional
+from typing import Optional, MutableMapping, Type
 from enum import Enum, unique
 import re
 
@@ -19,11 +19,11 @@ class Spec(ABC):
         return str(self)
 
     def __str__(self) -> str:
-        def struct_name(spec: Spec, suffix: 'SpecSuffix'):
+        def struct_name(spec: Spec, spec_suffix: 'SpecSuffix'):
             if spec.struct_index is not None:
-                return "{0}{1}@{2}".format(spec.component_name, suffix.value, spec.struct_index)
+                return "{0}{1}@{2}".format(spec.component_name, spec_suffix.value, spec.struct_index)
             else:
-                return "{0}{1}".format(spec.component_name, suffix.value)
+                return "{0}{1}".format(spec.component_name, spec_suffix.value)
 
         suffix = spec_to_suffix[type(self)]
 
@@ -212,9 +212,9 @@ suffix_to_spec = OrderedDict(
         (SpecSuffix.dna, GeneSpec),
         (SpecSuffix.protein, ProteinSpec)
     ]
-)
+)  # type: MutableMapping[SpecSuffix, Type[Spec]]
 
-spec_to_suffix = OrderedDict((k, v) for v, k in suffix_to_spec.items())
+spec_to_suffix = OrderedDict((k, v) for v, k in suffix_to_spec.items())  # type: MutableMapping[Type[Spec], SpecSuffix]
 
 
 def locus_from_str(locus_str: str) -> Locus:

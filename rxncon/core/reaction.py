@@ -770,7 +770,7 @@ class OutputReaction(Reaction):
 
 
 def matching_reaction_def(repr: str) -> Optional[ReactionDef]:
-    return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_repr(repr)), None)
+    return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_repr(repr)), None)  # type: ignore
 
 
 def reaction_from_str(repr: str, standardize=True) -> Reaction:

@@ -394,7 +394,7 @@ class FullyNeutralState(State):
 
 
 def matching_state_def(repr: str) -> Optional[StateDef]:
-    return next((x for x in STATE_DEFS if x.matches_repr(repr)), None)
+    return next((x for x in STATE_DEFS if x.matches_repr(repr)), None)  # type: ignore
 
 
 def state_from_str(repr: str) -> State:

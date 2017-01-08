@@ -8,6 +8,7 @@ from colorama import Fore
 def compose(*functions):
     return functools.reduce(lambda f, g: lambda x: f(g(x)), functions, lambda x: x)
 
+
 class OrderedEnum(Enum):
     def __repr__(self):
         return str(self)
@@ -25,8 +26,10 @@ class OrderedEnum(Enum):
         else:
             raise NotImplementedError
 
+
 def members(obj) -> List[str]:
     return [x for x in dir(obj) if not x.startswith('__')]
+
 
 def elems_eq(first_list, second_list):
     if all(isinstance(x, list) for x in first_list) and all(isinstance(x, list) for x in second_list):
