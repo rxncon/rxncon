@@ -16,11 +16,13 @@ BIDIRECTIONAL_VERBS = [
 
 
 class ReactionTerm:
-    def __init__(self, specs: List[Spec], states: List[State]):
+    def __init__(self, specs: List[Spec], states: List[State]) -> None:
         assert all(spec.is_component_spec for spec in specs)
         self.specs, self.states = specs, states
 
-    def __eq__(self, other: 'ReactionTerm') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ReactionTerm):
+            return NotImplemented
         return isinstance(other, ReactionTerm) and self.states == other.states
 
     def __str__(self) -> str:
@@ -37,11 +39,13 @@ class ReactionTerm:
 class ReactionDef:
     ARROW = '->'
 
-    def __init__(self, state_defs: List[StateDef], name: str, repr_def: str, vars_def: Dict[str, Any], rule_def: str):
+    def __init__(self, state_defs: List[StateDef], name: str, repr_def: str, vars_def: Dict[str, Any], rule_def: str) -> None:
         self.name, self.state_defs, self.repr_def, self.vars_def, self.rule_def = name, state_defs, repr_def, vars_def, rule_def
         self._parse_reactants_def()
 
-    def __eq__(self, other: 'ReactionDef') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ReactionDef):
+            return NotImplemented
         return self.state_defs == other.state_defs and self.name == other.name and self.repr_def == other.repr_def \
             and self.vars_def == other.vars_def and self.rule_def == other.rule_def
 
@@ -613,7 +617,7 @@ REACTION_DEFS = [
 
 
 class Reaction:
-    def __init__(self, definition: ReactionDef, vars: Dict[str, Any]):
+    def __init__(self, definition: ReactionDef, vars: Dict[str, Any]) -> None:
         self._definition = definition
         self._vars       = vars
 
@@ -622,10 +626,10 @@ class Reaction:
         self.terms_rhs   = definition.terms_rhs_from_vars(vars)
         self._repr       = definition.repr_from_vars(vars)
 
-        self._consumed_states    = None
-        self._produced_states    = None
-        self._synthesised_states = None
-        self._degraded_states    = None
+        self._consumed_states    = None  # type: Optional[List[State]]
+        self._produced_states    = None  # type: Optional[List[State]]
+        self._synthesised_states = None  # type: Optional[List[State]]
+        self._degraded_states    = None  # type: Optional[List[State]]
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -636,7 +640,9 @@ class Reaction:
     def __str__(self) -> str:
         return self._repr
 
-    def __eq__(self, other: 'Reaction') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Reaction):
+            return NotImplemented
         return self._definition == other._definition and self._vars == other._vars
 
     def invalidate_state_cache(self):
@@ -711,12 +717,14 @@ class Reaction:
 
 
 class OutputReaction(Reaction):
-    def __init__(self, name):
+    def __init__(self, name) -> None:
         self.name      = name
         self.terms_lhs = []
         self.terms_rhs = []
 
-    def __eq__(self, other: Reaction):
+    def __eq__(self, other: object):
+        if not isinstance(other, Reaction):
+            return NotImplemented
         return isinstance(other, OutputReaction) and self.name == other.name
 
     def __str__(self):
