@@ -8,7 +8,7 @@ from rxncon.util.utils import OrderedEnum
 
 
 class Spec(ABC):
-    def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus'):
+    def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus') -> None:
         self.component_name, self.struct_index, self.locus = component_name, struct_index, locus
         self._validate()
 
@@ -32,7 +32,9 @@ class Spec(ABC):
         else:
             return '{0}'.format(struct_name(self, suffix))
 
-    def __eq__(self, other: 'Spec') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Spec):
+            return NotImplemented
         return isinstance(other, type(self)) and self.component_name == other.component_name and self.locus == other.locus \
             and self.struct_index == other.struct_index
 
@@ -118,7 +120,7 @@ class GeneSpec(Spec):
 
 
 class Locus:
-    def __init__(self, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
+    def __init__(self, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]) -> None:
         self.domain, self.subdomain, self.residue = domain, subdomain, residue
         self._validate()
 
@@ -144,7 +146,9 @@ class Locus:
         else:
             raise AssertionError
 
-    def __eq__(self, other: 'Locus') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Locus):
+            return NotImplemented
         return self.domain == other.domain and self.subdomain == other.subdomain and self.residue == other.residue
 
     def _validate(self):
@@ -272,8 +276,8 @@ def spec_from_str(spec_str: str) -> Spec:
     if not re.match('[a-zA-Z]', items[0]):
         raise SyntaxError('Spec has to start with letter character.')
     elif STRUCT_DELIMITER in items[0]:
-        name, struct_index = items[0].split(STRUCT_DELIMITER)
-        struct_index = int(struct_index)
+        name, struct_index_str = items[0].split(STRUCT_DELIMITER)
+        struct_index = int(struct_index_str)
     else:
         name = items[0]
 
