@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Union
+from typing import List, Dict, Tuple
 from copy import deepcopy
 from enum import Enum
 
@@ -21,7 +21,7 @@ class BooleanModel:
     """
 
     def __init__(self, state_targets: List['StateTarget'], reaction_targets: List['ReactionTarget'],
-                 update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig'):
+                 update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig') -> None:
 
         self.update_rules       = update_rules
         self.initial_conditions = initial_conditions
@@ -161,7 +161,9 @@ class ReactionTarget(Target):
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def __eq__(self, other: Target):
+    def __eq__(self, other: object):
+        if not isinstance(other, Target):
+            return NotImplemented
         return isinstance(other, ReactionTarget) and self.reaction_parent == other.reaction_parent and \
             self.contingency_variant_index == other.contingency_variant_index and \
             self.interaction_variant_index == other.interaction_variant_index
@@ -321,7 +323,9 @@ class StateTarget(Target):
     def __str__(self) -> str:
         return str(self._state_parent)
 
-    def __eq__(self, other: 'Target') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Target):
+            return NotImplemented
         return isinstance(other, StateTarget) and self._state_parent == other._state_parent
 
     def is_produced_by(self, reaction_target: ReactionTarget) -> bool:
@@ -441,8 +445,10 @@ class ComponentStateTarget(StateTarget):
     def __init__(self, component: Spec) -> None:
         self.component = component
 
-    def __eq__(self, other: Target):
-        return isinstance(other, type(self)) and self.component == other.component
+    def __eq__(self, other: object):
+        if not isinstance(other, Target):
+            return NotImplemented
+        return isinstance(other, ComponentStateTarget) and self.component == other.component
 
     def __str__(self) -> str:
         return str(self.component)
@@ -450,7 +456,7 @@ class ComponentStateTarget(StateTarget):
     def __repr__(self) -> str:
         return str(self)
 
-    def __hash__(self) -> hash:
+    def __hash__(self) -> int:
         return hash(str(self))
 
     @property
@@ -596,7 +602,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             The initial conditions of the boolean model.
 
         """
-        conds = {}  # type: Dict[Union[ReactionTarget, StateTarget], bool]
+        conds = {}  # type: Dict[Target, bool]
 
         for target in reaction_targets:
             conds[target] = False
@@ -989,7 +995,7 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
                 state_index += 1
                 return name
             else:
-                return AssertionError
+                raise AssertionError
 
     boolnet_names  = {}  # type: Dict[Target, str]
 
