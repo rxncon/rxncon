@@ -1,4 +1,4 @@
-from typing import List, Optional, Callable, Union, Dict
+from typing import List, Optional, Callable, Union, Dict, Type
 import re
 
 
@@ -6,13 +6,12 @@ class SBtabData:
     def __init__(self, input: List[List[str]]) -> None:
         self.version       = None  # type: Optional[str]
         self.entries       = []    # type: List[EntryBase]
-        self.document_name = None  # type: str
-        self.table_type    = None  # type: str
-        self.table_name    = None  # type: str
+        self.document_name = None  # type: Optional[str]
+        self.table_type    = None  # type: Optional[str]
+        self.table_name    = None  # type: Optional[str]
 
         self._input        = input
         self._column_names = []    # type: List[str]
-        self._entry_class  = None  # type: ignore
 
         self._parse_header()
         self._parse_column_names()
@@ -78,11 +77,9 @@ class ValidatedSBtabData(SBtabData):
         if hasattr(self._definition.entries[0], 'ComponentName'):
             type_definitions = {def_entry.ComponentName: def_entry.Format for def_entry in self._definition.entries
                                 if def_entry.IsPartOf == self.table_type}
-
         elif hasattr(self._definition.entries[0], 'Component'):
             type_definitions = {def_entry.Component: def_entry.Format for def_entry in self._definition.entries
                                 if def_entry.IsPartOf == self.table_type}
-
         else:
             raise AssertionError('Could not parse the definition file')
 

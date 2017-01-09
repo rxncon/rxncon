@@ -38,7 +38,7 @@ class Contingency:
     def clone(self) -> 'Contingency':
         return deepcopy(self)
 
-    def to_structured(self):
+    def to_structured(self) -> 'Contingency':
         logger.debug('{}: {}'.format(current_function_name(), str(self)))
 
         if isinstance(self.effector, StateEffector) and self.effector.is_structured:
@@ -57,6 +57,7 @@ class Contingency:
                     pass
             sc = self.clone()
             sc.effector = sc.effector.to_merged_struct_effector(equivs, None, [str(self.target)])
+            assert isinstance(sc.effector, StateEffector)
             logger.info('{}: {} :: {} -> {}'.format(current_function_name(), str(self.target),
                                                     str(self.effector.expr), str(sc.effector.expr)))
             return sc
