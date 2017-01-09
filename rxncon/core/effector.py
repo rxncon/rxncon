@@ -2,16 +2,17 @@ import re
 from abc import ABCMeta, abstractproperty
 from typing import List, Optional, Dict
 from copy import deepcopy
+from enum import Enum, unique
 
 from rxncon.core.spec import spec_from_str, Spec
 from rxncon.core.state import State
-from rxncon.util.utils import OrderedEnum
 
 
 BOOLEAN_CONTINGENCY_REGEX = '^<.*>$'
 
 
-class BooleanOperator(OrderedEnum):
+@unique
+class BooleanOperator(Enum):
     op_and = 'and'
     op_or  = 'or'
     op_not = 'not'

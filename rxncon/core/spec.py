@@ -4,8 +4,6 @@ from typing import Optional, MutableMapping, Type
 from enum import Enum, unique
 import re
 
-from rxncon.util.utils import OrderedEnum
-
 
 class Spec(ABC):
     def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus') -> None:
@@ -200,7 +198,7 @@ class LocusResolution(Enum):
 
 
 @unique
-class SpecSuffix(OrderedEnum):
+class SpecSuffix(Enum):
     mrna    = 'mRNA'
     dna     = 'Gene'
     protein = ''

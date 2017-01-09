@@ -1,18 +1,17 @@
-from enum import unique
+from enum import unique, Enum
 from copy import deepcopy
 import logging
 from rxncon.util.utils import current_function_name
 
 from rxncon.core.effector import Effector, StructEquivalences, QualSpec, StateEffector, TrivialStructEquivalences
 from rxncon.core.reaction import Reaction
-from rxncon.util.utils import OrderedEnum
 
 
 logger = logging.getLogger(__name__)
 
 
 @unique
-class ContingencyType(OrderedEnum):
+class ContingencyType(Enum):
     requirement = '!'
     inhibition  = 'x'
     positive    = 'k+'

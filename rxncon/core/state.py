@@ -1,10 +1,10 @@
 import re
-from enum import unique
+from enum import unique, Enum
 from collections import OrderedDict
 from typing import List, Dict, Optional, Any
 from copy import deepcopy
 
-from rxncon.util.utils import OrderedEnum, members
+from rxncon.util.utils import members
 from rxncon.core.spec import Spec, Locus, LocusResolution, locus_from_str, spec_from_str
 
 
@@ -16,8 +16,9 @@ LOCUS_REGEX         = '[\w\/\(\)]+'
 MATCHING_REGEX      = '([\w@\(\)\[\]]+)'
 NON_MATCHING_REGEX  = '(?:[\w@\(\)\[\]]+)'
 
+
 @unique
-class StateModifier(OrderedEnum):
+class StateModifier(Enum):
     neutral   = '0'
     phosphor  = 'p'
     ubiquitin = 'ub'
