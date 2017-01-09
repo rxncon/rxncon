@@ -1,10 +1,13 @@
 import functools
 from typing import List
 from enum import Enum
-from rxncon.venntastic.sets import ValueSet, EmptySet, Union, Intersection, Complement
+import inspect
+from colorama import Fore
+
 
 def compose(*functions):
     return functools.reduce(lambda f, g: lambda x: f(g(x)), functions, lambda x: x)
+
 
 class OrderedEnum(Enum):
     def __repr__(self):
@@ -23,24 +26,10 @@ class OrderedEnum(Enum):
         else:
             raise NotImplementedError
 
-def transform_set_expression(set_expression, leaf_transformer):
-    if isinstance(set_expression, ValueSet):
-        return ValueSet(leaf_transformer(set_expression.value))
-    elif isinstance(set_expression, Complement):
-        return Complement(transform_set_expression(set_expression.expr, leaf_transformer))
-    elif isinstance(set_expression, EmptySet):
-        return EmptySet()
-    elif isinstance(set_expression, Union):
-        return Union(transform_set_expression(set_expression.left_expr, leaf_transformer),
-                     transform_set_expression(set_expression.right_expr, leaf_transformer))
-    elif isinstance(set_expression, Intersection):
-        return Intersection(transform_set_expression(set_expression.left_expr, leaf_transformer),
-                            transform_set_expression(set_expression.right_expr, leaf_transformer))
-    else:
-        raise NotImplementedError
 
 def members(obj) -> List[str]:
     return [x for x in dir(obj) if not x.startswith('__')]
+
 
 def elems_eq(first_list, second_list):
     if all(isinstance(x, list) for x in first_list) and all(isinstance(x, list) for x in second_list):
@@ -71,3 +60,10 @@ def all_eq(elems):
             return False
 
     return True
+
+def current_function_name(colored=True) -> str:
+    name = inspect.stack()[1][3]
+    if colored:
+        return Fore.MAGENTA + name + Fore.RESET
+    else:
+        return name

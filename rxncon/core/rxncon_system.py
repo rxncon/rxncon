@@ -1,15 +1,19 @@
 from typing import List, Dict, Tuple
 from collections import defaultdict
+import logging
 
 from rxncon.core.contingency import ContingencyType, Contingency
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
 from rxncon.core.reaction import Reaction, ReactionTerm
-from rxncon.core.state import State, StateDef, FullyNeutralState
+from rxncon.core.state import State, FullyNeutralState
 from rxncon.core.spec import Spec
+from rxncon.util.utils import current_function_name
+
+logger = logging.getLogger(__name__)
 
 
 class RxnConSystem:
-    def __init__(self, reactions: List[Reaction], contingencies: List[Contingency]):
+    def __init__(self, reactions: List[Reaction], contingencies: List[Contingency]) -> None:
         self.reactions     = reactions
         self.contingencies = contingencies
 
@@ -37,10 +41,14 @@ class RxnConSystem:
             raise AssertionError('No reactions, boring!')
 
         missing_states = self._missing_states()
-
         if missing_states:
             raise AssertionError('State(s) {0} appear(s) in contingencies, but is not produced or consumed'
                                  .format(', '.join(str(state) for state in missing_states)))
+
+        missing_reactions = self._missing_reactions()
+        if missing_reactions:
+            raise AssertionError('Reactions(s) {0} appear(s) in contingencies, but are not defined in reaction list'
+                                 .format(', '.join(str(reaction) for reaction in missing_reactions)))
 
     def components(self) -> List[Spec]:
         if not self._components:
@@ -96,8 +104,8 @@ class RxnConSystem:
         return [x for x in self.states if component.to_non_struct_spec() in x.components]
 
     def states_for_component_grouped(self, component: Spec) -> Dict[Spec, List[State]]:
-        states = self.states_for_component(component)
-        grouped = defaultdict(list)
+        states = self.states_for_component(component)  # type: List[State]
+        grouped = defaultdict(list)                    # type: Dict[Spec, List[State]]
 
         while states:
             state = states.pop()
@@ -111,7 +119,7 @@ class RxnConSystem:
         return grouped
 
     def complementary_states(self, state: State) -> List[State]:
-        states = []
+        states = []  # type: List[State]
         for component in state.components:
             states += self.complementary_states_for_component(component, state)
 
@@ -179,12 +187,6 @@ class RxnConSystem:
 
     def _expand_non_elemental_contingencies(self):
         def expanded_effector(effector: Effector):
-            def MultiOrEffector(state_list: List[State]):
-                if len(state_list) == 1:
-                    return StateEffector(state_list[0])
-                else:
-                    return OrEffector(*(StateEffector(x) for x in state_list))
-
             if isinstance(effector, StateEffector):
                 if effector.expr.is_elemental:
                     return effector
@@ -194,23 +196,20 @@ class RxnConSystem:
                     assert elemental_states, 'Could not find elemental states which are subset of the non-elemental ' \
                                              'state {}'.format(effector.expr)
                     assert all(state.is_elemental for state in elemental_states)
-                    multi_or_effector = MultiOrEffector(elemental_states)
-                    multi_or_effector.name = str(effector.expr)
-                    return multi_or_effector
+
+                    logger.info('{}: {} -> {}'.format(current_function_name(), str(effector.expr),
+                                                      ' | '.join(str(x) for x in elemental_states)))
+
+                    if len(elemental_states) == 1:
+                        return StateEffector(elemental_states[0])
+                    else:
+                        return OrEffector(*(StateEffector(x) for x in elemental_states), name=str(effector.expr))
             elif isinstance(effector, AndEffector):
-                and_effector        = AndEffector(*(expanded_effector(x) for x in effector.exprs))
-                and_effector.name   = effector.name
-                and_effector.equivs = effector.equivs
-                return and_effector
+                return AndEffector(*(expanded_effector(x) for x in effector.exprs), name=effector.name, equivs=effector.equivs)
             elif isinstance(effector, OrEffector):
-                or_effector        = OrEffector(*(expanded_effector(x) for x in effector.exprs))
-                or_effector.name   = effector.name
-                or_effector.equivs = effector.equivs
-                return or_effector
+                return OrEffector(*(expanded_effector(x) for x in effector.exprs), name=effector.name, equivs=effector.equivs)
             elif isinstance(effector, NotEffector):
-                not_effector      = NotEffector(expanded_effector(effector.expr))
-                not_effector.name = effector.name
-                return not_effector
+                return NotEffector(expanded_effector(effector.expr), name=effector.name)
             else:
                 raise AssertionError
 
@@ -226,3 +225,10 @@ class RxnConSystem:
             required_states += [state.to_non_structured() for state in contingency.effector.states if not state.is_global]
 
         return [state for state in required_states if state not in self.states]
+
+    def _missing_reactions(self):
+        required_reactions = []
+        for contingency in self.contingencies:
+            required_reactions.append(contingency.target)
+
+        return [reaction for reaction in required_reactions if reaction not in self.reactions]

@@ -517,7 +517,7 @@ def with_connectivity_constraints(cont_set: VennSet) -> VennSet:
     constraint = UniversalSet()
 
     for dnf_term in dnf_terms:
-        states = deepcopy([state for state in dnf_term.values if state])
+        states = [state for state in dnf_term.values if state]
         state_paths = calc_state_paths(states)
 
         for state in states:

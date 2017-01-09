@@ -11,7 +11,7 @@ from rxncon.input.shared.reaction_preprocess import split_bidirectional_reaction
 
 
 class Quick:
-    def __init__(self, rxncon_str: str):
+    def __init__(self, rxncon_str: str) -> None:
         self.quick_input = rxncon_str.split('\n')
         self.rxncon_system = None               # type: RxnConSystem
         self._reactions = []                    # type: List[Reaction]

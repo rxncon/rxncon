@@ -1,10 +1,10 @@
 import re
-from enum import unique
+from enum import unique, Enum
 from collections import OrderedDict
 from typing import List, Dict, Optional, Any
 from copy import deepcopy
 
-from rxncon.util.utils import OrderedEnum, members
+from rxncon.util.utils import members
 from rxncon.core.spec import Spec, Locus, LocusResolution, locus_from_str, spec_from_str
 
 
@@ -16,8 +16,9 @@ LOCUS_REGEX         = '[\w\/\(\)]+'
 MATCHING_REGEX      = '([\w@\(\)\[\]]+)'
 NON_MATCHING_REGEX  = '(?:[\w@\(\)\[\]]+)'
 
+
 @unique
-class StateModifier(OrderedEnum):
+class StateModifier(Enum):
     neutral   = '0'
     phosphor  = 'p'
     ubiquitin = 'ub'
@@ -38,13 +39,14 @@ class StateModifier(OrderedEnum):
     bud	  	  = 'bud'
     iso 	  = 'iso'
     cyt 	  = 'cyt'
-
+    myr       = 'myr'
+    ac        = 'ac'
 
 def state_modifier_from_str(modifier_str: str) -> StateModifier:
     try:
         return StateModifier(modifier_str.lower())
     except ValueError:
-        valid_modifiers = [modifier.value for modifier in StateModifier.__members__.values()]
+        valid_modifiers = [modifier.value for modifier in StateModifier.__members__.values()]  # type: ignore
         raise ValueError('Invalid StateModifier {}, valid modifiers are {}'
                          .format(modifier_str, ', '.join(valid_modifiers)))
 
@@ -65,7 +67,7 @@ TYPE_TO_CONSTRUCTOR = {
 
 
 class StateDef:
-    def __init__(self, name: str, repr_def: str, vars_def: Dict[str, Any], neutral_states_def: List[str]):
+    def __init__(self, name: str, repr_def: str, vars_def: Dict[str, Any], neutral_states_def: List[str]) -> None:
         self.name, self.repr_def, self.vars_def, self.neutral_states_def = name, repr_def, vars_def, neutral_states_def
 
     def __hash__(self):
@@ -77,7 +79,9 @@ class StateDef:
     def __repr__(self) -> str:
         return str(self)
 
-    def __eq__(self, other: 'StateDef'):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, StateDef):
+            return NotImplemented
         return self.name == other.name and self.repr_def == other.repr_def and self.vars_def == other.vars_def and \
             self.neutral_states_def == other.neutral_states_def
 
@@ -198,7 +202,7 @@ STATE_DEFS = [
 
 
 class State:
-    def __init__(self, definition: StateDef, vars: Dict[str, Any]):
+    def __init__(self, definition: StateDef, vars: Dict[str, Any]) -> None:
         self.definition = definition
         self.state_defs = STATE_DEFS
         self.vars = OrderedDict((k, v) for k, v in sorted(vars.items()))
@@ -212,7 +216,9 @@ class State:
     def __str__(self) -> str:
         return self.definition.repr_from_vars(self.vars)
 
-    def __eq__(self, other: 'State') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, State):
+            return NotImplemented
         return self.definition == other.definition and self.vars == other.vars
 
     def __lt__(self, other: 'State'):
@@ -338,7 +344,7 @@ class State:
 
 
 class FullyNeutralState(State):
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
     def __hash__(self) -> int:
@@ -353,7 +359,9 @@ class FullyNeutralState(State):
     def __lt__(self, other: 'State'):
         return True
 
-    def __eq__(self, other: 'State') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, State):
+            return NotImplemented
         return isinstance(other, FullyNeutralState)
 
     def to_non_structured(self):
@@ -387,7 +395,7 @@ class FullyNeutralState(State):
 
 
 def matching_state_def(repr: str) -> Optional[StateDef]:
-    return next((x for x in STATE_DEFS if x.matches_repr(repr)), None)
+    return next((x for x in STATE_DEFS if x.matches_repr(repr)), None)  # type: ignore
 
 
 def state_from_str(repr: str) -> State:

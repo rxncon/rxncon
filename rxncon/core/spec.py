@@ -1,14 +1,12 @@
 from collections import OrderedDict
 from abc import ABC
-from typing import Optional
+from typing import Optional, MutableMapping, Type
 from enum import Enum, unique
 import re
 
-from rxncon.util.utils import OrderedEnum
-
 
 class Spec(ABC):
-    def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus'):
+    def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus') -> None:
         self.component_name, self.struct_index, self.locus = component_name, struct_index, locus
         self._validate()
 
@@ -19,11 +17,11 @@ class Spec(ABC):
         return str(self)
 
     def __str__(self) -> str:
-        def struct_name(spec: Spec, suffix: 'SpecSuffix'):
+        def struct_name(spec: Spec, spec_suffix: 'SpecSuffix'):
             if spec.struct_index is not None:
-                return "{0}{1}@{2}".format(spec.component_name, suffix.value, spec.struct_index)
+                return "{0}{1}@{2}".format(spec.component_name, spec_suffix.value, spec.struct_index)
             else:
-                return "{0}{1}".format(spec.component_name, suffix.value)
+                return "{0}{1}".format(spec.component_name, spec_suffix.value)
 
         suffix = spec_to_suffix[type(self)]
 
@@ -32,7 +30,9 @@ class Spec(ABC):
         else:
             return '{0}'.format(struct_name(self, suffix))
 
-    def __eq__(self, other: 'Spec') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Spec):
+            return NotImplemented
         return isinstance(other, type(self)) and self.component_name == other.component_name and self.locus == other.locus \
             and self.struct_index == other.struct_index
 
@@ -118,7 +118,7 @@ class GeneSpec(Spec):
 
 
 class Locus:
-    def __init__(self, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]):
+    def __init__(self, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]) -> None:
         self.domain, self.subdomain, self.residue = domain, subdomain, residue
         self._validate()
 
@@ -144,7 +144,9 @@ class Locus:
         else:
             raise AssertionError
 
-    def __eq__(self, other: 'Locus') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Locus):
+            return NotImplemented
         return self.domain == other.domain and self.subdomain == other.subdomain and self.residue == other.residue
 
     def _validate(self):
@@ -196,7 +198,7 @@ class LocusResolution(Enum):
 
 
 @unique
-class SpecSuffix(OrderedEnum):
+class SpecSuffix(Enum):
     mrna    = 'mRNA'
     dna     = 'Gene'
     protein = ''
@@ -208,9 +210,9 @@ suffix_to_spec = OrderedDict(
         (SpecSuffix.dna, GeneSpec),
         (SpecSuffix.protein, ProteinSpec)
     ]
-)
+)  # type: MutableMapping[SpecSuffix, Type[Spec]]
 
-spec_to_suffix = OrderedDict((k, v) for v, k in suffix_to_spec.items())
+spec_to_suffix = OrderedDict((k, v) for v, k in suffix_to_spec.items())  # type: MutableMapping[Type[Spec], SpecSuffix]
 
 
 def locus_from_str(locus_str: str) -> Locus:
@@ -255,6 +257,8 @@ def spec_from_str(spec_str: str) -> Spec:
             if name.endswith(suffix.value):
                 name = name[:len(name) - len(suffix.value)]
                 return suffix_to_spec[suffix](name, struct_index, locus)
+            elif name.lower().endswith(suffix.value.lower()):
+                raise SyntaxError('Please use correct capitalization \'{}\' in component \'{}\'.'.format(suffix.value, name))
 
         raise SyntaxError('Could not parse spec component_name {}'.format(name))
 
@@ -270,8 +274,8 @@ def spec_from_str(spec_str: str) -> Spec:
     if not re.match('[a-zA-Z]', items[0]):
         raise SyntaxError('Spec has to start with letter character.')
     elif STRUCT_DELIMITER in items[0]:
-        name, struct_index = items[0].split(STRUCT_DELIMITER)
-        struct_index = int(struct_index)
+        name, struct_index_str = items[0].split(STRUCT_DELIMITER)
+        struct_index = int(struct_index_str)
     else:
         name = items[0]
 
