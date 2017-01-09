@@ -58,17 +58,17 @@ class ExcelBook:
     def rxncon_system(self) -> RxnConSystem:
         return self._rxncon_system
 
-    def _open_file(self):
+    def _open_file(self) -> None:
         if not os.path.isfile(self.filename):
             raise IOError('Could not find file {}'.format(self.filename))
 
         self._xlrd_book = xlrd.open_workbook(self.filename)
 
-    def _validate_book(self):
+    def _validate_book(self) -> None:
         if not all(sheet in self._xlrd_book.sheet_names() for sheet in NECESSARY_SHEETS):
             raise SyntaxError('Excel book does not contain expected sheets')
 
-    def _determine_column_numbers(self):
+    def _determine_column_numbers(self) -> None:
         sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_LIST)
         row   = list(sheet.get_rows())[HEADER_ROW]
         for num, header in enumerate(row):
@@ -89,7 +89,7 @@ class ExcelBook:
                         self._column_contingency_type, self._column_contingency_modifier):
             assert col_num is not None
 
-    def _load_reaction_list(self):
+    def _load_reaction_list(self) -> None:
         sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_LIST)
         reaction_rows = [row for row in sheet.get_rows()][DATA_ROW:]
 
@@ -105,7 +105,7 @@ class ExcelBook:
             reaction_strs = split_bidirectional_reaction_str(row[self._column_reaction_full_name].value)
             self._reactions += [reaction_from_str(x) for x in reaction_strs]
 
-    def _load_contingency_list_entries(self):
+    def _load_contingency_list_entries(self) -> None:
         sheet = self._xlrd_book.sheet_by_name(SHEET_CONTINGENCY_LIST)
         contingency_rows = [row for row in sheet.get_rows()][DATA_ROW:]
 
@@ -127,12 +127,12 @@ class ExcelBook:
             )
             self._cont_list_entries.append(entry)
 
-    def _construct_output_reactions(self):
+    def _construct_output_reactions(self) -> None:
         self._reactions += [cle.subj for cle in self._cont_list_entries
                             if isinstance(cle.subj, OutputReaction)]
 
-    def _construct_contingencies(self):
+    def _construct_contingencies(self) -> None:
         self._contingencies = contingencies_from_contingency_list_entries(self._cont_list_entries)
 
-    def _construct_rxncon_system(self):
+    def _construct_rxncon_system(self) -> None:
         self._rxncon_system = RxnConSystem(self._reactions, self._contingencies)

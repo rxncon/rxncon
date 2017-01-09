@@ -18,7 +18,7 @@ class SBtabData:
         self._construct_entry_class()
         self._parse_entries()
 
-    def _parse_header(self):
+    def _parse_header(self) -> None:
         REGEX_VERSION_A  = 'SBtabVersion (\'|\").+?(\'|\")'
         REGEX_VERSION_B  = 'SBtabVersion=(\'|\").+?(\'|\")'
         REGEX_DOCUMENT   = 'Document=(\'|\").+?(\'|\")'
@@ -42,17 +42,19 @@ class SBtabData:
             if match:
                 setattr(self, attr, _header_value(match.group(0)))
 
-    def _parse_column_names(self):
+    def _parse_column_names(self) -> None:
         columns = self._input[1]
         assert len(columns) > 0
 
         self._column_names = [_cleaned_column_name(name) for name in columns]
 
-    def _construct_entry_class(self):
+    def _construct_entry_class(self) -> None:
+        assert self.table_name
+        assert self._column_names
         self._entry_class = type(_class_name_from_table_name(self.table_name), (EntryBase,),
                                  {'field_names': [_field_name_from_column_name(col) for col in self._column_names]})
 
-    def _parse_entries(self):
+    def _parse_entries(self) -> None:
         for row in self._input[2:]:
             entry = self._entry_class()
 
@@ -69,42 +71,40 @@ class ValidatedSBtabData(SBtabData):
         self._definition = definition
         self._field_postprocessors = {}  # type: Dict[str, Callable[[str], Union[str, float, bool, int]]]
         self._construct_field_postprocessors()
-        self._entry_class.field_postprocessors = {_field_name_from_column_name(col): func
-                                                  for col, func in self._field_postprocessors.items()}
+        self._entry_class.field_postprocessors = {_field_name_from_column_name(col): func               # type: ignore
+                                                  for col, func in self._field_postprocessors.items()}  # type: ignore
         self._postprocess_entries()
 
-    def _construct_field_postprocessors(self):
+    def _construct_field_postprocessors(self) -> None:
         if hasattr(self._definition.entries[0], 'ComponentName'):
-            type_definitions = {def_entry.ComponentName: def_entry.Format for def_entry in self._definition.entries
-                                if def_entry.IsPartOf == self.table_type}
+            type_definitions = {def_entry.ComponentName: def_entry.Format for def_entry in self._definition.entries  # type: ignore
+                                if def_entry.IsPartOf == self.table_type}                                            # type: ignore
         elif hasattr(self._definition.entries[0], 'Component'):
-            type_definitions = {def_entry.Component: def_entry.Format for def_entry in self._definition.entries
-                                if def_entry.IsPartOf == self.table_type}
+            type_definitions = {def_entry.Component: def_entry.Format for def_entry in self._definition.entries      # type: ignore
+                                if def_entry.IsPartOf == self.table_type}                                            # type: ignore
         else:
             raise AssertionError('Could not parse the definition file')
 
         for column in self._column_names:
             self._field_postprocessors[column] = _field_postprocessor_for_type_string(type_definitions[column])
 
-    def _postprocess_entries(self):
+    def _postprocess_entries(self) -> None:
         for entry in self.entries:
             entry.postprocess()
 
 
-def sbtab_data_from_file(filename: str, separator='\t', definitions: Optional[SBtabData]=None):
+def sbtab_data_from_file(filename: str, separator='\t', definitions: Optional[SBtabData]=None) -> SBtabData:
     sbtab_input = []
 
     with open(filename) as f:
         for row in f:
             if row.startswith('%'):
                 continue
-
             else:
                 sbtab_input.append(row.split(separator))
 
     if definitions:
         return ValidatedSBtabData(sbtab_input, definitions)
-
     else:
         return SBtabData(sbtab_input)
 
@@ -113,9 +113,9 @@ class EntryBase:
     def __getitem__(self, item):
         return getattr(self, item)
 
-    def postprocess(self):
-        for field_name in self.field_names:
-            setattr(self, field_name, self.field_postprocessors[field_name](getattr(self, field_name)))
+    def postprocess(self) -> None:
+        for field_name in self.field_names:  # type: ignore
+            setattr(self, field_name, self.field_postprocessors[field_name](getattr(self, field_name)))  # type: ignore
 
 
 def _unquote(x: str) -> str:
