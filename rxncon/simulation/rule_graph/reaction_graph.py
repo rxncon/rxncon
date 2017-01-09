@@ -75,30 +75,41 @@ def get_node_label(specification: Spec, node_type: NodeType):
 INTERACTION_STATES = {
     # Interaction state.
     '$x--$y': [
-        lambda state, builder: builder.add_site(state['$x']) if builder.name == state['$x'].component_name \
-                               else builder.add_site(state['$y']),
+        lambda state, builder: builder.add_spec_nodes(state.specs[0]),
+        lambda state, builder: builder.add_spec_nodes(state.specs[1]),
+        lambda state, builder: builder.add_spec_edges(state.specs[0]),
+        lambda state, builder: builder.add_spec_edges(state.specs[1]),
+        lambda state, builder: builder.add_external_edge(source=get_node_id(state.specs[0], NodeType.domain),
+                                                         target=get_node_id(state.specs[1], NodeType.domain),
+                                                         type=EdgeType.interaction)
     ],
     # Self-interaction state.
     '$x--[$y]': [
         lambda state, builder: builder.add_node(node_id=get_node_id(state.specs[0], NodeType.component), type=NodeType.component, label=state.specs[0].component_name),
         lambda state, builder: builder.add_node(node_id=state.specs[1], type=NodeType.domain, label=state.specs[1]),
-        lambda state, builder: builder.add_edge()
+        lambda state, builder: builder.add_spec_edges(state.specs[0]),
+        lambda state, builder: builder.add_spec_edges(state.specs[1]),
+        lambda state, builder: builder.add_external_edge(source=get_node_id(state.specs[0], NodeType.domain), target=state.specs[1], type=EdgeType.interaction)
     ],
 }
 
 class ReactionGraph:
     def __init__(self, rxncon_system: RxnConSystem):
         self.rxncon_system = rxncon_system
+        self.builder = GraphBuilder()
         #self.reaction_graph = DiGraph()
 
     def to_graph(self):
         for reaction in self.rxncon_system.reactions:
             self.add_reaction_information_to_graph(reaction)
+        return self.builder.get_graph()
 
     def add_reaction_information_to_graph(self, reaction: Reaction):
 
         def _add_trans_reaction_to_graph(reaction: Reaction):
-            pass
+            for product_states in reaction.produced_states:
+                for func in INTERACTION_STATES[product_states.repr_def]:
+                    func(product_states, self.builder)
 
         def _add_cis_reaction_to_graph(reaction: Reaction):
             pass
@@ -122,11 +133,38 @@ class GraphBuilder():
     def __init__(self):
         self._reaction_graph = DiGraph()
 
-    def add_node(self, node_id: str, type: NodeType, label: str):
-        self.reaction_graph.add_node(node_id, label=label, type=type)
+    def _add_node(self, node_id: str, type: NodeType, label: str):
+        self._reaction_graph.add_node(node_id, label=label, type=type.value)
 
-    def add_edge(self, source: str, target: str, width: EdgeWith, type: EdgeType):
-        self.reaction_graph.add_edge(source, target, interaction=type, width=width)
+    def _add_edge(self, source: str, target: str, interaction: EdgeType, width: EdgeWith):
+        self._reaction_graph.add_edge(source, target, interaction=interaction.value, width=width.value)
+
+    def add_external_edge(self, source: str, target: str, type: EdgeType):
+        self._add_edge(source, target, interaction=type, width=EdgeWith.external)
+
+    def add_spec_nodes(self, specification: Spec):
+        self._add_node(node_id=get_node_id(specification, NodeType.component), type=NodeType.component,
+                       label=get_node_label(specification, NodeType.component))
+
+        if specification.locus.domain:
+            self._add_node(get_node_id(specification, NodeType.domain), type=NodeType.domain,
+                           label=get_node_label(specification, NodeType.domain))
+        if specification.locus.residue:
+            self._add_node(get_node_id(specification, NodeType.residue), type=NodeType.residue,
+                           label=get_node_label(specification, NodeType.residue))
+
+    def add_spec_edges(self, specification: Spec):
+
+        if specification.locus.domain:
+            self._add_edge(get_node_id(specification, NodeType.component),
+                           get_node_id(specification, NodeType.domain), interaction=EdgeType.interaction,
+                           width=EdgeWith.internal)
+            if specification.locus.residue:
+                self._add_edge(get_node_id(specification, NodeType.domain), get_node_id(specification, NodeType.residue),
+                               interaction=EdgeType.interaction, width=EdgeWith.internal)
+        elif specification.locus.residue:
+            self._add_edge(get_node_id(specification, NodeType.component), get_node_id(specification, NodeType.residue),
+                           interaction=EdgeType.interaction, width=EdgeWith.internal)
 
     def get_graph(self):
         return self._reaction_graph
