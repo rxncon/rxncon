@@ -1,22 +1,24 @@
 from typing import Union, List
+from collections import defaultdict
 import re
 from enum import Enum, unique
 from networkx import DiGraph
 
-from rxncon.venntastic.sets import Union as VennUnion, Complement, ValueSet, Set as VennSet
+from rxncon.venntastic.sets import Union as VennUnion, Complement, ValueSet, Set as VennSet, Intersection
 from rxncon.core.contingency import ContingencyType
 from rxncon.core.state import State
-
+from rxncon.core.spec import Spec
 
 from rxncon.core.rxncon_system import RxnConSystem, Reaction, ReactionTerm, Contingency
 from rxncon.core.effector import StateEffector, AndEffector, NotEffector, OrEffector, Effector
-from rxncon.venntastic.sets import Intersection
+
 
 
 @unique
 class NodeType(Enum):
     reaction = 'reaction'
     state    = 'state'
+    component = 'component'
     AND      = "boolean_and"
     OR       = "boolean_or"
     NOT      = "boolean_not"
@@ -39,6 +41,7 @@ class EdgeInteractionType(Enum):
     OR            = 'OR'
     NOT           = 'NOT'
     source_state  = 'ss'
+    input_state = 'is'
 
 edge_type_mapping = {ContingencyType.requirement: EdgeInteractionType.required,
                      ContingencyType.inhibition: EdgeInteractionType.inhibited,
@@ -53,9 +56,9 @@ class RegulatoryGraph:
     Args:
         rxncon_system: The rxncon system.
     """
-    def __init__(self,rxncon_system: RxnConSystem, potential_degradation: bool = False) -> None:
+    def __init__(self,rxncon_system: RxnConSystem) -> None:
         self.rxncon_system = rxncon_system
-        self.potential_degradation = potential_degradation
+        self.degraded_states_of_component = defaultdict(list)
         self.regulatory_graph = DiGraph()
 
     def to_graph(self) -> DiGraph:
@@ -66,13 +69,106 @@ class RegulatoryGraph:
             The regulatory graph as networkx DiGraph.
 
         """
+
         for reaction in self.rxncon_system.reactions:
             if not reaction.degraded_components:
                 self.add_reaction_information_to_graph(reaction)
                 self.add_contingency_information_to_graph(self.rxncon_system.contingencies_for_reaction(reaction))
             else:
                 self.add_degradation_reaction_information_to_graph(reaction, self.rxncon_system.contingencies_for_reaction(reaction))
+        self.add_synthesised_or_degraded_components()
         return self.regulatory_graph
+
+    def add_synthesised_or_degraded_components(self):
+        """
+        Adding components to the graph, which do not belong to any state of the system but get synthesised or degraded.
+
+        Mutates:
+            The regulatory graph, by adding reaction nodes and/or component nodes.
+
+        Returns:
+            None
+
+        """
+        def calc_components_without_states():
+            """
+            Calculating the components without states:
+
+            Returns:
+                List of components which do not belong to at least one state in the system.
+
+            """
+            return [comp for comp in self.rxncon_system.components() if not self.rxncon_system.states_for_component(comp)]
+
+        def add_synthesised_components_and_reactions():
+            """
+            Adding components to the graph, which do not belong to at least one state but gets synthesised.
+
+            Mutates:
+                The regulatory graph, by adding component nodes and edges from reactions to component nodes.
+                components_by_reactions: storing components which are synthesised or degraded but do no belong to any
+                state.
+
+            Returns:
+                None
+
+            """
+            nonlocal components_by_reactions
+            for synthesised_component in reaction.synthesised_components:
+                if synthesised_component in components_without_states:
+                    self._add_node(id=str(synthesised_component), label=str(synthesised_component), type=NodeType.component)
+                    self._add_edge(source=str(reaction), target=str(synthesised_component), interaction=EdgeInteractionType.synthesis)
+                    components_by_reactions.append(synthesised_component)
+
+        def get_degraded_components_and_reactions():
+            """
+            Adding components to the graph, which do not belong to at least one state but gets degraded.
+
+            Mutates:
+                The regulatory graph, by adding component nodes and edges from reactions to components.
+                components_by_reactions: storing components which are synthesised or degraded but do no belong to any
+                state.
+
+            Returns:
+                None
+
+            """
+            nonlocal components_by_reactions
+            for degraded_component in reaction.degraded_components:
+                if degraded_component in components_without_states:
+                    self._add_node(id=str(degraded_component), label=str(degraded_component), type=NodeType.component)
+                    self._add_edge(source=str(reaction), target=str(degraded_component), interaction=EdgeInteractionType.degrade)
+                    components_by_reactions.append(degraded_component)
+
+        def connect_components_and_reactions():
+            """
+            Connecting components, which do not belong to any state to reactions.
+
+            Note: If a component, which do not belong to any state, is synthesised or degraded the component is
+                  mentioned explicitly in the regulatory graph. In this case the component has to be connected to all
+                  reactions it is involved in.
+
+            Mutates:
+                The regulatory graph, by adding edges.
+            Returns:
+                None
+
+            """
+            for component in components_by_reactions:
+                for reaction in self.rxncon_system.reactions:
+                    if component in reaction.components_lhs and not component in reaction.components_rhs:
+                        self._add_edge(source=str(component), target=str(reaction), interaction=EdgeInteractionType.source_state)
+                    elif component in reaction.components_lhs:
+                        self._add_edge(source=str(component), target=str(reaction), interaction=EdgeInteractionType.input_state)
+
+        components_by_reactions = []  # type: List[Spec]
+        components_without_states = calc_components_without_states()
+
+        for reaction in self.rxncon_system.reactions:
+            add_synthesised_components_and_reactions()
+            get_degraded_components_and_reactions()
+
+        connect_components_and_reactions()
 
     def add_degradation_reaction_information_to_graph(self, reaction, contingencies) -> None:
         """
@@ -199,7 +295,7 @@ class RegulatoryGraph:
                 None
 
             """
-
+            nonlocal reaction
             degraded_states = [x for degraded_component in reaction.degraded_components
                                for x in self.rxncon_system.states_for_component(degraded_component)
                                if x not in positive_states and x not in negative_states]
@@ -310,7 +406,6 @@ class RegulatoryGraph:
         # in the contingency that are connected to the degraded component.
         self._add_node(id=str(reaction), label=str(reaction), type=NodeType.reaction)
         if contingencies:
-
             self.add_contingency_information_to_graph(contingencies)
 
             cont = Intersection(*(_effector_to_vennset(contingency.effector, contingency.type) for contingency in contingencies)).to_simplified_set()
@@ -326,7 +421,6 @@ class RegulatoryGraph:
                 positive_states = [value_set.value for value_set in positive_value_set]
                 negative_states = [value_set.expr.value for value_set in negative_value_set]
                 _add_possible_degraded_states(positive_states, negative_states)
-
         # Second case: reaction with a trivial contingency should degrade all states for the degraded component.
         else:
             _update_no_contingency_case()
@@ -345,7 +439,6 @@ class RegulatoryGraph:
             None
 
         """
-
         def _add_reaction_reactant_to_graph(reaction: Reaction, reactants: ReactionTerm,
                                             edge_type: EdgeInteractionType) -> None:
 
@@ -394,17 +487,26 @@ class RegulatoryGraph:
             for reactant_state in reactants.states:
                 self._add_edge(source=str(reactant_state), target=str(reaction), interaction=EdgeInteractionType.source_state)
 
+        def _add_reactant_states() -> None:
+            """
+            Adding the states of reactants.
+
+            Returns:
+                None
+
+            """
+            for reactant_post in reaction.terms_rhs:
+                if reaction.synthesised_states:
+                    _add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.synthesis)
+                else:
+                    _add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.produce)
+
+            for reactant_pre in reaction.terms_lhs:
+                _add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
+                _add_reaction_source_state_edges_to_graph(reaction, reactant_pre)
+
         self._add_node(id=str(reaction), type=NodeType.reaction, label=str(reaction))
-
-        for reactant_post in reaction.terms_rhs:
-            if reaction.synthesised_states:
-                _add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.synthesis)
-            else:
-                _add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.produce)
-
-        for reactant_pre in reaction.terms_lhs:
-            _add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
-            _add_reaction_source_state_edges_to_graph(reaction, reactant_pre)
+        _add_reactant_states()
 
     def add_contingency_information_to_graph(self, contingencies: List[Contingency]) -> None:
         """
