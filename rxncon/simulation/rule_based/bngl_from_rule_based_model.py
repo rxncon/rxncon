@@ -11,7 +11,7 @@ class BNGLSimulationMethods(Enum):
 
 
 class BNGLSettings:
-    def __init__(self):
+    def __init__(self) -> None:
         self.maximal_iteration = 1
         self.maximal_aggregate = 4
         self.simulation_method = BNGLSimulationMethods.ODE

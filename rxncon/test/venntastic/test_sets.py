@@ -2,11 +2,10 @@ import pytest
 import itertools as itt
 from typing import List
 
-from rxncon.venntastic.sets import *
+from rxncon.venntastic.sets import ValueSet, Union, Intersection, Complement, EmptySet, UniversalSet, Difference, venn_from_str, Set
 
 
-# Test the basic properties of the Set data structure
-def test_property_set_construction():
+def test_property_set_construction() -> None:
     assert ValueSet('a')
     assert ValueSet(1)
     assert ValueSet(1.45)
@@ -15,12 +14,12 @@ def test_property_set_construction():
         ValueSet([1, 2, 3])
 
 
-def test_property_set_comparison():
+def test_property_set_comparison() -> None:
     assert ValueSet(1) == ValueSet(1)
     assert not ValueSet('a') == ValueSet('b')
 
 
-def test_property_set_dictionary_keys():
+def test_property_set_dictionary_keys() -> None:
     x = ValueSet(1)
     y = ValueSet(2)
 
@@ -32,16 +31,14 @@ def test_property_set_dictionary_keys():
     assert dictionary[y] == 'diebla'
 
 
-def test_simplifies():
+def test_simplifies() -> None:
     x1 = Intersection(ValueSet(1), ValueSet(2))
     x2 = Intersection(ValueSet(1), Complement(ValueSet(2)))
 
-    z = Union(x1, x2)
-
-    assert z.is_equivalent_to(ValueSet(1))
+    assert Union(x1, x2).is_equivalent_to(ValueSet(1))
 
 
-def test_parser():
+def test_parser() -> None:
     assert venn_from_str('1 & 2', int).is_equivalent_to(Intersection(ValueSet(1), ValueSet(2)))
     assert venn_from_str('1 & 2', str).is_equivalent_to(Intersection(ValueSet('1'), ValueSet('2')))
     assert venn_from_str('( 1 | 2 ) & 3', int).is_equivalent_to(Intersection(ValueSet(3), Union(ValueSet(1), ValueSet(2))))
@@ -49,11 +46,11 @@ def test_parser():
     assert venn_from_str('~( 1 | 2 )', int).is_equivalent_to(Intersection(Complement(ValueSet(1)), Complement(ValueSet(2))))
 
 
-def test_values():
+def test_values() -> None:
     assert set(venn_from_str('1 | 2 | 3 | 4 | 2', int).values) == {1, 2, 3, 4}
 
 
-def test_list_form():
+def test_list_form() -> None:
     assert venn_from_str('1', int).to_dnf_list() == [venn_from_str('1', int)]
 
     assert venn_from_str('1 & 2', int).to_dnf_list() == [venn_from_str('1 & 2', int)]
@@ -66,7 +63,7 @@ def test_list_form():
     assert UniversalSet().to_dnf_list() == [UniversalSet()]
     assert EmptySet().to_dnf_list() == [EmptySet()]
 
-def test_nested_list_form():
+def test_nested_list_form() -> None:
     assert venn_from_str('1', int).to_dnf_nested_list() == [[venn_from_str('1', int)]]
 
     x = venn_from_str('1 & ( 2 | 3 )', int)
@@ -80,7 +77,7 @@ def test_nested_list_form():
     assert EmptySet().to_dnf_nested_list() == [[EmptySet()]]
 
 
-def test_calc_solutions():
+def test_calc_solutions() -> None:
     # Contradiction should give no solutions.
     assert venn_from_str('( a ) & ~( a )', str).calc_solutions() == []
     # Tautology should give empty dict as solution.
@@ -92,7 +89,7 @@ def test_calc_solutions():
 
 
 # Test the superset / subset relationships
-def test_superset_subset_for_unary_sets():
+def test_superset_subset_for_unary_sets() -> None:
     assert UniversalSet() == ValueSet(None)
     assert ValueSet(None).is_superset_of(ValueSet(None))
 
@@ -128,7 +125,7 @@ def test_superset_subset_for_unary_sets():
     assert not ValueSet(1).is_subset_of(EmptySet())
 
 
-def test_superset_subset_for_flat_intersections():
+def test_superset_subset_for_flat_intersections() -> None:
     assert Intersection(ValueSet(1), ValueSet(2)).is_subset_of(ValueSet(1))
     assert Intersection(ValueSet(1), ValueSet(2)).is_subset_of(ValueSet(2))
 
@@ -139,7 +136,7 @@ def test_superset_subset_for_flat_intersections():
     assert ValueSet(2).is_superset_of(Intersection(ValueSet(1), ValueSet(2)))
 
 
-def test_superset_subset_for_nested_intersections():
+def test_superset_subset_for_nested_intersections() -> None:
     x = ValueSet(1)
     y = ValueSet(2)
     z = ValueSet(3)
@@ -177,7 +174,7 @@ def test_superset_subset_for_nested_intersections():
     assert not xz.is_subset_of(xyz)
 
 
-def test_superset_subset_for_flat_unions():
+def test_superset_subset_for_flat_unions() -> None:
     assert Union(ValueSet(1), ValueSet(2)).is_superset_of(ValueSet(1))
     assert Union(ValueSet(1), ValueSet(2)).is_superset_of(ValueSet(2))
 
@@ -188,7 +185,7 @@ def test_superset_subset_for_flat_unions():
     assert ValueSet(2).is_subset_of(Union(ValueSet(1), ValueSet(2)))
 
 
-def test_superset_subset_for_nested_unions():
+def test_superset_subset_for_nested_unions() -> None:
     x = ValueSet(1)
     y = ValueSet(2)
     z = ValueSet(3)
@@ -218,18 +215,18 @@ def test_superset_subset_for_nested_unions():
 
 
 # Test basic set-theoretic identities for a generated pool of set expressions
-def test_de_morgan_s_identities(sets):
+def test_de_morgan_s_identities(sets) -> None:
     for x, y in itt.product(sets, sets):
         assert Intersection(Complement(x), Complement(y)).is_equivalent_to(Complement(Union(x, y)))
         assert Union(Complement(x), Complement(y)).is_equivalent_to(Complement(Intersection(x, y)))
 
 
-def test_complement_squares_to_no_op(sets):
+def test_complement_squares_to_no_op(sets) -> None:
     for x in sets:
         assert x.is_equivalent_to(Complement(Complement(x)))
 
 
-def test_intersection_properties(sets):
+def test_intersection_properties(sets) -> None:
     for x in sets:
         assert EmptySet().is_equivalent_to(Intersection(x, Complement(x)))
         assert EmptySet().is_equivalent_to(Intersection(Complement(x), x))
@@ -243,7 +240,7 @@ def test_intersection_properties(sets):
         assert x.is_equivalent_to(Intersection(x, x))
 
 
-def test_union_properties(sets):
+def test_union_properties(sets) -> None:
     for x in sets:
         assert UniversalSet().is_equivalent_to(Union(x, Complement(x)))
         assert UniversalSet().is_equivalent_to(Union(Complement(x), x))
@@ -260,25 +257,25 @@ def test_union_properties(sets):
         assert x.is_equivalent_to(Union(x, x))
 
 
-def test_absolute_relative_complement_identities(sets):
+def test_absolute_relative_complement_identities(sets) -> None:
     for x, y in itt.product(sets, sets):
         assert Intersection(x, Complement(y)).is_equivalent_to(Difference(x, y))
         assert Union(Complement(x), y).is_equivalent_to(Complement(Difference(x, y)))
 
 
-def test_distributive_properties(sets):
+def test_distributive_properties(sets) -> None:
     for x, y, z in itt.product(sets, sets, sets):
         assert Union(x, Intersection(y, z)).is_equivalent_to(Intersection(Union(x, y), Union(x, z)))
         assert Intersection(x, Union(y, z)).is_equivalent_to(Union(Intersection(x, y), Intersection(x, z)))
 
 
-def test_absorption_properties(sets):
+def test_absorption_properties(sets) -> None:
     for x, y in itt.product(sets, sets):
         assert x.is_equivalent_to(Union(x, Intersection(x, y)))
         assert x.is_equivalent_to(Intersection(x, Union(x, y)))
 
 
-def test_is_equivalent_to():
+def test_is_equivalent_to() -> None:
     assert UniversalSet().is_equivalent_to(UniversalSet())
     assert EmptySet().is_equivalent_to(EmptySet())
 
@@ -347,7 +344,7 @@ def test_is_equivalent_to():
 
 
 @pytest.fixture
-def sets():
+def sets() -> List[Set]:
     return [
         EmptySet(),
         ValueSet(1),
