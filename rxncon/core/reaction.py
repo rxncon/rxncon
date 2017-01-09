@@ -16,12 +16,14 @@ BIDIRECTIONAL_VERBS = [
 
 
 class ReactionTerm:
-    def __init__(self, specs: List[Spec], states: List[State]):
+    def __init__(self, specs: List[Spec], states: List[State]) -> None:
         assert all(spec.is_component_spec for spec in specs)
         self.specs, self.states = specs, states
 
-    def __eq__(self, other: 'ReactionTerm') -> bool:
-        return isinstance(other, ReactionTerm) and self.states == other.states
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ReactionTerm):
+            return NotImplemented
+        return self.states == other.states
 
     def __str__(self) -> str:
         return 'ReactionTerm<{0}:{1}>'.format(','.join(str(spec) for spec in self.specs), ','.join(str(x) for x in self.states))
@@ -37,11 +39,13 @@ class ReactionTerm:
 class ReactionDef:
     ARROW = '->'
 
-    def __init__(self, state_defs: List[StateDef], name: str, repr_def: str, vars_def: Dict[str, Any], rule_def: str):
+    def __init__(self, state_defs: List[StateDef], name: str, repr_def: str, vars_def: Dict[str, Any], rule_def: str) -> None:
         self.name, self.state_defs, self.repr_def, self.vars_def, self.rule_def = name, state_defs, repr_def, vars_def, rule_def
         self._parse_reactants_def()
 
-    def __eq__(self, other: 'ReactionDef') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, ReactionDef):
+            return NotImplemented
         return self.state_defs == other.state_defs and self.name == other.name and self.repr_def == other.repr_def \
             and self.vars_def == other.vars_def and self.rule_def == other.rule_def
 
@@ -81,9 +85,11 @@ class ReactionDef:
     def validate_vars(self, vars: Dict[str, Any]):
         for var, val in vars.items():
             assert isinstance(val, self.vars_def[var][0]), \
-                '{0} is of type {1}, required to be of type {2}'.format(var, type(val), self.vars_def[var][0])
+                'In Reaction {0}: {1} is of type {2}, required to be of type {3}\nVariables: {4}'\
+                .format(self.repr_def, var, type(val), self.vars_def[var][0], vars)
             assert val.has_resolution(self.vars_def[var][1]), \
-                '{0} is of resolution {1}, required to be of resolution {2}'.format(var, val.resolution, self.vars_def[var][1])
+                'In Reaction {0}: {1} is of resolution {2}, required to be of resolution {3}\nVariables: {4}'\
+                .format(self.repr_def, var, val.resolution, self.vars_def[var][1], vars)
 
     def terms_lhs_from_vars(self, vars: Dict[str, Any]) -> List[ReactionTerm]:
         return [self._parse_term(x, vars) for x in self.reactant_defs_lhs]
@@ -566,11 +572,52 @@ REACTION_DEFS = [
             '$y': (ProteinSpec, LocusResolution.residue)
         },
         '$y#$y-{ISO} -> $y#$y-{0}'
-    )]
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'acetylation',
+        '$x_Ac+_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$x# + $y#$y-{0} -> $x# + $y#$y-{Ac}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'Myristoylation',
+        '$x_Myr+_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$x# + $y#$y-{0} -> $x# + $y#$y-{Myr}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'deacetylation',
+        '$x_Ac-_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$x# + $y#$y-{Ac} -> $x# + $y#$y-{0}'
+    ),
+    ReactionDef(
+        STATE_DEFS,
+        'demyrstoylation',
+        '$x_Myr-_$y',
+        {
+            '$x': (ProteinSpec, LocusResolution.component),
+            '$y': (ProteinSpec, LocusResolution.residue)
+        },
+        '$x# + $y#$y-{Myr} -> $x# + $y#$y-{0}'
+    )
+]
 
 
 class Reaction:
-    def __init__(self, definition: ReactionDef, vars: Dict[str, Any]):
+    def __init__(self, definition: ReactionDef, vars: Dict[str, Any]) -> None:
         self._definition = definition
         self._vars       = vars
 
@@ -579,10 +626,10 @@ class Reaction:
         self.terms_rhs   = definition.terms_rhs_from_vars(vars)
         self._repr       = definition.repr_from_vars(vars)
 
-        self._consumed_states    = None
-        self._produced_states    = None
-        self._synthesised_states = None
-        self._degraded_states    = None
+        self._consumed_states    = None  # type: Optional[List[State]]
+        self._produced_states    = None  # type: Optional[List[State]]
+        self._synthesised_states = None  # type: Optional[List[State]]
+        self._degraded_states    = None  # type: Optional[List[State]]
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -593,7 +640,9 @@ class Reaction:
     def __str__(self) -> str:
         return self._repr
 
-    def __eq__(self, other: 'Reaction') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Reaction):
+            return NotImplemented
         return self._definition == other._definition and self._vars == other._vars
 
     def invalidate_state_cache(self):
@@ -609,6 +658,10 @@ class Reaction:
     @property
     def components_rhs(self) -> List[Spec]:
         return [spec for term in self.terms_rhs for spec in term.specs]
+
+    @property
+    def components_lhs_structured(self):
+        return [spec.with_struct_index(i) for i, spec in enumerate(self.components_lhs)]
 
     @property
     def consumed_states(self) -> List[State]:
@@ -664,12 +717,14 @@ class Reaction:
 
 
 class OutputReaction(Reaction):
-    def __init__(self, name):
+    def __init__(self, name) -> None:
         self.name      = name
         self.terms_lhs = []
         self.terms_rhs = []
 
-    def __eq__(self, other: Reaction):
+    def __eq__(self, other: object):
+        if not isinstance(other, Reaction):
+            return NotImplemented
         return isinstance(other, OutputReaction) and self.name == other.name
 
     def __str__(self):
@@ -715,7 +770,7 @@ class OutputReaction(Reaction):
 
 
 def matching_reaction_def(repr: str) -> Optional[ReactionDef]:
-    return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_repr(repr)), None)
+    return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_repr(repr)), None)  # type: ignore
 
 
 def reaction_from_str(repr: str, standardize=True) -> Reaction:
@@ -725,13 +780,11 @@ def reaction_from_str(repr: str, standardize=True) -> Reaction:
 
         for key in keys:
             required_type = reaction_def.vars_def[key][0]
-            if not isinstance(vars[key], required_type):
+            if not isinstance(vars[key], required_type) and isinstance(vars[key], ProteinSpec):
                 if required_type is GeneSpec:
                     vars[key] = vars[key].to_dna_component_spec()
                 elif required_type is MRNASpec:
                     vars[key] = vars[key].to_mrna_component_spec()
-                elif required_type is ProteinSpec:
-                    vars[key] = vars[key].to_protein_component_spec()
                 else:
                     raise NotImplementedError
 

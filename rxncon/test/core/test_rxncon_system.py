@@ -1,5 +1,6 @@
 from rxncon.input.quick.quick import Quick
 from rxncon.core.state import state_from_str
+from rxncon.core.reaction import reaction_from_str
 from collections import namedtuple
 from rxncon.util.utils import elems_eq
 from rxncon.core.spec import spec_from_str
@@ -63,3 +64,16 @@ def test_translation():
         [state_from_str('D_[x]--0'), state_from_str('D_[x]--B_[y]')]
     ])
 
+
+def test_non_elemental_contingency():
+    rxncon_sys = Quick('''A_trsl_BmRNA
+                       C_p+_B_[(r1)]
+                       D_p+_B_[(r2)]
+                       D_[x]_ppi_B_[y] ; ! B-{p}''').rxncon_system
+
+    contingencies = rxncon_sys.contingencies_for_reaction(reaction_from_str('D_[x]_ppi+_B_[y]'))
+
+    assert len(contingencies) == 1
+    assert state_from_str('B@1_[(r1)]-{p}') in contingencies[0].effector.states
+    assert state_from_str('B@1_[(r2)]-{p}') in contingencies[0].effector.states
+    assert contingencies[0].effector.name == 'B-{p}'

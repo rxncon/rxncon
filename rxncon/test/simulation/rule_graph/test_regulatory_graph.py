@@ -1,6 +1,7 @@
 
 from networkx import DiGraph
 from collections import namedtuple
+from rxncon.input.excel_book.excel_book import ExcelBook
 import rxncon.input.quick.quick as qui
 from rxncon.simulation.rule_graph.regulatory_graph import RegulatoryGraph, NodeType, EdgeInteractionType
 
@@ -25,6 +26,8 @@ def _get_state_nodes(test_case, expected_graph):
     for node in test_case.state_node_strings:
         if '#in' in node:
             expected_graph.add_node(node.split('#in')[0], type=NodeType.input.value, label=node.split('#in')[0])
+        elif '#comp' in node:
+            expected_graph.add_node(node.split('#comp')[0], type=NodeType.component.value, label=node.split('#comp')[0])
         else:
             expected_graph.add_node(node, type=NodeType.state.value, label=node)
     return expected_graph
@@ -93,7 +96,7 @@ def _is_graph_test_case_correct(actual_graph, test_case) -> bool:
         assert expected_graph.edge[edge] == actual_graph.edge[edge]
     return expected_graph.node == actual_graph.node and expected_graph.edge == actual_graph.edge
 
-def _create_regulatory_graph(quick_string, potential_degradation=False):
+def _create_regulatory_graph(quick_string):
     """
     Creating a regulatory graph.
 
@@ -105,7 +108,7 @@ def _create_regulatory_graph(quick_string, potential_degradation=False):
 
     """
     actual_system = qui.Quick(quick_string)
-    reg_system = RegulatoryGraph(actual_system.rxncon_system, potential_degradation)
+    reg_system = RegulatoryGraph(actual_system.rxncon_system)
     return reg_system.to_graph()
 
 
@@ -610,7 +613,7 @@ def test_deg_inhibited_mutually_exclusivity():
                               ('A_[c]--C_[a]', 'D_deg_A_ON_A_[c]--C_[a]', EdgeInteractionType.AND),
                               ('D_deg_A_ON_A_[c]--C_[a]', 'C_[a]--0', EdgeInteractionType.produce)])
 
-    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string, True), test_case)
+    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
 def test_deg_with_cont():
@@ -792,10 +795,10 @@ def test_deg_bool_two_complements_AND_NOT_():
 
 def test_deg_NOT_AND():
     """
-    Testing AND combination of NOT boolean.
+    Testing degradation with AND combination of NOT boolean.
 
     Note:
-        A special case is that we have a NOT of ANDs. This will result in OR of NOTs. Meaning that in this case we
+        We have the special case that we have a NOT of ANDs. This will result in OR of NOTs. Meaning that in this case we
         have NOT A_[x]--B_[a] OR NOT A_[(d)]-{p}.
 
         In principle we are splitting the degradation during the interpretation step if we have to consider ORs.
@@ -811,6 +814,10 @@ def test_deg_NOT_AND():
         transformed into maybe_degraded edges, because it can be that the state is degraded but not in all cases.
 
     Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
 
     """
     test_case = RuleTestCase('''A_[x]_ppi+_B_[a]
@@ -867,6 +874,16 @@ def test_deg_NOT_AND():
 
 
 def test_deg_OR():
+    """
+    Testing degradation with OR statement
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
     test_case = RuleTestCase('''A_[x]_ppi+_B_[a]
                                 A_[c]_ppi+_C_[a]
                                 C_p+_A_[(c)]
@@ -917,6 +934,19 @@ def test_deg_OR():
 
 
 def test_deg_NOT_OR():
+    """
+    Testing degradation with NOT of ORs
+
+    Note:
+        The NOT of ORS will be translated into a requirement of ANDs
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+
+    """
     test_case = RuleTestCase('''A_[x]_ppi+_B_[a]
                                 A_[c]_ppi+_C_[a]
                                 C_p+_A_[(c)]
@@ -995,5 +1025,63 @@ def test_deg_double_negation():
                               ('NOT', 'comp', EdgeInteractionType.OR),
                               ('A_[(c)]-{p}', 'NOT', EdgeInteractionType.NOT),
                               ('comp', 'D_deg_A', EdgeInteractionType.inhibited)])
+
+    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+
+
+def test_synthesis_component():
+    test_case = RuleTestCase('''D_trsc_A''',
+                             ['D_trsc_AGene'],
+                             ['AmRNA#component'],
+                             [],
+                             [('D_trsc_AGene', 'AmRNA', EdgeInteractionType.synthesis)])
+    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+
+
+def test_component_trsc_trsl():
+    test_case = RuleTestCase('''D_trsc_A
+                                E_trsl_A''',
+                             ['D_trsc_AGene', 'E_trsl_AmRNA'],
+                             ['AmRNA#component', 'A#comp'],
+                             [],
+                             [('D_trsc_AGene', 'AmRNA', EdgeInteractionType.synthesis),
+                              ('E_trsl_AmRNA', 'A', EdgeInteractionType.synthesis),
+                              ('AmRNA', 'E_trsl_AmRNA', EdgeInteractionType.input_state)])
+
+    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+
+def test_state_trsc_trsl():
+    test_case = RuleTestCase('''D_trsc_A
+                                E_trsl_A
+                                C_p+_A_[(c)]
+                                A_[c]_ppi+_C_[a]''',
+                             ['D_trsc_AGene', 'E_trsl_AmRNA', 'C_p+_A_[(c)]', 'A_[c]_ppi+_C_[a]'],
+                             ['AmRNA#component', 'A_[(c)]-{0}', 'A_[(c)]-{p}', 'A_[c]--C_[a]', 'A_[c]--0', 'C_[a]--0'],
+                             [],
+                             [('D_trsc_AGene', 'AmRNA', EdgeInteractionType.synthesis),
+                              ('E_trsl_AmRNA', 'A_[(c)]-{0}', EdgeInteractionType.synthesis),
+                              ('E_trsl_AmRNA', 'A_[c]--0', EdgeInteractionType.synthesis),
+                              ('AmRNA', 'E_trsl_AmRNA', EdgeInteractionType.input_state),
+                              ('C_p+_A_[(c)]', 'A_[(c)]-{p}', EdgeInteractionType.produce),
+                              ('C_p+_A_[(c)]', 'A_[(c)]-{0}', EdgeInteractionType.consume),
+                              ('A_[(c)]-{0}', 'C_p+_A_[(c)]', EdgeInteractionType.source_state),
+                              ('A_[c]_ppi+_C_[a]', 'A_[c]--C_[a]', EdgeInteractionType.produce),
+                              ('A_[c]_ppi+_C_[a]', 'C_[a]--0', EdgeInteractionType.consume),
+                              ('A_[c]_ppi+_C_[a]', 'A_[c]--0', EdgeInteractionType.consume),
+                              ('A_[c]--0', 'A_[c]_ppi+_C_[a]', EdgeInteractionType.source_state),
+                              ('C_[a]--0', 'A_[c]_ppi+_C_[a]', EdgeInteractionType.source_state)])
+
+    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+
+
+def test_component_syn_deg():
+    test_case = RuleTestCase('''D_syn_A
+                                E_deg_A''',
+                             ['D_syn_A', 'E_deg_A'],
+                             ['A#component'],
+                             [],
+                             [('D_syn_A', 'A', EdgeInteractionType.synthesis),
+                              ('E_deg_A', 'A', EdgeInteractionType.degrade),
+                              ('A', 'E_deg_A', EdgeInteractionType.source_state)])
 
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)

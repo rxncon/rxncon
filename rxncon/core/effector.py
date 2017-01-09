@@ -2,16 +2,17 @@ import re
 from abc import ABCMeta, abstractproperty
 from typing import List, Optional, Dict
 from copy import deepcopy
+from enum import Enum, unique
 
 from rxncon.core.spec import spec_from_str, Spec
 from rxncon.core.state import State
-from rxncon.util.utils import OrderedEnum
 
 
 BOOLEAN_CONTINGENCY_REGEX = '^<.*>$'
 
 
-class BooleanOperator(OrderedEnum):
+@unique
+class BooleanOperator(Enum):
     op_and = 'and'
     op_or  = 'or'
     op_not = 'not'
@@ -19,11 +20,13 @@ class BooleanOperator(OrderedEnum):
 
 
 class BooleanContingencyName:
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         assert re.match(BOOLEAN_CONTINGENCY_REGEX, name)
         self.name = name
 
-    def __eq__(self, other: 'BooleanContingencyName') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, BooleanContingencyName):
+            return NotImplemented
         return self.name == other.name
 
     def __hash__(self) -> int:
@@ -37,7 +40,7 @@ class BooleanContingencyName:
 
 
 class QualSpec:
-    def __init__(self, namespace: List[str], spec: Spec):
+    def __init__(self, namespace: List[str], spec: Spec) -> None:
         self.namespace = namespace
         self.spec      = spec
         self._name     = '.'.join(namespace + [str(spec)])
@@ -48,7 +51,9 @@ class QualSpec:
     def __repr__(self) -> str:
         return 'QualSpec<{}>'.format(self._name)
 
-    def __eq__(self, other: 'QualSpec') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, QualSpec):
+            return NotImplemented
         return self.namespace == other.namespace and self.spec == other.spec
 
     def to_component_qual_spec(self) -> 'QualSpec':
@@ -127,9 +132,9 @@ class StructEquivalences:
 
 
 class TrivialStructEquivalences(StructEquivalences):
-    def __init__(self, initial_struct_specs: Dict[Spec, Spec]=None):
+    def __init__(self, initial_struct_specs: Dict[Spec, Spec]=None) -> None:
         if not initial_struct_specs:
-            self.struct_specs = {}
+            self.struct_specs = {}  # type: Dict[Spec, Spec]
         else:
             self.struct_specs = initial_struct_specs
 
@@ -206,7 +211,7 @@ class Effector(metaclass=ABCMeta):
 
 
 class StateEffector(Effector):
-    def __init__(self, expr: State):
+    def __init__(self, expr: State) -> None:
         self.expr = expr
 
     def __hash__(self) -> int:
@@ -218,7 +223,9 @@ class StateEffector(Effector):
     def __str__(self) -> str:
         return 'StateEffector({})'.format(str(self.expr))
 
-    def __eq__(self, other: Effector) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Effector):
+            return NotImplemented
         return isinstance(other, StateEffector) and self.expr == other.expr and self.name == other.name
 
     @property
@@ -262,7 +269,7 @@ class StateEffector(Effector):
 
 
 class NotEffector(Effector):
-    def __init__(self, expr: Effector, **kwargs):
+    def __init__(self, expr: Effector, **kwargs) -> None:
         try:
             self.name = kwargs['name']
         except KeyError:
@@ -272,7 +279,9 @@ class NotEffector(Effector):
     def __str__(self) -> str:
         return 'NotEffector({})'.format(self.expr)
 
-    def __eq__(self, other: Effector) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Effector):
+            return NotImplemented
         return isinstance(other, NotEffector) and self.expr == other.expr and self.name == other.name
 
     @property
@@ -292,12 +301,17 @@ class NotEffector(Effector):
 
 class NaryEffector(Effector):
     def __init__(self, *exprs, **kwargs):
+        self.exprs = exprs
+
         try:
             self.name = kwargs['name']
         except KeyError:
             pass
-        self.exprs  = exprs
-        self.equivs = StructEquivalences()
+
+        try:
+            self.equivs = kwargs['equivs']
+        except KeyError:
+            self.equivs = StructEquivalences()
 
     @property
     def states(self) -> List[State]:
@@ -327,7 +341,9 @@ class AndEffector(NaryEffector):
     def __repr__(self) -> str:
         return str(self)
 
-    def __eq__(self, other: Effector) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Effector):
+            return NotImplemented
         return isinstance(other, AndEffector) and self.name == other.name and self.exprs == other.exprs
 
 
@@ -341,6 +357,7 @@ class OrEffector(NaryEffector):
     def __repr__(self) -> str:
         return str(self)
 
-    def __eq__(self, other: Effector) -> bool:
-        return isinstance(other, OrEffector) and self.name == other.name and \
-               self.exprs == other.exprs
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Effector):
+            return NotImplemented
+        return isinstance(other, OrEffector) and self.name == other.name and self.exprs == other.exprs

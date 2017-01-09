@@ -155,9 +155,8 @@ def test_calc_state_paths_non_simply_connected():
 
 
 def test_with_connectivity_constraints():
-    first_states  = [ValueSet(state_from_str(x)) for x in ('B@9_[(x)]-{p}', 'X@0_[xc]--C@2_[cx]', 'B@9_[be]--E@4_[eb]', 'C@2_[cb]--B@9_[bc]',
-                                                           'E@4_[w]--W@8_[w]', 'E@4_[u]--Y@3_[q]', 'W@8_[t]--Y@3_[a]')]
-    second_states = [ValueSet(state_from_str(x)) for x in ('F@5_[fg]--G@6_[gf]', 'G@6_[gh]--H@7_[hg]', 'K@1_[kf]--F@5_[fk]', 'K@1_[(x)]-{p}')]
+    first_states  = [ValueSet(state_from_str(x)) for x in ('A@0_[ac]--C@2_[ca]', 'C@2_[ce]--E@4_[ec]')]
+    second_states = [ValueSet(state_from_str(x)) for x in ('B@1_[bd]--D@3_[db]', 'D@3_[df]--F@5_[fd]')]
 
     contingency = Union(Intersection(*first_states), Intersection(*second_states))
 
@@ -165,15 +164,15 @@ def test_with_connectivity_constraints():
 
     print(connected)
 
-    # print('Not connected:')
-    # for soln in contingency.calc_solutions():
-    #     print(soln)
-    #
-    # print()
-    #
-    # print('Connected:')
-    # for soln in connected.calc_solutions():
-    #     print(soln)
+    print('Not connected:')
+    for soln in contingency.calc_solutions():
+        print(soln)
+
+    print()
+
+    print('Connected:')
+    for soln in connected.calc_solutions():
+        print(soln)
 
 
 # Test simple rxncon systems.

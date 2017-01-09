@@ -1,6 +1,6 @@
 import functools
 import operator
-from typing import Dict, List, Any, Optional, Iterable
+from typing import Dict, List, Generic, Optional, TypeVar, MutableMapping
 from collections import OrderedDict
 from itertools import product
 import re
@@ -10,9 +10,11 @@ from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies, Expression
     Complement as pyedaComplement, One, Zero
 
 SYMS = [''.join(tup) for tup in product('ABCDEFGHIJKLMNOPQRSTUVWXYZ', repeat=2)]
+T = TypeVar('T')
 
-class Set:
-    def calc_solutions(self) -> List[Dict[Any, bool]]:
+
+class Set(Generic[T]):
+    def calc_solutions(self) -> List[Dict[T, bool]]:
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
 
@@ -22,17 +24,17 @@ class Set:
 
         return venn_solns
 
-    def to_simplified_set(self) -> 'Set':
+    def to_simplified_set(self) -> 'Set[T]':
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
         return venn_from_pyeda(self._to_pyeda_expr(val_to_sym).simplify(), sym_to_val)
 
-    def to_dnf_set(self) -> 'Set':
+    def to_dnf_set(self) -> 'Set[T]':
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
         return venn_from_pyeda(self._to_pyeda_expr(val_to_sym).to_dnf(), sym_to_val)
 
-    def to_dnf_list(self) -> List['Set']:
+    def to_dnf_list(self) -> List['Set[T]']:
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
         dnf_set = self._to_pyeda_expr(val_to_sym).to_dnf()
@@ -50,7 +52,7 @@ class Set:
         else:
             raise Exception
 
-    def to_dnf_nested_list(self) -> List[List['Set']]:
+    def to_dnf_nested_list(self) -> List[List['Set[T]']]:
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
         dnf_set = self._to_pyeda_expr(val_to_sym).to_dnf()
@@ -64,7 +66,7 @@ class Set:
         elif isinstance(dnf_set, AndOp):
             return [[venn_from_pyeda(x, sym_to_val) for x in dnf_set.xs]]
 
-        res = []
+        res = []  # type: List[List[Set[T]]]
         for term in dnf_set.xs:
             if isinstance(term, Literal):
                 res.append([venn_from_pyeda(term, sym_to_val)])
@@ -74,34 +76,28 @@ class Set:
                 raise Exception
         return res
 
-    def is_equivalent_to(self, other: 'Set') -> bool:
+    def is_equivalent_to(self, other: 'Set[T]') -> bool:
         val_to_sym = self._make_val_to_sym_dict()
         val_to_sym = other._make_val_to_sym_dict(val_to_sym)
         return self._to_pyeda_expr(val_to_sym).equivalent(other._to_pyeda_expr(val_to_sym))
 
-    def is_subset_of(self, other: 'Set') -> bool:
+    def is_subset_of(self, other: 'Set[T]') -> bool:
         val_to_sym = self._make_val_to_sym_dict()
         val_to_sym = other._make_val_to_sym_dict(val_to_sym)
         return Implies(self._to_pyeda_expr(val_to_sym), other._to_pyeda_expr(val_to_sym)).equivalent(expr(1))
 
-    def is_superset_of(self, other: 'Set') -> bool:
+    def is_superset_of(self, other: 'Set[T]') -> bool:
         return other.is_subset_of(self)
 
     @property
-    def values(self):
+    def values(self) -> List[T]:
         return []
 
-    @property
-    def value_type(self):
-        types = [type(x) for x in self.values]
-        # assert all(types[0] in x.mro() for x in types)
-        return types[0]
-
-    def _to_pyeda_expr(self, val_to_sym: Dict[Any, str]) -> Expression:
+    def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
         return None
 
-    def _make_val_to_sym_dict(self, existing_dict: Optional[OrderedDict]=None) -> OrderedDict:
-        vals = []
+    def _make_val_to_sym_dict(self, existing_dict: Optional[MutableMapping[T, str]]=None) -> MutableMapping[T, str]:
+        vals = []  # type: List[T]
 
         for v in self.values:
             found = False
@@ -118,7 +114,7 @@ class Set:
 
         if existing_dict:
             d = existing_dict
-            first_new_sym_idx = SYMS.index(next(reversed(d.values()))) + 1
+            first_new_sym_idx = SYMS.index(next(reversed(d.values()))) + 1  # type: ignore
             for i, val in enumerate(x for x in vals if x not in d.keys()):
                 d[val] = SYMS[i + first_new_sym_idx]
         else:
@@ -129,17 +125,19 @@ class Set:
         return d
 
 
-class UnarySet(Set):
+class UnarySet(Generic[T], Set[T]):
     pass
 
 
-class ValueSet(UnarySet):
-    def __init__(self, value):
+class ValueSet(Generic[T], UnarySet[T]):
+    def __init__(self, value: T) -> None:
         assert isinstance(hash(value), int)
         self.value = value
 
-    def __eq__(self, other: Set) -> bool:
-        if isinstance(other, ValueSet):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Set):
+            return NotImplemented
+        elif isinstance(other, ValueSet):
             return self.value == other.value
         else:
             return False
@@ -157,18 +155,20 @@ class ValueSet(UnarySet):
             return 'UniversalSet'
 
     @property
-    def values(self):
+    def values(self) -> List[T]:
         return [self.value]
 
-    def _to_pyeda_expr(self, val_to_sym: OrderedDict) -> Expression:
+    def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
         if self.value:
             return expr(val_to_sym[self.value])
         else:
             return expr(1)
 
 
-class EmptySet(UnarySet):
-    def __eq__(self, other: Set) -> bool:
+class EmptySet(Generic[T], UnarySet[T]):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Set):
+            return NotImplemented
         return isinstance(other, EmptySet)
 
     def __hash__(self) -> int:
@@ -180,16 +180,18 @@ class EmptySet(UnarySet):
     def __str__(self) -> str:
         return 'EmptySet'
 
-    def _to_pyeda_expr(self, val_to_sym: OrderedDict) -> Expression:
+    def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
         return expr(0)
 
 
-class Complement(UnarySet):
-    def __init__(self, expr: Set):
+class Complement(Generic[T], UnarySet[T]):
+    def __init__(self, expr: Set) -> None:
         self.expr = expr
 
-    def __eq__(self, other: Set) -> bool:
-        if isinstance(other, Complement):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Set):
+            return NotImplemented
+        elif isinstance(other, Complement):
             return self.expr == other.expr
         else:
             return False
@@ -204,25 +206,27 @@ class Complement(UnarySet):
         return '!({})'.format(str(self.expr))
 
     @property
-    def values(self):
+    def values(self) -> List[T]:
         return self.expr.values
 
-    def _to_pyeda_expr(self, val_to_sym: OrderedDict) -> Expression:
+    def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
         return Not(self.expr._to_pyeda_expr(val_to_sym))
 
 
-class NarySet(Set):
-    def __init__(self, *exprs: Iterable[Set]):
+class NarySet(Generic[T], Set[T]):
+    def __init__(self, *exprs: Set) -> None:
         self.exprs = exprs
 
     @property
-    def values(self):
+    def values(self) -> List[T]:
         return functools.reduce(operator.add, [expr.values for expr in self.exprs], [])
 
 
-class Intersection(NarySet):
-    def __eq__(self, other: Set) -> bool:
-        if isinstance(other, Intersection):
+class Intersection(Generic[T], NarySet[T]):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Set):
+            return NotImplemented
+        elif isinstance(other, Intersection):
             return all(my_expr == other_expr for my_expr, other_expr in zip(self.exprs, other.exprs))
         else:
             return False
@@ -236,13 +240,15 @@ class Intersection(NarySet):
     def __str__(self) -> str:
         return '({})'.format(' & '.join(str(expr) for expr in self.exprs))
 
-    def _to_pyeda_expr(self, val_to_sym: OrderedDict) -> Expression:
+    def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
         return And(*(expr._to_pyeda_expr(val_to_sym) for expr in self.exprs))
 
 
-class Union(NarySet):
-    def __eq__(self, other: Set) -> bool:
-        if isinstance(other, Union):
+class Union(Generic[T], NarySet[T]):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Set):
+            return NotImplemented
+        elif isinstance(other, Union):
             return all(my_expr == other_expr for my_expr, other_expr in zip(self.exprs, other.exprs))
         else:
             return False
@@ -256,21 +262,21 @@ class Union(NarySet):
     def __str__(self) -> str:
         return '({})'.format(' | '.join(str(expr) for expr in self.exprs))
 
-    def _to_pyeda_expr(self, val_to_sym: OrderedDict) -> Expression:
+    def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
         return Or(*(expr._to_pyeda_expr(val_to_sym) for expr in self.exprs))
 
 
-class Difference(Set):
-    def __new__(cls, *args, **kwargs) -> Set:
+class Difference(Generic[T], Set[T]):
+    def __new__(cls, *args, **kwargs) -> Set[T]:
         assert len(args) == 2
         return Intersection(args[0], Complement(args[1]))
 
 
-def UniversalSet() -> Set:
+def UniversalSet() -> Set[T]:
     return ValueSet(None)
 
 
-def venn_from_pyeda(pyeda_expr, sym_to_val):
+def venn_from_pyeda(pyeda_expr, sym_to_val: MutableMapping[str, T]) -> Set[T]:
     if pyeda_expr is One:
         return UniversalSet()
     elif pyeda_expr is Zero:
@@ -289,12 +295,12 @@ def venn_from_pyeda(pyeda_expr, sym_to_val):
         raise Exception
 
 
-def venn_from_str(venn_str, value_parser=lambda x: x):
+def venn_from_str(venn_str: str, value_parser=lambda x: x) -> Set[T]:
     # The values have to be surrounded by a single space.
     BOOL_REGEX            = '[\(\)\|\&\~]+'
     pyeda_str             = ''
-    pyeda_sym_to_val      = {}
-    venn_sym_to_pyeda_sym = {}
+    pyeda_sym_to_val      = OrderedDict()  # type: MutableMapping[str, T]
+    venn_sym_to_pyeda_sym = OrderedDict()  # type: MutableMapping[str, str]
     current_sym           = 0
 
     parts = venn_str.split()

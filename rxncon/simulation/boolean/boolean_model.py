@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Union
+from typing import List, Dict, Tuple
 from copy import deepcopy
 from enum import Enum
 
@@ -21,7 +21,7 @@ class BooleanModel:
     """
 
     def __init__(self, state_targets: List['StateTarget'], reaction_targets: List['ReactionTarget'],
-                 update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig'):
+                 update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig') -> None:
 
         self.update_rules       = update_rules
         self.initial_conditions = initial_conditions
@@ -161,7 +161,9 @@ class ReactionTarget(Target):
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def __eq__(self, other: Target):
+    def __eq__(self, other: object):
+        if not isinstance(other, Target):
+            return NotImplemented
         return isinstance(other, ReactionTarget) and self.reaction_parent == other.reaction_parent and \
             self.contingency_variant_index == other.contingency_variant_index and \
             self.interaction_variant_index == other.interaction_variant_index
@@ -321,7 +323,9 @@ class StateTarget(Target):
     def __str__(self) -> str:
         return str(self._state_parent)
 
-    def __eq__(self, other: 'Target') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Target):
+            return NotImplemented
         return isinstance(other, StateTarget) and self._state_parent == other._state_parent
 
     def is_produced_by(self, reaction_target: ReactionTarget) -> bool:
@@ -441,8 +445,10 @@ class ComponentStateTarget(StateTarget):
     def __init__(self, component: Spec) -> None:
         self.component = component
 
-    def __eq__(self, other: Target):
-        return isinstance(other, type(self)) and self.component == other.component
+    def __eq__(self, other: object):
+        if not isinstance(other, Target):
+            return NotImplemented
+        return isinstance(other, ComponentStateTarget) and self.component == other.component
 
     def __str__(self) -> str:
         return str(self.component)
@@ -450,7 +456,7 @@ class ComponentStateTarget(StateTarget):
     def __repr__(self) -> str:
         return str(self)
 
-    def __hash__(self) -> hash:
+    def __hash__(self) -> int:
         return hash(str(self))
 
     @property
@@ -596,7 +602,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             The initial conditions of the boolean model.
 
         """
-        conds = {}  # type: Dict[Union[ReactionTarget, StateTarget], bool]
+        conds = {}  # type: Dict[Target, bool]
 
         for target in reaction_targets:
             conds[target] = False
@@ -671,6 +677,12 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                     target.contingency_variant_index = index
                     reaction_target_to_factor[target] = factor
 
+    def update_degradations_with_component_states():
+        for reaction_target in reaction_target_to_factor.keys():
+            for degraded_component in reaction_target.degraded_components:
+                if ComponentStateTarget(degraded_component) in component_state_targets:
+                    reaction_target.degraded_targets.append(ComponentStateTarget(degraded_component))
+
     def update_degradations_with_contingencies():
         def degraded_state_targets(component: Spec, soln: Dict[StateTarget, bool]) -> List[StateTarget]:
             # soln evaluates to False if solution is tautology.
@@ -686,8 +698,22 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 return trues
 
         for reaction_target, contingency_factor in reaction_target_to_factor.items():
-            if not reaction_target.degraded_components:
+            if contingency_factor.is_equivalent_to(UniversalSet()) and not reaction_target.degraded_components:
+                pass
+
+            if contingency_factor.is_equivalent_to(UniversalSet()) and reaction_target.degraded_components:
+                for degraded_component in reaction_target.degraded_components:
+                    reaction_target.degraded_targets += degraded_state_targets(degraded_component, {})
+
+            # Make sure the contingency concerns the object, not the subject of the degradation.
+            contingency_components = []
+
+            for state in (state for state in contingency_factor.values if state):
+                contingency_components.extend(state.components)
+
+            if not any(x in reaction_target.degraded_components for x in contingency_components):
                 continue
+
             solns = contingency_factor.calc_solutions()
             assert len(solns) == 1
             soln = solns[0]
@@ -773,7 +799,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             component_factor = Intersection(*(component_to_factor[x] for x in reaction_target.components_lhs))
             reaction_rules.append(UpdateRule(reaction_target, Intersection(component_factor, contingency_factor).to_simplified_set()))
 
-    def calc_state_rules() -> BooleanModel:
+    def calc_state_rules() -> None:
         """
         Calculates the rules of state targets.
 
@@ -847,6 +873,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
     calc_component_factors()
     calc_contingency_factors()
+    update_degradations_with_component_states()
     update_degradations_with_contingencies()
     update_degradations_for_interaction_states()
     update_syntheses_with_component_states()
@@ -910,8 +937,10 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
             return '({})'.format(' & '.join(str_from_factor(x) for x in factor.exprs))
         elif isinstance(factor, Union):
             return '({})'.format(' | '.join(str_from_factor(x) for x in factor.exprs))
+        elif isinstance(factor, EmptySet):
+            return '0'
         else:
-            raise AssertionError
+            raise AssertionError('Could not parse factor {}'.format(factor))
 
     def str_from_update_rule(update_rule: UpdateRule) -> str:
         """
@@ -966,7 +995,7 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
                 state_index += 1
                 return name
             else:
-                return AssertionError
+                raise AssertionError
 
     boolnet_names  = {}  # type: Dict[Target, str]
 
