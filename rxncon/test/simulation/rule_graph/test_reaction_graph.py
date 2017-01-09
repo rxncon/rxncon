@@ -61,8 +61,7 @@ def _create_reaction_graph(quick_string):
     reaction_system = ReactionGraph(actual_system.rxncon_system)
     return reaction_system.to_graph()
 
-def test_simple_system():
-
+def test_ppi():
     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]''',
                              [('A', 'A', NodeType.component), ('A_[b]', 'b', NodeType.domain),
                               ('B', 'B', NodeType.component), ('B_[a]', 'a', NodeType.domain)],
@@ -71,4 +70,15 @@ def test_simple_system():
                               ('A_[b]', 'B_[a]', EdgeWith.external, EdgeType.interaction)])
 
     assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+def test_ipi():
+    test_case = RuleTestCase('''A_[a1]_ipi+_A_[a2]''',
+                             [('A', 'A', NodeType.component), ('A_[a1]', 'a1', NodeType.domain),
+                              ('A_[a2]', 'a2', NodeType.domain)],
+                             [('A', 'A_[a1]', EdgeWith.internal, EdgeType.interaction),
+                              ('A', 'A_[a2]', EdgeWith.internal, EdgeType.interaction),
+                              ('A_[a1]', 'A_[a2]', EdgeWith.external, EdgeType.interaction)])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
 

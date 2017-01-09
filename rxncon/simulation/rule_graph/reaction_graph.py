@@ -1,8 +1,10 @@
+from typing import Union
 from enum import Enum
 from networkx import DiGraph
+from copy import deepcopy
 from rxncon.core.reaction import Reaction
 from rxncon.core.rxncon_system import RxnConSystem
-from rxncon.core.spec import Spec
+from rxncon.core.spec import Spec, Locus
 
 
 class EdgeWith(Enum):
@@ -22,6 +24,12 @@ class NodeType(Enum):
     domain    = '40'
     residue   = '20'
 
+
+def get_valid_spec(locus: Locus, alternative_spec: Spec):
+    assert isinstance(locus, Locus)
+    specification = deepcopy(alternative_spec)
+    specification.locus = locus
+    return specification
 
 def get_node_id(specification: Spec, node_type: NodeType):
     """
@@ -75,21 +83,19 @@ def get_node_label(specification: Spec, node_type: NodeType):
 INTERACTION_STATES = {
     # Interaction state.
     '$x--$y': [
-        lambda state, builder: builder.add_spec_nodes(state.specs[0]),
-        lambda state, builder: builder.add_spec_nodes(state.specs[1]),
-        lambda state, builder: builder.add_spec_edges(state.specs[0]),
-        lambda state, builder: builder.add_spec_edges(state.specs[1]),
+        lambda state, builder: builder.add_spec_information(state['$x']),
+        lambda state, builder: builder.add_spec_information(state['$y']),
         lambda state, builder: builder.add_external_edge(source=get_node_id(state.specs[0], NodeType.domain),
                                                          target=get_node_id(state.specs[1], NodeType.domain),
                                                          type=EdgeType.interaction)
     ],
     # Self-interaction state.
     '$x--[$y]': [
-        lambda state, builder: builder.add_node(node_id=get_node_id(state.specs[0], NodeType.component), type=NodeType.component, label=state.specs[0].component_name),
-        lambda state, builder: builder.add_node(node_id=state.specs[1], type=NodeType.domain, label=state.specs[1]),
-        lambda state, builder: builder.add_spec_edges(state.specs[0]),
-        lambda state, builder: builder.add_spec_edges(state.specs[1]),
-        lambda state, builder: builder.add_external_edge(source=get_node_id(state.specs[0], NodeType.domain), target=state.specs[1], type=EdgeType.interaction)
+        lambda state, builder: builder.add_spec_information(state['$x']),
+        lambda state, builder: builder.add_spec_information(get_valid_spec(state['$y'], state['$x'])),
+        lambda state, builder: builder.add_external_edge(source=get_node_id(state['$x'], NodeType.domain),
+                                                         target=get_node_id(get_valid_spec(state['$y'], state['$x']), NodeType.domain),
+                                                         type=EdgeType.interaction)
     ],
 }
 
@@ -112,7 +118,9 @@ class ReactionGraph:
                     func(product_states, self.builder)
 
         def _add_cis_reaction_to_graph(reaction: Reaction):
-            pass
+            for product_states in reaction.produced_states:
+                for func in INTERACTION_STATES[product_states.repr_def]:
+                    func(product_states, self.builder)
 
 
         if self.is_trans(reaction):
@@ -142,29 +150,34 @@ class GraphBuilder():
     def add_external_edge(self, source: str, target: str, type: EdgeType):
         self._add_edge(source, target, interaction=type, width=EdgeWith.external)
 
-    def add_spec_nodes(self, specification: Spec):
-        self._add_node(node_id=get_node_id(specification, NodeType.component), type=NodeType.component,
-                       label=get_node_label(specification, NodeType.component))
+    def add_spec_information(self, specification: Spec):
 
-        if specification.locus.domain:
-            self._add_node(get_node_id(specification, NodeType.domain), type=NodeType.domain,
-                           label=get_node_label(specification, NodeType.domain))
-        if specification.locus.residue:
-            self._add_node(get_node_id(specification, NodeType.residue), type=NodeType.residue,
-                           label=get_node_label(specification, NodeType.residue))
+        def _add_spec_nodes():
+            self._add_node(node_id=get_node_id(specification, NodeType.component), type=NodeType.component,
+                           label=get_node_label(specification, NodeType.component))
 
-    def add_spec_edges(self, specification: Spec):
-
-        if specification.locus.domain:
-            self._add_edge(get_node_id(specification, NodeType.component),
-                           get_node_id(specification, NodeType.domain), interaction=EdgeType.interaction,
-                           width=EdgeWith.internal)
+            if specification.locus.domain:
+                self._add_node(get_node_id(specification, NodeType.domain), type=NodeType.domain,
+                               label=get_node_label(specification, NodeType.domain))
             if specification.locus.residue:
-                self._add_edge(get_node_id(specification, NodeType.domain), get_node_id(specification, NodeType.residue),
-                               interaction=EdgeType.interaction, width=EdgeWith.internal)
-        elif specification.locus.residue:
-            self._add_edge(get_node_id(specification, NodeType.component), get_node_id(specification, NodeType.residue),
+                self._add_node(get_node_id(specification, NodeType.residue), type=NodeType.residue,
+                               label=get_node_label(specification, NodeType.residue))
+
+        def _add_spec_edges():
+
+            if specification.locus.domain:
+                self._add_edge(get_node_id(specification, NodeType.component),
+                               get_node_id(specification, NodeType.domain), interaction=EdgeType.interaction,
+                               width=EdgeWith.internal)
+                if specification.locus.residue:
+                    self._add_edge(get_node_id(specification, NodeType.domain), get_node_id(specification, NodeType.residue),
+                                   interaction=EdgeType.interaction, width=EdgeWith.internal)
+            elif specification.locus.residue:
+                self._add_edge(get_node_id(specification, NodeType.component), get_node_id(specification, NodeType.residue),
                            interaction=EdgeType.interaction, width=EdgeWith.internal)
+
+        _add_spec_nodes()
+        _add_spec_edges()
 
     def get_graph(self):
         return self._reaction_graph
