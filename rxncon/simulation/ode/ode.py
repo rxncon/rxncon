@@ -1,13 +1,13 @@
-import typecheck as tc
 from typing import List
 
-import rxncon.simulation.ode.polynomials as pol
+from rxncon.simulation.ode.polynomials import Polynomial, PolynomialTerm, Symbol, Monomial, MonomialFactor
 
+
+PythonStatement = str
 
 
 class ODE:
-    @tc.typecheck
-    def __init__(self, time_derivative: pol.Symbol, polynomial: pol.Polynomial):
+    def __init__(self, time_derivative: Symbol, polynomial: Polynomial) -> None:
         self.time_derivative = time_derivative
         self.polynomial = polynomial
 
@@ -26,7 +26,7 @@ class ODESystem:
     name_y = 'ys'
     name_t = 't'
 
-    def __init__(self, odes: List[ODE]):
+    def __init__(self, odes: List[ODE]) -> None:
         self.odes = odes
         self._validate()
 
@@ -40,7 +40,7 @@ class ODESystem:
 
         return eval(self.name_func)
 
-    def to_py_code_symbol_defs(self):
+    def to_py_code_symbol_defs(self) -> List[PythonStatement]:
         symbol_defs = []
 
         for i, ode in enumerate(self.odes):
@@ -48,7 +48,7 @@ class ODESystem:
 
         return symbol_defs
 
-    def to_py_code_function_defs(self):
+    def to_py_code_function_defs(self) -> List[PythonStatement]:
         function_defs = []
 
         for i, ode in enumerate(self.odes):
@@ -56,27 +56,27 @@ class ODESystem:
 
         return function_defs
 
-    def to_py_code_return_statement(self):
+    def to_py_code_return_statement(self) -> PythonStatement:
         func_names = ['{0}{1}'.format(self.name_func, i) for i, ode in enumerate(self.odes)]
         func_string = ', '.join(func_names)
 
         return 'return [{0}]'.format(func_string)
 
-    def _validate(self):
+    def _validate(self) -> None:
         if not len(set(x.time_derivative for x in self.odes)) == len(self.odes):
             raise AssertionError('Multiply defined time_derivative terms in ODESystem {}'.format(self.odes))
 
 
-def _polynomial_term_to_py_code(polterm: pol.PolynomialTerm):
+def _polynomial_term_to_py_code(polterm: PolynomialTerm) -> PythonStatement:
     if polterm.monomial.is_constant:
         return '{0}'.format(polterm.factor)
     else:
         return '({0}) * ({1})'.format(polterm.factor, _monomial_to_py_code(polterm.monomial))
 
 
-def _monomial_to_py_code(monomial: pol.Monomial):
+def _monomial_to_py_code(monomial: Monomial) -> PythonStatement:
     return ' * '.join(_monomial_factor_to_py_code(x) for x in monomial.factors)
 
 
-def _monomial_factor_to_py_code(monomial_factor: pol.MonomialFactor):
+def _monomial_factor_to_py_code(monomial_factor: MonomialFactor) -> PythonStatement:
     return '{0} ** {1}'.format(monomial_factor.symbol.name, monomial_factor.power)
