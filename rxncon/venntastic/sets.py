@@ -10,7 +10,11 @@ from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies, Expression
     Complement as pyedaComplement, One, Zero
 
 SYMS = [''.join(tup) for tup in product('ABCDEFGHIJKLMNOPQRSTUVWXYZ', repeat=2)]
-T = TypeVar('T')
+
+# Since all Set expressions except ValueSet are covariant, we make the 'T' type var covariant,
+# and make ValueSet[T_inv] for invariant.
+T = TypeVar('T', covariant=True)
+T_inv = TypeVar('T_inv')
 
 
 class Set(Generic[T]):
@@ -170,8 +174,8 @@ class UnarySet(Set[T], Generic[T]):
     pass
 
 
-class ValueSet(UnarySet[T], Generic[T]):
-    def __init__(self, value: T) -> None:
+class ValueSet(UnarySet[T_inv], Generic[T_inv]):
+    def __init__(self, value: T_inv) -> None:
         assert value is not None
         assert isinstance(hash(value), int)
         self.value = value
@@ -197,10 +201,10 @@ class ValueSet(UnarySet[T], Generic[T]):
             return 'UniversalSet'
 
     @property
-    def values(self) -> List[T]:
+    def values(self) -> List[T_inv]:
         return [self.value]
 
-    def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
+    def _to_pyeda_expr(self, val_to_sym: MutableMapping[Any, str]) -> Expression:
         return expr(val_to_sym[self.value])
 
 
