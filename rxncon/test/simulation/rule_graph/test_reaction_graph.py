@@ -2,7 +2,7 @@ import pytest
 from collections import namedtuple
 from networkx import DiGraph
 from rxncon.input.quick.quick import Quick
-from rxncon.simulation.rule_graph.reaction_graph import ReactionGraph, EdgeWith, EdgeType, NodeType
+from rxncon.simulation.rule_graph.reaction_graph import ReactionGraph, EdgeWith, EdgeType, NodeType, rxngraph_from_rxncon_system
 
 RuleTestCase = namedtuple('RuleTestCase', ['quick_string', 'node_tuples', 'edge_tuples'])
 
@@ -58,8 +58,7 @@ def _create_reaction_graph(quick_string):
 
     """
     actual_system = Quick(quick_string)
-    reaction_system = ReactionGraph(actual_system.rxncon_system)
-    return reaction_system.to_graph()
+    return rxngraph_from_rxncon_system(actual_system.rxncon_system)
 
 def test_ppi():
     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]''',

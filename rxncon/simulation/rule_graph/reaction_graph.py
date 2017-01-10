@@ -85,56 +85,26 @@ INTERACTION_STATES = {
     '$x--$y': [
         lambda state, builder: builder.add_spec_information(state['$x']),
         lambda state, builder: builder.add_spec_information(state['$y']),
-        lambda state, builder: builder.add_external_edge(source=get_node_id(state.specs[0], NodeType.domain),
-                                                         target=get_node_id(state.specs[1], NodeType.domain),
+        lambda state, builder: builder.add_external_edge(source=state['$x'], target=state['$y'],
                                                          type=EdgeType.interaction)
     ],
     # Self-interaction state.
     '$x--[$y]': [
         lambda state, builder: builder.add_spec_information(state['$x']),
         lambda state, builder: builder.add_spec_information(get_valid_spec(state['$y'], state['$x'])),
-        lambda state, builder: builder.add_external_edge(source=get_node_id(state['$x'], NodeType.domain),
-                                                         target=get_node_id(get_valid_spec(state['$y'], state['$x']), NodeType.domain),
+        lambda state, builder: builder.add_external_edge(source=state['$x'],
+                                                         target=get_valid_spec(state['$y'], state['$x']),
                                                          type=EdgeType.interaction)
     ],
 }
 
 class ReactionGraph:
-    def __init__(self, rxncon_system: RxnConSystem):
-        self.rxncon_system = rxncon_system
-        self.builder = GraphBuilder()
-        #self.reaction_graph = DiGraph()
+    def __init__(self, reaction_graph: DiGraph):
+        self.reaction_graph = reaction_graph
+        self._validate_graph()
 
-    def to_graph(self):
-        for reaction in self.rxncon_system.reactions:
-            self.add_reaction_information_to_graph(reaction)
-        return self.builder.get_graph()
-
-    def add_reaction_information_to_graph(self, reaction: Reaction):
-
-        def _add_trans_reaction_to_graph(reaction: Reaction):
-            for product_states in reaction.produced_states:
-                for func in INTERACTION_STATES[product_states.repr_def]:
-                    func(product_states, self.builder)
-
-        def _add_cis_reaction_to_graph(reaction: Reaction):
-            for product_states in reaction.produced_states:
-                for func in INTERACTION_STATES[product_states.repr_def]:
-                    func(product_states, self.builder)
-
-
-        if self.is_trans(reaction):
-            _add_trans_reaction_to_graph(reaction)
-        elif self.is_cis(reaction):
-            _add_cis_reaction_to_graph(reaction)
-        else:
-            raise AssertionError
-
-    def is_cis(self, reaction: Reaction) -> bool:
-        return len(reaction.components_lhs) == 1 and len(reaction.components_rhs) == 1
-
-    def is_trans(self, reaction: Reaction) -> bool:
-        return not self.is_cis(reaction)
+    def _validate_graph(self):
+        pass
 
 
 class GraphBuilder():
@@ -148,6 +118,7 @@ class GraphBuilder():
         self._reaction_graph.add_edge(source, target, interaction=interaction.value, width=width.value)
 
     def add_external_edge(self, source: str, target: str, type: EdgeType):
+
         self._add_edge(source, target, interaction=type, width=EdgeWith.external)
 
     def add_spec_information(self, specification: Spec):
@@ -181,3 +152,31 @@ class GraphBuilder():
 
     def get_graph(self):
         return self._reaction_graph
+
+
+def rxngraph_from_rxncon_system(rxncon_system):
+    def add_trans_reaction_to_graph(reaction: Reaction):
+        for product_states in reaction.produced_states:
+            for func in INTERACTION_STATES[product_states.repr_def]:
+                func(product_states, builder)
+
+    def add_cis_reaction_to_graph(reaction: Reaction):
+            for product_states in reaction.produced_states:
+                for func in INTERACTION_STATES[product_states.repr_def]:
+                    func(product_states, builder)
+
+    def is_cis(reaction: Reaction) -> bool:
+        return len(reaction.components_lhs) == 1 and len(reaction.components_rhs) == 1
+
+    def is_trans(reaction: Reaction) -> bool:
+        return not is_cis(reaction)
+
+    builder = GraphBuilder()
+
+    for reaction in rxncon_system.reactions:
+        if is_trans(reaction):
+            add_trans_reaction_to_graph(reaction)
+        elif is_cis(reaction):
+            add_cis_reaction_to_graph(reaction)
+
+    return ReactionGraph(builder.get_graph())
