@@ -152,13 +152,13 @@ class XGMML:
             return '<att name="{}" value="{}" type="string"/>'.format(name, value)
 
 
-def map_layout2xgmml(no_layout_graph_str: str, template_file_str: str) -> str:
+def map_layout2xgmml(no_layout_graph_str: str, layout_template: str, str_template=False) -> str:
     """
     Mapping the layout information of a xgmml file to a xgmml string.
 
     Args:
         no_layout_graph_str: xgmml graph with no layout information.
-        template_file_str: xgmml graph with layout information
+        layout_template: xgmml graph with layout information
 
     Returns:
         XGMML String with mapped layout information.
@@ -211,11 +211,11 @@ def map_layout2xgmml(no_layout_graph_str: str, template_file_str: str) -> str:
                 element.setAttribute("z", template_coordinates[rxnconID]["z"])
                 element.appendChild(xmldoc_no_layout.createTextNode(''))
                 no_layout_node.appendChild(element)
-
-    _check_filepath(template_file_str)
+    if not str_template:
+        _check_filepath(layout_template)
     xmldoc_no_layout = minidom.parseString(no_layout_graph_str)
     node_list_no_layout = xmldoc_no_layout.getElementsByTagName('node')
-    template_coordinates = _get_labels_and_coordinates_dict(minidom.parse(template_file_str))
+    template_coordinates = _get_labels_and_coordinates_dict(minidom.parse(layout_template))
 
     _apply_template_layout()
 
