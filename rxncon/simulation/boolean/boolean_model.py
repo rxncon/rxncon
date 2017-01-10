@@ -825,8 +825,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 VennSet of the reaction target and its source states
 
             """
-            return Intersection(ValueSet(reaction_target),
-                                Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets)))
+            sources = Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
+            return Intersection(ValueSet(reaction_target), sources)
 
         def indirect_synth_path(state_target: StateTarget) -> VennSet[ReactionTarget]:
             my_brothers = [x for x in state_targets if state_target.shares_component_with(x) and x != state_target]
