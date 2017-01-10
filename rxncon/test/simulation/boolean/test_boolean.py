@@ -3,11 +3,11 @@ from rxncon.core.spec import spec_from_str
 from rxncon.core.state import state_from_str
 from rxncon.input.quick.quick import Quick
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, ReactionTarget, \
-    StateTarget, ComponentStateTarget, SmoothingStrategy
+    StateTarget, ComponentStateTarget, SmoothingStrategy, Target
 from rxncon.venntastic.sets import venn_from_str
 
 
-def target_from_str(target_str: str):
+def target_from_str(target_str: str) -> Target:
     """
     Generates a target from string input.
 
@@ -50,7 +50,7 @@ def target_from_str(target_str: str):
         raise SyntaxError('Could not parse target str {}'.format(target_str))
 
 
-def test_simple_system():
+def test_simple_system() -> None:
     """
     Testing a system of 4 reactions and 1 contingency.
 
@@ -96,7 +96,7 @@ def test_simple_system():
         assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
 
 
-def test_simple_system_with_input_state():
+def test_simple_system_with_input_state() -> None:
     """
     Testing a system of four reaction, one state contingency and one input contingency.
 
@@ -140,7 +140,7 @@ def test_simple_system_with_input_state():
         assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
 
 
-def test_trsl_trsc_deg():
+def test_trsl_trsc_deg() -> None:
     """
     Testing translation, transcription and degradation reactions.
 
@@ -180,7 +180,7 @@ def test_trsl_trsc_deg():
         assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
 
 
-def test_deg_without_contingency():
+def test_deg_without_contingency() -> None:
     """
     Testing a degradation reaction without contingencies.
 
@@ -224,7 +224,7 @@ def test_deg_without_contingency():
         assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
 
 
-def test_deg_with_requirement():
+def test_deg_with_requirement() -> None:
     boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(res)]
                                                        D_ub+_A_[(res)]
                                                        D_p+_A_[(other)]
@@ -254,7 +254,7 @@ def test_deg_with_requirement():
         assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
 
 
-def test_deg_with_contingency_on_subject():
+def test_deg_with_contingency_on_subject() -> None:
     boolean_model = boolean_model_from_rxncon(Quick("""A_deg_B ; ! A-{p}
                                                     C_p+_A""").rxncon_system)
 
@@ -273,7 +273,7 @@ def test_deg_with_contingency_on_subject():
     assert found_B and found_C
 
 
-def test_deg_with_inhibition():
+def test_deg_with_inhibition() -> None:
     boolean_model = boolean_model_from_rxncon(Quick("""B_p+_A_[(res)]
                                                        D_ub+_A_[(res)]
                                                        D_p+_A_[(other)]
@@ -284,7 +284,7 @@ def test_deg_with_inhibition():
     assert target_from_str('A_[(res)]-{ub}') in boolean_model.reaction_target_by_name('C_deg_A').degraded_targets
 
 
-def test_deg_with_boolean_contingency():
+def test_deg_with_boolean_contingency() -> None:
     """
     Testing a degradation reaction with boolean contingencies.
 
@@ -347,7 +347,7 @@ def test_deg_with_boolean_contingency():
         raise AssertionError
 
 
-def test_deg_with_interaction():
+def test_deg_with_interaction() -> None:
     """
     Testing degradation of interaction reaction.
 
@@ -375,7 +375,7 @@ def test_deg_with_interaction():
         assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
 
 
-def test_deg_with_interaction_as_requirement():
+def test_deg_with_interaction_as_requirement() -> None:
     boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
                                                        D_p+_A_[(r)]
                                                        C_deg_A; ! A_[x]--B_[y]""").rxncon_system)
@@ -391,7 +391,7 @@ def test_deg_with_interaction_as_requirement():
     assert boolean_model.reaction_target_by_name('C_deg_A#0/1').synthesised_targets == []
 
 
-def test_deg_with_interaction_as_inhibition():
+def test_deg_with_interaction_as_inhibition() -> None:
     boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
                                                        A_[x]_ppi+_D_[z]
                                                        A_[x]_ppi+_E_[w]
@@ -414,7 +414,7 @@ def test_deg_with_interaction_as_inhibition():
             raise AssertionError
 
 
-def test_smooth_production_sources():
+def test_smooth_production_sources() -> None:
     """
     Testing smoothing function.
 

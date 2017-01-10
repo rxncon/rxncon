@@ -363,7 +363,7 @@ class Parameter:
     def __init__(self, name: str, value: Optional[str]) -> None:
         self.name, self.value = name, value
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Parameter):
             return NotImplemented
         return self.name == other.name and self.value == other.value

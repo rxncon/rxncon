@@ -9,12 +9,12 @@ MISSING_UNNECESSARY_SHEET_XLS = os.path.join(os.path.dirname(__file__), 'missing
 SHUFFLED_COLUMNS_XLS          = os.path.join(os.path.dirname(__file__), 'shuffled_columns.xls')
 
 
-def test_missing_necessary_sheet():
+def test_missing_necessary_sheet() -> None:
     with pytest.raises(SyntaxError):
         excel = ExcelBook(MISSING_NECESSARY_SHEET_XLS)
 
 
-def test_missing_unnecessary_sheet():
+def test_missing_unnecessary_sheet() -> None:
     rxncon_system = ExcelBook(MISSING_UNNECESSARY_SHEET_XLS).rxncon_system
 
     expected_reactions = ['A_[x]_ppi+_B_[y]', 'A_[x]_ppi-_B_[y]', 'C_p+_A_[(z)]']
@@ -23,7 +23,7 @@ def test_missing_unnecessary_sheet():
         assert reaction_from_str(rxn) in rxncon_system.reactions
 
 
-def test_shuffled_columns():
+def test_shuffled_columns() -> None:
     rxncon_system = ExcelBook(SHUFFLED_COLUMNS_XLS).rxncon_system
 
     expected_reactions = ['A_[x]_ppi+_B_[y]', 'A_[x]_ppi-_B_[y]', 'C_p+_A_[(z)]']

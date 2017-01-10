@@ -1,9 +1,8 @@
 import os
-from typing import Dict
+from typing import Dict, Union
 from networkx import DiGraph
 from xml.dom import minidom
 
-from xml.etree import ElementTree as ET
 
 class XGMML:
     """
@@ -16,7 +15,6 @@ class XGMML:
     """
 
     def __init__(self, graph: DiGraph, graph_name: str) -> None:
-
         self.graph = graph
         self.graph_name = graph_name
 
@@ -31,14 +29,14 @@ class XGMML:
         xgmml = [self._header_string(), self._nodes_string(), self._edges_string(), self._footer_string()]
         return "\n".join(xgmml)
 
-    def to_file(self, file_path: str, force: bool= False) -> None:
+    def to_file(self, file_path: str, force: bool=False) -> None:
 
         """
         Writes the xgmml graph into a file.
 
         Args:
             file_path: path to the file the xgmml graph is written to.
-
+            force:     overwrite file if it already exists.
         Returns:
             None
 
@@ -143,7 +141,7 @@ class XGMML:
             edges.append(edge)
         return "\n".join(edges)
 
-    def _format_attribute(self, name, value):
+    def _format_attribute(self, name: str, value: Union[float, int, str]) -> str:
         if isinstance(value, float):
             return '<att name="{}" value="{}" type="double"/>'.format(name, value)
         elif isinstance(value, int):
@@ -204,7 +202,6 @@ def map_layout2xgmml(no_layout_graph_str: str, layout_template: str, str_templat
         for no_layout_node in node_list_no_layout:
             rxnconID = _get_rxnconID(no_layout_node)
             if rxnconID in template_coordinates:
-                #node_name = no_layout_node.getAttribute('label')
                 element = xmldoc_no_layout.createElement("graphics")
                 element.setAttribute("x", template_coordinates[rxnconID]["x"])
                 element.setAttribute("y", template_coordinates[rxnconID]["y"])
@@ -222,10 +219,10 @@ def map_layout2xgmml(no_layout_graph_str: str, layout_template: str, str_templat
     return xmldoc_no_layout.toprettyxml()
 
 
-def _get_rxnconID(element):
-        for child in element.childNodes:
-            if child.attributes and child.getAttribute('name') == "rxnconID":
-                return child.getAttribute('value')
+def _get_rxnconID(element: minidom.Element):
+    for child in element.childNodes:
+        if child.attributes and child.getAttribute('name') == "rxnconID":
+            return child.getAttribute('value')
 
 
 def _get_labels_and_coordinates_dict(xmldoc) -> Dict[str, Dict[str, str]]:

@@ -11,7 +11,7 @@ RuleTestCase = namedtuple('RuleTestCase', ['quick_string', 'reaction_node_string
                                            'boolean_state_node_tuple', 'edge_tuples'])
 
 
-def _get_state_nodes(test_case, expected_graph):
+def _get_state_nodes(test_case: RuleTestCase, expected_graph: DiGraph) -> DiGraph:
     """
     Adding state nodes to the expected graph.
 
@@ -33,7 +33,7 @@ def _get_state_nodes(test_case, expected_graph):
     return expected_graph
 
 
-def _get_reaction_nodes(test_case, expected_graph):
+def _get_reaction_nodes(test_case: RuleTestCase, expected_graph: DiGraph) -> DiGraph:
     for reaction_id in test_case.reaction_node_strings:
 
         if '#out' in reaction_id:
@@ -43,7 +43,8 @@ def _get_reaction_nodes(test_case, expected_graph):
             expected_graph.add_node(reaction_id, type=NodeType.reaction.value, label=reaction_label)
     return expected_graph
 
-def _get_boolean_complex_state_nodes(test_case, expected_graph):
+
+def _get_boolean_complex_state_nodes(test_case: RuleTestCase, expected_graph: DiGraph) -> DiGraph:
     """
     Adding boolean nodes to the expected graph.
 
@@ -72,7 +73,7 @@ def _get_boolean_complex_state_nodes(test_case, expected_graph):
     return expected_graph
 
 
-def _is_graph_test_case_correct(actual_graph, test_case) -> bool:
+def _is_graph_test_case_correct(actual_graph: DiGraph, test_case: RuleTestCase) -> bool:
     """
     Checking if the created and expected graph are equal.
 
@@ -96,7 +97,7 @@ def _is_graph_test_case_correct(actual_graph, test_case) -> bool:
         assert expected_graph.edge[edge] == actual_graph.edge[edge]
     return expected_graph.node == actual_graph.node and expected_graph.edge == actual_graph.edge
 
-def _create_regulatory_graph(quick_string):
+def _create_regulatory_graph(quick_string: str) -> DiGraph:
     """
     Creating a regulatory graph.
 
@@ -112,7 +113,7 @@ def _create_regulatory_graph(quick_string):
     return reg_system.to_graph()
 
 
-def test_regulatory_graph_for_two_reactions_one_contingency():
+def test_regulatory_graph_for_two_reactions_one_contingency() -> None:
     """
     Testing 2 reactions and 1 contingency.
 
@@ -138,7 +139,7 @@ def test_regulatory_graph_for_two_reactions_one_contingency():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_regulatory_graph_for_synthesis_reaction():
+def test_regulatory_graph_for_synthesis_reaction() -> None:
     """
     Testing regulatory graph for synthesis reaction.
 
@@ -169,7 +170,7 @@ def test_regulatory_graph_for_synthesis_reaction():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_regulatory_graph_for_boolean_AND():
+def test_regulatory_graph_for_boolean_AND() -> None:
     """
     Testing a regulatory graph with boolean AND.
 
@@ -214,7 +215,7 @@ def test_regulatory_graph_for_boolean_AND():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_regulatory_graph_for_boolean_AND_OR():
+def test_regulatory_graph_for_boolean_AND_OR() -> None:
     """
     Testing a regulatory graph with boolean AND OR combination.
 
@@ -285,7 +286,7 @@ def test_regulatory_graph_for_boolean_AND_OR():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_regulatory_graph_for_boolean_AND_OR_NOT():
+def test_regulatory_graph_for_boolean_AND_OR_NOT() -> None:
     """
     Testing regulatory graph for boolean AND OR NOT combination.
 
@@ -347,7 +348,7 @@ def test_regulatory_graph_for_boolean_AND_OR_NOT():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_regulatory_graph_for_production_consumption():
+def test_regulatory_graph_for_production_consumption() -> None:
     """
     Testing a regulatory graph for production and consumption reactions.
 
@@ -373,7 +374,7 @@ def test_regulatory_graph_for_production_consumption():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_regulatory_graph_for_INPUT():
+def test_regulatory_graph_for_INPUT() -> None:
     """
     Testing a regulatory graph for INPUT contingency.
 
@@ -398,7 +399,7 @@ def test_regulatory_graph_for_INPUT():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_regulatory_graph_for_boolean_with_INPUT():
+def test_regulatory_graph_for_boolean_with_INPUT() -> None:
     """
     Testing a regulatory graph for a boolean contingency containing an input.
 
@@ -442,7 +443,7 @@ def test_regulatory_graph_for_boolean_with_INPUT():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_regulatory_graph_for_structured_boolean():
+def test_regulatory_graph_for_structured_boolean() -> None:
     """
     Testing a regulatory graph for structured boolean contingency.
 
@@ -477,7 +478,7 @@ def test_regulatory_graph_for_structured_boolean():
     assert True #_is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_regulatory_graph_for_degradation_no_contingency():
+def test_regulatory_graph_for_degradation_no_contingency() -> None:
     """
     Testing a regulatory graph for degradation reaction without contingencies.
 
@@ -520,7 +521,7 @@ def test_regulatory_graph_for_degradation_no_contingency():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_deg_inhibited_by_interaction():
+def test_deg_inhibited_by_interaction() -> None:
     """
     Testing regulatory graph with degradation and contingencies
 
@@ -569,7 +570,7 @@ def test_deg_inhibited_by_interaction():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_deg_inhibited_mutually_exclusivity():
+def test_deg_inhibited_mutually_exclusivity() -> None:
     """
     Testing regulatory graph with degradation and contingencies.
 
@@ -616,7 +617,7 @@ def test_deg_inhibited_mutually_exclusivity():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_deg_with_cont():
+def test_deg_with_cont() -> None:
     """
     Testing regulatory graph with degradation and contingencies.
 
@@ -676,7 +677,7 @@ def test_deg_with_cont():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_deg_bool_AND_NOT():
+def test_deg_bool_AND_NOT() -> None:
     """
     Testing the degradation of a boolean AND NOT combination.
 
@@ -735,7 +736,7 @@ def test_deg_bool_AND_NOT():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_deg_bool_two_complements_AND_NOT_():
+def test_deg_bool_two_complements_AND_NOT_() -> None:
     """
     Testing the degradation of a boolean AND NOT combination.
 
@@ -793,7 +794,7 @@ def test_deg_bool_two_complements_AND_NOT_():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_deg_NOT_AND():
+def test_deg_NOT_AND() -> None:
     """
     Testing degradation with AND combination of NOT boolean.
 
@@ -873,7 +874,7 @@ def test_deg_NOT_AND():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_deg_OR():
+def test_deg_OR() -> None:
     """
     Testing degradation with OR statement
 
@@ -933,7 +934,7 @@ def test_deg_OR():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_deg_NOT_OR():
+def test_deg_NOT_OR() -> None:
     """
     Testing degradation with NOT of ORs
 
@@ -991,7 +992,7 @@ def test_deg_NOT_OR():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_deg_double_negation():
+def test_deg_double_negation() -> None:
     test_case = RuleTestCase('''A_[c]_ppi+_C_[a]
                                 C_p+_A_[(c)]
                                 C_p+_A_[(d)]
@@ -1029,7 +1030,7 @@ def test_deg_double_negation():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_synthesis_component():
+def test_synthesis_component() -> None:
     test_case = RuleTestCase('''D_trsc_A''',
                              ['D_trsc_AGene'],
                              ['AmRNA#component'],
@@ -1038,7 +1039,7 @@ def test_synthesis_component():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_component_trsc_trsl():
+def test_component_trsc_trsl() -> None:
     test_case = RuleTestCase('''D_trsc_A
                                 E_trsl_A''',
                              ['D_trsc_AGene', 'E_trsl_AmRNA'],
@@ -1050,7 +1051,7 @@ def test_component_trsc_trsl():
 
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
-def test_state_trsc_trsl():
+def test_state_trsc_trsl() -> None:
     test_case = RuleTestCase('''D_trsc_A
                                 E_trsl_A
                                 C_p+_A_[(c)]
@@ -1074,7 +1075,7 @@ def test_state_trsc_trsl():
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_component_syn_deg():
+def test_component_syn_deg() -> None:
     test_case = RuleTestCase('''D_syn_A
                                 E_deg_A''',
                              ['D_syn_A', 'E_deg_A'],

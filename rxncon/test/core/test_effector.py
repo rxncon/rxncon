@@ -2,7 +2,7 @@ import rxncon.core.effector as eff
 import rxncon.core.state as sta
 
 
-def test_effector_states_property():
+def test_effector_states_property() -> None:
     state_a1 = sta.state_from_str('A@0--C@2')
     state_a2 = sta.state_from_str('A@0-{p}')
     state_b1 = sta.state_from_str('B@1-{ub}')

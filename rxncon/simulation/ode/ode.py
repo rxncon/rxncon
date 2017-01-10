@@ -15,7 +15,7 @@ class ODE:
     def symbols(self):
         return self.polynomial.symbols.union({self.time_derivative})
 
-    def to_py_code(self):
+    def to_py_code(self) -> PythonStatement:
         rhs = ' + '.join(_polynomial_term_to_py_code(x) for x in self.polynomial.terms)
 
         return '{0}'.format(rhs)

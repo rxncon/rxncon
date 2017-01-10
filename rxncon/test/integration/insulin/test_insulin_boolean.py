@@ -4,7 +4,7 @@ from rxncon.test.simulation.boolean.test_boolean import target_from_str
 from rxncon.venntastic.sets import venn_from_str
 
 
-def test_insulin_no_smoothing():
+def test_insulin_no_smoothing() -> None:
     boolean_model = boolean_model_from_rxncon(Quick("""IR_[IRBD]_ppi+_IR_[IRBD]
                                                     IR_[IRBD]_ppi-_IR_[IRBD]
                                                     IR_[lig]_i+_insulin_[IR]; ! <IR-empty>

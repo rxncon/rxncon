@@ -8,7 +8,7 @@ from rxncon.venntastic.sets import venn_from_str, ValueSet
 
 
 # Test the *_from_str functions.
-def test_complex_from_str_equivalent():
+def test_complex_from_str_equivalent() -> None:
     complex_classes = [
         ['A()', 'A()'],
         ['A(x!1).A(x!1)', 'A(x!2).A(x!2)'],
@@ -22,7 +22,7 @@ def test_complex_from_str_equivalent():
             assert complex_from_str(second_complex).is_equivalent_to(complex_from_str(first_complex))
 
 
-def test_complex_from_str_inequivalent():
+def test_complex_from_str_inequivalent() -> None:
     complex_classes = [
         ['A()', 'B()'],
         ['A(x!1,r~p).B(rr~0,y!2,cc!1).C(c!2)', 'B(rr~0,y!4,cc!1).A(x!4,r~p).C(c!1)']
@@ -34,7 +34,7 @@ def test_complex_from_str_inequivalent():
             assert not complex_from_str(second_complex).is_equivalent_to(complex_from_str(first_complex))
 
 
-def test_invalid_complexes():
+def test_invalid_complexes() -> None:
     # Two molecules, not connected by any bond.
     with pytest.raises(AssertionError):
         c = complex_from_str('A().B()')
@@ -48,7 +48,7 @@ def test_invalid_complexes():
         c = complex_from_str('A(x!1).B(y!2)')
 
 
-def test_rule_from_str_equivalent():
+def test_rule_from_str_equivalent() -> None:
     rule_classes = [
         ['A(x) + B(y) -> A(x!1).B(y!1) k', 'B(y) + A(x) -> A(x!1).B(y!1) k', 'B(y) + A(x) -> B(y!4).A(x!4) k'],
         ['A(x) + A(x,r~p) -> A(x!1,r~p).A(x!1) kk', 'A(x) + A(x,r~p) -> A(x!2).A(x!2,r~p) kk'],
@@ -61,7 +61,7 @@ def test_rule_from_str_equivalent():
             assert rule_from_str(second_rule).is_equivalent_to(rule_from_str(first_rule))
 
 
-def test_rule_from_str_inequivalent():
+def test_rule_from_str_inequivalent() -> None:
     rule_classes = [
         ['A(x) + A(y,r~p) -> A(x!1,r~p).A(y!1) kk', 'A(x) + A(y,r~p) -> A(y!1).A(x!1,r~p) kk']
     ]
@@ -73,7 +73,7 @@ def test_rule_from_str_inequivalent():
 
 
 # Test some of the rule_based_model_from_rxncon parts.
-def test_calc_state_paths_simply_connected():
+def test_calc_state_paths_simply_connected() -> None:
     #  E
     #  |
     #  D   C
@@ -94,13 +94,15 @@ def test_calc_state_paths_simply_connected():
         'B@2_[bbb]--D@4_[d]': [['A@0_[a]--B@2_[b]']],
         'D@4_[dd]--E@5_[e]':  [['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]']],
         'E@5_[(r)]-{p}':      [['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'D@4_[dd]--E@5_[e]']],
-    }
+    }  # type: Dict[str, List[List[str]]]
 
     for state, paths in expected_state_to_paths.items():
-        assert actual_state_to_paths[state_from_str(state)] == [[state_from_str(s) for s in path] for path in paths]
+        assert len(actual_state_to_paths[state_from_str(state)]) == len(paths)
+        for path in paths:
+            assert [state_from_str(x) for x in path] in actual_state_to_paths[state_from_str(state)]
 
 
-def test_calc_state_paths_non_simply_connected():
+def test_calc_state_paths_non_simply_connected() -> None:
         #  D---C
         #   \ /
         #    B
@@ -146,7 +148,7 @@ def test_calc_state_paths_non_simply_connected():
                 ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]'],
                 ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]']
             ]
-        }
+        }  # type: Dict[str, List[List[str]]]
 
         for state, paths in expected_state_to_paths.items():
             assert len(actual_state_to_paths[state_from_str(state)]) == len(paths)
@@ -154,7 +156,7 @@ def test_calc_state_paths_non_simply_connected():
                 assert [state_from_str(x) for x in path] in actual_state_to_paths[state_from_str(state)]
 
 
-def test_with_connectivity_constraints():
+def test_with_connectivity_constraints() -> None:
     first_states  = [ValueSet(state_from_str(x)) for x in ('A@0_[ac]--C@2_[ca]', 'C@2_[ce]--E@4_[ec]')]
     second_states = [ValueSet(state_from_str(x)) for x in ('B@1_[bd]--D@3_[db]', 'D@3_[df]--F@5_[fd]')]
 
@@ -176,7 +178,7 @@ def test_with_connectivity_constraints():
 
 
 # Test simple rxncon systems.
-def test_single_requirement_modification():
+def test_single_requirement_modification() -> None:
     rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p}
                                              A_[b]_ppi-_B_[a]
                                              C_p+_A_[(r)]
@@ -205,7 +207,7 @@ def test_single_requirement_modification():
         assert any(initial_condition_from_str(ic).is_equivalent_to(actual_ic) for ic in expected_ics)
 
 
-def test_single_inhibition_modification():
+def test_single_inhibition_modification() -> None:
     rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; x A_[(r)]-{p}
                                              E_[x]_ppi+_B_[a]
                                              C_p+_A_[(r)]
@@ -236,7 +238,7 @@ def test_single_inhibition_modification():
         assert any(initial_condition_from_str(ic).is_equivalent_to(actual_ic) for ic in expected_ics)
 
 
-def test_single_inhibition_interaction():
+def test_single_inhibition_interaction() -> None:
     rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; x A_[(r)]-{p}
                                              E_[x]_ppi+_B_[a]
                                              C_p+_A_[(r)]
@@ -267,7 +269,7 @@ def test_single_inhibition_interaction():
         assert any(initial_condition_from_str(ic).is_equivalent_to(actual_ic) for ic in expected_ics)
 
 
-def test_boolean_requirement_interaction():
+def test_boolean_requirement_interaction() -> None:
     rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
                                              C_ppi+_D
                                              B_ppi+_E
@@ -296,7 +298,7 @@ def test_boolean_requirement_interaction():
         assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
 
 
-def test_boolean_inhibition_interaction():
+def test_boolean_inhibition_interaction() -> None:
     rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
                                              C_ppi+_D
                                              B_ppi+_E
@@ -326,7 +328,7 @@ def test_boolean_inhibition_interaction():
         assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
 
 
-def test_mutually_exclusive_bindings():
+def test_mutually_exclusive_bindings() -> None:
     rbm = rule_based_model_from_rxncon(Quick('''C_[A]_ppi+_A_[x]
                                              D_[A]_ppi+_A_[x]
                                              B_p+_A; x C_[A]--A_[x]''').rxncon_system)

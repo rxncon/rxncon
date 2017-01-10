@@ -10,13 +10,10 @@ from rxncon.input.excel_book.excel_book import ExcelBook
 
 PHEROMONE_XLS   = os.path.join(os.path.dirname(__file__), 'pheromone.xls')
 PHEROMONE_XGMML = os.path.join(os.path.dirname(__file__), 'pheromone_layout.xgmml')
-
-#System: A_[b]_ppi+_B_[a]; ! A_[(c)]-{p}
-#        C_p+_A_[(c)]
 NODE_LAYOUT_MANIPULATION = os.path.join(os.path.dirname(__file__), 'example_node_layout.xgmml')
 
 
-def _is_xgmml_export_test_case_correct(test_case_quick, expected_xgmml):
+def _is_xgmml_export_test_case_correct(test_case_quick: str, expected_xgmml: str) -> bool:
     """
 
     Args:
@@ -44,7 +41,7 @@ def _is_xgmml_export_test_case_correct(test_case_quick, expected_xgmml):
     return sorted(produced_xgmml_lines) == sorted(expected_xgmml_lines)
 
 
-def _can_xgmml_be_written_to_file(test_case_quick_string: str):
+def _can_xgmml_be_written_to_file(test_case_quick_string: str) -> bool:
     """
     Writing xgmml.
 
@@ -69,7 +66,7 @@ def _can_xgmml_be_written_to_file(test_case_quick_string: str):
     return file_exists and file_size > 0
 
 
-def test_simple_system():
+def test_simple_system() -> None:
     """
     Testing a simple system of 2 reactions and 1 contingency.
 
@@ -114,7 +111,7 @@ def test_simple_system():
     assert _can_xgmml_be_written_to_file(test_case_quick_str)
 
 
-def  test_creating_writing_xgmml_from_regulatory_graph_simple_boolean():
+def test_creating_writing_xgmml_from_regulatory_graph_simple_boolean() -> None:
     """
     Testing if a DiGraph can be written as xgmml and writen to file.
 
@@ -193,7 +190,7 @@ def  test_creating_writing_xgmml_from_regulatory_graph_simple_boolean():
     assert _can_xgmml_be_written_to_file(test_case_quick_str)
 
 
-def test_creating_writing_xgmml_from_regulatory_graph_complex_boolean():
+def test_creating_writing_xgmml_from_regulatory_graph_complex_boolean() -> None:
     """
     Testing a nested boolean.
 
@@ -297,7 +294,7 @@ def test_creating_writing_xgmml_from_regulatory_graph_complex_boolean():
     assert _can_xgmml_be_written_to_file(test_case_quick_str)
 
 
-def test_map_layout2xgmml():
+def test_map_layout2xgmml() -> None:
     """
     Testing if the new graph gets the correct layout of the old graph.
 
@@ -323,7 +320,7 @@ def test_map_layout2xgmml():
                for expected_layout_node in xmldoc_expected_layout_info)
 
 
-def test_adding_node():
+def test_adding_node() -> None:
     """
     Testing if the new graph gets tie correct layout of the old graph if we add an additional node.
 
@@ -353,7 +350,7 @@ def test_adding_node():
                for expected_layout_node in xmldoc_expected_layout_info)
 
 
-def test_removing_node():
+def test_removing_node() -> None:
     """
     Testing if the new graph gets tie correct layout of the old graph if we remove a node.
 

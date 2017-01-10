@@ -1,9 +1,11 @@
 import functools
-from typing import List
+from typing import List, TypeVar
 from enum import Enum
 import inspect
 from colorama import Fore
 
+
+T = TypeVar('T')
 
 def compose(*functions):
     return functools.reduce(lambda f, g: lambda x: f(g(x)), functions, lambda x: x)
@@ -31,7 +33,7 @@ def members(obj) -> List[str]:
     return [x for x in dir(obj) if not x.startswith('__')]
 
 
-def elems_eq(first_list, second_list):
+def elems_eq(first_list: List[T], second_list: List[T]) -> bool:
     if all(isinstance(x, list) for x in first_list) and all(isinstance(x, list) for x in second_list):
         uniq_first = [set(x) for x in first_list]
         uniq_second = [set(x) for x in second_list]
@@ -41,7 +43,7 @@ def elems_eq(first_list, second_list):
     else:
         return set(first_list) == set(second_list)
 
-def all_type_eq(elems):
+def all_type_eq(elems: List[T]) -> bool:
     assert elems
     the_type = type(elems[0])
 
@@ -51,7 +53,7 @@ def all_type_eq(elems):
 
     return True
 
-def all_eq(elems):
+def all_eq(elems: List[T]) -> bool:
     assert elems
     the_val = elems[0]
 
@@ -61,7 +63,7 @@ def all_eq(elems):
 
     return True
 
-def current_function_name(colored=True) -> str:
+def current_function_name(colored: bool=True) -> str:
     name = inspect.stack()[1][3]
     if colored:
         return Fore.MAGENTA + name + Fore.RESET

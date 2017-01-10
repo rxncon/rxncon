@@ -15,12 +15,12 @@ RXNCON_DEFINITIONS_FILENAME = 'rxncon_Definition.tsv'
 RXNCON_DEFINITIONS_PATH     = os.path.join(os.path.dirname(__file__), RXNCON_DEFINITIONS_FILENAME)
 
 
-def test_sbtab_definition_from_file():
+def test_sbtab_definition_from_file() -> None:
     sbtab = sbtab_data_from_file(DEFINITIONS_PATH)
     assert len(sbtab.entries) == 249
 
 
-def test_sbtab_header_version_ambiguity_parses():
+def test_sbtab_header_version_ambiguity_parses() -> None:
     input_version_separator_space = [
         ['!!SBtab SBtabVersion "0.8" Document="Hynne_2001" TableType="Quantity" TableName="Quantity-parameters"'],
         ['!Quantity', '!Name', '!Compound', '!Reaction', '!Location', '!Value', '!Unit', '!SBOTerm', '!QuantityType'],
@@ -39,7 +39,7 @@ def test_sbtab_header_version_ambiguity_parses():
     assert sbtab_space.version == sbtab_equals.version == '0.8'
 
 
-def test_validated_sbtab_from_list_of_lists():
+def test_validated_sbtab_from_list_of_lists() -> None:
     sbtab_input = [
         ['!!SBtab SBtabVersion "0.8" Document="Hynne_2001" TableType="Quantity" TableName="Quantity-parameters"'],
         ['!Quantity', '!Name', '!Compound', '!Reaction', '!Location', '!Value', '!Unit', '!SBOTerm', '!QuantityType'],
@@ -74,7 +74,7 @@ def test_validated_sbtab_from_list_of_lists():
     assert entry.QuantityType == 'forward unimolecular rate constant'
 
 
-def test_validated_sbtab_raises_value_error_wrong_type():
+def test_validated_sbtab_raises_value_error_wrong_type() -> None:
     sbtab_input = [
         ['!!SBtab SBtabVersion "0.8" Document="Hynne_2001" TableType="Quantity" TableName="Quantity-parameters"'],
         ['!Quantity', '!Name', '!Compound', '!Reaction', '!Location', '!Value', '!Unit', '!SBOTerm', '!QuantityType'],
@@ -87,7 +87,7 @@ def test_validated_sbtab_raises_value_error_wrong_type():
         sbtab = ValidatedSBtabData(sbtab_input, definitions)
 
 
-def test_validated_sbtab_tiger_contingencies():
+def test_validated_sbtab_tiger_contingencies() -> None:
     definitions = sbtab_data_from_file(RXNCON_DEFINITIONS_PATH)
 
     assert len(definitions.entries) > 0
