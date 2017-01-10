@@ -145,25 +145,24 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
 
 class _BooleanContingencyEffector(Effector):
     def __init__(self, expr: BooleanContingencyName, equivs: Optional[StructEquivalences]=None) -> None:
-        self.expr   = expr
+        self.expr = expr
         if not equivs:
             self.equivs = StructEquivalences()
         else:
             self.equivs = equivs
 
-    @typecheck
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Effector):
             return NotImplemented
         return isinstance(other, _BooleanContingencyEffector) and self.expr == other.expr
 
-    def states(self):
-        return [self.expr]
+    def states(self) -> List[State]:
+        return []
 
 
 def _dereference_boolean_contingency_effectors(self: Effector,
                                                effector_table: Dict[BooleanContingencyName, Effector],
-                                               equivalence_table: Dict[BooleanContingencyName, List[Tuple[QualSpec, QualSpec]]]):
+                                               equivalence_table: Dict[BooleanContingencyName, List[Tuple[QualSpec, QualSpec]]]) -> None:
     if isinstance(self, _BooleanContingencyEffector):
         logger.debug('_dereference_boolean_contingency_effectors: {}'.format(self.expr.name))
 

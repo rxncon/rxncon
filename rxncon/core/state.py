@@ -70,7 +70,7 @@ class StateDef:
     def __init__(self, name: str, repr_def: str, vars_def: Dict[str, Any], neutral_states_def: List[str]) -> None:
         self.name, self.repr_def, self.vars_def, self.neutral_states_def = name, repr_def, vars_def, neutral_states_def
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(str(self))
 
     def __str__(self) -> str:
@@ -121,7 +121,7 @@ class StateDef:
 
         return states
 
-    def validate_vars(self, vars: Dict[str, Any]):
+    def validate_vars(self, vars: Dict[str, Any]) -> None:
         for var, val in vars.items():
             assert isinstance(val, self.vars_def[var][0])
 
@@ -221,18 +221,20 @@ class State:
             return NotImplemented
         return self.definition == other.definition and self.vars == other.vars
 
-    def __lt__(self, other: 'State'):
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, State):
+            return NotImplemented
         return str(self) < str(other)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> Any:
         return self.vars[item]
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.definition.name
 
     @property
-    def repr_def(self):
+    def repr_def(self) -> str:
         return self.definition.repr_def
 
     def is_superset_of(self, other: 'State') -> bool:
@@ -280,7 +282,7 @@ class State:
     def specs(self) -> List[Spec]:
         return [x for x in self.vars.values() if isinstance(x, Spec)]
 
-    def update_specs(self, updates: Dict[Spec, Spec]):
+    def update_specs(self, updates: Dict[Spec, Spec]) -> None:
         new_vars = deepcopy(self.vars)
 
         for k, v in self.vars.items():
@@ -339,7 +341,7 @@ class State:
                 if isinstance(value, Spec)]
 
     @property
-    def _non_spec_props(self):
+    def _non_spec_props(self) -> List[Any]:
         return [x for x in self.vars.values() if not isinstance(x, Spec)]
 
 
@@ -356,7 +358,9 @@ class FullyNeutralState(State):
     def __repr__(self) -> str:
         return str(self)
 
-    def __lt__(self, other: 'State'):
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, State):
+            return NotImplemented
         return True
 
     def __eq__(self, other: object) -> bool:
@@ -364,7 +368,7 @@ class FullyNeutralState(State):
             return NotImplemented
         return isinstance(other, FullyNeutralState)
 
-    def to_non_structured(self):
+    def to_non_structured(self) -> State:
         return self
 
     @property

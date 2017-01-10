@@ -94,7 +94,7 @@ class RxnConSystem:
         return self._synthesised_states
 
     @property
-    def global_states(self):
+    def global_states(self) -> List[State]:
         if not self._global_states:
             self._calculate_global_states()
         return self._global_states
@@ -186,7 +186,7 @@ class RxnConSystem:
                                if state.is_neutral and state != FullyNeutralState()]
 
     def _expand_non_elemental_contingencies(self) -> None:
-        def expanded_effector(effector: Effector):
+        def expanded_effector(effector: Effector) -> Effector:
             if isinstance(effector, StateEffector):
                 if effector.expr.is_elemental:
                     return effector

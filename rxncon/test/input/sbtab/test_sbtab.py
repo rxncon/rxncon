@@ -59,19 +59,18 @@ def test_validated_sbtab_from_list_of_lists() -> None:
 
     # Assert both "entry[property]" and the "entry.property" work.
     entry = sbtab.entries[0]
-    assert entry.field_names == ['Quantity', 'Name', 'Compound', 'Reaction', 'Location', 'Value', 'Unit', 'SBOTerm', 'QuantityType']
-    assert [entry[field] for field in entry.field_names if field != 'Value'] ==\
-           ['Par1', 'k1', '', 'vGlcTrans', 'plasmamembrane', '1/s', 'SBO:0000022', 'forward unimolecular rate constant']
+    assert entry.field_names == ['Quantity', 'Name', 'Compound', 'Reaction', 'Location', 'Value', 'Unit', 'SBOTerm', 'QuantityType']  # type: ignore
+    assert [entry[field] for field in entry.field_names if field != 'Value'] == ['Par1', 'k1', '', 'vGlcTrans', 'plasmamembrane', '1/s', 'SBO:0000022', 'forward unimolecular rate constant']  # type: ignore
 
-    assert entry.Quantity     == 'Par1'
-    assert entry.Name         == 'k1'
-    assert entry.Compound     == ''
-    assert entry.Reaction     == 'vGlcTrans'
-    assert entry.Location     == 'plasmamembrane'
-    assert math.isclose(entry.Value, 0.14)
-    assert entry.Unit         == '1/s'
-    assert entry.SBOTerm      == 'SBO:0000022'
-    assert entry.QuantityType == 'forward unimolecular rate constant'
+    assert entry.Quantity     == 'Par1'                                 # type: ignore
+    assert entry.Name         == 'k1'                                   # type: ignore
+    assert entry.Compound     == ''                                     # type: ignore
+    assert entry.Reaction     == 'vGlcTrans'                            # type: ignore
+    assert entry.Location     == 'plasmamembrane'                       # type: ignore
+    assert math.isclose(entry.Value, 0.14)                              # type: ignore
+    assert entry.Unit         == '1/s'                                  # type: ignore
+    assert entry.SBOTerm      == 'SBO:0000022'                          # type: ignore
+    assert entry.QuantityType == 'forward unimolecular rate constant'   # type: ignore
 
 
 def test_validated_sbtab_raises_value_error_wrong_type() -> None:
@@ -97,10 +96,10 @@ def test_validated_sbtab_tiger_contingencies() -> None:
     assert len(sbtab.entries) == 313
 
     entry = sbtab.entries[0]
-    assert entry.ContingencyID     == 'ID1'
-    assert entry.Target            == 'Hog1_[KD]_P+_Rck2_[c(S519)]'
-    assert entry.Contingency       == '!'
-    assert entry.Modifier          == 'Hog1_[(T174)]-{P}'
-    assert entry.PubMedIdentifiers == '10805732'
-    assert entry.Quality           == 'in vitro kinase assay'
-    assert entry.Comment           == 'Hog1 activation by constitutive active Pbs2 needed.'
+    assert entry.ContingencyID     == 'ID1'                                                     # type: ignore
+    assert entry.Target            == 'Hog1_[KD]_P+_Rck2_[c(S519)]'                             # type: ignore
+    assert entry.Contingency       == '!'                                                       # type: ignore
+    assert entry.Modifier          == 'Hog1_[(T174)]-{P}'                                       # type: ignore
+    assert entry.PubMedIdentifiers == '10805732'                                                # type: ignore
+    assert entry.Quality           == 'in vitro kinase assay'                                   # type: ignore
+    assert entry.Comment           == 'Hog1 activation by constitutive active Pbs2 needed.'     # type: ignore

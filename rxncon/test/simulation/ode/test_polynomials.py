@@ -5,7 +5,7 @@ from rxncon.simulation.ode.polynomials import Polynomial, PolynomialTerm, Symbol
 
 
 ### MONOMIAL ALGEBRA ###
-def test_monomial_multiplication_positive_powers():
+def test_monomial_multiplication_positive_powers() -> None:
     x = Symbol('x')
     y = Symbol('y')
     z = Symbol('z')
@@ -17,7 +17,7 @@ def test_monomial_multiplication_positive_powers():
            Monomial({MonomialFactor(x, 3), MonomialFactor(y, 4), MonomialFactor(z, 5)})
 
 
-def test_monomial_multiplication_mixed_sign_powers():
+def test_monomial_multiplication_mixed_sign_powers() -> None:
     x = Symbol('x')
     y = Symbol('y')
     z = Symbol('z')
@@ -29,7 +29,7 @@ def test_monomial_multiplication_mixed_sign_powers():
            Monomial({MonomialFactor(x, 3), MonomialFactor(z, 5)})
 
 
-def test_monomial_multiplication_to_trivial():
+def test_monomial_multiplication_to_trivial() -> None:
     x = Symbol('x')
     y = Symbol('y')
     z = Symbol('z')
@@ -41,7 +41,7 @@ def test_monomial_multiplication_to_trivial():
     assert second_monomial * first_monomial == TrivialMonomial()
 
 
-def test_monomial_symbols():
+def test_monomial_symbols() -> None:
     x = Symbol('x')
     y = Symbol('y')
     z = Symbol('z')
@@ -55,31 +55,33 @@ def test_monomial_symbols():
 
 
 ### POLYNOMIAL ALGEBRA ###
-def test_polynomial_multiplication_by_polynomial(x_plus_y, x_minus_y, x_sq_minus_y_sq, x_sq_plus_two_xy_plus_y_sq):
+def test_polynomial_multiplication_by_polynomial(x_plus_y: Polynomial, x_minus_y: Polynomial, x_sq_minus_y_sq: Polynomial,
+                                                 x_sq_plus_two_xy_plus_y_sq: Polynomial) -> None:
     assert x_plus_y * x_minus_y == x_sq_minus_y_sq
     assert x_plus_y * x_plus_y == x_sq_plus_two_xy_plus_y_sq
 
 
-def test_polynomial_multiplication_by_int(x_plus_y, two_x_plus_two_y):
+def test_polynomial_multiplication_by_int(x_plus_y: Polynomial, two_x_plus_two_y: Polynomial) -> None:
     assert x_plus_y * 2 == two_x_plus_two_y
     assert 2 * x_plus_y == two_x_plus_two_y
 
 
-def test_polynomial_addition(x_plus_y, x_minus_y, two_x, two_x_plus_two_y, two_x_minus_two_y):
+def test_polynomial_addition(x_plus_y: Polynomial, x_minus_y: Polynomial, two_x: Polynomial, two_x_plus_two_y: Polynomial,
+                             two_x_minus_two_y: Polynomial) -> None:
     assert x_plus_y + x_plus_y == two_x_plus_two_y
     assert x_plus_y + x_minus_y == two_x
     assert x_minus_y + x_minus_y == two_x_minus_two_y
 
 
-def test_polynomial_addition_by_scalar(one_x, two_x, const_one):
+def test_polynomial_addition_by_scalar(one_x: Polynomial, two_x: Polynomial, const_one: Polynomial) -> None:
     assert 2 * (one_x + 1) == 2 * (one_x + const_one) == two_x + 2 == two_x + 2 * const_one == two_x + const_one * 2
 
 
-def test_polynomial_subtraction(one_x, one_y, two_x_minus_two_y, const_one):
+def test_polynomial_subtraction(one_x: Polynomial, one_y: Polynomial, two_x_minus_two_y: Polynomial) -> None:
     assert 2 * one_x - 2 * one_y == two_x_minus_two_y
 
 
-def test_polynomial_symbols(two_x, x_sq_minus_y_sq):
+def test_polynomial_symbols(two_x: Polynomial, x_sq_minus_y_sq: Polynomial) -> None:
     x = Symbol('x')
     y = Symbol('y')
 
@@ -89,14 +91,14 @@ def test_polynomial_symbols(two_x, x_sq_minus_y_sq):
 
 ### TEST FIXTURES ###
 @pytest.fixture
-def const_one():
+def const_one() -> Polynomial:
     x = TrivialMulSymbol()
     one = PolynomialTerm(Monomial({MonomialFactor(x, 0)}), 1.0)
 
     return Polynomial({one})
 
 @pytest.fixture
-def one_x():
+def one_x() -> Polynomial:
     x = Symbol('x')
     one_x = PolynomialTerm(Monomial({MonomialFactor(x, 1)}), 1.0)
 
@@ -104,7 +106,7 @@ def one_x():
 
 
 @pytest.fixture
-def one_y():
+def one_y() -> Polynomial:
     y = Symbol('y')
     one_y = PolynomialTerm(Monomial({MonomialFactor(y, 1)}), 1.0)
 
@@ -112,7 +114,7 @@ def one_y():
 
 
 @pytest.fixture
-def two_x():
+def two_x() -> Polynomial:
     x = Symbol('x')
     term_two_x = PolynomialTerm(Monomial({MonomialFactor(x, 1)}), 2.0)
 
@@ -120,7 +122,7 @@ def two_x():
 
 
 @pytest.fixture
-def x_plus_y():
+def x_plus_y() -> Polynomial:
     x = Symbol('x')
     y = Symbol('y')
     term_x = PolynomialTerm(Monomial({MonomialFactor(x, 1)}), 1.0)
@@ -130,7 +132,7 @@ def x_plus_y():
 
 
 @pytest.fixture
-def two_x_plus_two_y():
+def two_x_plus_two_y() -> Polynomial:
     x = Symbol('x')
     y = Symbol('y')
     term_two_x = PolynomialTerm(Monomial({MonomialFactor(x, 1)}), 2.0)
@@ -140,7 +142,7 @@ def two_x_plus_two_y():
 
 
 @pytest.fixture
-def two_x_minus_two_y():
+def two_x_minus_two_y() -> Polynomial:
     x = Symbol('x')
     y = Symbol('y')
     term_two_x = PolynomialTerm(Monomial({MonomialFactor(x, 1)}), 2.0)
@@ -150,7 +152,7 @@ def two_x_minus_two_y():
 
 
 @pytest.fixture
-def x_minus_y():
+def x_minus_y() -> Polynomial:
     x = Symbol('x')
     y = Symbol('y')
     term_x = PolynomialTerm(Monomial({MonomialFactor(x, 1)}), 1.0)
@@ -160,7 +162,7 @@ def x_minus_y():
 
 
 @pytest.fixture
-def x_sq_minus_y_sq():
+def x_sq_minus_y_sq() -> Polynomial:
     x = Symbol('x')
     y = Symbol('y')
     term_x_sq = PolynomialTerm(Monomial({MonomialFactor(x, 2)}), 1.0)
@@ -170,7 +172,7 @@ def x_sq_minus_y_sq():
 
 
 @pytest.fixture
-def x_sq_plus_two_xy_plus_y_sq():
+def x_sq_plus_two_xy_plus_y_sq() -> Polynomial:
     x = Symbol('x')
     y = Symbol('y')
     term_2xy = PolynomialTerm(Monomial({MonomialFactor(x, 1), MonomialFactor(y, 1)}), 2.0)

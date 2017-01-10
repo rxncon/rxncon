@@ -155,7 +155,8 @@ def test_ppi_superset_subset() -> None:
 
 def test_ppi_structured_index() -> None:
     state = state_from_str('X@4--Z@3')
-    assert elems_eq([(spec.component_name, spec.struct_index) for spec in state.specs], [('X', 4), ('Z', 3)])
+    assert spec_from_str('X@4') in state.specs
+    assert spec_from_str('Z@3') in state.specs
 
 
 def test_ppi_mutual_exclusivity() -> None:

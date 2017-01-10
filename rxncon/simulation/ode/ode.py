@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set as Set, Callable
 
 from rxncon.simulation.ode.polynomials import Polynomial, PolynomialTerm, Symbol, Monomial, MonomialFactor
 
@@ -12,7 +12,7 @@ class ODE:
         self.polynomial = polynomial
 
     @property
-    def symbols(self):
+    def symbols(self) -> Set[Symbol]:
         return self.polynomial.symbols.union({self.time_derivative})
 
     def to_py_code(self) -> PythonStatement:
@@ -31,7 +31,7 @@ class ODESystem:
         self._validate()
 
     @property
-    def odeint_function(self):
+    def odeint_function(self) -> Callable:
         indent = '    '
         body_statements = self.to_py_code_symbol_defs() + self.to_py_code_function_defs() + [self.to_py_code_return_statement()]
         body_string = indent + indent.join(body_statements)
