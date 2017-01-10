@@ -13,13 +13,19 @@ from rxncon.input.shared.reaction_preprocess import split_bidirectional_reaction
 class Quick:
     def __init__(self, rxncon_str: str) -> None:
         self.quick_input = rxncon_str.split('\n')
-        self.rxncon_system = None               # type: Optional[RxnConSystem]
+        self._rxncon_system = None              # type: Optional[RxnConSystem]
         self._reactions = []                    # type: List[Reaction]
         self._contingencies = []                # type: List[Contingency]
         self._contingency_list_entries = []     # type: List[ContingencyListEntry]
         self._parse_str()
         self._construct_contingencies()
         self._construct_rxncon_system()
+        assert self._rxncon_system is not None
+
+    @property
+    def rxncon_system(self) -> RxnConSystem:
+        assert self._rxncon_system is not None
+        return self._rxncon_system
 
     def _parse_str(self) -> None:
         INPUT_REGEX = '^\[.+?\]$'
@@ -54,4 +60,4 @@ class Quick:
         self._contingencies = contingencies_from_contingency_list_entries(self._contingency_list_entries)
 
     def _construct_rxncon_system(self) -> None:
-        self.rxncon_system = RxnConSystem(self._reactions, self._contingencies)
+        self._rxncon_system = RxnConSystem(self._reactions, self._contingencies)

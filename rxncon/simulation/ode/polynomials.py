@@ -184,7 +184,7 @@ class Polynomial:
 
             return Polynomial(set(new_terms))
 
-    def __rmul__(self, other: Union['Polynomial', float]) -> 'Polynomial':
+    def __rmul__(self, other: Union['Polynomial', float]) -> 'Polynomial':  # type: ignore
         return self * other
 
     def __str__(self) -> str:
