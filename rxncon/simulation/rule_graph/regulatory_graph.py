@@ -331,7 +331,7 @@ class RegulatoryGraph:
                         for state in complements:
                             self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.maybe_degraded)
 
-        def _update_contingency_information(value_set: ValueSet) -> None:
+        def _update_contingency_information(value_set: ValueSet[State]) -> None:
             """
             Updating the degradation information with its contingencies.
 
@@ -355,7 +355,7 @@ class RegulatoryGraph:
                     else:
                         self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.degrade)
 
-        def _update_contingency_information_for_complement(complement_value: Complement):
+        def _update_contingency_information_for_complement(complement_value: VennSet[State]):
             """
             Updating the contingency information for complements.
 
@@ -377,7 +377,7 @@ class RegulatoryGraph:
             state = complement_value.values[0]
             _add_complement_of_state_for_degradation_reaction(state)
 
-        def _get_positive_and_negative_states(nested_list: List[Union[ValueSet, Complement]], dnf_of_cont: List[List[Union[ValueSet, Complement]]]):
+        def _get_positive_and_negative_states(nested_list: List[VennSet[State]], dnf_of_cont: List[List[VennSet[State]]]):
             """
             Calculating a list of negative states (complements) and positive states (not complements).
 
@@ -389,8 +389,8 @@ class RegulatoryGraph:
                 A list of complements (negative_value_set) and positive_value_set.
 
             """
-            negative_value_set = []  # type: List[Complement]
-            positive_value_set = []  # type: List[ValueSet]
+            negative_value_set = []  # type: List[VennSet[State]]
+            positive_value_set = []  # type: List[VennSet[State]]
 
             for value in nested_list:
                 if all(value in nested_list for nested_list in dnf_of_cont):
@@ -411,7 +411,6 @@ class RegulatoryGraph:
             dnf_of_cont = cont.to_dnf_nested_list()
 
             for index, nested_list in enumerate(dnf_of_cont):
-
                 negative_value_set, positive_value_set = _get_positive_and_negative_states(nested_list, dnf_of_cont)
 
                 for value_set in positive_value_set:
@@ -538,6 +537,7 @@ class RegulatoryGraph:
             if isinstance(target, Reaction):
                 return self._replace_invalid_chars(str(target))
             elif isinstance(target, Effector):
+                assert target.name is not None
                 return self._replace_invalid_chars(target.name)
             else:
                 raise AssertionError
