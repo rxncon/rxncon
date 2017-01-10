@@ -156,7 +156,7 @@ class MolBuilder:
     def set_bond_index(self, spec: Spec, bond_index: Optional[int]) -> None:
         self.site_to_bond[site_name(spec)] = bond_index
 
-    def set_mod(self, spec: Spec, mod: Optional[StateModifier]) -> None:
+    def set_mod(self, spec: Spec, mod: StateModifier) -> None:
         self.site_to_mod[site_name(spec)] = str(mod.value)
 
 
@@ -291,7 +291,7 @@ class ComplexExprBuilder:
     def set_half_bond(self, spec: Spec, value: Optional[int]) -> None:
         self._mol_builders[spec.to_component_spec()].set_bond_index(spec, value)
 
-    def set_mod(self, spec: Spec, mod: Optional[StateModifier]) -> None:
+    def set_mod(self, spec: Spec, mod: StateModifier) -> None:
         self._mol_builders[spec.to_component_spec()].set_mod(spec, mod)
 
     def _grouped_specs(self) -> List[List[Spec]]:
@@ -301,9 +301,12 @@ class ComplexExprBuilder:
             for i, group in enumerate(grouped_specs):
                 if bond[0] in group:
                     grouped_specs.pop(i)
-                    other_group = next((other_group for other_group in grouped_specs if bond[1] in other_group), [])
-                    other_group += group
-                    break
+                    try:
+                        other_group = next(other_group for other_group in grouped_specs if bond[1] in other_group)
+                        other_group += group
+                        break
+                    except StopIteration:
+                        break
 
         return grouped_specs
 
@@ -483,13 +486,13 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
     spec_paths = {spec: [] for spec in specs}  # type: Dict[Spec, List[List[State]]]
 
     for state in states:
-        state.visited = []
+        state.visited = []  # type: ignore
 
     nums = count(1)
 
     def visit_nodes(current_path: List[State], current_spec: Spec, current_num: int) -> None:
         spec_paths[current_spec].append(current_path)
-        bonds_to_visit = [state for state in spec_to_bond_states(current_spec) if current_num not in state.visited]
+        bonds_to_visit = [state for state in spec_to_bond_states(current_spec) if current_num not in state.visited]  # type: ignore
         for i, state in enumerate(bonds_to_visit):
             if i == 0:
                 next_num = current_num
@@ -497,11 +500,12 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
                 next_num = next(nums)
 
             for s in current_path + [state]:
-                s.visited.append(next_num)
+                s.visited.append(next_num)  # type: ignore
 
             visit_nodes(current_path + [state], neighbor(current_spec, state), next_num)
 
     for spec in specs:
+        assert spec.struct_index is not None
         if spec.struct_index > 1:
             break
         visit_nodes([], spec, 0)
@@ -519,14 +523,14 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
                     state_paths[state].append(path)
 
     for state in states:
-        del state.visited
+        del state.visited  # type: ignore
 
     return state_paths
 
 
 def with_connectivity_constraints(cont_set: VennSet) -> VennSet:
     dnf_terms = cont_set.to_dnf_list()
-    constraint = UniversalSet()
+    constraint = UniversalSet()  # type: VennSet[State]
 
     for dnf_term in dnf_terms:
         states = [state for state in dnf_term.values if state]
@@ -536,7 +540,7 @@ def with_connectivity_constraints(cont_set: VennSet) -> VennSet:
             if any(path == [] for path in state_paths[state]):
                 continue
 
-            state_constraints = [Complement(ValueSet(state))]
+            state_constraints = [Complement(ValueSet(state))]  # type: List[VennSet[State]]
             for path in state_paths[state]:
                 state_constraints.append(Intersection(*(ValueSet(x) for x in path)))
 
@@ -594,6 +598,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
 
         def structure_states(states: List[State]) -> List[State]:
             cur_index = max(spec.struct_index for state in states for spec in state.specs if spec.is_structured)
+            assert cur_index is not None
 
             spec_to_index = {}  # type: Dict[Spec, int]
             struct_states = []  # type: List[State]
@@ -719,8 +724,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
     rules = []  # type: List[Rule]
 
     for reaction in (x for x in rxncon_sys.reactions if not isinstance(x, OutputReaction)):
-        cont_set = Intersection(*(venn_from_contingency(x) for x
-                                in rxncon_sys.s_contingencies_for_reaction(reaction)))
+        cont_set = Intersection(*(venn_from_contingency(x) for x in rxncon_sys.s_contingencies_for_reaction(reaction)))  # type: VennSet[State]
 
         cont_set = with_connectivity_constraints(cont_set)
         solutions = cont_set.calc_solutions()
