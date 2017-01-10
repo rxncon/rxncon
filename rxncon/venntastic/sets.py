@@ -130,7 +130,7 @@ class UnarySet(Generic[T], Set[T]):
 
 
 class ValueSet(Generic[T], UnarySet[T]):
-    def __init__(self, value: T) -> None:
+    def __init__(self, value: Optional[T]) -> None:
         assert isinstance(hash(value), int)
         self.value = value
 
@@ -156,7 +156,10 @@ class ValueSet(Generic[T], UnarySet[T]):
 
     @property
     def values(self) -> List[T]:
-        return [self.value]
+        if self.value is not None:
+            return [self.value]
+        else:
+            return []
 
     def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
         if self.value:

@@ -18,7 +18,7 @@ INITIAL_MOLECULE_COUNT = 100
 SITE_NAME_REGEX = '^[a-zA-Z0-9]+$'
 
 class MolDef:
-    def __init__(self, name: str, site_defs: Dict[str, List[str]]):
+    def __init__(self, name: str, site_defs: Dict[str, List[str]]) -> None:
         self.name, self.site_defs = name, site_defs
 
     def __str__(self) -> str:
@@ -38,8 +38,8 @@ class MolDef:
         return list(self.site_defs.keys())
 
     def create_neutral_complex(self) -> 'Complex':
-        site_to_mod  = {}
-        site_to_bond = {}
+        site_to_mod  = {}  # type: Dict[str, str]
+        site_to_bond = {}  # type: Dict[str, Optional[int]]
         for site, mods in self.site_defs.items():
             if mods:
                 site_to_mod[site] = NEUTRAL_MOD
@@ -50,23 +50,23 @@ class MolDef:
 
 
 class MolDefBuilder:
-    def __init__(self, spec: Spec):
+    def __init__(self, spec: Spec) -> None:
         self.name      = str(spec.to_non_struct_spec())  # type: str
         self.site_defs = {}                              # type: Dict[str, List[str]]
 
     def build(self) -> MolDef:
         return MolDef(self.name, self.site_defs)
 
-    def add_site(self, site: Spec):
+    def add_site(self, site: Spec) -> None:
         if site_name(site) not in self.site_defs:
             self.site_defs[site_name(site)] = []
 
-    def add_mod(self, site: Spec, mod: StateModifier):
+    def add_mod(self, site: Spec, mod: StateModifier) -> None:
         self.site_defs[site_name(site)].append(str(mod.value))
 
 
 class Mol:
-    def __init__(self, name: str, site_to_mod: Dict[str, str], site_to_bond: Dict[str, Optional[int]], is_reactant: bool):
+    def __init__(self, name: str, site_to_mod: Dict[str, str], site_to_bond: Dict[str, Optional[int]], is_reactant: bool) -> None:
         self.name         = name
         self.site_to_mod  = site_to_mod
         self.site_to_bond = site_to_bond
@@ -90,12 +90,16 @@ class Mol:
     def __repr__(self) -> str:
         return 'Mol<{}>'.format(str(self))
 
-    def __eq__(self, other: 'Mol') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Mol):
+            return NotImplemented
         # This equality skips checking the is_reactant property, since it does not appear
         # in the BNGL representation.
         return self.name  == other.name and self.site_to_mod == other.site_to_mod and self.site_to_bond == other.site_to_bond
 
-    def __lt__(self, other: 'Mol') -> bool:
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, Mol):
+            return NotImplemented
         return str(self) < str(other)
 
     def clone(self) -> 'Mol':
@@ -123,7 +127,7 @@ class Mol:
 
         return new_mol
 
-    def _assert_valid_site_names(self):
+    def _assert_valid_site_names(self) -> None:
         for site in self.sites:
             assert match(SITE_NAME_REGEX, site), 'Invalid site name: {}'.format(site)
 
@@ -140,43 +144,47 @@ def site_name(spec: Spec) -> str:
 
 
 class MolBuilder:
-    def __init__(self, spec: Spec, is_reactant: bool=False):
+    def __init__(self, spec: Spec, is_reactant: bool=False) -> None:
         self.name         = str(spec.to_non_struct_spec())
         self.site_to_mod  = {}  # type: Dict[str, str]
-        self.site_to_bond = {}  # type: Dict[str, int]
+        self.site_to_bond = {}  # type: Dict[str, Optional[int]]
         self.is_reactant  = is_reactant
 
     def build(self) -> Mol:
         return Mol(self.name, self.site_to_mod, self.site_to_bond, self.is_reactant)
 
-    def set_bond_index(self, spec: Spec, bond_index: Optional[int]):
+    def set_bond_index(self, spec: Spec, bond_index: Optional[int]) -> None:
         self.site_to_bond[site_name(spec)] = bond_index
 
-    def set_mod(self, spec: Spec, mod: Optional[StateModifier]):
-        self.site_to_mod[site_name(spec)] = str(mod.value) if mod else None
+    def set_mod(self, spec: Spec, mod: Optional[StateModifier]) -> None:
+        self.site_to_mod[site_name(spec)] = str(mod.value)
 
 
 class Complex:
-    def __init__(self, mols: List[Mol]):
+    def __init__(self, mols: List[Mol]) -> None:
         self.mols = sorted(mols)
 
         self._assert_bonds_connected()
         self._assert_mols_connected()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '.'.join(str(mol) for mol in self.mols)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'Complex<{}>'.format(str(self))
 
-    def __eq__(self, other: 'Complex') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Complex):
+            return NotImplemented
         return self.mols == other.mols
 
-    def __lt__(self, other: 'Complex') -> bool:
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, Complex):
+            return NotImplemented
         return self.mols < other.mols
 
     @property
-    def bonds(self):
+    def bonds(self) -> List[int]:
         return sorted(set(bond for mol in self.mols for bond in mol.bonds))
 
     def neighbors(self, mol: Mol) -> List[Mol]:
@@ -224,11 +232,11 @@ class Complex:
         return Complex([mol.with_relabeled_bonds(bond_to_bond) for mol in self.mols])
 
     @property
-    def is_reactant(self):
+    def is_reactant(self) -> bool:
         return any(mol.is_reactant for mol in self.mols)
 
-    def _assert_mols_connected(self):
-        connected = []
+    def _assert_mols_connected(self) -> None:
+        connected = []  # type: List[Mol]
         to_visit  = [self.mols[0]]
         while to_visit:
             current = to_visit.pop()
@@ -241,8 +249,8 @@ class Complex:
 
         assert sorted(connected) == self.mols
 
-    def _assert_bonds_connected(self):
-        bond_to_site_count = defaultdict(int)
+    def _assert_bonds_connected(self) -> None:
+        bond_to_site_count = defaultdict(int)  # type: Dict[int, int]
 
         for mol in self.mols:
             for bond in mol.bonds:
@@ -252,7 +260,7 @@ class Complex:
 
 
 class ComplexExprBuilder:
-    def __init__(self):
+    def __init__(self) -> None:
         self._mol_builders = {}  # type: Dict[Spec, MolBuilder]
         self._current_bond = 0
         self._bonds        = []  # type: List[Tuple[Spec, Spec]]
@@ -268,11 +276,11 @@ class ComplexExprBuilder:
 
         return complexes
 
-    def add_mol(self, spec: Spec, is_reactant: bool=False):
+    def add_mol(self, spec: Spec, is_reactant: bool=False) -> None:
         if spec.to_component_spec() not in self._mol_builders:
             self._mol_builders[spec.to_component_spec()] = MolBuilder(spec.to_component_spec(), is_reactant)
 
-    def set_bond(self, first: Spec, second: Spec):
+    def set_bond(self, first: Spec, second: Spec) -> None:
         if (first.to_component_spec(), second.to_component_spec()) not in self._bonds and \
            (second.to_component_spec(), first.to_component_spec()) not in self._bonds:
             self._bonds.append((first.to_component_spec(), second.to_component_spec()))
@@ -280,10 +288,10 @@ class ComplexExprBuilder:
             self.set_half_bond(first, self._current_bond)
             self.set_half_bond(second, self._current_bond)
 
-    def set_half_bond(self, spec: Spec, value: Optional[int]):
+    def set_half_bond(self, spec: Spec, value: Optional[int]) -> None:
         self._mol_builders[spec.to_component_spec()].set_bond_index(spec, value)
 
-    def set_mod(self, spec: Spec, mod: Optional[StateModifier]):
+    def set_mod(self, spec: Spec, mod: Optional[StateModifier]) -> None:
         self._mol_builders[spec.to_component_spec()].set_mod(spec, mod)
 
     def _grouped_specs(self) -> List[List[Spec]]:
@@ -349,31 +357,32 @@ STATE_TO_MOL_DEF_BUILDER_FN = {
 
 
 class Parameter:
-    def __init__(self, name: str, value: Optional[str]):
+    def __init__(self, name: str, value: Optional[str]) -> None:
         self.name, self.value = name, value
 
-    def __eq__(self, other: 'Parameter'):
-        assert isinstance(other, Parameter)
+    def __eq__(self, other: object):
+        if not isinstance(other, Parameter):
+            return NotImplemented
         return self.name == other.name and self.value == other.value
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(str(self))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
 
 class InitialCondition:
-    def __init__(self, complex: Complex, value: Parameter):
+    def __init__(self, complex: Complex, value: Parameter) -> None:
         self.complex, self.value = complex, value
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '{} {}'.format(str(self.complex), str(self.value))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'InitialCondition<{}>'.format(str(self))
 
     def is_equivalent_to(self, other: 'InitialCondition') -> bool:
@@ -381,29 +390,31 @@ class InitialCondition:
 
 
 class Observable:
-    def __init__(self, name: str, complex: Complex):
+    def __init__(self, name: str, complex: Complex) -> None:
         self.name, self.complex = name, complex
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '{} {}'.format(self.name, str(self.complex))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'Observable<{}>'.format(str(self))
 
 
 class Rule:
-    def __init__(self, lhs: List[Complex], rhs: List[Complex], rate: Parameter, parent_reaction: Reaction=None):
+    def __init__(self, lhs: List[Complex], rhs: List[Complex], rate: Parameter, parent_reaction: Reaction=None) -> None:
         self.lhs, self.rhs, self.rate = sorted(lhs), sorted(rhs), rate
         self.parent_reaction = parent_reaction
 
-    def __str__(self):
+    def __str__(self) -> str:
         return ' + '.join(str(x) for x in self.lhs) + ' -> ' + ' + '.join(str(x) for x in self.rhs) + \
                ' ' + str(self.rate) + ' ' + str(self.parent_reaction)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __eq__(self, other: 'Rule') -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Rule):
+            return NotImplemented
         return self.lhs == other.lhs and self.rhs == other.lhs and \
                self.rate == other.rate and self.parent_reaction == other.parent_reaction
 
@@ -421,39 +432,40 @@ class Rule:
         other_rhs = deepcopy(other.rhs)
 
         for complex in my_lhs + my_rhs:
-            complex.found = False
+            complex.found = False  # type: ignore
 
         for complex in other_lhs + other_rhs:
-            complex.visited = False
+            complex.visited = False  # type: ignore
 
         for my_complex in my_lhs:
             for other_complex in other_lhs:
-                if my_complex.is_equivalent_to(other_complex) and not other_complex.visited:
-                    my_complex.found = True
-                    other_complex.visited = True
+                if my_complex.is_equivalent_to(other_complex) and not other_complex.visited:  # type: ignore
+                    my_complex.found = True       # type: ignore
+                    other_complex.visited = True  # type: ignore
                     break
 
         for my_complex in my_rhs:
             for other_complex in other_rhs:
-                if my_complex.is_equivalent_to(other_complex) and not other_complex.visited:
-                    my_complex.found = True
-                    other_complex.visited = True
+                if my_complex.is_equivalent_to(other_complex) and not other_complex.visited:  # type: ignore
+                    my_complex.found = True       # type: ignore
+                    other_complex.visited = True  # type: ignore
                     break
 
-        eq = all(complex.found for complex in my_lhs + my_rhs) and \
-             all(complex.visited for complex in other_lhs and other_rhs)
+        all_found   = all(complex.found for complex in my_lhs + my_rhs)            # type: ignore
+        all_visited = all(complex.visited for complex in other_lhs and other_rhs)  # type: ignore
 
-        return eq
+        return all_found and all_visited
+
 
 
 class RuleBasedModel:
     def __init__(self, mol_defs: List[MolDef], initial_conditions: List[InitialCondition], parameters: List[Parameter],
-                 observables: List[Observable], rules: List[Rule]):
+                 observables: List[Observable], rules: List[Rule]) -> None:
         self.mol_defs, self.initial_conditions, self.parameters, self.observables, self.rules = mol_defs, initial_conditions, \
             parameters, observables, rules
 
     @property
-    def rate_parameters(self):
+    def rate_parameters(self) -> List[Parameter]:
         return sorted(set(rule.rate for rule in self.rules), key=lambda x: x.name)
 
 
@@ -475,7 +487,7 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
 
     nums = count(1)
 
-    def visit_nodes(current_path: List[State], current_spec: Spec, current_num: int):
+    def visit_nodes(current_path: List[State], current_spec: Spec, current_num: int) -> None:
         spec_paths[current_spec].append(current_path)
         bonds_to_visit = [state for state in spec_to_bond_states(current_spec) if current_num not in state.visited]
         for i, state in enumerate(bonds_to_visit):
@@ -583,9 +595,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         def structure_states(states: List[State]) -> List[State]:
             cur_index = max(spec.struct_index for state in states for spec in state.specs if spec.is_structured)
 
-            spec_to_index = {}
-
-            struct_states = []
+            spec_to_index = {}  # type: Dict[Spec, int]
+            struct_states = []  # type: List[State]
 
             for state in states:
                 if state.is_structured:
@@ -623,7 +634,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         solutions = []
 
         for positivized_false in positivized_falses:
-            possible_solution = []
+            possible_solution = []  # type: List[State]
             for soln_state in structure_states(trues + positivized_false):
                 if soln_state not in possible_solution:
                     possible_solution.append(soln_state)
@@ -694,7 +705,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         for rxn in output_rxns:
             solns = Intersection(*(venn_from_contingency(x) for x
                                    in rxncon_sys.contingencies_for_reaction(rxn))).calc_solutions()
-            positive_solns = []
+            positive_solns = []  # type: List[List[State]]
             for soln in solns:
                 positive_solns += calc_positive_solutions(rxncon_sys, soln)
 
@@ -705,7 +716,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
 
     mol_defs = list(mol_defs_from_rxncon(rxncon_sys).values())
 
-    rules = []
+    rules = []  # type: List[Rule]
 
     for reaction in (x for x in rxncon_sys.reactions if not isinstance(x, OutputReaction)):
         cont_set = Intersection(*(venn_from_contingency(x) for x
@@ -714,7 +725,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         cont_set = with_connectivity_constraints(cont_set)
         solutions = cont_set.calc_solutions()
 
-        positive_solutions = []
+        positive_solutions = []  # type: List[List[State]]
         for solution in solutions:
             positive_solutions += calc_positive_solutions(rxncon_sys, solution)
 
@@ -731,8 +742,8 @@ def mol_from_str(mol_str: str) -> Mol:
     assert config_str[-1] == ')'
     site_strs = config_str[:-1].split(',')
 
-    site_to_mod  = {}
-    site_to_bond = {}
+    site_to_mod  = {}  # type: Dict[str, str]
+    site_to_bond = {}  # type: Dict[str, Optional[int]]
 
     for site_str in site_strs:
         if not site_str:
@@ -741,7 +752,7 @@ def mol_from_str(mol_str: str) -> Mol:
             site_to_bond[site_str] = None
         elif '~' not in site_str:
             site, bond = site_str.split('!')
-            site_to_bond[site] = bond
+            site_to_bond[site] = int(bond)
         elif '!' not in site_str:
             site, mod = site_str.split('~')
             site_to_mod[site] = mod
@@ -756,9 +767,9 @@ def complex_from_str(complex_str: str) -> Complex:
 
 
 def rule_from_str(rule_str: str) -> Rule:
-    lhs_strs = []
-    rhs_strs = []
-    rate     = None
+    lhs_strs = []    # type: List[str]
+    rhs_strs = []    # type: List[str]
+    rate     = None  # type: Optional[Parameter]
 
     current = lhs_strs
     done = False
@@ -776,6 +787,7 @@ def rule_from_str(rule_str: str) -> Rule:
         elif done:
             rate = Parameter(part, None)
 
+    assert rate is not None
     return Rule([complex_from_str(x) for x in lhs_strs], [complex_from_str(x) for x in rhs_strs], rate)
 
 

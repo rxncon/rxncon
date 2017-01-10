@@ -97,7 +97,7 @@ class ReactionDef:
     def terms_rhs_from_vars(self, vars: Dict[str, Any]) -> List[ReactionTerm]:
         return [self._parse_term(x, vars) for x in self.reactant_defs_rhs]
 
-    def _parse_reactants_def(self):
+    def _parse_reactants_def(self) -> None:
         assert self.ARROW in self.rule_def
 
         reactants_def_lhs_str, reactants_def_rhs_str = self.rule_def.split(self.ARROW)
@@ -645,7 +645,7 @@ class Reaction:
             return NotImplemented
         return self._definition == other._definition and self._vars == other._vars
 
-    def invalidate_state_cache(self):
+    def invalidate_state_cache(self) -> None:
         self._consumed_states    = None
         self._produced_states    = None
         self._synthesised_states = None

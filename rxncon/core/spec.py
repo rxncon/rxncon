@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from abc import ABC
-from typing import Optional, MutableMapping, Type
+from typing import Optional, MutableMapping, Type, Tuple
 from enum import Enum, unique
 import re
 
@@ -76,7 +76,7 @@ class Spec(ABC):
         assert self.component_name == other.component_name
         return type(self)(self.component_name, other.struct_index, self.locus)
 
-    def to_non_struct_spec(self):
+    def to_non_struct_spec(self) -> 'Spec':
         return type(self)(self.component_name, None, self.locus)
 
     def to_component_spec(self) -> 'Spec':
@@ -98,7 +98,7 @@ class Spec(ABC):
     def has_resolution(self, resolution: 'LocusResolution') -> bool:
         return self.resolution == resolution
 
-    def _validate(self):
+    def _validate(self) -> None:
         assert self.component_name is not None and re.match('\w+', self.component_name)
 
 
@@ -149,7 +149,7 @@ class Locus:
             return NotImplemented
         return self.domain == other.domain and self.subdomain == other.subdomain and self.residue == other.residue
 
-    def _validate(self):
+    def _validate(self) -> None:
         if self.domain:
             assert re.match("\w+", self.domain)
         if self.subdomain:
@@ -159,7 +159,7 @@ class Locus:
             assert re.match("\w+", self.residue)
 
     @property
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return not (self.domain or self.subdomain or self.residue)
 
     @property
@@ -176,7 +176,7 @@ class Locus:
             raise NotImplementedError
 
 
-def EmptyLocus():
+def EmptyLocus() -> Locus:
     return Locus(None, None, None)
 
 
@@ -216,12 +216,14 @@ spec_to_suffix = OrderedDict((k, v) for v, k in suffix_to_spec.items())  # type:
 
 
 def locus_from_str(locus_str: str) -> Locus:
-    def locus_items_from_str(full_locus_str):
+    def locus_items_from_str(full_locus_str: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
         DOMAIN_SUBDOMAIN_RESIDUE_REGEX = '^[\w:-]+\/[\w:-]+\([\w:-]+\)$'
         DOMAIN_RESIDUE_REGEX = '^[\w:-]+\([\w:-]+\)$'
         DOMAIN_SUBDOMAIN_REGEX = '^[\w:-]+\/[\w:-]+$'
         RESIDUE_REGEX = '^\([\w:-]+\)$'
         DOMAIN_REGEX = '^[\w:-]+$'
+
+        domain, subdomain, residue = None, None, None  # type: Optional[str], Optional[str], Optional[str]
 
         if re.match(DOMAIN_SUBDOMAIN_RESIDUE_REGEX, full_locus_str):
             domain = full_locus_str.split('/')[0]

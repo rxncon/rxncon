@@ -36,7 +36,7 @@ class RxnConSystem:
 
         self.validate()
 
-    def validate(self):
+    def validate(self) -> None:
         if not self.reactions:
             raise AssertionError('No reactions, boring!')
 
@@ -134,58 +134,58 @@ class RxnConSystem:
             complements = self.complementary_states_for_component(component.to_non_struct_spec(), state.to_non_structured())
             return [x.to_structured_from_state(state) for x in complements]
 
-    def _calculate_components(self):
-        components = []
+    def _calculate_components(self) -> None:
+        components = []  # type: List[Spec]
         for reaction in self.reactions:
             components += [spec.to_non_struct_spec() for spec in reaction.components_lhs] + \
                           [spec.to_non_struct_spec() for spec in reaction.components_rhs]
 
         self._components = list(set(components))
 
-    def _calculate_states(self):
+    def _calculate_states(self) -> None:
         self._states = list(set(self.produced_states + self.consumed_states + self.synthesised_states + self.global_states))
 
-    def _calculate_produced_states(self):
-        states = []
+    def _calculate_produced_states(self) -> None:
+        states = []  # type: List[State]
         for reaction in self.reactions:
             states += [state.to_non_structured() for state in reaction.produced_states]
 
         self._produced_states = list(set(states))
 
-    def _calculate_consumed_states(self):
-        states = []
+    def _calculate_consumed_states(self) -> None:
+        states = []  # type: List[State]
         for reaction in self.reactions:
             states += [state.to_non_structured() for state in reaction.consumed_states]
 
         self._consumed_states = list(set(states))
 
-    def _calculate_synthesised_states(self):
-        states = []
+    def _calculate_synthesised_states(self) -> None:
+        states = []  # type: List[State]
         for reaction in self.reactions:
             states += [state.to_non_structured() for state in reaction.synthesised_states]
 
         self._synthesised_states = list(set(states))
 
-    def _calculate_global_states(self):
-        states = []
+    def _calculate_global_states(self) -> None:
+        states = []  # type: List[State]
         for contingency in self.contingencies:
             states += [state for state in contingency.effector.states if state.is_global]
 
         self._global_states = list(set(states))
 
-    def _expand_fully_neutral_states(self):
+    def _expand_fully_neutral_states(self) -> None:
         for reaction in self.reactions:
             self._expand_reaction_terms(reaction.terms_lhs)
             self._expand_reaction_terms(reaction.terms_rhs)
             reaction.invalidate_state_cache()
 
-    def _expand_reaction_terms(self, terms: List[ReactionTerm]):
+    def _expand_reaction_terms(self, terms: List[ReactionTerm]) -> None:
         for term in terms:
             if term.is_fully_neutral:
                 term.states = [state for component in term.specs for state in self.states_for_component(component)
                                if state.is_neutral and state != FullyNeutralState()]
 
-    def _expand_non_elemental_contingencies(self):
+    def _expand_non_elemental_contingencies(self) -> None:
         def expanded_effector(effector: Effector):
             if isinstance(effector, StateEffector):
                 if effector.expr.is_elemental:
@@ -216,17 +216,17 @@ class RxnConSystem:
         for contingency in self.contingencies:
             contingency.effector = expanded_effector(contingency.effector)
 
-    def _structure_contingencies(self):
+    def _structure_contingencies(self) -> None:
         self.contingencies = [c.to_structured() for c in self.contingencies]
 
-    def _missing_states(self):
-        required_states = []
+    def _missing_states(self) -> List[State]:
+        required_states = []  # type: List[State]
         for contingency in self.contingencies:
             required_states += [state.to_non_structured() for state in contingency.effector.states if not state.is_global]
 
         return [state for state in required_states if state not in self.states]
 
-    def _missing_reactions(self):
+    def _missing_reactions(self) -> List[Reaction]:
         required_reactions = []
         for contingency in self.contingencies:
             required_reactions.append(contingency.target)

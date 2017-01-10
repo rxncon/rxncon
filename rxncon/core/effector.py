@@ -1,6 +1,6 @@
 import re
 from abc import ABCMeta, abstractproperty
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Tuple
 from copy import deepcopy
 from enum import Enum, unique
 
@@ -76,13 +76,13 @@ def qual_spec_from_str(qualified_spec_str: str) -> QualSpec:
 
 
 class StructEquivalences:
-    def __init__(self):
-        self.eq_classes = []
+    def __init__(self) -> None:
+        self.eq_classes = []  # type: List[List[QualSpec]]
 
     def __str__(self) -> str:
         return '\n'.join(str(x) for x in self.eq_classes)
 
-    def add_equivalence(self, first_qual_spec: QualSpec, second_qual_spec: QualSpec):
+    def add_equivalence(self, first_qual_spec: QualSpec, second_qual_spec: QualSpec) -> None:
         first_qual_spec, second_qual_spec = first_qual_spec.to_component_qual_spec(), second_qual_spec.to_component_qual_spec()
 
         found_first = None
@@ -104,31 +104,32 @@ class StructEquivalences:
         if not (found_first or found_second):
             self.eq_classes.append([first_qual_spec, second_qual_spec])
 
-    def add_equivalence_class(self, eq_class: List[QualSpec]):
+    def add_equivalence_class(self, eq_class: List[QualSpec]) -> None:
         for existing_class in self.eq_classes:
-            if next((x for x in existing_class if x.to_component_qual_spec() in eq_class), False):
+            if next((x for x in existing_class if x.to_component_qual_spec() in eq_class), False):  # type: ignore
                 for elem in eq_class:
                     self.add_equivalence(elem.to_component_qual_spec(), existing_class[0])
                 return
 
         self.eq_classes.append([x.to_component_qual_spec() for x in eq_class])
 
-    def merge_with(self, other: 'StructEquivalences', other_base_namespace: List[str]):
+    def merge_with(self, other: 'StructEquivalences', other_base_namespace: List[str]) -> None:
         for other_eq_class in other.eq_classes:
             self.add_equivalence_class([x.with_prepended_namespace(other_base_namespace) for x in other_eq_class])
 
     def find_unqualified_spec(self, qual_spec: QualSpec) -> Optional[Spec]:
         for eq_class in self.eq_classes:
             if qual_spec.to_component_qual_spec() in eq_class:
-                existing_spec = deepcopy(next((x.spec for x in eq_class if x.is_in_root_namespace), None))
+                existing_spec = deepcopy(next((x.spec for x in eq_class if x.is_in_root_namespace), None))  # type: ignore
                 if existing_spec:
                     existing_spec.locus = deepcopy(qual_spec.spec.locus)
                     return existing_spec
 
         return None
 
-    def indices_in_root_namespace(self):
-        return [qspec.spec.struct_index for eq_class in self.eq_classes for qspec in eq_class if qspec.is_in_root_namespace]
+    def indices_in_root_namespace(self) -> List[int]:
+        return [qspec.spec.struct_index for eq_class in self.eq_classes for qspec in eq_class
+                if qspec.is_in_root_namespace and qspec.spec.struct_index is not None]
 
 
 class TrivialStructEquivalences(StructEquivalences):
@@ -152,7 +153,7 @@ class TrivialStructEquivalences(StructEquivalences):
     def merge_with(self, other: 'StructEquivalences', other_base_namespace: List[str]):
         pass
 
-    def find_unqualified_spec(self, qual_spec: QualSpec) -> Spec:
+    def find_unqualified_spec(self, qual_spec: QualSpec) -> Optional[Spec]:
         try:
             struct_spec = deepcopy(self.struct_specs[qual_spec.spec.to_component_spec()])
             struct_spec.locus = deepcopy(qual_spec.spec.locus)
@@ -167,10 +168,10 @@ class TrivialStructEquivalences(StructEquivalences):
         return [x for x in range(self.cur_index)]
 
 class StructCounter:
-    def __init__(self):
+    def __init__(self) -> None:
         self.value = 2
 
-    def increment(self):
+    def increment(self) -> None:
         self.value += 1
 
 
@@ -199,7 +200,7 @@ class Effector(metaclass=ABCMeta):
                                   cur_namespace: List[str]=None) -> 'Effector':
         raise NotImplementedError
 
-    def _init_to_struct_effector_args(self, glob_equivs, cur_index, cur_namespace):
+    def _init_to_struct_effector_args(self, glob_equivs, cur_index, cur_namespace) -> Tuple[StructEquivalences, StructCounter, List[str]]:
         if not glob_equivs:
             glob_equivs = StructEquivalences()
         if not cur_index:
@@ -300,7 +301,7 @@ class NotEffector(Effector):
 
 
 class NaryEffector(Effector):
-    def __init__(self, *exprs, **kwargs):
+    def __init__(self, *exprs, **kwargs) -> None:
         self.exprs = exprs
 
         try:
@@ -326,6 +327,9 @@ class NaryEffector(Effector):
                                   cur_namespace: List[str]=None) -> Effector:
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         glob_equivs.merge_with(self.equivs, cur_namespace)
+
+        if not self.name:
+            raise AssertionError('Cannot merge nameless NaryEffectors.')
 
         return type(self)(*(x.to_merged_struct_effector(
             glob_equivs, counter, cur_namespace + [self.name]) for x in self.exprs), name=self.name)
