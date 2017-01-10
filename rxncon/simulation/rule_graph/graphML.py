@@ -20,7 +20,7 @@ class XGMML:
         self.graph = graph
         self.graph_name = graph_name
 
-    def to_string(self: str):
+    def to_string(self) -> str:
         """
         Translating the graph information into a xgmml string representation.
 
@@ -228,7 +228,7 @@ def _get_rxnconID(element):
                 return child.getAttribute('value')
 
 
-def _get_labels_and_coordinates_dict(xmldoc) -> Dict:
+def _get_labels_and_coordinates_dict(xmldoc) -> Dict[str, Dict[str, str]]:
     """
     Creates a mapping of node names and their coordinates.
 
@@ -241,7 +241,7 @@ def _get_labels_and_coordinates_dict(xmldoc) -> Dict:
 
     """
 
-    template_coordinates = {}
+    template_coordinates = {}  # type: Dict[str, Dict[str, str]]
     for graphic in xmldoc.getElementsByTagName('graphics'):
         if graphic.attributes.values() and graphic.parentNode.tagName == "node":
             rxnconID = _get_rxnconID(graphic.parentNode)
