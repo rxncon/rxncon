@@ -291,7 +291,7 @@ class Union(NarySet[T], Generic[T]):
 
 
 class Difference(Set[T], Generic[T]):
-    def __new__(cls, *args, **kwargs) -> Set[T]:
+    def __new__(cls, *args: Set[T]) -> Set[T]:
         assert len(args) == 2
         return Intersection(args[0], Complement(args[1]))
 

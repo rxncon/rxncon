@@ -1,42 +1,23 @@
 import functools
-from typing import List, TypeVar
-from enum import Enum
+from typing import List, TypeVar, Callable, Any
 import inspect
 from colorama import Fore
 
 
 T = TypeVar('T')
 
-def compose(*functions):
+def compose(*functions: Callable) -> Callable:
     return functools.reduce(lambda f, g: lambda x: f(g(x)), functions, lambda x: x)
 
 
-class OrderedEnum(Enum):
-    def __repr__(self):
-        return str(self)
-
-    def __str__(self):
-        return "{0}: {1}".format(self.name, self.value)
-
-    def __lt__(self, other):
-        if self.value is not None and other.value is not None:
-            return self.value < other.value
-        elif other.value is None:
-            return False
-        elif self.value is None:
-            return True
-        else:
-            raise NotImplementedError
-
-
-def members(obj) -> List[str]:
+def members(obj: Any) -> List[str]:
     return [x for x in dir(obj) if not x.startswith('__')]
 
 
 def elems_eq(first_list: List[T], second_list: List[T]) -> bool:
-    if all(isinstance(x, list) for x in first_list) and all(isinstance(x, list) for x in second_list):
-        uniq_first = [set(x) for x in first_list]
-        uniq_second = [set(x) for x in second_list]
+    if all(isinstance(x, list) for x in first_list) and all(isinstance(x, list) for x in second_list):  # type: ignore
+        uniq_first = [set(x) for x in first_list]    # type: ignore
+        uniq_second = [set(x) for x in second_list]  # type: ignore
 
         return all(x in uniq_second for x in uniq_first) and all(x in uniq_first for x in uniq_second)
 

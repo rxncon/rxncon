@@ -3,7 +3,6 @@ import logging
 from typing import Dict, List, Union, Tuple, Optional
 from collections import defaultdict
 
-from typecheck import typecheck
 
 from rxncon.core.contingency import ContingencyType, Contingency
 from rxncon.core.effector import StateEffector, NotEffector, OrEffector, Effector, AndEffector, \
@@ -112,7 +111,6 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
     return ContingencyListEntry(subject, verb, object)
 
 
-@typecheck
 def contingencies_from_contingency_list_entries(entries: List[ContingencyListEntry]) -> List[Contingency]:
     contingencies = []
 
@@ -209,7 +207,6 @@ def _contains_boolean_contingency_effectors(self: Effector) -> bool:
         raise AssertionError
 
 
-@typecheck
 def _create_boolean_contingency_to_effector(boolean_contingencies: List[ContingencyListEntry]) \
         -> Dict[BooleanContingencyName, Effector]:
     lookup_table = {}  # type: Dict[BooleanContingencyName, Effector]
@@ -264,7 +261,6 @@ def _create_boolean_contingency_to_equivalences(equivalence_contingencies: List[
     return lookup_table
 
 
-@typecheck
 def _unary_effector_from_boolean_contingency_entry(entry: ContingencyListEntry) -> Effector:
     if isinstance(entry.obj, State):
         return StateEffector(entry.obj)

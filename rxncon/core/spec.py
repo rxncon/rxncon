@@ -17,7 +17,7 @@ class Spec(ABC):
         return str(self)
 
     def __str__(self) -> str:
-        def struct_name(spec: Spec, spec_suffix: 'SpecSuffix'):
+        def struct_name(spec: Spec, spec_suffix: 'SpecSuffix') -> str:
             if spec.struct_index is not None:
                 return "{0}{1}@{2}".format(spec.component_name, spec_suffix.value, spec.struct_index)
             else:
@@ -61,7 +61,7 @@ class Spec(ABC):
         return other.is_subspec_of(self)
 
     @property
-    def is_structured(self):
+    def is_structured(self) -> bool:
         return self.struct_index is not None
 
     @property
@@ -186,7 +186,10 @@ class LocusResolution(Enum):
     subdomain = 'subdomain'
     residue   = 'residue'
 
-    def __lt__(self, other: 'LocusResolution'):
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, LocusResolution):
+            return NotImplemented
+
         if self == LocusResolution.component:
             return other != LocusResolution.component
         elif self == LocusResolution.domain:
@@ -254,7 +257,7 @@ def locus_from_str(locus_str: str) -> Locus:
 
 
 def spec_from_str(spec_str: str) -> Spec:
-    def spec_from_suffixed_name_and_locus(name: str, struct_index: Optional[int], locus: Locus):
+    def spec_from_suffixed_name_and_locus(name: str, struct_index: Optional[int], locus: Locus) -> Spec:
         for suffix in suffix_to_spec:
             if name.endswith(suffix.value):
                 name = name[:len(name) - len(suffix.value)]
