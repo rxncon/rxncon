@@ -1,6 +1,6 @@
 import functools
 import operator
-from typing import Dict, List, Generic, Optional, TypeVar, MutableMapping, Callable
+from typing import Dict, List, Generic, Optional, TypeVar, MutableMapping, Callable, Any
 from collections import OrderedDict
 from itertools import product
 import re
@@ -125,7 +125,7 @@ class Set(Generic[T]):
         return d
 
 
-class EmptySet(Set[T], Generic[T]):
+class EmptySet(Set[Any]):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Set):
             return NotImplemented
@@ -140,11 +140,11 @@ class EmptySet(Set[T], Generic[T]):
     def __str__(self) -> str:
         return 'EmptySet'
 
-    def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
+    def _to_pyeda_expr(self, val_to_sym: MutableMapping[Any, str]) -> Expression:
         return expr(0)
 
 
-class UniversalSet(Set[T], Generic[T]):
+class UniversalSet(Set[Any]):
     def __init__(self) -> None:
         pass
 
@@ -162,7 +162,7 @@ class UniversalSet(Set[T], Generic[T]):
     def __str__(self) -> str:
         return 'UniversalSet'
 
-    def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
+    def _to_pyeda_expr(self, val_to_sym: MutableMapping[Any, str]) -> Expression:
         return expr(1)
 
 

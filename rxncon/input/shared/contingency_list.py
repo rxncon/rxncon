@@ -54,10 +54,15 @@ class BooleanContingencyNameWithEquivs(BooleanContingencyName):
         self.equivs = equivs
 
 
-def contingency_list_entry_from_strs(subject_str, verb_str, object_str) -> ContingencyListEntry:
+def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str: str) -> ContingencyListEntry:
     subject_str, verb_str, object_str = subject_str.strip(), verb_str.lower().strip(), object_str.strip()
 
     logger.debug('{}: {} / {} / {}'.format(current_function_name(), subject_str, verb_str, object_str))
+
+    subject = None  # type: Optional[Union[Reaction, BooleanContingencyName]]
+    verb    = None  # type: Optional[Union[BooleanOperator, ContingencyType]]
+    object  = None  # type: Optional[Union[State, BooleanContingencyName, Tuple[QualSpec, QualSpec]]]
+
 
     if re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
         # subject: Boolean contingency,
@@ -100,6 +105,10 @@ def contingency_list_entry_from_strs(subject_str, verb_str, object_str) -> Conti
     else:
         object = state_from_str(object_str)
 
+    assert subject is not None
+    assert verb is not None
+    assert object is not None
+
     return ContingencyListEntry(subject, verb, object)
 
 
@@ -116,19 +125,20 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
 
     while reaction_entries:
         entry = reaction_entries.pop()
+        assert isinstance(entry.subj, Reaction)
         contingencies.append(Contingency(entry.subj,
                                          ContingencyType(entry.verb),
                                          _unary_effector_from_boolean_contingency_entry(entry)))
 
-    Effector.dereference = _dereference_boolean_contingency_effectors
-    Effector.contains_booleans = _contains_boolean_contingency_effectors
+    Effector.dereference = _dereference_boolean_contingency_effectors     # type: ignore
+    Effector.contains_booleans = _contains_boolean_contingency_effectors  # type: ignore
 
-    while any(x.effector.contains_booleans() for x in contingencies):
+    while any(x.effector.contains_booleans() for x in contingencies):     # type: ignore
         for contingency in contingencies:
-            contingency.effector.dereference(effectors, equivalences)
+            contingency.effector.dereference(effectors, equivalences)     # type: ignore
 
-    del Effector.dereference
-    del Effector.contains_booleans
+    del Effector.dereference        # type: ignore
+    del Effector.contains_booleans  # type: ignore
 
     return contingencies
 
@@ -172,6 +182,7 @@ def _dereference_boolean_contingency_effectors(self: Effector,
         _dereference_boolean_contingency_effectors(self.expr, effector_table, equivalence_table)
     elif isinstance(self, OrEffector) or isinstance(self, AndEffector):
         try:
+            assert self.name is not None
             equivs_list = equivalence_table[BooleanContingencyName(self.name)]
 
             for equiv in equivs_list:
@@ -211,6 +222,7 @@ def _create_boolean_contingency_to_effector(boolean_contingencies: List[Continge
 
     while boolean_contingencies:
         current_contingency = boolean_contingencies[0]
+        assert isinstance(current_contingency.subj, BooleanContingencyName)
         current_contingencies = [x for x in boolean_contingencies if x.subj == current_contingency.subj]
         boolean_contingencies = [x for x in boolean_contingencies if x.subj != current_contingency.subj]
 
@@ -221,7 +233,7 @@ def _create_boolean_contingency_to_effector(boolean_contingencies: List[Continge
 
         if boolean_operator == BooleanOperator.op_and:
             assert len(effector_terms) > 1
-            effector = AndEffector(*effector_terms)
+            effector = AndEffector(*effector_terms)  # type: Effector
         elif boolean_operator == BooleanOperator.op_or:
             assert len(effector_terms) > 1
             effector = OrEffector(*effector_terms)
@@ -246,6 +258,8 @@ def _create_boolean_contingency_to_equivalences(equivalence_contingencies: List[
     assert all(x.is_boolean_equivalence_entry for x in equivalence_contingencies)
 
     for contingency in equivalence_contingencies:
+        assert isinstance(contingency.subj, BooleanContingencyName)
+        assert isinstance(contingency.obj, tuple)
         lookup_table[contingency.subj].append(contingency.obj)
 
     return lookup_table
