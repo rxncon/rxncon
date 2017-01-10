@@ -13,35 +13,35 @@ from rxncon.core.rxncon_system import RxnConSystem, Reaction, ReactionTerm, Cont
 from rxncon.core.effector import StateEffector, AndEffector, NotEffector, OrEffector, Effector
 
 
-
 @unique
 class NodeType(Enum):
-    reaction = 'reaction'
-    state    = 'state'
+    reaction  = 'reaction'
+    state     = 'state'
     component = 'component'
-    AND      = "boolean_and"
-    OR       = "boolean_or"
-    NOT      = "boolean_not"
-    boolean  = "boolean"
-    input    = 'input'
-    output   = 'output'
+    AND       = "boolean_and"
+    OR        = "boolean_or"
+    NOT       = "boolean_not"
+    boolean   = "boolean"
+    input     = 'input'
+    output    = 'output'
+
 
 @unique
 class EdgeInteractionType(Enum):
-    produce       = 'produce'
-    consume       = 'consume'
-    synthesis     = 'synthesis'
-    degrade       = 'degrade'
+    produce        = 'produce'
+    consume        = 'consume'
+    synthesis      = 'synthesis'
+    degrade        = 'degrade'
     maybe_degraded = 'maybe_degraded'
-    required      = '!'
-    inhibited    = "x"
-    positive      = 'k+'
-    negative      = 'k-'
-    AND           = 'AND'
-    OR            = 'OR'
-    NOT           = 'NOT'
-    source_state  = 'ss'
-    input_state = 'is'
+    required       = '!'
+    inhibited      = "x"
+    positive       = 'k+'
+    negative       = 'k-'
+    AND            = 'AND'
+    OR             = 'OR'
+    NOT            = 'NOT'
+    source_state   = 'ss'
+    input_state    = 'is'
 
 edge_type_mapping = {ContingencyType.requirement: EdgeInteractionType.required,
                      ContingencyType.inhibition: EdgeInteractionType.inhibited,
@@ -56,9 +56,8 @@ class RegulatoryGraph:
     Args:
         rxncon_system: The rxncon system.
     """
-    def __init__(self,rxncon_system: RxnConSystem) -> None:
+    def __init__(self, rxncon_system: RxnConSystem) -> None:
         self.rxncon_system = rxncon_system
-        self.degraded_states_of_component = defaultdict(list)
         self.regulatory_graph = DiGraph()
 
     def to_graph(self) -> DiGraph:
@@ -415,8 +414,11 @@ class RegulatoryGraph:
 
                 negative_value_set, positive_value_set = _get_positive_and_negative_states(nested_list, dnf_of_cont)
 
-                [_update_contingency_information(value_set) for value_set in positive_value_set]
-                [_update_contingency_information_for_complement(value_set) for value_set in negative_value_set]
+                for value_set in positive_value_set:
+                    _update_contingency_information(value_set)
+
+                for value_set in negative_value_set:
+                    _update_contingency_information_for_complement(value_set)
 
                 positive_states = [value_set.value for value_set in positive_value_set]
                 negative_states = [value_set.expr.value for value_set in negative_value_set]
@@ -589,25 +591,24 @@ class RegulatoryGraph:
                     add_node_and_edge(name, NodeType.input, edge_type, target_name)
                 else:
                     add_node_and_edge(name, NodeType.state, edge_type, target_name)
-
             elif isinstance(effector, NotEffector):
                 add_node_and_edge(str(effector.name), NodeType.NOT, edge_type, target_name)
                 target_name = _target_name_from_reaction_or_effector(effector)
                 _add_information_from_effector_to_graph(effector.expr, EdgeInteractionType.NOT, target_name)
-
             elif isinstance(effector, OrEffector):
                 if effector.name is not None:
                     add_node_and_edge(effector.name, NodeType.OR, edge_type, target_name)
                     target_name = _target_name_from_reaction_or_effector(effector)
 
-                [_add_information_from_effector_to_graph(expr, EdgeInteractionType.OR, target_name) for expr in effector.exprs]
-
+                for expr in effector.exprs:
+                    _add_information_from_effector_to_graph(expr, EdgeInteractionType.OR, target_name)
             elif isinstance(effector, AndEffector):
                 if effector.name is not None:
                     add_node_and_edge(effector.name, NodeType.AND, edge_type, target_name)
                     target_name = _target_name_from_reaction_or_effector(effector)
 
-                [_add_information_from_effector_to_graph(expr, EdgeInteractionType.AND, target_name) for expr in effector.exprs]
+                for expr in effector.exprs:
+                    _add_information_from_effector_to_graph(expr, EdgeInteractionType.AND, target_name)
             else:
                 raise AssertionError
 

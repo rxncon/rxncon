@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Iterable
 from copy import deepcopy
 from enum import Enum
 
@@ -539,7 +539,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
           The boolean model.
 
     """
-    def factor_from_contingency(contingency: Contingency) -> VennSet:
+    def factor_from_contingency(contingency: Contingency) -> VennSet[StateTarget]:
         """
         Calculates factors from contingency.
 
@@ -604,16 +604,16 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
         conds = {}  # type: Dict[Target, bool]
 
-        for target in reaction_targets:
-            conds[target] = False
+        for reaction_target in reaction_targets:
+            conds[reaction_target] = False
 
-        for target in state_targets:
+        for state_target in state_targets:
             # Neutral state targets are True.
-            if target.is_neutral:
-                conds[target] = True
+            if state_target.is_neutral:
+                conds[state_target] = True
             # All reaction targets and non-neutral state targets are False.
             else:
-                conds[target] = False
+                conds[state_target] = False
 
         return BooleanModelConfig(conds)
 
@@ -664,7 +664,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             None
         """
         for reaction in rxncon_sys.reactions:
-            cont = Intersection(*(factor_from_contingency(x) for x in rxncon_sys.contingencies_for_reaction(reaction))).to_simplified_set()
+            factors = (factor_from_contingency(x) for x in rxncon_sys.contingencies_for_reaction(reaction))
+            cont = Intersection(*factors).to_simplified_set()  # type: VennSet[StateTarget]
             # The reaction is not a degradation reaction
             if not reaction.degraded_components:
                 reaction_target_to_factor[ReactionTarget(reaction)] = cont
@@ -878,7 +879,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
     update_degradations_for_interaction_states()
     update_syntheses_with_component_states()
 
-    state_targets    = component_state_targets + [StateTarget(x) for x in rxncon_sys.states]
+    state_targets    = [StateTarget(x) for x in rxncon_sys.states]
+    state_targets.extend(component_state_targets)
     reaction_targets = list(reaction_target_to_factor.keys())
 
     reaction_rules = []  # type: List[UpdateRule]

@@ -21,7 +21,7 @@ class Quick:
         self._construct_contingencies()
         self._construct_rxncon_system()
 
-    def _parse_str(self):
+    def _parse_str(self) -> None:
         INPUT_REGEX = '^\[.+?\]$'
         BOOL_REGEX = '^\<.+?\>$'
 
@@ -33,14 +33,14 @@ class Quick:
                     self._add_reaction_from_string(reaction_string)
                 self._add_contingency_list_entries(contingency_strings, reaction_string)
 
-    def _add_reaction_from_string(self, reaction_str: str):
+    def _add_reaction_from_string(self, reaction_str: str) -> None:
         reaction_strs = split_bidirectional_reaction_str(reaction_str)
         for rxn in reaction_strs:
             reaction = reaction_from_str(rxn)
             self._reactions.append(reaction)
 
-    def _add_contingency_list_entries(self, contingency_strings: List[str], reaction_str: str):
-        for cont in contingency_strings:
+    def _add_contingency_list_entries(self, contingency_strs: List[str], reaction_str: str) -> None:
+        for cont in contingency_strs:
             cont = cont.strip()
             cont_type = cont.split()[0]
             modifier = cont.split()[-1]
@@ -50,8 +50,8 @@ class Quick:
             entry = contingency_list_entry_from_strs(reaction_strs[0], cont_type, modifier)
             self._contingency_list_entries.append(entry)
 
-    def _construct_contingencies(self):
+    def _construct_contingencies(self) -> None:
         self._contingencies = contingencies_from_contingency_list_entries(self._contingency_list_entries)
 
-    def _construct_rxncon_system(self):
+    def _construct_rxncon_system(self) -> None:
         self.rxncon_system = RxnConSystem(self._reactions, self._contingencies)
