@@ -311,7 +311,7 @@ def venn_from_pyeda(pyeda_expr: Expression, sym_to_val: MutableMapping[str, T]) 
         raise Exception
 
 
-def venn_from_str(venn_str: str, value_parser: Callable[[str], T]=lambda x: x) -> Set[T]:
+def venn_from_str(venn_str: str, value_parser: Callable[[str], T]) -> Set[T]:
     # The values have to be surrounded by a single space.
     BOOL_REGEX            = '[\(\)\|\&\~]+'
     pyeda_str             = ''
