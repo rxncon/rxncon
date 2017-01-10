@@ -58,7 +58,7 @@ def _create_reaction_graph(quick_string):
 
     """
     actual_system = Quick(quick_string)
-    return rxngraph_from_rxncon_system(actual_system.rxncon_system)
+    return rxngraph_from_rxncon_system(actual_system.rxncon_system).reaction_graph
 
 def test_ppi():
     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]''',

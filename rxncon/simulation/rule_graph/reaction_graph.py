@@ -4,7 +4,7 @@ from networkx import DiGraph
 from copy import deepcopy
 from rxncon.core.reaction import Reaction
 from rxncon.core.rxncon_system import RxnConSystem
-from rxncon.core.spec import Spec, Locus
+from rxncon.core.spec import Spec, Locus, LocusResolution
 
 
 class EdgeWith(Enum):
@@ -31,7 +31,7 @@ def get_valid_spec(locus: Locus, alternative_spec: Spec):
     specification.locus = locus
     return specification
 
-def get_node_id(specification: Spec, node_type: NodeType):
+def get_node_id(specification: Spec, node_type: Union[NodeType, LocusResolution]):
     """
     Building the respective node_id
 
@@ -47,13 +47,13 @@ def get_node_id(specification: Spec, node_type: NodeType):
 
     """
 
-    if node_type == NodeType.component:
+    if node_type in [NodeType.component, LocusResolution.component]:
         return specification.component_name
 
-    if node_type == NodeType.domain and specification.locus.domain:
+    if node_type in [NodeType.domain, LocusResolution.domain] and specification.locus.domain:
         return '{0}_[{1}]'.format(specification.component_name, specification.locus.domain)
 
-    if node_type == NodeType.residue and specification.locus.residue:
+    if node_type in [NodeType.residue, LocusResolution.residue] and specification.locus.residue:
             return str(specification)
 
     raise AssertionError
@@ -117,9 +117,10 @@ class GraphBuilder():
     def _add_edge(self, source: str, target: str, interaction: EdgeType, width: EdgeWith):
         self._reaction_graph.add_edge(source, target, interaction=interaction.value, width=width.value)
 
-    def add_external_edge(self, source: str, target: str, type: EdgeType):
+    def add_external_edge(self, source: Spec, target: Spec, type: EdgeType):
 
-        self._add_edge(source, target, interaction=type, width=EdgeWith.external)
+        self._add_edge(get_node_id(source, source.resolution), get_node_id(target, target.resolution),
+                       interaction=type, width=EdgeWith.external)
 
     def add_spec_information(self, specification: Spec):
 
