@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import List, Optional
 
 from rxncon.input.shared.contingency_list import contingencies_from_contingency_list_entries, \
     contingency_list_entry_from_strs, ContingencyListEntry
@@ -13,7 +13,7 @@ from rxncon.input.shared.reaction_preprocess import split_bidirectional_reaction
 class Quick:
     def __init__(self, rxncon_str: str) -> None:
         self.quick_input = rxncon_str.split('\n')
-        self.rxncon_system = None               # type: RxnConSystem
+        self.rxncon_system = None               # type: Optional[RxnConSystem]
         self._reactions = []                    # type: List[Reaction]
         self._contingencies = []                # type: List[Contingency]
         self._contingency_list_entries = []     # type: List[ContingencyListEntry]

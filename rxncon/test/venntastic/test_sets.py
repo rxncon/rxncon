@@ -35,6 +35,8 @@ def test_simplifies() -> None:
     x1 = Intersection(ValueSet(1), ValueSet(2))
     x2 = Intersection(ValueSet(1), Complement(ValueSet(2)))
 
+    z = Union(x1, x2)
+
     assert Union(x1, x2).is_equivalent_to(ValueSet(1))
 
 
@@ -90,9 +92,6 @@ def test_calc_solutions() -> None:
 
 # Test the superset / subset relationships
 def test_superset_subset_for_unary_sets() -> None:
-    assert UniversalSet() == ValueSet(None)
-    assert ValueSet(None).is_superset_of(ValueSet(None))
-
     # UniversalSet == UniversalSet
     assert UniversalSet().is_superset_of(UniversalSet())
     assert UniversalSet().is_subset_of(UniversalSet())

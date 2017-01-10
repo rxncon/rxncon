@@ -554,7 +554,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             If there are contingencies a VennSet of StateTargets is returned, the UniversalSet otherwise.
 
         """
-        def parse_effector(eff: Effector) -> VennSet:
+        def parse_effector(eff: Effector) -> VennSet[StateTarget]:
             """
             Reshape VennSet of StateEffectors into VennSet of StateTargets.
 
@@ -797,7 +797,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
 
         for reaction_target, contingency_factor in reaction_target_to_factor.items():
-            component_factor = Intersection(*(component_to_factor[x] for x in reaction_target.components_lhs))
+            components = (component_to_factor[x] for x in reaction_target.components_lhs)
+            component_factor = Intersection(*components)  # type: VennSet[StateTarget]
             reaction_rules.append(UpdateRule(reaction_target, Intersection(component_factor, contingency_factor).to_simplified_set()))
 
     def calc_state_rules() -> None:
@@ -813,7 +814,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
       """
 
-        def reaction_with_sources(reaction_target: ReactionTarget) -> VennSet:
+        def reaction_with_sources(reaction_target: ReactionTarget) -> VennSet[Target]:
             """
             Calculates the source states of the respective reaction target
 
@@ -827,16 +828,22 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             return Intersection(ValueSet(reaction_target),
                                 Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets)))
 
-        def indirect_synth_path(state_target: StateTarget) -> VennSet:
+        def indirect_synth_path(state_target: StateTarget) -> VennSet[ReactionTarget]:
             my_brothers = [x for x in state_targets if state_target.shares_component_with(x) and x != state_target]
             return Union(*(ValueSet(rxn) for state in my_brothers for rxn in reaction_targets if rxn.synthesises(state)))
 
-        def degradation_factor(state_target: StateTarget) -> VennSet:
+        def synthesis_factor(state_target: StateTarget) -> VennSet[ReactionTarget]:
+            return Union(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
+
+        def component_factor(state_target: StateTarget) -> VennSet[StateTarget]:
+            return Intersection(*(component_to_factor[x] for x in state_target.components))
+
+        def degradation_factor(state_target: StateTarget) -> VennSet[ReactionTarget]:
             return Complement(Union(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
 
         for state_target in state_targets:
-            synt_fac = Union(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
-            comp_fac = Intersection(*(component_to_factor[x] for x in state_target.components))
+            synt_fac = synthesis_factor(state_target)
+            comp_fac = component_factor(state_target)
             degr_fac = degradation_factor(state_target)
 
             prod_facs = []  # type: List[VennSet]

@@ -33,7 +33,7 @@ def target_from_str(target_str: str):
             try:
                 contingency_variant_index, interaction_variant_index = index_strs.split('/')
             except ValueError:
-                contingency_variant_index, interaction_variant_index = index_strs.split('/')[0], 0
+                contingency_variant_index, interaction_variant_index = index_strs.split('/')[0], '0'
 
             target = ReactionTarget(reaction_from_str(rxn_str))
             target.contingency_variant_index = int(contingency_variant_index)
