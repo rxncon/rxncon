@@ -81,3 +81,12 @@ def test_ipi():
     assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
 
 
+def test_trans_modification():
+    test_case = RuleTestCase('''A_p+_B_[(a)]''',
+                             [('A', 'A', NodeType.component), ('B_[(a)]', 'a', NodeType.residue),
+                              ('B', 'B', NodeType.component)],
+                             [('B', 'B_[(a)]', EdgeWith.internal, EdgeType.interaction),
+                              ('A', 'B_[(a)]', EdgeWith.external, EdgeType.modification)])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+

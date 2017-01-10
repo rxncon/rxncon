@@ -3,6 +3,7 @@ from enum import Enum
 from networkx import DiGraph
 from copy import deepcopy
 from rxncon.core.reaction import Reaction
+from rxncon.core.state import State
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.spec import Spec, Locus, LocusResolution
 
@@ -80,23 +81,32 @@ def get_node_label(specification: Spec, node_type: NodeType):
 
     raise AssertionError
 
-INTERACTION_STATES = {
+STATES = {
     # Interaction state.
     '$x--$y': [
-        lambda state, builder: builder.add_spec_information(state['$x']),
-        lambda state, builder: builder.add_spec_information(state['$y']),
-        lambda state, builder: builder.add_external_edge(source=state['$x'], target=state['$y'],
-                                                         type=EdgeType.interaction)
+        lambda reaction, state, builder: builder.add_spec_information(state['$x']),
+        lambda reaction, state, builder: builder.add_spec_information(state['$y']),
+        lambda reaction, state, builder: builder.add_external_edge(source=state['$x'], target=state['$y'],
+                                                                   type=EdgeType.interaction)
     ],
     # Self-interaction state.
     '$x--[$y]': [
-        lambda state, builder: builder.add_spec_information(state['$x']),
-        lambda state, builder: builder.add_spec_information(get_valid_spec(state['$y'], state['$x'])),
-        lambda state, builder: builder.add_external_edge(source=state['$x'],
-                                                         target=get_valid_spec(state['$y'], state['$x']),
-                                                         type=EdgeType.interaction)
-    ],
+        lambda reaction, state, builder: builder.add_spec_information(state['$x']),
+        lambda reaction, state, builder: builder.add_spec_information(get_valid_spec(state['$y'], state['$x'])),
+        lambda reaction, state, builder: builder.add_external_edge(source=state['$x'],
+                                                                   target=get_valid_spec(state['$y'], state['$x']),
+                                                                   type=EdgeType.interaction)
+        ],
+    # trans-modification
+    '$x-{$y}': [
+        lambda reaction, state, builder: builder.add_spec_information(state['$x']),
+        lambda reaction, state, builder: builder.add_kinase(reaction),
+        lambda reaction, state, builder: builder.add_external_mod_edge(reaction, state['$x'])
+
+    ]
 }
+
+
 
 class ReactionGraph:
     def __init__(self, reaction_graph: DiGraph):
@@ -151,6 +161,21 @@ class GraphBuilder():
         _add_spec_nodes()
         _add_spec_edges()
 
+    def add_kinase(self, reaction: Reaction):
+        for term in reaction.terms_lhs:
+            for spec in term.specs:
+                if spec.is_component_spec and term in reaction.terms_rhs:
+                    self.add_spec_information(spec)
+
+    def add_external_mod_edge(self, reaction: Reaction, specification: Spec):
+        kinases = []
+        for term in reaction.terms_lhs:
+            for spec in term.specs:
+                if spec.is_component_spec and term in reaction.terms_rhs:
+                    kinases.append(spec)
+        for kinase in kinases:
+            self.add_external_edge(source=kinase, target=specification, type=EdgeType.modification)
+
     def get_graph(self):
         return self._reaction_graph
 
@@ -158,13 +183,13 @@ class GraphBuilder():
 def rxngraph_from_rxncon_system(rxncon_system):
     def add_trans_reaction_to_graph(reaction: Reaction):
         for product_states in reaction.produced_states:
-            for func in INTERACTION_STATES[product_states.repr_def]:
-                func(product_states, builder)
+            for func in STATES[product_states.repr_def]:
+                func(reaction, product_states, builder)
 
     def add_cis_reaction_to_graph(reaction: Reaction):
             for product_states in reaction.produced_states:
-                for func in INTERACTION_STATES[product_states.repr_def]:
-                    func(product_states, builder)
+                for func in STATES[product_states.repr_def]:
+                    func(reaction, product_states, builder)
 
     def is_cis(reaction: Reaction) -> bool:
         return len(reaction.components_lhs) == 1 and len(reaction.components_rhs) == 1
