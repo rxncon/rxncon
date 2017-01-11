@@ -54,7 +54,7 @@ class BooleanModel:
     def reaction_target_by_name(self, name: str) -> 'ReactionTarget':
         return self._reaction_targets[name]
 
-    def _validate_update_rules(self):
+    def _validate_update_rules(self) -> None:
         """
         Validating the update rules.
 
@@ -68,15 +68,15 @@ class BooleanModel:
             AssertionError: Raise an error if not all targets on the factor side are also targets on the target side.
 
         """
-        all_lhs_targets = []
-        all_rhs_targets = []
+        all_lhs_targets = []  # type: List[Target]
+        all_rhs_targets = []  # type: List[Target]
         for rule in self.update_rules:
             all_lhs_targets.append(rule.target)
             all_rhs_targets += rule.factor_targets
 
         assert all(x in all_lhs_targets for x in all_rhs_targets)
 
-    def _validate_initial_conditions(self):
+    def _validate_initial_conditions(self) -> None:
         self.initial_conditions.validate_by_model(self)
 
 
@@ -91,7 +91,7 @@ class BooleanModelConfig:
     def __init__(self, target_to_value: Dict['Target', bool]) -> None:
         self.target_to_value = target_to_value
 
-    def set_target(self, target: 'Target', value: bool):
+    def set_target(self, target: 'Target', value: bool) -> None:
         """
         Assigning a value to a target.
 
@@ -108,7 +108,7 @@ class BooleanModelConfig:
         """
         self.target_to_value[target] = value
 
-    def validate_by_model(self, model: BooleanModel):
+    def validate_by_model(self, model: BooleanModel) -> None:
         """
         Validating the boolean model.
 
@@ -161,7 +161,7 @@ class ReactionTarget(Target):
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Target):
             return NotImplemented
         return isinstance(other, ReactionTarget) and self.reaction_parent == other.reaction_parent and \
@@ -445,7 +445,7 @@ class ComponentStateTarget(StateTarget):
     def __init__(self, component: Spec) -> None:
         self.component = component
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Target):
             return NotImplemented
         return isinstance(other, ComponentStateTarget) and self.component == other.component
@@ -554,7 +554,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             If there are contingencies a VennSet of StateTargets is returned, the UniversalSet otherwise.
 
         """
-        def parse_effector(eff: Effector) -> VennSet:
+        def parse_effector(eff: Effector) -> VennSet[StateTarget]:
             """
             Reshape VennSet of StateEffectors into VennSet of StateTargets.
 
@@ -678,13 +678,13 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                     target.contingency_variant_index = index
                     reaction_target_to_factor[target] = factor
 
-    def update_degradations_with_component_states():
+    def update_degradations_with_component_states() -> None:
         for reaction_target in reaction_target_to_factor.keys():
             for degraded_component in reaction_target.degraded_components:
                 if ComponentStateTarget(degraded_component) in component_state_targets:
                     reaction_target.degraded_targets.append(ComponentStateTarget(degraded_component))
 
-    def update_degradations_with_contingencies():
+    def update_degradations_with_contingencies() -> None:
         def degraded_state_targets(component: Spec, soln: Dict[StateTarget, bool]) -> List[StateTarget]:
             # soln evaluates to False if solution is tautology.
             if not soln and ComponentStateTarget(component) in component_state_targets:
@@ -707,7 +707,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                     reaction_target.degraded_targets += degraded_state_targets(degraded_component, {})
 
             # Make sure the contingency concerns the object, not the subject of the degradation.
-            contingency_components = []
+            contingency_components = []  # type: List[Spec]
 
             for state in (state for state in contingency_factor.values if state):
                 contingency_components.extend(state.components)
@@ -721,7 +721,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             for degraded_component in reaction_target.degraded_components:
                 reaction_target.degraded_targets += degraded_state_targets(degraded_component, soln)
 
-    def update_degradations_for_interaction_states():
+    def update_degradations_for_interaction_states() -> None:
         """
         Update degradation reactions for interaction states.
 
@@ -797,7 +797,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """
 
         for reaction_target, contingency_factor in reaction_target_to_factor.items():
-            component_factor = Intersection(*(component_to_factor[x] for x in reaction_target.components_lhs))
+            components = (component_to_factor[x] for x in reaction_target.components_lhs)
+            component_factor = Intersection(*components)  # type: VennSet[StateTarget]
             reaction_rules.append(UpdateRule(reaction_target, Intersection(component_factor, contingency_factor).to_simplified_set()))
 
     def calc_state_rules() -> None:
@@ -813,7 +814,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
       """
 
-        def reaction_with_sources(reaction_target: ReactionTarget) -> VennSet:
+        def reaction_with_sources(reaction_target: ReactionTarget) -> VennSet[Target]:
             """
             Calculates the source states of the respective reaction target
 
@@ -824,19 +825,25 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 VennSet of the reaction target and its source states
 
             """
-            return Intersection(ValueSet(reaction_target),
-                                Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets)))
+            sources = Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
+            return Intersection(ValueSet(reaction_target), sources)
 
-        def indirect_synth_path(state_target: StateTarget) -> VennSet:
+        def indirect_synth_path(state_target: StateTarget) -> VennSet[ReactionTarget]:
             my_brothers = [x for x in state_targets if state_target.shares_component_with(x) and x != state_target]
             return Union(*(ValueSet(rxn) for state in my_brothers for rxn in reaction_targets if rxn.synthesises(state)))
 
-        def degradation_factor(state_target: StateTarget) -> VennSet:
+        def synthesis_factor(state_target: StateTarget) -> VennSet[ReactionTarget]:
+            return Union(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
+
+        def component_factor(state_target: StateTarget) -> VennSet[StateTarget]:
+            return Intersection(*(component_to_factor[x] for x in state_target.components))
+
+        def degradation_factor(state_target: StateTarget) -> VennSet[ReactionTarget]:
             return Complement(Union(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
 
         for state_target in state_targets:
-            synt_fac = Union(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
-            comp_fac = Intersection(*(component_to_factor[x] for x in state_target.components))
+            synt_fac = synthesis_factor(state_target)
+            comp_fac = component_factor(state_target)
             degr_fac = degradation_factor(state_target)
 
             prod_facs = []  # type: List[VennSet]
@@ -1004,7 +1011,7 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
     reaction_index = 0
     state_index    = 0
 
-    def sort_key(rule_str):
+    def sort_key(rule_str: str) -> Tuple[str, int]:
         """
         Function for sorting.
 

@@ -1,5 +1,4 @@
-from typing import Union, List
-from collections import defaultdict
+from typing import Union, List, Optional, Tuple
 import re
 from enum import Enum, unique
 from networkx import DiGraph
@@ -78,7 +77,7 @@ class RegulatoryGraph:
         self.add_synthesised_or_degraded_components()
         return self.regulatory_graph
 
-    def add_synthesised_or_degraded_components(self):
+    def add_synthesised_or_degraded_components(self) -> None:
         """
         Adding components to the graph, which do not belong to any state of the system but get synthesised or degraded.
 
@@ -89,7 +88,7 @@ class RegulatoryGraph:
             None
 
         """
-        def calc_components_without_states():
+        def calc_components_without_states() -> List[Spec]:
             """
             Calculating the components without states:
 
@@ -99,7 +98,7 @@ class RegulatoryGraph:
             """
             return [comp for comp in self.rxncon_system.components() if not self.rxncon_system.states_for_component(comp)]
 
-        def add_synthesised_components_and_reactions():
+        def add_synthesised_components_and_reactions() -> None:
             """
             Adding components to the graph, which do not belong to at least one state but gets synthesised.
 
@@ -119,7 +118,7 @@ class RegulatoryGraph:
                     self._add_edge(source=str(reaction), target=str(synthesised_component), interaction=EdgeInteractionType.synthesis)
                     components_by_reactions.append(synthesised_component)
 
-        def get_degraded_components_and_reactions():
+        def get_degraded_components_and_reactions() -> None:
             """
             Adding components to the graph, which do not belong to at least one state but gets degraded.
 
@@ -139,7 +138,7 @@ class RegulatoryGraph:
                     self._add_edge(source=str(reaction), target=str(degraded_component), interaction=EdgeInteractionType.degrade)
                     components_by_reactions.append(degraded_component)
 
-        def connect_components_and_reactions():
+        def connect_components_and_reactions() -> None:
             """
             Connecting components, which do not belong to any state to reactions.
 
@@ -169,13 +168,13 @@ class RegulatoryGraph:
 
         connect_components_and_reactions()
 
-    def add_degradation_reaction_information_to_graph(self, reaction, contingencies) -> None:
+    def add_degradation_reaction_information_to_graph(self, reaction: Reaction, contingencies: List[Contingency]) -> None:
         """
         Adding degradation information to the graph.
 
         Args:
             reaction: rxncon reaction.
-            contingencies: rxncon contingency.
+            contingencies: list of rxncon contingencies.
 
         Mutates:
             The regulatory Graph.
@@ -185,7 +184,7 @@ class RegulatoryGraph:
 
         """
 
-        def _effector_to_vennset(eff: Effector, con_type: Union[ContingencyType, None]=None) -> VennSet:
+        def _effector_to_vennset(eff: Effector, con_type: Optional[ContingencyType]=None) -> VennSet:
             """
             Preprocessing effector. Save information in leafs.
 
@@ -331,7 +330,7 @@ class RegulatoryGraph:
                         for state in complements:
                             self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.maybe_degraded)
 
-        def _update_contingency_information(value_set: ValueSet) -> None:
+        def _update_contingency_information(value_set: ValueSet[State]) -> None:
             """
             Updating the degradation information with its contingencies.
 
@@ -355,7 +354,7 @@ class RegulatoryGraph:
                     else:
                         self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.degrade)
 
-        def _update_contingency_information_for_complement(complement_value: Complement):
+        def _update_contingency_information_for_complement(complement_value: VennSet[State]) -> None:
             """
             Updating the contingency information for complements.
 
@@ -377,7 +376,8 @@ class RegulatoryGraph:
             state = complement_value.values[0]
             _add_complement_of_state_for_degradation_reaction(state)
 
-        def _get_positive_and_negative_states(nested_list: List[Union[ValueSet, Complement]], dnf_of_cont: List[List[Union[ValueSet, Complement]]]):
+        def _get_positive_and_negative_states(nested_list: List[VennSet[State]], dnf_of_cont: List[List[VennSet[State]]])\
+                -> Tuple[List[Complement[State]], List[ValueSet[State]]]:
             """
             Calculating a list of negative states (complements) and positive states (not complements).
 
@@ -389,15 +389,17 @@ class RegulatoryGraph:
                 A list of complements (negative_value_set) and positive_value_set.
 
             """
-            negative_value_set = []  # type: List[Complement]
-            positive_value_set = []  # type: List[ValueSet]
+            negative_value_set = []  # type: List[Complement[State]]
+            positive_value_set = []  # type: List[ValueSet[State]]
 
             for value in nested_list:
                 if all(value in nested_list for nested_list in dnf_of_cont):
                     if isinstance(value, Complement):
                         negative_value_set.append(value)
-                    else:
+                    elif isinstance(value, ValueSet):
                         positive_value_set.append(value)
+                    else:
+                        raise AssertionError
 
             return negative_value_set, positive_value_set
 
@@ -411,17 +413,21 @@ class RegulatoryGraph:
             dnf_of_cont = cont.to_dnf_nested_list()
 
             for index, nested_list in enumerate(dnf_of_cont):
+                negative_value_sets, positive_value_sets = _get_positive_and_negative_states(nested_list, dnf_of_cont)
 
-                negative_value_set, positive_value_set = _get_positive_and_negative_states(nested_list, dnf_of_cont)
+                for pos_value_set in positive_value_sets:
+                    _update_contingency_information(pos_value_set)
 
-                for value_set in positive_value_set:
-                    _update_contingency_information(value_set)
+                for neg_value_set in negative_value_sets:
+                    _update_contingency_information_for_complement(neg_value_set)
 
-                for value_set in negative_value_set:
-                    _update_contingency_information_for_complement(value_set)
+                positive_states = [pos_value_set.value for pos_value_set in positive_value_sets]
 
-                positive_states = [value_set.value for value_set in positive_value_set]
-                negative_states = [value_set.expr.value for value_set in negative_value_set]
+                negative_states = []
+                for neg_value_set in negative_value_sets:
+                    assert isinstance(neg_value_set.expr, ValueSet)
+                    negative_states.append(neg_value_set.expr.value)
+
                 _add_possible_degraded_states(positive_states, negative_states)
         # Second case: reaction with a trivial contingency should degrade all states for the degraded component.
         else:
@@ -538,11 +544,12 @@ class RegulatoryGraph:
             if isinstance(target, Reaction):
                 return self._replace_invalid_chars(str(target))
             elif isinstance(target, Effector):
+                assert target.name is not None
                 return self._replace_invalid_chars(target.name)
             else:
                 raise AssertionError
 
-        def _add_information_from_effector_to_graph(effector, edge_type, target_name) -> None:
+        def _add_information_from_effector_to_graph(effector: Effector, edge_type: EdgeInteractionType, target_name: str) -> None:
             """
             Adds the effector information of the contingency to the graph.
 
@@ -613,8 +620,8 @@ class RegulatoryGraph:
                 raise AssertionError
 
         for contingency in contingencies:
-            _add_information_from_effector_to_graph(contingency.effector, contingency.type,
-                                                         _target_name_from_reaction_or_effector(contingency.target))
+            _add_information_from_effector_to_graph(contingency.effector, edge_type_mapping[contingency.type],
+                                                    _target_name_from_reaction_or_effector(contingency.target))
 
     def _add_node(self, id: str, label: str, type: NodeType) -> None:
         """

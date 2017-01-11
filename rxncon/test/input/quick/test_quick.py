@@ -4,7 +4,7 @@ from rxncon.input.quick.quick import *
 from rxncon.core.contingency import ContingencyType
 
 
-def test_single_reaction():
+def test_single_reaction() -> None:
     rxncon_sys = Quick('A_p+_B_[(r)]').rxncon_system
     assert state_from_str('B_[(r)]-{0}') in rxncon_sys.consumed_states
     assert state_from_str('B_[(r)]-{p}') in rxncon_sys.produced_states
@@ -13,7 +13,7 @@ def test_single_reaction():
     assert state_from_str('B_[(r)]-{p}') in rxncon_sys.states_for_component(spec_from_str('B'))
 
 
-def test_single_contingency():
+def test_single_contingency() -> None:
     rxncon_sys = Quick('''A_p+_B_[(r)]; ! A_[(x)]-{p}
                        C_p+_A_[(x)]''').rxncon_system
     assert state_from_str('A_[(x)]-{0}') in rxncon_sys.consumed_states
@@ -32,7 +32,7 @@ def test_single_contingency():
     assert contingencies[0].type == ContingencyType.requirement
 
 
-def test_bidirectional_verb():
+def test_bidirectional_verb() -> None:
     rxncon_sys = Quick('''A_[x]_ppi_B_[y]; ! A_[(x)]-{p}
                        C_p+_A_[(x)]''').rxncon_system
 

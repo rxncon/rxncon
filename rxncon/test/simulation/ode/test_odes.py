@@ -1,23 +1,25 @@
 import pytest
 import math
+from typing import List
 
 from rxncon.simulation.ode.polynomials import Polynomial, PolynomialTerm, Symbol, Monomial, MonomialFactor
 from rxncon.simulation.ode.ode import ODE, ODESystem
 
 
-def test_simple_ode_system(first_lotke_volterra_ode, second_lotke_volterra_ode):
+def test_simple_ode_system(first_lotke_volterra_ode: ODE, second_lotke_volterra_ode: ODE) -> None:
     ode_sys = ODESystem([first_lotke_volterra_ode, second_lotke_volterra_ode])
     assert isinstance(ode_sys, ODESystem)
 
 
-def test_doubly_defined_time_derivatives(first_lotke_volterra_ode, second_lotke_volterra_ode):
+def test_doubly_defined_time_derivatives(first_lotke_volterra_ode: ODE, second_lotke_volterra_ode: ODE) -> None:
     second_lotke_volterra_ode.time_derivative = Symbol('x')
 
     with pytest.raises(AssertionError):
         ode_sys = ODESystem([first_lotke_volterra_ode, second_lotke_volterra_ode])
 
 
-def test_single_ode_to_py_code(first_lotke_volterra_ode, second_lotke_volterra_ode, first_ode_codes, second_ode_codes):
+def test_single_ode_to_py_code(first_lotke_volterra_ode: ODE, second_lotke_volterra_ode: ODE,
+                               first_ode_codes: List[str], second_ode_codes: List[str]) -> None:
     # Due to commutativity there are four possible code realizations for each ODE.
     assert first_lotke_volterra_ode.time_derivative.name == 'x'
     assert first_lotke_volterra_ode.to_py_code() in first_ode_codes
@@ -26,15 +28,15 @@ def test_single_ode_to_py_code(first_lotke_volterra_ode, second_lotke_volterra_o
     assert second_lotke_volterra_ode.to_py_code() in second_ode_codes
 
 
-def test_ode_system_symbol_definition(lotke_volterra_system):
+def test_ode_system_symbol_definition(lotke_volterra_system: ODESystem) -> None:
     assert lotke_volterra_system.to_py_code_symbol_defs() == ['x = ys[0]\n', 'y = ys[1]\n']
 
 
-def test_ode_system_function_definition(lotke_volterra_system):
+def test_ode_system_function_definition(lotke_volterra_system: ODESystem) -> None:
     assert lotke_volterra_system.to_py_code_return_statement() == 'return [f0, f1]'
 
 
-def test_ode_odeint_function(lotke_volterra_system):
+def test_ode_odeint_function(lotke_volterra_system: ODESystem) -> None:
     f = lotke_volterra_system.odeint_function
 
     x_y_to_expected_f_x_f_y = [
@@ -54,7 +56,7 @@ def test_ode_odeint_function(lotke_volterra_system):
         assert math.isclose(f(xs, t0)[0], fs[0]) and math.isclose(f(xs, t0)[1], fs[1])
 
 
-def test_ode_odeint(lotke_volterra_system):
+def test_ode_odeint(lotke_volterra_system: ODESystem) -> None:
     import numpy as np
     import scipy.integrate as integ
 
@@ -81,11 +83,11 @@ def test_ode_odeint(lotke_volterra_system):
 
 
 @pytest.fixture
-def lotke_volterra_system(first_lotke_volterra_ode, second_lotke_volterra_ode):
+def lotke_volterra_system(first_lotke_volterra_ode: ODE, second_lotke_volterra_ode: ODE) -> ODESystem:
     return ODESystem([first_lotke_volterra_ode, second_lotke_volterra_ode])
 
 @pytest.fixture
-def first_lotke_volterra_ode():
+def first_lotke_volterra_ode() -> ODE:
     # return dx/dt = x - x*y
     x = Symbol('x')
     y = Symbol('y')
@@ -96,7 +98,7 @@ def first_lotke_volterra_ode():
 
 
 @pytest.fixture
-def second_lotke_volterra_ode():
+def second_lotke_volterra_ode() -> ODE:
     # return dy/dt = x*y - y
     x = Symbol('x')
     y = Symbol('y')
@@ -107,12 +109,12 @@ def second_lotke_volterra_ode():
 
 
 @pytest.fixture
-def first_ode_codes():
+def first_ode_codes() -> List[str]:
     return ['(-1) * (y ** 1 * x ** 1) + (1) * (x ** 1)',  '(1) * (x ** 1) + (-1) * (y ** 1 * x ** 1)',
             '(-1) * (x ** 1 * y ** 1) + (1) * (x ** 1)', '(1) * (x ** 1) + (-1) * (x ** 1 * y ** 1)']
 
 
 @pytest.fixture
-def second_ode_codes():
+def second_ode_codes() -> List[str]:
     return ['(1) * (y ** 1 * x ** 1) + (-1) * (y ** 1)', '(1) * (x ** 1 * y ** 1) + (-1) * (y ** 1)',
             '(-1) * (y ** 1) + (1) * (y ** 1 * x ** 1)', '(-1) * (y ** 1) + (1) * (x ** 1 * y ** 1)']

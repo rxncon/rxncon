@@ -1,9 +1,11 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Callable, TypeVar
 import re
 
 from rxncon.core.spec import Spec, MRNASpec, ProteinSpec, LocusResolution, GeneSpec, spec_from_str
 from rxncon.core.state import StateDef, State, state_from_str, STATE_DEFS, FullyNeutralState
 from rxncon.util.utils import members
+
+T = TypeVar('T')
 
 SPEC_REGEX_MATCHING     = '([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
 SPEC_REGEX_NON_MATCHING = '(?:[A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
@@ -82,7 +84,7 @@ class ReactionDef:
 
         return variables
 
-    def validate_vars(self, vars: Dict[str, Any]):
+    def validate_vars(self, vars: Dict[str, Any]) -> None:
         for var, val in vars.items():
             assert isinstance(val, self.vars_def[var][0]), \
                 'In Reaction {0}: {1} is of type {2}, required to be of type {3}\nVariables: {4}'\
@@ -117,7 +119,7 @@ class ReactionDef:
         def parse_specs_str(specs_str: str) -> List[Spec]:
             return [parse_vars_str(x, spec_from_str).to_component_spec() for x in specs_str.split(',')]
 
-        def parse_vars_str(vars_str: str, post_func):
+        def parse_vars_str(vars_str: str, post_func: Callable[[str], T]) -> T:
             for var_symbol, var_val in vars.items():
                 for method in members(var_val):
                     var_with_method = '{0}.{1}'.format(var_symbol, method)
@@ -660,7 +662,7 @@ class Reaction:
         return [spec for term in self.terms_rhs for spec in term.specs]
 
     @property
-    def components_lhs_structured(self):
+    def components_lhs_structured(self) -> List[Spec]:
         return [spec.with_struct_index(i) for i, spec in enumerate(self.components_lhs)]
 
     @property
@@ -717,20 +719,20 @@ class Reaction:
 
 
 class OutputReaction(Reaction):
-    def __init__(self, name) -> None:
+    def __init__(self, name: str) -> None:
         self.name      = name
         self.terms_lhs = []
         self.terms_rhs = []
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Reaction):
             return NotImplemented
         return isinstance(other, OutputReaction) and self.name == other.name
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'OutputReaction<{}>'.format(self.name)
 
     @property
@@ -765,7 +767,7 @@ class OutputReaction(Reaction):
     def produced_states(self) -> List[State]:
         return []
 
-    def invalidate_state_cache(self):
+    def invalidate_state_cache(self) -> None:
         pass
 
 
@@ -773,7 +775,7 @@ def matching_reaction_def(repr: str) -> Optional[ReactionDef]:
     return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_repr(repr)), None)  # type: ignore
 
 
-def reaction_from_str(repr: str, standardize=True) -> Reaction:
+def reaction_from_str(repr: str, standardize: bool=True) -> Reaction:
     def fixed_spec_types(reaction_def: ReactionDef, vars: Dict[str, Any]) -> Dict[str, Any]:
         keys = vars.keys()
         assert len(list(keys)) == 2

@@ -2,7 +2,8 @@ import pytest
 import itertools as itt
 from typing import List
 
-from rxncon.venntastic.sets import ValueSet, Union, Intersection, Complement, EmptySet, UniversalSet, Difference, venn_from_str, Set
+from rxncon.venntastic.sets import ValueSet, Union, Intersection, Complement, EmptySet, UniversalSet, Difference, venn_from_str, Set, \
+    DisjunctiveUnion
 
 
 def test_property_set_construction() -> None:
@@ -34,6 +35,8 @@ def test_property_set_dictionary_keys() -> None:
 def test_simplifies() -> None:
     x1 = Intersection(ValueSet(1), ValueSet(2))
     x2 = Intersection(ValueSet(1), Complement(ValueSet(2)))
+
+    z = Union(x1, x2)
 
     assert Union(x1, x2).is_equivalent_to(ValueSet(1))
 
@@ -90,9 +93,6 @@ def test_calc_solutions() -> None:
 
 # Test the superset / subset relationships
 def test_superset_subset_for_unary_sets() -> None:
-    assert UniversalSet() == ValueSet(None)
-    assert ValueSet(None).is_superset_of(ValueSet(None))
-
     # UniversalSet == UniversalSet
     assert UniversalSet().is_superset_of(UniversalSet())
     assert UniversalSet().is_subset_of(UniversalSet())
@@ -215,18 +215,18 @@ def test_superset_subset_for_nested_unions() -> None:
 
 
 # Test basic set-theoretic identities for a generated pool of set expressions
-def test_de_morgan_s_identities(sets) -> None:
+def test_de_morgan_s_identities(sets: List[Set]) -> None:
     for x, y in itt.product(sets, sets):
         assert Intersection(Complement(x), Complement(y)).is_equivalent_to(Complement(Union(x, y)))
         assert Union(Complement(x), Complement(y)).is_equivalent_to(Complement(Intersection(x, y)))
 
 
-def test_complement_squares_to_no_op(sets) -> None:
+def test_complement_squares_to_no_op(sets: List[Set]) -> None:
     for x in sets:
         assert x.is_equivalent_to(Complement(Complement(x)))
 
 
-def test_intersection_properties(sets) -> None:
+def test_intersection_properties(sets: List[Set]) -> None:
     for x in sets:
         assert EmptySet().is_equivalent_to(Intersection(x, Complement(x)))
         assert EmptySet().is_equivalent_to(Intersection(Complement(x), x))
@@ -240,7 +240,7 @@ def test_intersection_properties(sets) -> None:
         assert x.is_equivalent_to(Intersection(x, x))
 
 
-def test_union_properties(sets) -> None:
+def test_union_properties(sets: List[Set]) -> None:
     for x in sets:
         assert UniversalSet().is_equivalent_to(Union(x, Complement(x)))
         assert UniversalSet().is_equivalent_to(Union(Complement(x), x))
@@ -257,22 +257,28 @@ def test_union_properties(sets) -> None:
         assert x.is_equivalent_to(Union(x, x))
 
 
-def test_absolute_relative_complement_identities(sets) -> None:
+def test_absolute_relative_complement_identities(sets: List[Set]) -> None:
     for x, y in itt.product(sets, sets):
         assert Intersection(x, Complement(y)).is_equivalent_to(Difference(x, y))
         assert Union(Complement(x), y).is_equivalent_to(Complement(Difference(x, y)))
 
 
-def test_distributive_properties(sets) -> None:
+def test_distributive_properties(sets: List[Set]) -> None:
     for x, y, z in itt.product(sets, sets, sets):
         assert Union(x, Intersection(y, z)).is_equivalent_to(Intersection(Union(x, y), Union(x, z)))
         assert Intersection(x, Union(y, z)).is_equivalent_to(Union(Intersection(x, y), Intersection(x, z)))
 
 
-def test_absorption_properties(sets) -> None:
+def test_absorption_properties(sets: List[Set]) -> None:
     for x, y in itt.product(sets, sets):
         assert x.is_equivalent_to(Union(x, Intersection(x, y)))
         assert x.is_equivalent_to(Intersection(x, Union(x, y)))
+
+
+def test_disjunctive_union(sets: List[Set]) -> None:
+    for x, y in itt.product(sets, sets):
+        assert DisjunctiveUnion(x, y).is_equivalent_to(Union(Difference(x, y), Difference(y, x)))
+        assert Union(Difference(x, y), Difference(y, x)).is_equivalent_to(DisjunctiveUnion(x, y))
 
 
 def test_is_equivalent_to() -> None:

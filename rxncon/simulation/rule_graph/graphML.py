@@ -1,9 +1,8 @@
 import os
-from typing import Dict
+from typing import Dict, Union
 from networkx import DiGraph
 from xml.dom import minidom
 
-from xml.etree import ElementTree as ET
 
 class XGMML:
     """
@@ -16,7 +15,6 @@ class XGMML:
     """
 
     def __init__(self, graph: DiGraph, graph_name: str) -> None:
-
         self.graph = graph
         self.graph_name = graph_name
 
@@ -31,14 +29,14 @@ class XGMML:
         xgmml = [self._header_string(), self._nodes_string(), self._edges_string(), self._footer_string()]
         return "\n".join(xgmml)
 
-    def to_file(self, file_path: str, force: bool= False) -> None:
+    def to_file(self, file_path: str, force: bool=False) -> None:
 
         """
         Writes the xgmml graph into a file.
 
         Args:
             file_path: path to the file the xgmml graph is written to.
-
+            force:     overwrite file if it already exists.
         Returns:
             None
 
@@ -66,7 +64,7 @@ class XGMML:
         elif path and not os.path.exists(path):
             raise NotADirectoryError("Path {0} does not exists.".format(path))
 
-    def _write_to_file(self, file_path) -> None:
+    def _write_to_file(self, file_path: str) -> None:
         with open(file_path, mode='w') as writehandle:
             writehandle.write(self.to_string())
 
@@ -143,7 +141,7 @@ class XGMML:
             edges.append(edge)
         return "\n".join(edges)
 
-    def _format_attribute(self, name, value):
+    def _format_attribute(self, name: str, value: Union[float, int, str]) -> str:
         if isinstance(value, float):
             return '<att name="{}" value="{}" type="double"/>'.format(name, value)
         elif isinstance(value, int):
@@ -152,20 +150,21 @@ class XGMML:
             return '<att name="{}" value="{}" type="string"/>'.format(name, value)
 
 
-def map_layout2xgmml(no_layout_graph_str: str, layout_template: str, str_template=False) -> str:
+def map_layout2xgmml(no_layout_graph_str: str, layout_template: str, str_template: bool=False) -> str:
     """
     Mapping the layout information of a xgmml file to a xgmml string.
 
     Args:
         no_layout_graph_str: xgmml graph with no layout information.
         layout_template: xgmml graph with layout information
+        str_template: @todo
 
     Returns:
         XGMML String with mapped layout information.
 
     """
 
-    def _check_filepath(file_path) -> None:
+    def _check_filepath(file_path: str) -> None:
         """
         checks if file path/file already exists
 
@@ -221,13 +220,13 @@ def map_layout2xgmml(no_layout_graph_str: str, layout_template: str, str_templat
     return xmldoc_no_layout.toprettyxml()
 
 
-def _get_rxnconID(element):
-        for child in element.childNodes:
-            if child.attributes and child.getAttribute('name') == "rxnconID":
-                return child.getAttribute('value')
+def _get_rxnconID(element: minidom.Element) -> str:
+    for child in element.childNodes:
+        if child.attributes and child.getAttribute('name') == "rxnconID":
+            return child.getAttribute('value')
 
 
-def _get_labels_and_coordinates_dict(xmldoc) -> Dict[str, Dict[str, str]]:
+def _get_labels_and_coordinates_dict(xmldoc: minidom.Document) -> Dict[str, Dict[str, str]]:
     """
     Creates a mapping of node names and their coordinates.
 

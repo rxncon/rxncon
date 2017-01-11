@@ -1,4 +1,4 @@
-from typing import List, Optional, Callable, Union, Dict, Type
+from typing import List, Optional, Callable, Union, Dict, Any
 import re
 
 
@@ -93,7 +93,7 @@ class ValidatedSBtabData(SBtabData):
             entry.postprocess()
 
 
-def sbtab_data_from_file(filename: str, separator='\t', definitions: Optional[SBtabData]=None) -> SBtabData:
+def sbtab_data_from_file(filename: str, separator: str='\t', definitions: Optional[SBtabData]=None) -> SBtabData:
     sbtab_input = []
 
     with open(filename) as f:
@@ -110,7 +110,7 @@ def sbtab_data_from_file(filename: str, separator='\t', definitions: Optional[SB
 
 
 class EntryBase:
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> Any:
         return getattr(self, item)
 
     def postprocess(self) -> None:
@@ -149,7 +149,7 @@ def _field_postprocessor_for_type_string(type_string: str) -> Callable[[str], Un
     elif type_string == 'float':
         return lambda value: float(value)
     elif type_string == 'Boolean':
-        def str2bool(x: str):
+        def str2bool(x: str) -> bool:
             if x in ['1', 'True']:
                 return True
             elif x in ['0', 'False']:
@@ -161,8 +161,8 @@ def _field_postprocessor_for_type_string(type_string: str) -> Callable[[str], Un
     elif type_string == 'integer':
         return lambda value: int(value)
     elif type_string == '{+,-,0}':
-        def str2sign(x: str):
-            if x not in ['+', '-', '0']:
+        def str2sign(x: str) -> str:
+            if x not in ('+', '-', '0'):
                 raise ValueError
 
             return x

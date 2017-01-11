@@ -10,7 +10,7 @@ from rxncon.core.state import State, StateModifier
 from rxncon.core.spec import Spec
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
-from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet
+from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet, DisjunctiveUnion
 
 
 NEUTRAL_MOD = '0'
@@ -156,7 +156,7 @@ class MolBuilder:
     def set_bond_index(self, spec: Spec, bond_index: Optional[int]) -> None:
         self.site_to_bond[site_name(spec)] = bond_index
 
-    def set_mod(self, spec: Spec, mod: Optional[StateModifier]) -> None:
+    def set_mod(self, spec: Spec, mod: StateModifier) -> None:
         self.site_to_mod[site_name(spec)] = str(mod.value)
 
 
@@ -291,7 +291,7 @@ class ComplexExprBuilder:
     def set_half_bond(self, spec: Spec, value: Optional[int]) -> None:
         self._mol_builders[spec.to_component_spec()].set_bond_index(spec, value)
 
-    def set_mod(self, spec: Spec, mod: Optional[StateModifier]) -> None:
+    def set_mod(self, spec: Spec, mod: StateModifier) -> None:
         self._mol_builders[spec.to_component_spec()].set_mod(spec, mod)
 
     def _grouped_specs(self) -> List[List[Spec]]:
@@ -301,9 +301,12 @@ class ComplexExprBuilder:
             for i, group in enumerate(grouped_specs):
                 if bond[0] in group:
                     grouped_specs.pop(i)
-                    other_group = next((other_group for other_group in grouped_specs if bond[1] in other_group), [])
-                    other_group += group
-                    break
+                    try:
+                        other_group = next(other_group for other_group in grouped_specs if bond[1] in other_group)
+                        other_group += group
+                        break
+                    except StopIteration:
+                        break
 
         return grouped_specs
 
@@ -360,7 +363,7 @@ class Parameter:
     def __init__(self, name: str, value: Optional[str]) -> None:
         self.name, self.value = name, value
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Parameter):
             return NotImplemented
         return self.name == other.name and self.value == other.value
@@ -483,13 +486,13 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
     spec_paths = {spec: [] for spec in specs}  # type: Dict[Spec, List[List[State]]]
 
     for state in states:
-        state.visited = []
+        state.visited = []  # type: ignore
 
     nums = count(1)
 
     def visit_nodes(current_path: List[State], current_spec: Spec, current_num: int) -> None:
         spec_paths[current_spec].append(current_path)
-        bonds_to_visit = [state for state in spec_to_bond_states(current_spec) if current_num not in state.visited]
+        bonds_to_visit = [state for state in spec_to_bond_states(current_spec) if current_num not in state.visited]  # type: ignore
         for i, state in enumerate(bonds_to_visit):
             if i == 0:
                 next_num = current_num
@@ -497,14 +500,19 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
                 next_num = next(nums)
 
             for s in current_path + [state]:
-                s.visited.append(next_num)
+                s.visited.append(next_num)  # type: ignore
 
             visit_nodes(current_path + [state], neighbor(current_spec, state), next_num)
 
     for spec in specs:
+        assert spec.struct_index is not None
         if spec.struct_index > 1:
             break
         visit_nodes([], spec, 0)
+
+    for spec, paths in spec_paths.items():
+        if not paths:
+            raise AssertionError('Could not find path to {}'.format(str(spec)))
 
     state_paths = {state: [] for state in states}  # type: Dict[State, List[List[State]]]
     for state in states:
@@ -519,30 +527,117 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
                     state_paths[state].append(path)
 
     for state in states:
-        del state.visited
+        del state.visited  # type: ignore
 
     return state_paths
 
 
-def with_connectivity_constraints(cont_set: VennSet) -> VennSet:
-    dnf_terms = cont_set.to_dnf_list()
-    constraint = UniversalSet()
+def calc_complexes(states: List[State]) -> List[List[State]]:
+    complexes = [[]]  # type: List[List[State]]
 
-    for dnf_term in dnf_terms:
-        states = [state for state in dnf_term.values if state]
-        state_paths = calc_state_paths(states)
+    while states:
+        state = states.pop()
+        for complex in complexes:
+            if state in complex:
+                continue
+            elif not any(state.is_mutually_exclusive_with(other) for other in complex):
+                complex.append(state)
+            else:
+                other = next(other for other in complex if state.is_mutually_exclusive_with(other))
+                new_complex = deepcopy(complex)
+                new_complex.remove(other)
+                new_complex.append(state)
+                complexes.append(new_complex)
 
-        for state in states:
+    connected_complexes = []
+
+    for complex in complexes:
+        try:
+            calc_state_paths(complex)
+            connected_complexes.append(complex)
+        except AssertionError:
+            pass
+
+    return connected_complexes
+
+
+def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
+    complexes = calc_complexes(cont_set.values)
+    complex_constraints = []
+
+    for complex in complexes:
+        state_paths = calc_state_paths(complex)
+        constraint = UniversalSet()  # type:  VennSet[State]
+
+        for state in complex:
             if any(path == [] for path in state_paths[state]):
                 continue
 
-            state_constraints = [Complement(ValueSet(state))]
+            state_constraints = [Complement(ValueSet(state))]  # type: List[VennSet[State]]
             for path in state_paths[state]:
                 state_constraints.append(Intersection(*(ValueSet(x) for x in path)))
 
             constraint = Intersection(constraint, Union(*state_constraints))
 
-    return Intersection(cont_set, constraint)
+        complex_constraints.append(constraint.to_simplified_set())
+
+    if complex_constraints:
+        return Intersection(cont_set, DisjunctiveUnion(*complex_constraints))
+    else:
+        return cont_set
+
+
+def venn_from_contingency(contingency: Contingency) -> VennSet:
+    def parse_effector(eff: Effector) -> VennSet:
+        if isinstance(eff, StateEffector):
+            return ValueSet(eff.expr)
+        elif isinstance(eff, NotEffector):
+            return Complement(parse_effector(eff.expr))
+        elif isinstance(eff, OrEffector):
+            return Union(*(parse_effector(x) for x in eff.exprs))
+        elif isinstance(eff, AndEffector):
+            return Intersection(*(parse_effector(x) for x in eff.exprs))
+        else:
+            raise AssertionError
+
+    if contingency.type in [ContingencyType.requirement]:
+        return parse_effector(contingency.effector)
+    elif contingency.type in [ContingencyType.inhibition]:
+        return Complement(parse_effector(contingency.effector))
+    else:
+        return UniversalSet()
+
+
+class QuantContingencyConfigs:
+    def __init__(self, q_contingencies: List[Contingency]) -> None:
+        self.q_contingencies = deepcopy(q_contingencies)
+
+        combis = [[]]  # type: List[List[Contingency]]
+        for c in self.q_contingencies:
+            new_combis = []
+            for combi in combis:
+                new_combis.append(combi + [Contingency(c.target, ContingencyType.inhibition, c.effector)])
+                combi.append(Contingency(c.target, ContingencyType.requirement, c.effector))
+            combis.extend(new_combis)
+
+        self.combi_sets = []  # type: List[VennSet[State]]
+
+        if combis == [[]]:
+            self.combi_sets = [UniversalSet()]
+        else:
+            self.combi_sets = [Intersection(*(venn_from_contingency(x) for x in combi)) for combi in combis]
+
+        self.current_combi_set = -1
+
+    def __iter__(self) -> 'QuantContingencyConfigs':
+        return self
+
+    def __next__(self) -> VennSet[State]:
+        try:
+            self.current_combi_set += 1
+            return self.combi_sets[self.current_combi_set]
+        except IndexError:
+            raise StopIteration
 
 
 def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
@@ -557,26 +652,6 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             mol_defs[spec] = builder.build()
 
         return mol_defs
-
-    def venn_from_contingency(contingency: Contingency) -> VennSet:
-        def parse_effector(eff: Effector) -> VennSet:
-            if isinstance(eff, StateEffector):
-                return ValueSet(eff.expr)
-            elif isinstance(eff, NotEffector):
-                return Complement(parse_effector(eff.expr))
-            elif isinstance(eff, OrEffector):
-                return Union(*(parse_effector(x) for x in eff.exprs))
-            elif isinstance(eff, AndEffector):
-                return Intersection(*(parse_effector(x) for x in eff.exprs))
-            else:
-                raise AssertionError
-
-        if contingency.type in [ContingencyType.requirement]:
-            return parse_effector(contingency.effector)
-        elif contingency.type in [ContingencyType.inhibition]:
-            return Complement(parse_effector(contingency.effector))
-        else:
-            return UniversalSet()
 
     def calc_positive_solutions(rxncon_sys: RxnConSystem, solution: Dict[State, bool]) -> List[List[State]]:
         def is_satisfiable(states: Iterable[State]) -> bool:
@@ -594,6 +669,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
 
         def structure_states(states: List[State]) -> List[State]:
             cur_index = max(spec.struct_index for state in states for spec in state.specs if spec.is_structured)
+            assert cur_index is not None
 
             spec_to_index = {}  # type: Dict[Spec, int]
             struct_states = []  # type: List[State]
@@ -719,20 +795,22 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
     rules = []  # type: List[Rule]
 
     for reaction in (x for x in rxncon_sys.reactions if not isinstance(x, OutputReaction)):
-        cont_set = Intersection(*(venn_from_contingency(x) for x
-                                in rxncon_sys.s_contingencies_for_reaction(reaction)))
+        strict_cont_set = Intersection(*(venn_from_contingency(x) for x in rxncon_sys.s_contingencies_for_reaction(reaction)))  # type: VennSet[State]
+        quant_contingenies = QuantContingencyConfigs(rxncon_sys.q_contingencies_for_reaction(reaction))
 
-        cont_set = with_connectivity_constraints(cont_set)
-        solutions = cont_set.calc_solutions()
+        for quant_contingency_set in quant_contingenies:
+            cont_set = Intersection(strict_cont_set, quant_contingency_set)  # type: VennSet[State]
+            cont_set = with_connectivity_constraints(cont_set)
+            solutions = cont_set.calc_solutions()
 
-        positive_solutions = []  # type: List[List[State]]
-        for solution in solutions:
-            positive_solutions += calc_positive_solutions(rxncon_sys, solution)
+            positive_solutions = []  # type: List[List[State]]
+            for solution in solutions:
+                positive_solutions += calc_positive_solutions(rxncon_sys, solution)
 
-        for positive_solution in positive_solutions:
-            rule = calc_rule(reaction, positive_solution)
-            if not any(rule.is_equivalent_to(existing) for existing in rules):
-                rules.append(rule)
+            for positive_solution in positive_solutions:
+                rule = calc_rule(reaction, positive_solution)
+                if not any(rule.is_equivalent_to(existing) for existing in rules):
+                    rules.append(rule)
 
     return RuleBasedModel(mol_defs, calc_initial_conditions(mol_defs), [], calc_observables(rxncon_sys), rules)
 

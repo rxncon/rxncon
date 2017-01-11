@@ -56,6 +56,7 @@ class ExcelBook:
 
     @property
     def rxncon_system(self) -> RxnConSystem:
+        assert self._rxncon_system is not None
         return self._rxncon_system
 
     def _open_file(self) -> None:

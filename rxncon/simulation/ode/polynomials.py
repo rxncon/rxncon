@@ -1,4 +1,4 @@
-from typing import List, Callable, Set, Union, Dict
+from typing import List, Set, Union, Dict
 from collections import defaultdict
 from math import isclose
 
@@ -91,7 +91,7 @@ class MonomialFactor:
         self.power = power
         self._validate()
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, MonomialFactor):
             return NotImplemented
         return self.symbol == other.symbol and self.power == other.power
@@ -146,8 +146,7 @@ class Polynomial:
 
         return Polynomial(set(new_terms))
 
-
-    def __sub__(self, other: Union['Polynomial', float]):
+    def __sub__(self, other: Union['Polynomial', float]) -> 'Polynomial':
         if isinstance(other, Polynomial):
             return self + (-1 * other)
         elif isinstance(other, float) or isinstance(other, int):
@@ -184,7 +183,7 @@ class Polynomial:
 
             return Polynomial(set(new_terms))
 
-    def __rmul__(self, other: Union['Polynomial', float]) -> 'Polynomial':
+    def __rmul__(self, other: Union['Polynomial', float]) -> 'Polynomial':  # type: ignore
         return self * other
 
     def __str__(self) -> str:

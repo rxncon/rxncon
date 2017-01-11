@@ -7,7 +7,7 @@ import pytest
 # Test modification states #
 ###                      ###
 
-def test_modification_props():
+def test_modification_props() -> None:
     # Elemental state, neutral.
     state = state_from_str('A_[(res)]-{0}')
     assert state.is_elemental
@@ -37,7 +37,7 @@ def test_modification_props():
     assert elems_eq(state.neutral_states, [state_from_str('A_[dom]-{0}')])
 
 
-def test_modification_parsing():
+def test_modification_parsing() -> None:
     # Upper/lower case should not matter for StateModifier.
     assert state_from_str('A-{P}') == state_from_str('A-{p}')
     assert state_from_str('A_[(res)]-{UB}') == state_from_str('A_[(res)]-{Ub}')
@@ -47,7 +47,7 @@ def test_modification_parsing():
         state_from_str('A_[(res)]-{kryptonite}')
 
 
-def test_modification_superset_subset():
+def test_modification_superset_subset() -> None:
     # Happy path, same modification.
     assert state_from_str('A-{p}').is_superset_of(state_from_str('A_[dom]-{p}'))
     assert state_from_str('A_[dom]-{p}').is_superset_of(state_from_str('A_[dom(res)]-{p}'))
@@ -65,7 +65,7 @@ def test_modification_superset_subset():
     assert not state_from_str('A_[dom(res)]-{ub}').is_subset_of(state_from_str('A_[dom]-{p}'))
 
 
-def test_modification_structured_index():
+def test_modification_structured_index() -> None:
     state = state_from_str('A@3-{p}')
     assert state.components[0].struct_index == 3
 
@@ -73,7 +73,7 @@ def test_modification_structured_index():
 # Test protein-protein-interaction states #
 ###                                     ###
 
-def test_ppi_props():
+def test_ppi_props() -> None:
     # Elemental state, free binding domain.
     state = state_from_str('A_[m]--0')
     assert state.is_elemental
@@ -106,7 +106,7 @@ def test_ppi_props():
     assert elems_eq(state.neutral_states, [state_from_str('A--0'), state_from_str('B_[n]--0')])
 
 
-def test_ppi_parsing():
+def test_ppi_parsing() -> None:
     # @todo JCR 20160920 Bonds are symmetric. We need extra structure to allow this is the StateDef.
     # assert state_from_string('A_[x]--B_[y]') == state_from_string('B_[y]--A_[x]')
 
@@ -115,7 +115,7 @@ def test_ppi_parsing():
         state_from_str('A_[(x)]--B_[(y)]')
 
 
-def test_ppi_superset_subset():
+def test_ppi_superset_subset() -> None:
     # Happy path, free binding domain.
     assert state_from_str('A--0').is_superset_of(state_from_str('A_[m]--0'))
     assert state_from_str('A_[m]--0').is_subset_of(state_from_str('A--0'))
@@ -153,12 +153,13 @@ def test_ppi_superset_subset():
     assert not state_from_str('A_[m]--B_[n]').is_superset_of(state_from_str('A--B_[n]'))
 
 
-def test_ppi_structured_index():
+def test_ppi_structured_index() -> None:
     state = state_from_str('X@4--Z@3')
-    assert elems_eq([(spec.component_name, spec.struct_index) for spec in state.specs], [('X', 4), ('Z', 3)])
+    assert spec_from_str('X@4') in state.specs
+    assert spec_from_str('Z@3') in state.specs
 
 
-def test_ppi_mutual_exclusivity():
+def test_ppi_mutual_exclusivity() -> None:
     assert state_from_str('A_[x]--B_[y]').is_mutually_exclusive_with(state_from_str('A_[x]--C_[z]'))
 
 
@@ -166,7 +167,7 @@ def test_ppi_mutual_exclusivity():
 # Test self-interaction states #
 ###                          ###
 
-def test_ipi_props():
+def test_ipi_props() -> None:
     # NOTE : States with free binding domain are the same states as tested in 'test_ppi_props', tested there.
 
     # Elemental state, bond.
@@ -188,7 +189,7 @@ def test_ipi_props():
     # assert elems_eq(state.neutral_states, [state_from_str('A--0'), state_from_str('A_[n]--0')])
 
 
-def test_ipi_parsing():
+def test_ipi_parsing() -> None:
     # @todo JCR 20160920 Bonds are symmetric. We need extra structure to capture this is the StateDef.
     # assert state_from_string('A_[x]--B_[y]') == state_from_string('B_[y]--A_[x]')
 
@@ -197,7 +198,7 @@ def test_ipi_parsing():
         state_from_str('A_[(x)]--[(y)]')
 
 
-def test_ipi_superset_subset():
+def test_ipi_superset_subset() -> None:
     # NOTE : States with free binding domain are the same states as tested in 'test_ppi_superset_subset', tested there.
 
     # @todo JCR 20160920 There is a problem here: the StateDef requires the second variable in the State string to be
@@ -209,10 +210,10 @@ def test_ipi_superset_subset():
 # Test Fully Neutral state #
 ###                      ###
 
-def test_fully_neutral():
+def test_fully_neutral() -> None:
     assert state_from_str('0') == FullyNeutralState()
 
 
-def test_global():
+def test_global() -> None:
     x = state_from_str('[IN]')
     assert x.is_global

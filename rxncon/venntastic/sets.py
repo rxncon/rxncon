@@ -1,16 +1,20 @@
 import functools
 import operator
-from typing import Dict, List, Generic, Optional, TypeVar, MutableMapping
+from typing import Dict, List, Generic, Optional, TypeVar, MutableMapping, Callable, Any
 from collections import OrderedDict
 from itertools import product
 import re
 
-from pyeda.inter import And, Or, Not, expr
-from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies, Expression, Literal, NaryOp, \
+from pyeda.inter import And, Or, Not, Xor, expr
+from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies, Expression, Literal, \
     Complement as pyedaComplement, One, Zero
 
 SYMS = [''.join(tup) for tup in product('ABCDEFGHIJKLMNOPQRSTUVWXYZ', repeat=2)]
-T = TypeVar('T')
+
+# Since all Set expressions except ValueSet are covariant, we make the 'T' type var covariant,
+# and make ValueSet[T_inv] for invariant.
+T = TypeVar('T', covariant=True)
+T_inv = TypeVar('T_inv')
 
 
 class Set(Generic[T]):
@@ -125,12 +129,54 @@ class Set(Generic[T]):
         return d
 
 
-class UnarySet(Generic[T], Set[T]):
+class EmptySet(Set[Any]):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Set):
+            return NotImplemented
+        return isinstance(other, EmptySet)
+
+    def __hash__(self) -> int:
+        return hash('*empty-set*')
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __str__(self) -> str:
+        return 'EmptySet'
+
+    def _to_pyeda_expr(self, val_to_sym: MutableMapping[Any, str]) -> Expression:
+        return expr(0)
+
+
+class UniversalSet(Set[Any]):
+    def __init__(self) -> None:
+        pass
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Set):
+            return NotImplemented
+        return isinstance(other, UniversalSet)
+
+    def __hash__(self) -> int:
+        return hash('UniversalSet')
+
+    def __repr__(self) -> str:
+        return 'UniversalSet'
+
+    def __str__(self) -> str:
+        return 'UniversalSet'
+
+    def _to_pyeda_expr(self, val_to_sym: MutableMapping[Any, str]) -> Expression:
+        return expr(1)
+
+
+class UnarySet(Set[T], Generic[T]):
     pass
 
 
-class ValueSet(Generic[T], UnarySet[T]):
-    def __init__(self, value: Optional[T]) -> None:
+class ValueSet(UnarySet[T_inv], Generic[T_inv]):
+    def __init__(self, value: T_inv) -> None:
+        assert value is not None
         assert isinstance(hash(value), int)
         self.value = value
 
@@ -155,40 +201,15 @@ class ValueSet(Generic[T], UnarySet[T]):
             return 'UniversalSet'
 
     @property
-    def values(self) -> List[T]:
-        if self.value is not None:
-            return [self.value]
-        else:
-            return []
+    def values(self) -> List[T_inv]:
+        return [self.value]
 
-    def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
-        if self.value:
-            return expr(val_to_sym[self.value])
-        else:
-            return expr(1)
+    def _to_pyeda_expr(self, val_to_sym: MutableMapping[Any, str]) -> Expression:
+        return expr(val_to_sym[self.value])
 
 
-class EmptySet(Generic[T], UnarySet[T]):
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, Set):
-            return NotImplemented
-        return isinstance(other, EmptySet)
-
-    def __hash__(self) -> int:
-        return hash('*empty-set*')
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def __str__(self) -> str:
-        return 'EmptySet'
-
-    def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
-        return expr(0)
-
-
-class Complement(Generic[T], UnarySet[T]):
-    def __init__(self, expr: Set) -> None:
+class Complement(UnarySet[T], Generic[T]):
+    def __init__(self, expr: Set[T]) -> None:
         self.expr = expr
 
     def __eq__(self, other: object) -> bool:
@@ -216,8 +237,8 @@ class Complement(Generic[T], UnarySet[T]):
         return Not(self.expr._to_pyeda_expr(val_to_sym))
 
 
-class NarySet(Generic[T], Set[T]):
-    def __init__(self, *exprs: Set) -> None:
+class NarySet(Set[T], Generic[T]):
+    def __init__(self, *exprs: Set[T]) -> None:
         self.exprs = exprs
 
     @property
@@ -225,7 +246,7 @@ class NarySet(Generic[T], Set[T]):
         return functools.reduce(operator.add, [expr.values for expr in self.exprs], [])
 
 
-class Intersection(Generic[T], NarySet[T]):
+class Intersection(NarySet[T], Generic[T]):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Set):
             return NotImplemented
@@ -247,7 +268,7 @@ class Intersection(Generic[T], NarySet[T]):
         return And(*(expr._to_pyeda_expr(val_to_sym) for expr in self.exprs))
 
 
-class Union(Generic[T], NarySet[T]):
+class Union(NarySet[T], Generic[T]):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Set):
             return NotImplemented
@@ -269,17 +290,35 @@ class Union(Generic[T], NarySet[T]):
         return Or(*(expr._to_pyeda_expr(val_to_sym) for expr in self.exprs))
 
 
-class Difference(Generic[T], Set[T]):
-    def __new__(cls, *args, **kwargs) -> Set[T]:
+class DisjunctiveUnion(NarySet[T], Generic[T]):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Set):
+            return NotImplemented
+        elif isinstance(other, DisjunctiveUnion):
+            return all(my_expr == other_expr for my_expr, other_expr in zip(self.exprs, other.exprs))
+        else:
+            return False
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __str__(self) -> str:
+        return '({})'.format(' XOR '.join(str(expr) for expr in self.exprs))
+
+    def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
+        return Xor(*(expr._to_pyeda_expr(val_to_sym) for expr in self.exprs))
+
+
+class Difference(Set[T], Generic[T]):
+    def __new__(cls, *args: Set[T]) -> Set[T]:
         assert len(args) == 2
         return Intersection(args[0], Complement(args[1]))
 
 
-def UniversalSet() -> Set[T]:
-    return ValueSet(None)
-
-
-def venn_from_pyeda(pyeda_expr, sym_to_val: MutableMapping[str, T]) -> Set[T]:
+def venn_from_pyeda(pyeda_expr: Expression, sym_to_val: MutableMapping[str, T]) -> Set[T]:
     if pyeda_expr is One:
         return UniversalSet()
     elif pyeda_expr is Zero:
@@ -298,7 +337,7 @@ def venn_from_pyeda(pyeda_expr, sym_to_val: MutableMapping[str, T]) -> Set[T]:
         raise Exception
 
 
-def venn_from_str(venn_str: str, value_parser=lambda x: x) -> Set[T]:
+def venn_from_str(venn_str: str, value_parser: Callable[[str], T]) -> Set[T]:
     # The values have to be surrounded by a single space.
     BOOL_REGEX            = '[\(\)\|\&\~]+'
     pyeda_str             = ''

@@ -1,12 +1,18 @@
 #!/usr/bin/python3
 
-import os
+import os, logging
 import click
+import click_log
+import colorama
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.input.excel_book.excel_book import ExcelBook
 from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_rxncon
 from rxncon.simulation.rule_based.bngl_from_rule_based_model import bngl_from_rule_based_model
+
+
+colorama.init()
+logger = logging.getLogger(__name__)
 
 
 def bngl_str_from_rxncon(rxncon: RxnConSystem) -> str:
@@ -41,8 +47,47 @@ def write_bngl(excel_filename: str, base_name=None):
 @click.option('--output', default=None,
               help='Base name for output files. Default: \'fn\' for input file \'fn.xls\'')
 @click.argument('excel_file')
+@click_log.simple_verbosity_option(default='WARNING')
+@click_log.init()
 def run(output, excel_file):
     write_bngl(excel_file, output)
 
+def setup_logging_colors():
+    click_log.ColorFormatter.colors = {
+        'error': dict(fg='red'),
+        'exception': dict(fg='red'),
+        'critical': dict(fg='red'),
+        'debug': dict(fg='yellow'),
+        'warning': dict(fg='yellow'),
+        'info': dict(fg='yellow')
+    }
+
+    def format(self, record):
+        if not record.exc_info:
+            level = record.levelname.lower()
+            if level in self.colors:
+                padding_size = 7  # Assume just INFO / DEBUG entries.
+
+                prefix = click.style('{}: '.format(level).ljust(padding_size),
+                                     **self.colors[level])
+
+                prefix += click.style('{} '.format(record.name), fg='blue')
+
+                msg = record.msg
+                if isinstance(msg, bytes):
+                    msg = msg.decode(sys.getfilesystemencoding(),
+                                     'replace')
+                elif not isinstance(msg, str):
+                    msg = str(msg)
+                record.msg = '\n'.join(prefix + x for x in msg.splitlines())
+
+        return logging.Formatter.format(self, record)
+
+    click_log.ColorFormatter.format = format
+
 if __name__ == '__main__':
-    run()
+    try:
+        setup_logging_colors()
+        run()
+    except Exception as e:
+        print('ERROR: {}\n{}\nPlease re-run this command with the \'-v DEBUG\' option.'.format(type(e), e))

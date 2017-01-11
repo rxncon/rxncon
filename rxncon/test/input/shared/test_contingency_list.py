@@ -1,10 +1,10 @@
 from rxncon.input.shared.contingency_list import contingency_list_entry_from_strs as cle_from_str, contingencies_from_contingency_list_entries
 from rxncon.venntastic.sets import venn_from_str, Set as VennSet, ValueSet, Intersection, Union, Complement
-from rxncon.core.state import state_from_str
+from rxncon.core.state import state_from_str, State
 from rxncon.core.effector import Effector, StateEffector, AndEffector, OrEffector, NotEffector
 
 
-def venn_from_effector(effector: Effector) -> VennSet:
+def venn_from_effector(effector: Effector) -> VennSet[State]:
     if isinstance(effector, StateEffector):
         return ValueSet(effector.expr)
     elif isinstance(effector, AndEffector):
@@ -17,7 +17,7 @@ def venn_from_effector(effector: Effector) -> VennSet:
         raise AssertionError
 
 
-def test_nested_boolean():
+def test_nested_boolean() -> None:
     cles = [
         cle_from_str('<C1>', 'AND', 'A_[x]--B_[y]'),
         cle_from_str('<C1>', 'AND', 'A_[(r)]-{p}'),
@@ -36,7 +36,7 @@ def test_nested_boolean():
     assert venn_from_effector(contingencies[0].effector).is_equivalent_to(expected)
 
 
-def test_simple_namespace():
+def test_simple_namespace() -> None:
     cles = [
         cle_from_str('<C0>', 'AND', 'B@1_[(r)]-{p}'),
         cle_from_str('<C0>', 'AND', 'A@0_[ab]--B@1_[ba]'),
@@ -61,7 +61,7 @@ def test_simple_namespace():
     assert state_from_str('A@1_[ad]--D@4_[da]') in effector.states
 
 
-def test_insulin_homodimer():
+def test_insulin_homodimer() -> None:
     cles = [
         cle_from_str('IR_ap+_IR_[JM(Y972)]', '!', '<IRstar>#0,<IR-Ins>.IR@0'),
         cle_from_str('<IRstar>', 'AND', '<IR-phos>'),
@@ -86,11 +86,3 @@ def test_insulin_homodimer():
     assert state_from_str('IR@0_[IRBD]--IR@2_[IRBD]') in states
     assert state_from_str('IR@0_[lig]--insulin@3_[IR]') in states
     assert state_from_str('IR@2_[lig]--insulin@4_[IR]') in states
-
-
-
-
-
-
-
-

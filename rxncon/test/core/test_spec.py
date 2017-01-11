@@ -5,7 +5,7 @@ from rxncon.core.spec import Locus, GeneSpec, MRNASpec, ProteinSpec, locus_from_
 
 
 
-def test_loci():
+def test_loci() -> None:
     LocusTestCase = namedtuple('LocusTestCase',
                                ['locus_str', 'expected_domain', 'expected_subdomain', 'expected_residue'])
 
@@ -21,7 +21,7 @@ def test_loci():
                Locus(locus_case.expected_domain, locus_case.expected_subdomain, locus_case.expected_residue)
 
 
-def test_unstructured_specs():
+def test_unstructured_specs() -> None:
     protein_spec = spec_from_str('A_[dd/ss(rr)')
     # Protein
     assert isinstance(protein_spec, ProteinSpec)
@@ -38,7 +38,7 @@ def test_unstructured_specs():
         spec_from_str('0')
 
 
-def test_structured_specs():
+def test_structured_specs() -> None:
     protein_spec = spec_from_str('A@0_[dd/ss(rr)')
     # Protein
     assert isinstance(protein_spec, ProteinSpec)
@@ -58,7 +58,7 @@ def test_structured_specs():
         empty_spec = spec_from_str('0@1')
 
 
-def test_super_sub():
+def test_super_sub() -> None:
     assert spec_from_str('A_[x]').is_subspec_of(spec_from_str('A'))
     assert not spec_from_str('A').is_subspec_of(spec_from_str('B'))
 
@@ -66,7 +66,7 @@ def test_super_sub():
     assert not spec_from_str('A').is_subspec_of(spec_from_str('A_[dom]'))
 
 
-def test_equality():
+def test_equality() -> None:
     non_struct = spec_from_str('A_[d/s(r)]')
     struct     = spec_from_str('A@5_[d/s(r)]')
 

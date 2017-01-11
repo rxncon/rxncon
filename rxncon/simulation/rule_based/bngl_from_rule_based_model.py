@@ -19,7 +19,7 @@ class BNGLSettings:
         self.simulation_time_steps = 100
 
 
-def bngl_from_rule_based_model(rule_based_model: RuleBasedModel, settings=BNGLSettings()) -> str:
+def bngl_from_rule_based_model(rule_based_model: RuleBasedModel, settings: BNGLSettings=BNGLSettings()) -> str:
     def header_str() -> str:
         return 'begin model'
 

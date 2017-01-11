@@ -1,6 +1,6 @@
 import re
 from abc import ABCMeta, abstractproperty
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Dict, Tuple, Any
 from copy import deepcopy
 from enum import Enum, unique
 
@@ -141,16 +141,16 @@ class TrivialStructEquivalences(StructEquivalences):
 
         self.cur_index = 2
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'TrivialStructEquivalences'
 
-    def add_equivalence(self, first_qual_spec: QualSpec, second_qual_spec: QualSpec):
+    def add_equivalence(self, first_qual_spec: QualSpec, second_qual_spec: QualSpec) -> None:
         pass
 
-    def add_equivalence_class(self, eq_class: List[QualSpec]):
+    def add_equivalence_class(self, eq_class: List[QualSpec]) -> None:
         pass
 
-    def merge_with(self, other: 'StructEquivalences', other_base_namespace: List[str]):
+    def merge_with(self, other: 'StructEquivalences', other_base_namespace: List[str]) -> None:
         pass
 
     def find_unqualified_spec(self, qual_spec: QualSpec) -> Optional[Spec]:
@@ -184,7 +184,7 @@ class Effector(metaclass=ABCMeta):
             return None
 
     @name.setter
-    def name(self, value: str):
+    def name(self, value: str) -> None:
         self._name = value
 
     @abstractproperty
@@ -200,12 +200,13 @@ class Effector(metaclass=ABCMeta):
                                   cur_namespace: List[str]=None) -> 'Effector':
         raise NotImplementedError
 
-    def _init_to_struct_effector_args(self, glob_equivs, cur_index, cur_namespace) -> Tuple[StructEquivalences, StructCounter, List[str]]:
-        if not glob_equivs:
+    def _init_to_struct_effector_args(self, glob_equivs: Optional[StructEquivalences], cur_index: Optional[StructCounter],
+                                      cur_namespace: Optional[List[str]]) -> Tuple[StructEquivalences, StructCounter, List[str]]:
+        if glob_equivs is None:
             glob_equivs = StructEquivalences()
-        if not cur_index:
+        if cur_index is None:
             cur_index = StructCounter()
-        if not cur_namespace:
+        if cur_namespace is None:
             cur_namespace = []
 
         return glob_equivs, cur_index, cur_namespace
@@ -270,7 +271,7 @@ class StateEffector(Effector):
 
 
 class NotEffector(Effector):
-    def __init__(self, expr: Effector, **kwargs) -> None:
+    def __init__(self, expr: Effector, **kwargs: Optional[str]) -> None:
         try:
             self.name = kwargs['name']
         except KeyError:
@@ -301,7 +302,7 @@ class NotEffector(Effector):
 
 
 class NaryEffector(Effector):
-    def __init__(self, *exprs, **kwargs) -> None:
+    def __init__(self, *exprs: Effector, **kwargs: Any) -> None:
         self.exprs = exprs
 
         try:
