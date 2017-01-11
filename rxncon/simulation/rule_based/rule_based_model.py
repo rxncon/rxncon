@@ -539,7 +539,7 @@ def calc_complexes(states: List[State]) -> List[List[State]]:
             elif not any(state.is_mutually_exclusive_with(other) for other in complex):
                 complex.append(state)
             else:
-                other = next(state for other in complex if state.is_mutually_exclusive_with(other))
+                other = next(other for other in complex if state.is_mutually_exclusive_with(other))
                 new_complex = deepcopy(complex)
                 new_complex.remove(other)
                 new_complex.append(state)
