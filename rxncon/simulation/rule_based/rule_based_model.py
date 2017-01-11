@@ -10,7 +10,7 @@ from rxncon.core.state import State, StateModifier
 from rxncon.core.spec import Spec
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
-from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet
+from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet, DisjunctiveUnion
 
 
 NEUTRAL_MOD = '0'
@@ -528,21 +528,35 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
     return state_paths
 
 
-def with_connectivity_constraints(cont_set: VennSet) -> VennSet:
-    def contains_first_reactant(states: List[State]) -> bool:
-        return any(spec.struct_index == 0 for state in states for spec in state.specs)
+def calc_complexes(states: List[State]) -> List[List[State]]:
+    complexes = [[]]  # type: List[List[State]]
 
-    def contains_second_reactant(states: List[State]) -> bool:
-        return any(spec.struct_index == 1 for state in states for spec in state.specs)
+    while states:
+        state = states.pop()
+        for complex in complexes:
+            if state in complex:
+                continue
+            elif not any(state.is_mutually_exclusive_with(other) for other in complex):
+                complex.append(state)
+            else:
+                other = next(state for other in complex if state.is_mutually_exclusive_with(other))
+                new_complex = deepcopy(complex)
+                new_complex.remove(other)
+                new_complex.append(state)
+                complexes.append(new_complex)
 
-    dnf_terms = cont_set.to_dnf_list()
-    constraint = UniversalSet()  # type: VennSet[State]
+    return complexes
 
-    for dnf_term in dnf_terms:
-        states = [state for state in dnf_term.values if state]
-        state_paths = calc_state_paths(states)
 
-        for state in states:
+def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
+    complexes = calc_complexes(cont_set.values)
+    complex_constraints = []
+
+    for complex in complexes:
+        state_paths = calc_state_paths(complex)
+        constraint = UniversalSet()  # type:  VennSet[State]
+
+        for state in complex:
             if any(path == [] for path in state_paths[state]):
                 continue
 
@@ -552,7 +566,12 @@ def with_connectivity_constraints(cont_set: VennSet) -> VennSet:
 
             constraint = Intersection(constraint, Union(*state_constraints))
 
-    return Intersection(cont_set, constraint)
+        complex_constraints.append(constraint.to_simplified_set())
+
+    if complex_constraints:
+        return Intersection(cont_set, DisjunctiveUnion(*complex_constraints))
+    else:
+        return cont_set
 
 
 def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
