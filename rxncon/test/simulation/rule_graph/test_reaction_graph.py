@@ -90,3 +90,21 @@ def test_trans_modification():
 
     assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
 
+
+def test_cis_modification():
+    test_case = RuleTestCase('''A_ap+_A_[(a)]''',
+                             [('A', 'A', NodeType.component), ('A_[(a)]', 'a', NodeType.residue)],
+                             [('A', 'A_[(a)]', EdgeWith.internal, EdgeType.interaction),
+                              ('A', 'A_[(a)]', EdgeWith.external, EdgeType.modification)])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
+def test_bidirectional_modification():
+     test_case = RuleTestCase('''A_[(a)]_pt_B_[(b)]''',
+                             [('A', 'A', NodeType.component), ('A_[(a)]', 'a', NodeType.residue),
+                              ('B', 'B', NodeType.component), ('B_[(b)]', 'b', NodeType.residue)],
+                             [('A', 'A_[(a)]', EdgeWith.internal, EdgeType.interaction),
+                              ('B', 'B_[(b)]', EdgeWith.internal, EdgeType.interaction),
+                              ('A_[(a)]', 'B_[(b)]', EdgeWith.external, EdgeType.bimodification)])
+     assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)

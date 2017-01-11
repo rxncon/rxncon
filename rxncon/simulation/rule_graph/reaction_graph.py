@@ -16,6 +16,7 @@ class EdgeWith(Enum):
 class EdgeType(Enum):
     interaction  = 'interaction'
     modification = 'modification'
+    bimodification = 'bimodification'
     synthesis    = 'synthesis'
     degradation  = 'degradation'
 
@@ -102,7 +103,6 @@ STATES = {
         lambda reaction, state, builder: builder.add_spec_information(state['$x']),
         lambda reaction, state, builder: builder.add_kinase(reaction),
         lambda reaction, state, builder: builder.add_external_mod_edge(reaction, state['$x'])
-
     ]
 }
 
@@ -169,19 +169,31 @@ class GraphBuilder():
 
     def add_external_mod_edge(self, reaction: Reaction, specification: Spec):
         kinases = []
-        for term in reaction.terms_lhs:
-            for spec in term.specs:
-                if spec.is_component_spec and term in reaction.terms_rhs:
-                    kinases.append(spec)
-        for kinase in kinases:
-            self.add_external_edge(source=kinase, target=specification, type=EdgeType.modification)
+        if self.is_trans(reaction):
+            for term in reaction.terms_lhs:
+                for spec in term.specs:
+                    if spec.is_component_spec and term in reaction.terms_rhs:
+                        kinases.append(spec)
+                for state in term.states:
+                    pass
+
+            for kinase in kinases:
+                self.add_external_edge(source=kinase, target=specification, type=EdgeType.modification)
+        elif self.is_cis(reaction):
+            self.add_external_edge(source=specification.to_component_spec(), target=specification, type=EdgeType.modification)
+
+    def is_cis(self, reaction: Reaction) -> bool:
+        return len(reaction.components_lhs) == 1 and len(reaction.components_rhs) == 1
+
+    def is_trans(self, reaction: Reaction) -> bool:
+        return not self.is_cis(reaction)
 
     def get_graph(self):
         return self._reaction_graph
 
 
 def rxngraph_from_rxncon_system(rxncon_system):
-    def add_trans_reaction_to_graph(reaction: Reaction):
+    def add_reaction_to_graph(reaction: Reaction):
         for product_states in reaction.produced_states:
             for func in STATES[product_states.repr_def]:
                 func(reaction, product_states, builder)
@@ -200,9 +212,6 @@ def rxngraph_from_rxncon_system(rxncon_system):
     builder = GraphBuilder()
 
     for reaction in rxncon_system.reactions:
-        if is_trans(reaction):
-            add_trans_reaction_to_graph(reaction)
-        elif is_cis(reaction):
-            add_cis_reaction_to_graph(reaction)
+        add_reaction_to_graph(reaction)
 
     return ReactionGraph(builder.get_graph())
