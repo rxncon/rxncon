@@ -14,11 +14,12 @@ class EdgeWith(Enum):
 
 
 class EdgeType(Enum):
-    interaction  = 'interaction'
-    modification = 'modification'
+    interaction    = 'interaction'
+    modification   = 'modification'
     bimodification = 'bimodification'
-    synthesis    = 'synthesis'
-    degradation  = 'degradation'
+    synthesis      = 'synthesis'
+    degradation    = 'degradation'
+    unknown        = 'unknown'
 
 
 class NodeType(Enum):
@@ -82,30 +83,33 @@ def get_node_label(specification: Spec, node_type: NodeType):
 
     raise AssertionError
 
-STATES = {
-    # Interaction state.
-    '$x--$y': [
-        lambda reaction, state, builder: builder.add_spec_information(state['$x']),
-        lambda reaction, state, builder: builder.add_spec_information(state['$y']),
-        lambda reaction, state, builder: builder.add_external_edge(source=state['$x'], target=state['$y'],
-                                                                   type=EdgeType.interaction)
-    ],
-    # Self-interaction state.
-    '$x--[$y]': [
-        lambda reaction, state, builder: builder.add_spec_information(state['$x']),
-        lambda reaction, state, builder: builder.add_spec_information(get_valid_spec(state['$y'], state['$x'])),
-        lambda reaction, state, builder: builder.add_external_edge(source=state['$x'],
-                                                                   target=get_valid_spec(state['$y'], state['$x']),
-                                                                   type=EdgeType.interaction)
-        ],
-    # trans-modification
-    '$x-{$y}': [
-        lambda reaction, state, builder: builder.add_spec_information(state['$x']),
-        lambda reaction, state, builder: builder.add_kinase(reaction),
-        lambda reaction, state, builder: builder.add_external_mod_edge(reaction, state['$x'])
-    ]
-}
+# STATES = {
+#     # Interaction state.
+#     '$x--$y': [
+#         lambda reaction, state, builder: builder.add_spec_information(state['$x']),
+#         lambda reaction, state, builder: builder.add_spec_information(state['$y']),
+#         lambda reaction, state, builder: builder.add_external_edge(source=state['$x'], target=state['$y'],
+#                                                                    type=EdgeType.interaction)
+#     ],
+#     # Self-interaction state.
+#     '$x--[$y]': [
+#         lambda reaction, state, builder: builder.add_spec_information(reaction['$x']),
+#         lambda reaction, state, builder: builder.add_spec_information(get_valid_spec(state['$y'], state['$x'])),
+#         lambda reaction, state, builder: builder.add_external_edge(source=state['$x'],
+#                                                                    target=get_valid_spec(state['$y'], state['$x']),
+#                                                                    type=EdgeType.interaction)
+#         ],
+#     # trans-modification
+#     '$x-{$y}': [
+#         lambda reaction, state, builder: builder.add_spec_information(state['$x']),
+#         lambda reaction, state, builder: builder.add_kinase(reaction),
+#         lambda reaction, state, builder: builder.add_external_mod_edge(reaction, state['$x'])
+#     ]
+# }
 
+STATES = {'$x--$y': EdgeType.interaction,
+          '$x--[$y]': EdgeType.interaction,
+          '$x-{$y}': EdgeType.modification}
 
 
 class ReactionGraph:
@@ -161,53 +165,30 @@ class GraphBuilder():
         _add_spec_nodes()
         _add_spec_edges()
 
-    def add_kinase(self, reaction: Reaction):
-        for term in reaction.terms_lhs:
-            for spec in term.specs:
-                if spec.is_component_spec and term in reaction.terms_rhs:
-                    self.add_spec_information(spec)
-
-    def add_external_mod_edge(self, reaction: Reaction, specification: Spec):
-        kinases = []
-        if self.is_trans(reaction):
-            for term in reaction.terms_lhs:
-                for spec in term.specs:
-                    if spec.is_component_spec and term in reaction.terms_rhs:
-                        kinases.append(spec)
-                for state in term.states:
-                    pass
-
-            for kinase in kinases:
-                self.add_external_edge(source=kinase, target=specification, type=EdgeType.modification)
-        elif self.is_cis(reaction):
-            self.add_external_edge(source=specification.to_component_spec(), target=specification, type=EdgeType.modification)
-
-    def is_cis(self, reaction: Reaction) -> bool:
-        return len(reaction.components_lhs) == 1 and len(reaction.components_rhs) == 1
-
-    def is_trans(self, reaction: Reaction) -> bool:
-        return not self.is_cis(reaction)
-
     def get_graph(self):
         return self._reaction_graph
 
 
 def rxngraph_from_rxncon_system(rxncon_system):
-    def add_reaction_to_graph(reaction: Reaction):
-        for product_states in reaction.produced_states:
-            for func in STATES[product_states.repr_def]:
-                func(reaction, product_states, builder)
+    def get_reaction_type(rxn: Reaction):
+        if len(rxn.components_lhs) > len(rxn.components_rhs):
+            return EdgeType.degradation
+        elif len(rxn.components_lhs) < len(rxn.components_rhs):
+            return EdgeType.synthesis
+        elif len(rxn.produced_states) == 1:
+            return STATES[rxn.produced_states[0].repr_def]
+        elif len(rxn.produced_states) == 2:
+            if all(STATES[produced_state.repr_def] == EdgeType.modification for produced_state in rxn.produced_states):
+                return EdgeType.bimodification
+            else:
+                return EdgeType.unknown
+        else:
+            return EdgeType.unknown
 
-    def add_cis_reaction_to_graph(reaction: Reaction):
-            for product_states in reaction.produced_states:
-                for func in STATES[product_states.repr_def]:
-                    func(reaction, product_states, builder)
-
-    def is_cis(reaction: Reaction) -> bool:
-        return len(reaction.components_lhs) == 1 and len(reaction.components_rhs) == 1
-
-    def is_trans(reaction: Reaction) -> bool:
-        return not is_cis(reaction)
+    def add_reaction_to_graph(rxn: Reaction):
+        builder.add_spec_information(rxn['$x'])
+        builder.add_spec_information(rxn['$y'])
+        builder.add_external_edge(rxn['$x'], rxn['$y'], get_reaction_type(rxn))
 
     builder = GraphBuilder()
 

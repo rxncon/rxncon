@@ -6,6 +6,7 @@ from rxncon.simulation.rule_graph.reaction_graph import ReactionGraph, EdgeWith,
 
 RuleTestCase = namedtuple('RuleTestCase', ['quick_string', 'node_tuples', 'edge_tuples'])
 
+
 def _get_state_nodes(node_tuples, expected_graph):
     """
     Adding nodes to the expected graph.
@@ -21,6 +22,7 @@ def _get_state_nodes(node_tuples, expected_graph):
     for node_id, node_label, node_type in node_tuples:
         expected_graph.add_node(node_id, type=node_type.value, label=node_label)
     return expected_graph
+
 
 def _is_graph_test_case_correct(actual_graph, test_case) -> bool:
     """
@@ -46,6 +48,7 @@ def _is_graph_test_case_correct(actual_graph, test_case) -> bool:
         assert expected_graph.edge[edge] == actual_graph.edge[edge]
     return expected_graph.node == actual_graph.node and expected_graph.edge == actual_graph.edge
 
+
 def _create_reaction_graph(quick_string):
     """
     Creating a regulatory graph.
@@ -60,6 +63,7 @@ def _create_reaction_graph(quick_string):
     actual_system = Quick(quick_string)
     return rxngraph_from_rxncon_system(actual_system.rxncon_system).reaction_graph
 
+
 def test_ppi():
     test_case = RuleTestCase('''A_[b]_ppi+_B_[a]''',
                              [('A', 'A', NodeType.component), ('A_[b]', 'b', NodeType.domain),
@@ -69,6 +73,7 @@ def test_ppi():
                               ('A_[b]', 'B_[a]', EdgeWith.external, EdgeType.interaction)])
 
     assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
 
 def test_ipi():
     test_case = RuleTestCase('''A_[a1]_ipi+_A_[a2]''',

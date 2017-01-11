@@ -647,6 +647,9 @@ class Reaction:
             return NotImplemented
         return self._definition == other._definition and self._vars == other._vars
 
+    def __getitem__(self, item: str) -> Any:
+        return self._vars[item]
+
     def invalidate_state_cache(self) -> None:
         self._consumed_states    = None
         self._produced_states    = None
