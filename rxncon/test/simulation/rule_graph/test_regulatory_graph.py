@@ -97,6 +97,7 @@ def _is_graph_test_case_correct(actual_graph: DiGraph, test_case: RuleTestCase) 
         assert expected_graph.edge[edge] == actual_graph.edge[edge]
     return expected_graph.node == actual_graph.node and expected_graph.edge == actual_graph.edge
 
+
 def _create_regulatory_graph(quick_string: str) -> DiGraph:
     """
     Creating a regulatory graph.
