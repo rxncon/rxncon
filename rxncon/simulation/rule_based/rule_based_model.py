@@ -529,6 +529,12 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
 
 
 def with_connectivity_constraints(cont_set: VennSet) -> VennSet:
+    def contains_first_reactant(states: List[State]) -> bool:
+        return any(spec.struct_index == 0 for state in states for spec in state.specs)
+
+    def contains_second_reactant(states: List[State]) -> bool:
+        return any(spec.struct_index == 1 for state in states for spec in state.specs)
+
     dnf_terms = cont_set.to_dnf_list()
     constraint = UniversalSet()  # type: VennSet[State]
 

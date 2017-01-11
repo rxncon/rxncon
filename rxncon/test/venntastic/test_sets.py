@@ -2,7 +2,8 @@ import pytest
 import itertools as itt
 from typing import List
 
-from rxncon.venntastic.sets import ValueSet, Union, Intersection, Complement, EmptySet, UniversalSet, Difference, venn_from_str, Set
+from rxncon.venntastic.sets import ValueSet, Union, Intersection, Complement, EmptySet, UniversalSet, Difference, venn_from_str, Set, \
+    DisjunctiveUnion
 
 
 def test_property_set_construction() -> None:
@@ -272,6 +273,12 @@ def test_absorption_properties(sets: List[Set]) -> None:
     for x, y in itt.product(sets, sets):
         assert x.is_equivalent_to(Union(x, Intersection(x, y)))
         assert x.is_equivalent_to(Intersection(x, Union(x, y)))
+
+
+def test_disjunctive_union(sets: List[Set]) -> None:
+    for x, y in itt.product(sets, sets):
+        assert DisjunctiveUnion(x, y).is_equivalent_to(Union(Difference(x, y), Difference(y, x)))
+        assert Union(Difference(x, y), Difference(y, x)).is_equivalent_to(DisjunctiveUnion(x, y))
 
 
 def test_is_equivalent_to() -> None:

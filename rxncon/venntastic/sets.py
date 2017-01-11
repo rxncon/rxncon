@@ -5,7 +5,7 @@ from collections import OrderedDict
 from itertools import product
 import re
 
-from pyeda.inter import And, Or, Not, expr
+from pyeda.inter import And, Or, Not, Xor, expr
 from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies, Expression, Literal, \
     Complement as pyedaComplement, One, Zero
 
@@ -288,6 +288,28 @@ class Union(NarySet[T], Generic[T]):
 
     def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
         return Or(*(expr._to_pyeda_expr(val_to_sym) for expr in self.exprs))
+
+
+class DisjunctiveUnion(NarySet[T], Generic[T]):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Set):
+            return NotImplemented
+        elif isinstance(other, DisjunctiveUnion):
+            return all(my_expr == other_expr for my_expr, other_expr in zip(self.exprs, other.exprs))
+        else:
+            return False
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __str__(self) -> str:
+        return '({})'.format(' XOR '.join(str(expr) for expr in self.exprs))
+
+    def _to_pyeda_expr(self, val_to_sym: MutableMapping[T, str]) -> Expression:
+        return Xor(*(expr._to_pyeda_expr(val_to_sym) for expr in self.exprs))
 
 
 class Difference(Set[T], Generic[T]):
