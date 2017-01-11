@@ -510,6 +510,10 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
             break
         visit_nodes([], spec, 0)
 
+    for spec, paths in spec_paths.items():
+        if not paths:
+            raise AssertionError('Could not find path to {}'.format(str(spec)))
+
     state_paths = {state: [] for state in states}  # type: Dict[State, List[List[State]]]
     for state in states:
         for spec in state.specs:
@@ -545,7 +549,16 @@ def calc_complexes(states: List[State]) -> List[List[State]]:
                 new_complex.append(state)
                 complexes.append(new_complex)
 
-    return complexes
+    connected_complexes = []
+
+    for complex in complexes:
+        try:
+            calc_state_paths(complex)
+            connected_complexes.append(complex)
+        except AssertionError:
+            pass
+
+    return connected_complexes
 
 
 def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
@@ -574,6 +587,59 @@ def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
         return cont_set
 
 
+def venn_from_contingency(contingency: Contingency) -> VennSet:
+    def parse_effector(eff: Effector) -> VennSet:
+        if isinstance(eff, StateEffector):
+            return ValueSet(eff.expr)
+        elif isinstance(eff, NotEffector):
+            return Complement(parse_effector(eff.expr))
+        elif isinstance(eff, OrEffector):
+            return Union(*(parse_effector(x) for x in eff.exprs))
+        elif isinstance(eff, AndEffector):
+            return Intersection(*(parse_effector(x) for x in eff.exprs))
+        else:
+            raise AssertionError
+
+    if contingency.type in [ContingencyType.requirement]:
+        return parse_effector(contingency.effector)
+    elif contingency.type in [ContingencyType.inhibition]:
+        return Complement(parse_effector(contingency.effector))
+    else:
+        return UniversalSet()
+
+
+class QuantContingencyConfigs:
+    def __init__(self, q_contingencies: List[Contingency]) -> None:
+        self.q_contingencies = deepcopy(q_contingencies)
+
+        combis = [[]]  # type: List[List[Contingency]]
+        for c in self.q_contingencies:
+            new_combis = []
+            for combi in combis:
+                new_combis.append(combi + [Contingency(c.target, ContingencyType.inhibition, c.effector)])
+                combi.append(Contingency(c.target, ContingencyType.requirement, c.effector))
+            combis.extend(new_combis)
+
+        self.combi_sets = []  # type: List[VennSet[State]]
+
+        if combis == [[]]:
+            self.combi_sets = [UniversalSet()]
+        else:
+            self.combi_sets = [Intersection(*(venn_from_contingency(x) for x in combi)) for combi in combis]
+
+        self.current_combi_set = -1
+
+    def __iter__(self) -> 'QuantContingencyConfigs':
+        return self
+
+    def __next__(self) -> VennSet[State]:
+        try:
+            self.current_combi_set += 1
+            return self.combi_sets[self.current_combi_set]
+        except IndexError:
+            raise StopIteration
+
+
 def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
     def mol_defs_from_rxncon(rxncon_sys: RxnConSystem) -> Dict[Spec, MolDef]:
         mol_defs = {}
@@ -586,26 +652,6 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             mol_defs[spec] = builder.build()
 
         return mol_defs
-
-    def venn_from_contingency(contingency: Contingency) -> VennSet:
-        def parse_effector(eff: Effector) -> VennSet:
-            if isinstance(eff, StateEffector):
-                return ValueSet(eff.expr)
-            elif isinstance(eff, NotEffector):
-                return Complement(parse_effector(eff.expr))
-            elif isinstance(eff, OrEffector):
-                return Union(*(parse_effector(x) for x in eff.exprs))
-            elif isinstance(eff, AndEffector):
-                return Intersection(*(parse_effector(x) for x in eff.exprs))
-            else:
-                raise AssertionError
-
-        if contingency.type in [ContingencyType.requirement]:
-            return parse_effector(contingency.effector)
-        elif contingency.type in [ContingencyType.inhibition]:
-            return Complement(parse_effector(contingency.effector))
-        else:
-            return UniversalSet()
 
     def calc_positive_solutions(rxncon_sys: RxnConSystem, solution: Dict[State, bool]) -> List[List[State]]:
         def is_satisfiable(states: Iterable[State]) -> bool:
@@ -749,19 +795,22 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
     rules = []  # type: List[Rule]
 
     for reaction in (x for x in rxncon_sys.reactions if not isinstance(x, OutputReaction)):
-        cont_set = Intersection(*(venn_from_contingency(x) for x in rxncon_sys.s_contingencies_for_reaction(reaction)))  # type: VennSet[State]
+        strict_cont_set = Intersection(*(venn_from_contingency(x) for x in rxncon_sys.s_contingencies_for_reaction(reaction)))  # type: VennSet[State]
+        quant_contingenies = QuantContingencyConfigs(rxncon_sys.q_contingencies_for_reaction(reaction))
 
-        cont_set = with_connectivity_constraints(cont_set)
-        solutions = cont_set.calc_solutions()
+        for quant_contingency_set in quant_contingenies:
+            cont_set = Intersection(strict_cont_set, quant_contingency_set)  # type: VennSet[State]
+            cont_set = with_connectivity_constraints(cont_set)
+            solutions = cont_set.calc_solutions()
 
-        positive_solutions = []  # type: List[List[State]]
-        for solution in solutions:
-            positive_solutions += calc_positive_solutions(rxncon_sys, solution)
+            positive_solutions = []  # type: List[List[State]]
+            for solution in solutions:
+                positive_solutions += calc_positive_solutions(rxncon_sys, solution)
 
-        for positive_solution in positive_solutions:
-            rule = calc_rule(reaction, positive_solution)
-            if not any(rule.is_equivalent_to(existing) for existing in rules):
-                rules.append(rule)
+            for positive_solution in positive_solutions:
+                rule = calc_rule(reaction, positive_solution)
+                if not any(rule.is_equivalent_to(existing) for existing in rules):
+                    rules.append(rule)
 
     return RuleBasedModel(mol_defs, calc_initial_conditions(mol_defs), [], calc_observables(rxncon_sys), rules)
 

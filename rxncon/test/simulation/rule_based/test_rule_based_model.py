@@ -344,3 +344,24 @@ def test_mutually_exclusive_bindings() -> None:
 
     for actual_rule in rbm.rules:
         assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+
+def test_kplus_kminus() -> None:
+    rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; k+ A_[(r1)]-{p}
+                                                A_[b]_ppi+_B_[a]; k- A_[(r2)]-{p}
+                                                C_p+_A_[(r1)]
+                                                D_p+_A_[(r2)]""").rxncon_system)
+
+    expected_rules = [
+        'A(r1R~p,r2R~p,bD) + B(aD) -> A(r1R~p,r2R~p,bD!1).B(aD!1) k',
+        'A(r1R~p,r2R~0,bD) + B(aD) -> A(r1R~p,r2R~0,bD!1).B(aD!1) k',
+        'A(r1R~0,r2R~p,bD) + B(aD) -> A(r1R~0,r2R~p,bD!1).B(aD!1) k',
+        'A(r1R~0,r2R~0,bD) + B(aD) -> A(r1R~0,r2R~0,bD!1).B(aD!1) k',
+        'A(r1R~0) + C() -> A(r1R~p) + C() k',
+        'A(r2R~0) + D() -> A(r2R~p) + D() k'
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
