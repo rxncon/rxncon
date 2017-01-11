@@ -549,8 +549,9 @@ def calc_complexes(states: List[State]) -> List[List[State]]:
                 new_complex.append(state)
                 complexes.append(new_complex)
 
+    # Make sure that the complexes are completely connected to the reactants.
+    # The function calc_state_paths raises an exception if it's not.
     connected_complexes = []
-
     for complex in complexes:
         try:
             calc_state_paths(complex)
