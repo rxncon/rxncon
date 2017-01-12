@@ -47,7 +47,7 @@ def bngl_from_rule_based_model(rule_based_model: RuleBasedModel, settings: BNGLS
         return 'begin reaction rules\n{0}\nend reaction rules\n'.format('\n'.join(rules))
 
     def footer_str() -> str:
-        return 'end model\n\nwriteXML();\n'\
+        return 'end model\n\nsimulate_nf({{t_end=>100,n_steps=>10}});\n'\
             .format(settings.maximal_iteration,
                     settings.maximal_aggregate,
                     settings.simulation_method.value,

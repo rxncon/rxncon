@@ -2,8 +2,13 @@ import re
 from enum import unique, Enum
 from typing import List, Dict
 from abc import ABC, abstractproperty, abstractmethod
+import logging
 
 from rxncon.core.spec import Spec, Locus, LocusResolution, locus_from_str, spec_from_str
+from rxncon.util.utils import current_function_name
+
+logger = logging.getLogger(__name__)
+
 
 SPEC_REGEX          = '([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
 STR_REGEX           = '([\w]+)'
@@ -182,7 +187,7 @@ class InteractionState(State):
 
     @property
     def specs(self) -> List[Spec]:
-        return [self.first, self.second]
+        return [self.first.clone(), self.second.clone()]
 
     @property
     def is_global(self) -> bool:
@@ -197,7 +202,7 @@ class InteractionState(State):
         if self == state:
             return False
         elif isinstance(state, InteractionState) or isinstance(state, SelfInteractionState):
-            return self.first == state.first or self.second == state.second
+            return self.first in (state.first, state.second) or self.second in (state.first, state.second)
         elif isinstance(state, EmptyBindingState):
             return self.first == state.spec or self.second == state.spec
         else:
@@ -209,7 +214,7 @@ class InteractionState(State):
 
     @property
     def is_homodimer(self):
-        return self.first == self.second
+        return self.first.to_non_struct_spec() == self.second.to_non_struct_spec()
 
     @property
     def neutral_states(self) -> List['State']:
@@ -219,17 +224,14 @@ class InteractionState(State):
             return [EmptyBindingState(self.first), EmptyBindingState(self.second)]
 
     def update_specs(self, updates: Dict[Spec, Spec]) -> None:
-        if self.is_homodimer:
-            raise AssertionError
-        else:
-            try:
-                self.first = updates[self.first]
-            except KeyError:
-                pass
-            try:
-                self.second = updates[self.second]
-            except KeyError:
-                pass
+        try:
+            self.first = updates[self.first]
+        except KeyError:
+            pass
+        try:
+            self.second = updates[self.second]
+        except KeyError:
+            pass
 
     def to_non_structured(self) -> 'State':
         return InteractionState(self.first.to_non_struct_spec(), self.second.to_non_struct_spec())
@@ -250,21 +252,34 @@ class InteractionState(State):
         return self == other or other.is_subset_of(self)
 
     def to_structured_from_spec(self, spec: Spec) -> 'State':
+        if not spec.is_structured:
+            return self
+
         if self.is_homodimer:
-            raise AssertionError
-        else:
-            if self.first.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec() and spec.is_structured:
+            if not self.first.is_structured:
                 return InteractionState(self.first.with_struct_from_spec(spec), self.second)
-            elif self.second.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec() and spec.is_structured:
+            elif not self.second.is_structured:
+                return InteractionState(self.first, self.second.with_struct_from_spec(spec))
+            else:
+                logger.info('{} : Not structuring homodimer {} with spec {}, since pre-structured.'
+                            .format(current_function_name(), str(self), str(spec)))
+                return self
+        else:
+            if self.first.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec():
+                return InteractionState(self.first.with_struct_from_spec(spec), self.second)
+            elif self.second.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec():
                 return InteractionState(self.first, self.second.with_struct_from_spec(spec))
             else:
                 return self
 
     def to_structured_from_state(self, state: 'State') -> 'State':
-        for spec in state.specs:
-            self = self.to_structured_from_spec(spec)
+        if self.is_homodimer and state.is_homodimer and state.is_structured:
+            return InteractionState(self.first.with_struct_from_spec(state.first), self.second.with_struct_from_spec(state.second))
+        else:
+            for spec in state.specs:
+                self = self.to_structured_from_spec(spec)
 
-        return self
+            return self
 
 
 class EmptyBindingState(State):

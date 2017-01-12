@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from abc import ABC
-from copy import copy
+from copy import copy, deepcopy
 from typing import Optional, MutableMapping, Type, Tuple
 from enum import Enum, unique
 import re
@@ -39,6 +39,9 @@ class Spec(ABC):
 
     def __lt__(self, other: 'Spec') -> bool:
         return str(self) < str(other)
+
+    def clone(self):
+        return deepcopy(self)
 
     def is_subspec_of(self, other: 'Spec') -> bool:
         if self == other:

@@ -1,5 +1,6 @@
 from enum import unique, Enum
 from copy import deepcopy
+from collections import defaultdict
 import logging
 from rxncon.util.utils import current_function_name
 
@@ -60,6 +61,7 @@ class Contingency:
             assert isinstance(sc.effector, StateEffector)
             logger.info('{}: {} :: {} -> {}'.format(current_function_name(), str(self.target),
                                                     str(self.effector.expr), str(sc.effector.expr)))
+            sc._validate_structure_indices()
             return sc
         elif self.effector.is_structured:
             # A fully structured Boolean Effector needs to have its structure indices merged.
@@ -67,6 +69,7 @@ class Contingency:
             sc.effector = sc.effector.to_merged_struct_effector()
             logger.info('{}: {} :: {} -> {}'.format(current_function_name(), str(self.target),
                                                     str(self.effector), str(sc.effector)))
+            sc._validate_structure_indices()
             return sc
         else:
             # For a non-structured Boolean Effector, assume all Specs that could match, actually do match.
@@ -75,6 +78,20 @@ class Contingency:
             sc.effector = sc.effector.to_merged_struct_effector(TrivialStructEquivalences(struct_components), None, None)
             logger.info('{}: {} :: {} -> {}'.format(current_function_name(), str(self.target),
                                                     str(self.effector), str(sc.effector)))
+            sc._validate_structure_indices()
             return sc
+
+    def _validate_structure_indices(self):
+        # Assert that every index is only used once.
+        specs = [spec for state in self.effector.states for spec in state.specs]
+        print(specs)
+        index_to_specs = defaultdict(set)
+
+        for spec in specs:
+            assert spec.is_structured
+            index_to_specs[spec.struct_index].add(spec.to_component_spec())
+
+        assert all(len(x) == 1 for _, x in index_to_specs.items())
+
 
 
