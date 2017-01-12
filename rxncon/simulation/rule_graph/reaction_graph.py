@@ -308,7 +308,7 @@ def get_node_id(specification: Spec, node_type: Union[NodeType, LocusResolution]
     """
 
     if node_type in [NodeType.component, LocusResolution.component]:
-        return re.match('[a-zA-Z0-9]+', str(specification)).group()
+        return str(specification.to_component_spec())
 
     if node_type in [NodeType.domain, LocusResolution.domain] and specification.locus.domain:
         return '{0}_[{1}]'.format(specification.component_name, specification.locus.domain)
