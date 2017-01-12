@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from abc import ABC
+from copy import copy
 from typing import Optional, MutableMapping, Type, Tuple
 from enum import Enum, unique
 import re
@@ -75,6 +76,9 @@ class Spec(ABC):
         assert other.struct_index is not None
         assert self.component_name == other.component_name
         return type(self)(self.component_name, other.struct_index, self.locus)
+
+    def with_locus(self, locus: 'Locus') -> 'Spec':
+        return type(self)(self.component_name, self.struct_index, copy(locus))
 
     def to_non_struct_spec(self) -> 'Spec':
         return type(self)(self.component_name, None, self.locus)

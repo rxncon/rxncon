@@ -275,12 +275,23 @@ class State:
         return len(self.neutral_states) == 1 and self == self.neutral_states[0]
 
     @property
+    def is_homodimer(self):
+        return len(self.components) == 2 and self.components[0] == self.components[1]
+
+    @property
     def neutral_states(self) -> List['State']:
         return self.definition.neutral_states_from_vars(self.vars)
 
     @property
     def specs(self) -> List[Spec]:
-        return [x for x in self.vars.values() if isinstance(x, Spec)]
+        specs = [x for x in self.vars.values() if isinstance(x, Spec)]
+        extra_spec = []
+        locus = next((x for x in self.vars.values() if isinstance(x, Locus)), None)
+        if locus:
+            assert len(specs) == 1
+            extra_spec = [specs[0].with_locus(locus)]
+
+        return specs + extra_spec
 
     def update_specs(self, updates: Dict[Spec, Spec]) -> None:
         new_vars = deepcopy(self.vars)
@@ -333,7 +344,10 @@ class State:
 
     @property
     def components(self) -> List[Spec]:
-        return [x.to_component_spec() for x in self.specs]
+        if self.name == 'self-interaction-state':
+            return [self.specs[0].to_component_spec()]
+        else:
+            return [spec.to_component_spec() for spec in self.specs]
 
     @property
     def _elemental_resolutions(self) -> List[LocusResolution]:

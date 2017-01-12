@@ -245,6 +245,8 @@ class StateEffector(Effector):
         state = deepcopy(self.expr)
         updates = {}
 
+        assert not (state.is_homodimer and not state.is_structured), 'Please provide structure annotation for homodimer {}'.format(state)
+
         for spec in state.specs:
             existing_spec = glob_equivs.find_unqualified_spec(QualSpec(cur_namespace, spec))
 

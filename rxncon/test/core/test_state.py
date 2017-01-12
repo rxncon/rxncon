@@ -173,7 +173,7 @@ def test_ipi_props() -> None:
     # Elemental state, bond.
     state = state_from_str('A_[m]--[n]')
     assert state.is_elemental
-    assert elems_eq(state.components, [spec_from_str('A')])
+    assert state.components == [spec_from_str('A')]
     assert not state.is_neutral
     assert elems_eq(state.neutral_states, [state_from_str('A_[m]--0'), state_from_str('A_[n]--0')])
 
