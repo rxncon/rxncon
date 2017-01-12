@@ -107,6 +107,27 @@ def test_ipi() -> None:
     assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
 
 
+def test_dissociation() -> None:
+    """
+    Testing dissociation reaction (i-).
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = RuleTestCase('''Pher_[Ste2]_i-_Ste2_[Pher]''',
+                             [('Pher', 'Pher', NodeType.component), ('Pher_[Ste2]', 'Ste2', NodeType.domain),
+                              ('Ste2', 'Ste2', NodeType.component), ('Ste2_[Pher]', 'Pher', NodeType.domain)],
+                             [('Pher', 'Pher_[Ste2]', EdgeWith.internal, EdgeType.interaction),
+                              ('Ste2', 'Ste2_[Pher]', EdgeWith.internal, EdgeType.interaction),
+                              ('Pher_[Ste2]', 'Ste2_[Pher]', EdgeWith.external, EdgeType.interaction)])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
 def test_pos_trans_modification() -> None:
     """
     Testing positive trans-modification.
@@ -296,12 +317,3 @@ def test_multiple_reactions() -> None:
     assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
 
 
-def test_test():
-    test_case = RuleTestCase('''Pher_[Ste2]_i-_Ste2_[Pher]''',
-                             [('Pher', 'Pher', NodeType.component), ('Pher_[Ste2]', 'Ste2', NodeType.domain),
-                              ('Ste2', 'Ste2', NodeType.component), ('Ste2_[Pher]', 'Pher', NodeType.domain)],
-                             [('Pher', 'Pher_[Ste2]', EdgeWith.internal, EdgeType.interaction),
-                              ('Ste2', 'Ste2_[Pher]', EdgeWith.internal, EdgeType.interaction),
-                              ('Pher_[Ste2]', 'Ste2_[Pher]', EdgeWith.external, EdgeType.interaction)])
-
-    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)

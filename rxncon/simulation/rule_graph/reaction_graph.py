@@ -35,15 +35,41 @@ STATES = {'$x--$y': EdgeType.interaction,
 
 
 class ReactionGraph:
+    """
+    Stores the reaction graph.
+
+    Args:
+        reaction_graph: A DiGraph with reaction information.
+
+    """
     def __init__(self, reaction_graph: DiGraph) -> None:
+
         self.reaction_graph = reaction_graph
         self._validate_graph()
 
     def _validate_graph(self) -> None:
-        pass
+        """
+        Testing if all nodes are connected through the graph.
+        Note:
+            The reaction_graph is a directed graph. We are checking both directions source -> target by asking for
+            neighbors and target -> source by asking for predecessors. If one of both properties are fulfilled the node
+            is connected.
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError if not all nodes are connected.
+
+        """
+        assert all(self.reaction_graph.neighbors(node) != [] or self.reaction_graph.predecessors(node) != []
+                   for node in self.reaction_graph.nodes())
 
 
 class GraphBuilder():
+    """
+    A class for building the reaction graph.
+    """
     def __init__(self) -> None:
         self._reaction_graph = DiGraph()
 
