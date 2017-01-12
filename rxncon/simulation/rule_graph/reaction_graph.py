@@ -74,21 +74,75 @@ class GraphBuilder():
         self._reaction_graph = DiGraph()
 
     def _add_node(self, node_id: str, type: NodeType, label: str) -> None:
+        """
+        Adding a node if the node is not already in the graph.
+
+        Args:
+            node_id: The ID of a graph node e.g. a domain will have the ID A_[dom]
+            type: The type of a node e.g. component, domain, residue
+            label: The label of the node e.g. the domain name (dom)
+
+        Returns:
+
+        """
         if not self._reaction_graph.has_node(node_id):
             self._reaction_graph.add_node(node_id, label=label, type=type.value)
 
     def _add_edge(self, source: str, target: str, interaction: EdgeType, width: EdgeWith) -> None:
+        """
+        Adding an edge to the graph.
+
+        Note:
+             Internal edges are edges within the different levels of an specification.
+             External edges are edges between specific resolution levels of two specifications
+                e.g. between component and domain, domain and domain and so on.
+
+        Args:
+            source: The source of an edge e.g. component node, domain node, residue node.
+            target: The target of an edge e.g. component node, domain node, residue node.
+            interaction (EdgeType): The type of an interaction.
+            width (EdgeWith): The width of an edge.
+
+        Returns:
+            None
+
+        """
         if not self._reaction_graph.has_edge(source, target):
             self._reaction_graph.add_edge(source, target, interaction=interaction.value, width=width.value)
         elif width == EdgeWith.external:
             self._reaction_graph.add_edge(source, target, interaction=interaction.value, width=width.value)
 
     def add_external_edge(self, source: Spec, target: Spec, type: EdgeType) -> None:
+        """
+        Adding an external edge.
+
+        Note:
+            An external edges is an edge between two specific resolution levels of two specifications respectively
+                e.g. between component and domain, domain and domain and so on.
+        Args:
+            source: The source specification.
+            target: The target specification.
+            type (EdgeType): The type of this edge e.g. interaction, modification etc.
+
+        Returns:
+            None
+
+        """
 
         self._add_edge(get_node_id(source, source.resolution), get_node_id(target, target.resolution),
                        interaction=type, width=EdgeWith.external)
 
     def add_spec_information(self, specification: Spec) -> None:
+        """
+        Adding specification information to the reaction graph.
+
+        Args:
+            specification: The specification of a reaction reactant
+
+        Returns:
+            None
+
+        """
 
         def _add_spec_nodes() -> None:
             self._add_node(node_id=get_node_id(specification, NodeType.component), type=NodeType.component,
@@ -102,6 +156,16 @@ class GraphBuilder():
                                label=get_node_label(specification, NodeType.residue))
 
         def _add_spec_edges() -> None:
+            """
+            Adding internal edges between nodes.
+
+            Note:
+                Internal edges are edges within the different levels of an specification.
+
+            Returns:
+                None
+
+            """
 
             if specification.locus.domain:
                 self._add_edge(get_node_id(specification, NodeType.component),
@@ -118,11 +182,38 @@ class GraphBuilder():
         _add_spec_edges()
 
     def get_graph(self) -> DiGraph:
+        """
+        Returning the reaction graph
+
+        Returns:
+            The reaction graph (DiGraph).
+
+        """
         return self._reaction_graph
 
 
 def rxngraph_from_rxncon_system(rxncon_system: RxnConSystem) -> ReactionGraph:
+    """
+    Creating the reaction graph from the rxncon system.
+
+    Args:
+        rxncon_system: The reconstructed rxncon system.
+
+    Returns:
+        The reaction graph (ReactionGraph)
+
+    """
     def get_reaction_type(rxn: Reaction) -> EdgeType:
+        """
+        Getting the type of a reaction.
+
+        Args:
+            rxn: Elemental rxncon reaction.
+
+        Returns:
+            The type of the reaction (EdgeType)
+
+        """
         if len(rxn.components_lhs) > len(rxn.components_rhs):
             return EdgeType.degradation
         elif len(rxn.components_lhs) < len(rxn.components_rhs):
@@ -140,6 +231,16 @@ def rxngraph_from_rxncon_system(rxncon_system: RxnConSystem) -> ReactionGraph:
             return EdgeType.unknown
 
     def add_reaction_to_graph(rxn: Reaction) -> None:
+        """
+        Adding a reaction to the reaction graph.
+
+        Args:
+            rxn: Elemental rxncon reaction.
+
+        Returns:
+            None
+
+        """
         edge_type = get_reaction_type(rxn)
         if edge_type is EdgeType.synthesis:
             for syn_comp in rxn.synthesised_components:
