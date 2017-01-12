@@ -55,13 +55,16 @@ def test_translation() -> None:
     assert rxncon_sys.states_for_component_grouped(spec_from_str('A')) == {}
     assert rxncon_sys.states_for_component_grouped(spec_from_str('C')) == {}
     assert rxncon_sys.states_for_component_grouped(spec_from_str('E')) == {}
+
+    print(list(rxncon_sys.states_for_component_grouped(spec_from_str('B')).values()))
+
     assert elems_eq(list(rxncon_sys.states_for_component_grouped(spec_from_str('B')).values()), [
-        [state_from_str('B_[y]--0'), state_from_str('D_[x]--B_[y]')],
+        [state_from_str('B_[y]--0'), state_from_str('B_[y]--D_[x]')],
         [state_from_str('B_[(r1)]-{0}'), state_from_str('B_[(r1)]-{p}'), state_from_str('B_[(r1)]-{ub}')],
         [state_from_str('B_[(r2)]-{0}'), state_from_str('B_[(r2)]-{p}')]
     ])
     assert elems_eq(list(rxncon_sys.states_for_component_grouped(spec_from_str('D')).values()), [
-        [state_from_str('D_[x]--0'), state_from_str('D_[x]--B_[y]')]
+        [state_from_str('D_[x]--0'), state_from_str('B_[y]--D_[x]')]
     ])
 
 

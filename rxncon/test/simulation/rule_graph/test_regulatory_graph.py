@@ -1,11 +1,9 @@
 
 from networkx import DiGraph
 from collections import namedtuple
-from rxncon.input.excel_book.excel_book import ExcelBook
 import rxncon.input.quick.quick as qui
 from rxncon.simulation.rule_graph.regulatory_graph import RegulatoryGraph, NodeType, EdgeInteractionType
 
-from rxncon.simulation.rule_graph.graphML import map_layout2xgmml, XGMML
 
 RuleTestCase = namedtuple('RuleTestCase', ['quick_string', 'reaction_node_strings', 'state_node_strings',
                                            'boolean_state_node_tuple', 'edge_tuples'])

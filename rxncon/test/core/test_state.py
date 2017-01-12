@@ -1,7 +1,13 @@
-from rxncon.core.state import state_from_str, FullyNeutralState
+from rxncon.core.state import state_from_str, FullyNeutralState, GlobalState
 from rxncon.core.spec import spec_from_str
 from rxncon.util.utils import elems_eq
 import pytest
+
+def test_input_state() -> None:
+    state = state_from_str('[BLA]')
+    assert isinstance(state, GlobalState)
+    print(state)
+
 
 ###                      ###
 # Test modification states #

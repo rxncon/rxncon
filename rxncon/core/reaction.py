@@ -2,7 +2,7 @@ from typing import Dict, Any, List, Optional, Callable, TypeVar
 import re
 
 from rxncon.core.spec import Spec, MRNASpec, ProteinSpec, LocusResolution, GeneSpec, spec_from_str
-from rxncon.core.state import StateDef, State, state_from_str, STATE_DEFS, FullyNeutralState
+from rxncon.core.state import State, state_from_str, FullyNeutralState
 from rxncon.util.utils import members
 
 T = TypeVar('T')
@@ -41,14 +41,14 @@ class ReactionTerm:
 class ReactionDef:
     ARROW = '->'
 
-    def __init__(self, state_defs: List[StateDef], name: str, repr_def: str, vars_def: Dict[str, Any], rule_def: str) -> None:
-        self.name, self.state_defs, self.repr_def, self.vars_def, self.rule_def = name, state_defs, repr_def, vars_def, rule_def
+    def __init__(self, name: str, repr_def: str, vars_def: Dict[str, Any], rule_def: str) -> None:
+        self.name, self.repr_def, self.vars_def, self.rule_def = name, repr_def, vars_def, rule_def
         self._parse_reactants_def()
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ReactionDef):
             return NotImplemented
-        return self.state_defs == other.state_defs and self.name == other.name and self.repr_def == other.repr_def \
+        return self.name == other.name and self.repr_def == other.repr_def \
             and self.vars_def == other.vars_def and self.rule_def == other.rule_def
 
     def __repr__(self) -> str:
@@ -156,7 +156,6 @@ class ReactionDef:
 
 REACTION_DEFS = [
     ReactionDef(
-        STATE_DEFS,
         'phosphorylation',
         '$x_p+_$y',
         {
@@ -166,7 +165,6 @@ REACTION_DEFS = [
         '$x# + $y#$y-{0} -> $x# + $y#$y-{p}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'dephosphorylation',
         '$x_p-_$y',
         {
@@ -176,7 +174,6 @@ REACTION_DEFS = [
         '$x# + $y#$y-{p} -> $x# + $y#$y-{0}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'auto-phosphorylation',
         '$x_ap+_$y',
         {
@@ -186,7 +183,6 @@ REACTION_DEFS = [
         '$y#$y-{0} -> $y#$y-{p}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'auto-dephosphorylation',
         '$x_ap-_$y',
         {
@@ -196,7 +192,6 @@ REACTION_DEFS = [
         '$y#$y-{P} -> $y#$y-{0}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'ubiquitination',
         '$x_ub+_$y',
         {
@@ -206,7 +201,6 @@ REACTION_DEFS = [
         '$x# + $y#$y-{0} -> $x# + $y#$y-{ub}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'deubiquitination',
         '$x_ub-_$y',
         {
@@ -216,7 +210,6 @@ REACTION_DEFS = [
         '$x# + $y#$y-{ub} -> $x# + $y#$y-{0}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'phosphotransfer',
         '$x_pt_$y',
         {
@@ -226,7 +219,6 @@ REACTION_DEFS = [
         '$x#$x-{p} + $y#$y-{0} -> $x#$x-{0} + $y#$y-{p}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'protein-protein-interaction',
         '$x_ppi+_$y',
         {
@@ -236,7 +228,6 @@ REACTION_DEFS = [
         '$x#$x--0 + $y#$y--0 -> $x,$y#$x--$y'
     ),
     ReactionDef(
-        STATE_DEFS,
         'protein-protein-dissociation',
         '$x_ppi-_$y',
         {
@@ -246,7 +237,6 @@ REACTION_DEFS = [
         '$x,$y#$x--$y -> $x#$x--0 + $y#$y--0'
     ),
     ReactionDef(
-        STATE_DEFS,
         'interaction',
         '$x_i+_$y',
         {
@@ -256,7 +246,6 @@ REACTION_DEFS = [
         '$x#$x--0 + $y#$y--0 -> $x,$y#$x--$y'
     ),
     ReactionDef(
-        STATE_DEFS,
         'dissociation',
         '$x_i-_$y',
         {
@@ -266,7 +255,6 @@ REACTION_DEFS = [
         '$x,$y#$x--$y -> $x#$x--0 + $y#$y--0'
     ),
     ReactionDef(
-        STATE_DEFS,
         'transcription',
         '$x_trsc_$y',
         {
@@ -276,7 +264,6 @@ REACTION_DEFS = [
         '$x# + $y# -> $x# + $y# + $y.to_mrna_component_spec#0'
     ),
     ReactionDef(
-        STATE_DEFS,
         'translation',
         '$x_trsl_$y',
         {
@@ -286,7 +273,6 @@ REACTION_DEFS = [
         '$x# + $y# -> $x# + $y# + $y.to_protein_component_spec#0'
     ),
     ReactionDef(
-        STATE_DEFS,
         'intra-protein-interaction',
         '$x_ipi+_$y',
         {
@@ -296,7 +282,6 @@ REACTION_DEFS = [
         '$x#$x--0,$y--0 -> $x#$x--[$y.locus]'
     ),
     ReactionDef(
-        STATE_DEFS,
         'intra-protein-dissociation',
         '$x_ipi-_$y',
         {
@@ -306,7 +291,6 @@ REACTION_DEFS = [
         '$x#$x--[$y.locus] -> $x#$x--0,$y--0'
     ),
     ReactionDef(
-        STATE_DEFS,
         'gene-protein-interaction',
         '$x_bind+_$y',
         {
@@ -316,7 +300,6 @@ REACTION_DEFS = [
         '$x#$x--0 + $y#$y--0 -> $x,$y#$x--$y'
     ),
     ReactionDef(
-        STATE_DEFS,
         'gene-protein-dissociation',
         '$x_bind-_$y',
         {
@@ -326,7 +309,6 @@ REACTION_DEFS = [
         '$x,$y#$x--$y -> $x#$x--0 + $y#$y--0'
     ),
     ReactionDef(
-        STATE_DEFS,
         'degradation',
         '$x_deg_$y',
         {
@@ -336,7 +318,6 @@ REACTION_DEFS = [
         '$x# + $y# -> $x#'
     ),
     ReactionDef(
-        STATE_DEFS,
         'synthesis',
         '$x_syn_$y',
         {
@@ -346,7 +327,6 @@ REACTION_DEFS = [
         '$x# -> $x# + $y#0'
     ),
     ReactionDef(
-        STATE_DEFS,
         'auto-GuanineNucleotideExchange',
         '$x_agex_$y',
         {
@@ -356,7 +336,6 @@ REACTION_DEFS = [
         '$y#$y-{0} -> $y#$y-{GTP}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'auto-GTPHydrolysis',
         '$x_aghy_$y',
         {
@@ -366,7 +345,6 @@ REACTION_DEFS = [
         '$y#$y-{GTP} -> $y#$y-{0}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'GTPase-activation',
         '$x_gap_$y',
         {
@@ -376,7 +354,6 @@ REACTION_DEFS = [
         '$x# + $y#$y-{GTP} -> $x# + $y#$y-{0}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'guanine-nucleotide-exchange',
         '$x_gef_$y',
         {
@@ -386,7 +363,6 @@ REACTION_DEFS = [
         '$x# + $y#$y-{0} -> $x# + $y#$y-{GTP}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'nuclear-export',
         '$x_nexp_$y',
         {
@@ -396,7 +372,6 @@ REACTION_DEFS = [
         '$x# + $y#$y_[(loc)]-{nucleus} -> $x# + $y#$y_[(loc)]-{0}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'nuclear-import',
         '$x_nimp_$y',
         {
@@ -406,7 +381,6 @@ REACTION_DEFS = [
         '$x# + $y#$y_[(loc)]-{0} -> $x# + $y#$y_[(loc)]-{nucleus}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'flip-out',
         '$x_FlipOut_$y',
         {
@@ -416,7 +390,6 @@ REACTION_DEFS = [
         '$y#$y_[(direction)]-{0} -> $y#$y_[(direction)]-{out}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'flip-in',
         '$x_FlipIn_$y',
         {
@@ -426,7 +399,6 @@ REACTION_DEFS = [
         '$y#$y_[(direction)]-{out} -> $y#$y_[(direction)]-{0}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'facilitated-uptake-extracellular-cytoplasmic',
         '$x_FDExtCyt_$y',
         {
@@ -436,7 +408,6 @@ REACTION_DEFS = [
         '$x# + $y#$y_[(loc)]-{0} -> $x# + $y#$y_[(loc)]-{cytosol}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'facilitated-uptake-cytoplasmic-extracellular',
         '$x_FDCytExt_$y',
         {
@@ -446,7 +417,6 @@ REACTION_DEFS = [
         '$x# + $y#$y_[(loc)]-{cytosol} -> $x# + $y#$y_[(loc)]-{0}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'truncation',
         '$x_CUT_$y',
         {
@@ -456,7 +426,6 @@ REACTION_DEFS = [
         '$x# + $y#$y-{0} -> $x# + $y#$y-{truncated}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'satellite',
         '$x_SAT_$y',
         {
@@ -466,7 +435,6 @@ REACTION_DEFS = [
         '$y#$y-{0} -> $y#$y-{SAT}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'DuplicationPlaque',
         '$x_DUP_$y',
         {
@@ -476,7 +444,6 @@ REACTION_DEFS = [
         '$y#$y-{SAT} -> $y#$y-{DUP}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'SPBDuplication',
         '$x_SPB_$y',
         {
@@ -486,7 +453,6 @@ REACTION_DEFS = [
         '$y#$y-{DUP} -> $y#$y-{SPB}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'SPBSeparation',
         '$x_SEP_$y',
         {
@@ -496,7 +462,6 @@ REACTION_DEFS = [
         '$y#$y-{SPB} -> $y#$y-{0}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'DNAlicensing',
         '$x_LIC_$y',
         {
@@ -506,7 +471,6 @@ REACTION_DEFS = [
         '$y#$y-{0} -> $y#$y-{LIC}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'DNAreplicationInitiation',
         '$x_RepInit_$y',
         {
@@ -516,7 +480,6 @@ REACTION_DEFS = [
         '$y#$y-{LIC} -> $y#$y-{RepInit}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'DNAreplication',
         '$x_REP_$y',
         {
@@ -526,7 +489,6 @@ REACTION_DEFS = [
         '$y#$y-{RepInit} -> $y#$y-{REP}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'DNAsegregation',
         '$x_SEG_$y',
         {
@@ -536,7 +498,6 @@ REACTION_DEFS = [
         '$y#$y-{REP} -> $y#$y-{0}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'CYTpolarisation',
         '$x_POL_$y',
         {
@@ -546,7 +507,6 @@ REACTION_DEFS = [
         '$y#$y-{0} -> $y#$y-{POL}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'CYTbudding',
         '$x_BUD_$y',
         {
@@ -556,7 +516,6 @@ REACTION_DEFS = [
         '$y#$y-{POL} -> $y#$y-{BUD}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'CYTisotropic',
         '$x_ISO_$y',
         {
@@ -566,7 +525,6 @@ REACTION_DEFS = [
         '$y#$y-{BUD} -> $y#$y-{ISO}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'CYTokinesis',
         '$x_CYT_$y',
         {
@@ -576,7 +534,6 @@ REACTION_DEFS = [
         '$y#$y-{ISO} -> $y#$y-{0}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'acetylation',
         '$x_Ac+_$y',
         {
@@ -586,7 +543,6 @@ REACTION_DEFS = [
         '$x# + $y#$y-{0} -> $x# + $y#$y-{Ac}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'Myristoylation',
         '$x_Myr+_$y',
         {
@@ -596,7 +552,6 @@ REACTION_DEFS = [
         '$x# + $y#$y-{0} -> $x# + $y#$y-{Myr}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'deacetylation',
         '$x_Ac-_$y',
         {
@@ -606,7 +561,6 @@ REACTION_DEFS = [
         '$x# + $y#$y-{Ac} -> $x# + $y#$y-{0}'
     ),
     ReactionDef(
-        STATE_DEFS,
         'demyrstoylation',
         '$x_Myr-_$y',
         {

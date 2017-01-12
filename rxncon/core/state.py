@@ -1,20 +1,20 @@
 import re
 from enum import unique, Enum
-from collections import OrderedDict
-from typing import List, Dict, Optional, Any
-from copy import deepcopy
+from typing import List, Dict
+from abc import ABC, abstractproperty, abstractmethod
 
-from rxncon.util.utils import members
 from rxncon.core.spec import Spec, Locus, LocusResolution, locus_from_str, spec_from_str
 
-
-FULLY_NEUTRAL_STATE = '0'
-GLOBAL_STATE_NAME   = 'GLOBALSTATE'
 SPEC_REGEX          = '([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
-STR_REGEX           = '[\w]+'
-LOCUS_REGEX         = '[\w\/\(\)]+'
-MATCHING_REGEX      = '([\w@\(\)\[\]]+)'
-NON_MATCHING_REGEX  = '(?:[\w@\(\)\[\]]+)'
+STR_REGEX           = '([\w]+)'
+LOCUS_REGEX         = '([\w\/\(\)]+)'
+
+FULLY_NEUTRAL_STATE_REGEX    = '^0$'
+INTERACTION_STATE_REGEX      = '^{}--{}$'.format(SPEC_REGEX, SPEC_REGEX)
+EMPTY_BINDING_STATE_REGEX    = '^{}--0$'.format(SPEC_REGEX)
+SELF_INTERACTION_STATE_REGEX = '^{}--\[{}\]$'.format(SPEC_REGEX, LOCUS_REGEX)
+GLOBAL_STATE_REGEX           = '^\[{}\]$'.format(STR_REGEX)
+MODIFICATION_STATE_REGEX     = '^' + SPEC_REGEX + '-{' + STR_REGEX + '}$'
 
 
 @unique
@@ -66,147 +66,7 @@ TYPE_TO_CONSTRUCTOR = {
 }
 
 
-class StateDef:
-    def __init__(self, name: str, repr_def: str, vars_def: Dict[str, Any], neutral_states_def: List[str]) -> None:
-        self.name, self.repr_def, self.vars_def, self.neutral_states_def = name, repr_def, vars_def, neutral_states_def
-
-    def __hash__(self) -> int:
-        return hash(str(self))
-
-    def __str__(self) -> str:
-        return 'StateDef<{0}>'.format(self.name)
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, StateDef):
-            return NotImplemented
-        return self.name == other.name and self.repr_def == other.repr_def and self.vars_def == other.vars_def and \
-            self.neutral_states_def == other.neutral_states_def
-
-    def matches_repr(self, repr: str) -> bool:
-        return True if re.match(self._to_matching_regex(), repr) else False
-
-    def vars_from_repr(self, repr: str) -> Dict[str, Any]:
-        assert self.matches_repr(repr)
-
-        variables = {}
-        for var, var_def in self.vars_def.items():
-            var_regex = self._to_base_regex().replace(var, MATCHING_REGEX)
-            for other_var in self.vars_def.keys():
-                if other_var != var:
-                    var_regex = var_regex.replace(other_var, NON_MATCHING_REGEX)
-
-            val_str = re.match(var_regex, repr).group(1)
-            variables[var] = TYPE_TO_CONSTRUCTOR[var_def[0]](val_str)
-
-        return variables
-
-    def repr_from_vars(self, vars: Dict[str, Any]) -> str:
-        repr = self.repr_def
-        for var, val in vars.items():
-            if isinstance(val, StateModifier):
-                repr = repr.replace(var, str(val.value))
-            else:
-                repr = repr.replace(var, str(val))
-
-        return repr
-
-    def neutral_states_from_vars(self, variables: Dict[str, Any]) -> List['State']:
-        states = []
-
-        for state_def in self.neutral_states_def:
-            states.append(state_from_str(self._fill_vals_into_vars(state_def, variables)))
-
-        return states
-
-    def validate_vars(self, vars: Dict[str, Any]) -> None:
-        for var, val in vars.items():
-            assert isinstance(val, self.vars_def[var][0])
-
-            if isinstance(val, Spec):
-                if val.resolution > self.vars_def[var][1]:
-                    raise SyntaxError('Resolution too high.')
-
-    def _to_base_regex(self) -> str:
-        return '^{}$'.format(self.repr_def
-                             .replace('+', '\+')
-                             .replace('[', '\[')
-                             .replace(']', '\]'))
-
-    def _fill_vals_into_vars(self, str_with_vars: str, variables: Dict[str, Any]) -> str:
-        for var, val in variables.items():
-            for method in members(val):
-                symbol_with_method = '{0}.{1}'.format(var, method)
-                if symbol_with_method in str_with_vars:
-                    str_with_vars = str_with_vars.replace(symbol_with_method, str(getattr(val, method)()))
-
-            if var in str_with_vars:
-                str_with_vars = str_with_vars.replace(var, str(val))
-
-        return str_with_vars
-
-    def _to_matching_regex(self) -> str:
-        regex = self._to_base_regex()
-        for var, var_def in self.vars_def.items():
-            regex = regex.replace(var, TYPE_TO_REGEX[var_def[0]])
-        return regex
-
-
-STATE_DEFS = [
-    StateDef(
-        'interaction-state',                          # name
-        '$x--$y',                                     # representation definition
-        {
-            '$x': [Spec, LocusResolution.domain],     # variables definition
-            '$y': [Spec, LocusResolution.domain]
-        },
-        ['$x--0', '$y--0']                            # neutral states
-    ),
-    StateDef(
-        'empty-binding-domain',
-        '$x--0',
-        {
-            '$x': [Spec, LocusResolution.domain]
-        },
-        ['$x--0']
-    ),
-    StateDef(
-        'self-interaction-state',
-        '$x--[$y]',
-        {
-            '$x': [Spec, LocusResolution.domain],
-            '$y': [Locus, LocusResolution.domain]
-        },
-        ['$x--0', '$x.to_component_spec_[$y]--0']
-    ),
-    StateDef(
-        GLOBAL_STATE_NAME,
-        '[$x]',
-        {
-            '$x': [str]
-        },
-        []
-    ),
-    StateDef(
-        'covalent-modification-state',
-        '$x-{$y}',
-        {
-            '$x': [Spec, LocusResolution.residue],
-            '$y': [StateModifier]
-        },
-        ['$x-{0}']
-    )
-]
-
-
-class State:
-    def __init__(self, definition: StateDef, vars: Dict[str, Any]) -> None:
-        self.definition = definition
-        self.state_defs = STATE_DEFS
-        self.vars = OrderedDict((k, v) for k, v in sorted(vars.items()))
-
+class State(ABC):
     def __hash__(self) -> int:
         return hash(str(self))
 
@@ -214,153 +74,609 @@ class State:
         return str(self)
 
     def __str__(self) -> str:
-        return self.definition.repr_from_vars(self.vars)
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, State):
-            return NotImplemented
-        return self.definition == other.definition and self.vars == other.vars
+        return self.name
 
     def __lt__(self, other: object) -> bool:
         if not isinstance(other, State):
             return NotImplemented
         return str(self) < str(other)
 
-    def __getitem__(self, item: str) -> Any:
-        return self.vars[item]
-
-    @property
-    def name(self) -> str:
-        return self.definition.name
-
-    @property
-    def repr_def(self) -> str:
-        return self.definition.repr_def
-
+    @abstractmethod
     def is_superset_of(self, other: 'State') -> bool:
-        return other.is_subset_of(self)
+        return False
 
+    @abstractmethod
     def is_subset_of(self, other: 'State') -> bool:
-        if self.definition == other.definition:
-            return len(self.specs) == len(other.specs) and \
-                   all(x.is_subspec_of(y) for x, y in zip(self.specs, other.specs)) and \
-                   all(x == y for x, y in zip(self._non_spec_props, other._non_spec_props))
-        else:
-            return False
+        return False
 
     @property
     def is_structured(self) -> bool:
-        return all(mol_spec.struct_index is not None for mol_spec in self.specs)
+        return all(spec.is_structured for spec in self.specs)
 
     @property
     def is_global(self) -> bool:
-        return self.name == GLOBAL_STATE_NAME
+        return False
 
     @property
     def is_elemental(self) -> bool:
         return self.is_global or all(spec.has_resolution(elemental_resolution) for spec, elemental_resolution
                                      in zip(self.specs, self._elemental_resolutions))
 
+    @abstractmethod
     def is_mutually_exclusive_with(self, state: 'State') -> bool:
-        assert self.is_elemental
-        assert state.is_elemental
+        return False
 
-        if self == state:
-            return False
-
-        return any(spec in state.specs for spec in self.specs)
-
-    @property
+    @abstractproperty
     def is_neutral(self) -> bool:
-        return len(self.neutral_states) == 1 and self == self.neutral_states[0]
+        return False
 
-    @property
+    @abstractproperty
     def is_homodimer(self):
-        return len(self.components) == 2 and self.components[0] == self.components[1]
+        return False
 
-    @property
+    @abstractproperty
     def neutral_states(self) -> List['State']:
-        return self.definition.neutral_states_from_vars(self.vars)
+        return []
+
+    @abstractproperty
+    def specs(self) -> List[Spec]:
+        return []
+
+    @abstractmethod
+    def update_specs(self, updates: Dict[Spec, Spec]) -> None:
+        pass
+
+    @abstractmethod
+    def to_non_structured(self) -> 'State':
+        pass
+
+    @abstractmethod
+    def to_structured_from_spec(self, spec: Spec) -> 'State':
+        pass
+
+    @abstractmethod
+    def to_structured_from_state(self, state: 'State') -> 'State':
+        pass
+
+    @abstractmethod
+    def components(self) -> List[Spec]:
+        pass
+
+
+class InteractionState(State):
+    def __init__(self, first: Spec, second: Spec):
+        if first.resolution > LocusResolution.domain or second.resolution > LocusResolution.domain:
+            raise SyntaxError('Resolution for InteractionState too high {} {}'.format(str(first), str(second)))
+        self.first, self.second = sorted([first, second])  # type: Spec, Spec
+        self.name = '{}--{}'.format(str(self.first), str(self.second))
+        self.repr_def = '$x--$y'
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return self.name
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
+    def __eq__(self, other: object):
+        if not isinstance(other, State):
+            return NotImplemented
+        else:
+            return isinstance(other, InteractionState) and self.first == other.first and self.second == other.second
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, State):
+            return NotImplemented
+
+        return str(self) < str(other)
+
+    def __getitem__(self, item):
+        if item == '$x':
+            return self.first
+        elif item == '$y':
+            return self.second
+        else:
+            raise KeyError
 
     @property
     def specs(self) -> List[Spec]:
-        specs = [x for x in self.vars.values() if isinstance(x, Spec)]
-        extra_spec = []
-        locus = next((x for x in self.vars.values() if isinstance(x, Locus)), None)
-        if locus:
-            assert len(specs) == 1
-            extra_spec = [specs[0].with_locus(locus)]
+        return [self.first, self.second]
 
-        return specs + extra_spec
+    @property
+    def is_global(self) -> bool:
+        return False
+
+    @property
+    def is_elemental(self) -> bool:
+        return self.first.has_resolution(LocusResolution.domain) and \
+            self.second.has_resolution(LocusResolution.domain)
+
+    def is_mutually_exclusive_with(self, state: 'State') -> bool:
+        if self == state:
+            return False
+        elif isinstance(state, InteractionState) or isinstance(state, SelfInteractionState):
+            return self.first == state.first or self.second == state.second
+        elif isinstance(state, EmptyBindingState):
+            return self.first == state.spec or self.second == state.spec
+        else:
+            return False
+
+    @property
+    def is_neutral(self) -> bool:
+        return False
+
+    @property
+    def is_homodimer(self):
+        return self.first == self.second
+
+    @property
+    def neutral_states(self) -> List['State']:
+        if self.is_homodimer:
+            return [EmptyBindingState(self.first)]
+        else:
+            return [EmptyBindingState(self.first), EmptyBindingState(self.second)]
 
     def update_specs(self, updates: Dict[Spec, Spec]) -> None:
-        new_vars = deepcopy(self.vars)
-
-        for k, v in self.vars.items():
+        if self.is_homodimer:
+            raise AssertionError
+        else:
             try:
-                new_vars[k] = updates[v]
+                self.first = updates[self.first]
+            except KeyError:
+                pass
+            try:
+                self.second = updates[self.second]
             except KeyError:
                 pass
 
-        self.vars = new_vars
-
     def to_non_structured(self) -> 'State':
-        non_struct_vars = deepcopy(self.vars)
-        for k, v in non_struct_vars.items():
-            if isinstance(v, Spec):
-                non_struct_vars[k] = v.to_non_struct_spec()
+        return InteractionState(self.first.to_non_struct_spec(), self.second.to_non_struct_spec())
 
-        return State(self.definition, non_struct_vars)
-
-    def to_structured_from_spec(self, spec: Spec) -> 'State':
-        assert spec.struct_index is not None
-        struct_vars = deepcopy(self.vars)
-        for k, v in struct_vars.items():
-            if isinstance(v, Spec):
-                if v.struct_index is not None:
-                    continue
-                elif spec.to_non_struct_spec().to_component_spec() == v.to_component_spec():
-                    v.struct_index = spec.struct_index
-                    break
-
-        return State(self.definition, struct_vars)
-
-    def to_structured_from_state(self, state: 'State') -> 'State':
-        other_vars = deepcopy(state.vars)
-        struct_vars = deepcopy(self.vars)
-
-        for k, v in struct_vars.items():
-            if isinstance(v, Spec):
-                if v.struct_index is not None:
-                    continue
-
-                for kp, vp in other_vars.items():
-                    if isinstance(vp, Spec) and vp.struct_index is not None and vp.to_non_struct_spec().is_superspec_of(v):
-                        v.struct_index = vp.struct_index
-                        other_vars[kp] = vp.to_non_struct_spec()
-                        break
-
-        return State(self.definition, struct_vars)
+    @property
+    def is_structured(self) -> bool:
+        return self.first.is_structured and self.second.is_structured
 
     @property
     def components(self) -> List[Spec]:
-        if self.name == 'self-interaction-state':
-            return [self.specs[0].to_component_spec()]
+        return [self.first.to_component_spec(), self.second.to_component_spec()]
+
+    def is_subset_of(self, other: 'State') -> bool:
+        return isinstance(other, InteractionState) and self.first.is_subspec_of(other.first) and \
+            self.second.is_subspec_of(other.second)
+
+    def is_superset_of(self, other: 'State') -> bool:
+        return self == other or other.is_subset_of(self)
+
+    def to_structured_from_spec(self, spec: Spec) -> 'State':
+        if self.is_homodimer:
+            raise AssertionError
         else:
-            return [spec.to_component_spec() for spec in self.specs]
+            if self.first.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec() and spec.is_structured:
+                return InteractionState(self.first.with_struct_from_spec(spec), self.second)
+            elif self.second.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec() and spec.is_structured:
+                return InteractionState(self.first, self.second.with_struct_from_spec(spec))
+            else:
+                return self
+
+    def to_structured_from_state(self, state: 'State') -> 'State':
+        for spec in state.specs:
+            self = self.to_structured_from_spec(spec)
+
+        return self
+
+
+class EmptyBindingState(State):
+    def __init__(self, spec: Spec):
+        if spec.resolution > LocusResolution.domain:
+            raise SyntaxError('Resolution for EmptyBindingState too high {}'.format(str(spec)))
+        self.spec = spec
+        self.name = '{}--0'.format(str(self.spec))
+        self.repr_def = '$x--0'
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return self.name
+
+    def __hash__(self) -> int:
+        return super().__hash__()
+
+    def __eq__(self, other: object):
+        if not isinstance(other, State):
+            return NotImplemented
+        else:
+            return isinstance(other, EmptyBindingState) and self.spec == other.spec
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, State):
+            return NotImplemented
+
+        return str(self) < str(other)
+
+    def __getitem__(self, item):
+        if item == '$x':
+            return self.spec
+        else:
+            raise KeyError
 
     @property
-    def _elemental_resolutions(self) -> List[LocusResolution]:
-        return [self.definition.vars_def[var][1] for var, value in self.vars.items()
-                if isinstance(value, Spec)]
+    def specs(self) -> List[Spec]:
+        return [self.spec]
 
     @property
-    def _non_spec_props(self) -> List[Any]:
-        return [x for x in self.vars.values() if not isinstance(x, Spec)]
+    def is_global(self) -> bool:
+        return False
+
+    @property
+    def is_elemental(self) -> bool:
+        return self.spec.has_resolution(LocusResolution.domain)
+
+    def is_mutually_exclusive_with(self, state: 'State') -> bool:
+        if self == state:
+            return False
+        elif isinstance(state, InteractionState) or isinstance(state, SelfInteractionState):
+            return self.spec == state.first or self.spec == state.second
+        else:
+            return False
+
+    @property
+    def is_neutral(self) -> bool:
+        return True
+
+    @property
+    def is_homodimer(self):
+        return False
+
+    @property
+    def neutral_states(self) -> List['State']:
+        return [self]
+
+    def update_specs(self, updates: Dict[Spec, Spec]) -> None:
+        try:
+            self.spec = updates[self.spec]
+        except KeyError:
+            pass
+
+    def to_non_structured(self) -> 'State':
+        return EmptyBindingState(self.spec.to_non_struct_spec())
+
+    @property
+    def is_structured(self) -> bool:
+        return self.spec.is_structured
+
+    @property
+    def components(self) -> List[Spec]:
+        return [self.spec.to_component_spec()]
+
+    def is_subset_of(self, other: 'State') -> bool:
+        return isinstance(other, EmptyBindingState) and self.spec.is_subspec_of(other.spec)
+
+    def is_superset_of(self, other: 'State') -> bool:
+        return self == other or other.is_subset_of(self)
+
+    def to_structured_from_spec(self, spec: Spec) -> 'State':
+        if self.spec.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec():
+            return EmptyBindingState(self.spec.with_struct_from_spec(spec))
+        else:
+            return self
+
+    def to_structured_from_state(self, state: 'State') -> 'State':
+        for spec in state.specs:
+            self = self.to_structured_from_spec(spec)
+
+        return self
+
+
+class SelfInteractionState(State):
+    def __init__(self, first: Spec, second: Spec):
+        assert first.to_component_spec() == second.to_component_spec()
+        if first.resolution > LocusResolution.domain or second.resolution > LocusResolution.domain:
+            raise SyntaxError('Resolution for SelfInteractionState too high {} {}'.format(str(first), str(second)))
+        self.first, self.second = sorted([first, second])  # type: Spec, Spec
+        self.name = '{}--[{}]'.format(str(first), str(second.locus))
+        self.repr_def = '$x--[$y]'
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return self.name
+
+    def __hash__(self) -> int:
+        return super().__hash__()
+
+    def __eq__(self, other: object):
+        if not isinstance(other, State):
+            return NotImplemented
+        else:
+            return isinstance(other, SelfInteractionState) and self.first == other.first and self.second == other.second
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, State):
+            return NotImplemented
+
+        return str(self) < str(other)
+
+    def __getitem__(self, item):
+        if item == '$x':
+            return self.first
+        elif item == '$y':
+            return self.second
+        else:
+            raise KeyError
+
+    @property
+    def specs(self) -> List[Spec]:
+        return [self.first, self.second]
+
+    @property
+    def is_global(self) -> bool:
+        return False
+
+    @property
+    def is_elemental(self) -> bool:
+        return self.first.has_resolution(LocusResolution.domain) and \
+            self.second.has_resolution(LocusResolution.domain)
+
+    def is_mutually_exclusive_with(self, state: 'State') -> bool:
+        if self == state:
+            return False
+        elif isinstance(state, InteractionState) or isinstance(state, SelfInteractionState):
+            return self.first == state.first or self.second == state.second
+        elif isinstance(state, EmptyBindingState):
+            return self.first == state.spec or self.second == state.spec
+        else:
+            return False
+
+    @property
+    def is_neutral(self) -> bool:
+        return False
+
+    @property
+    def is_homodimer(self):
+        return False
+
+    @property
+    def neutral_states(self) -> List['State']:
+        return [EmptyBindingState(self.first), EmptyBindingState(self.second)]
+
+    def update_specs(self, updates: Dict[Spec, Spec]) -> None:
+        try:
+            self.first = updates[self.first]
+        except KeyError:
+            pass
+        try:
+            self.second = updates[self.second]
+        except KeyError:
+            pass
+
+    def to_non_structured(self) -> 'State':
+        return SelfInteractionState(self.first.to_non_struct_spec(), self.second.to_non_struct_spec())
+
+    @property
+    def is_structured(self) -> bool:
+        return self.first.is_structured and self.second.is_structured
+
+    @property
+    def components(self) -> List[Spec]:
+        return [self.first.to_component_spec()]
+
+    def is_subset_of(self, other: 'State') -> bool:
+        return isinstance(other, SelfInteractionState) and self.first.is_subspec_of(other.first) and \
+            self.second.is_subspec_of(other.second)
+
+    def is_superset_of(self, other: 'State') -> bool:
+        return self == other or other.is_subset_of(self)
+
+    def to_structured_from_spec(self, spec: Spec) -> 'State':
+        if self.first.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec():
+            assert self.second.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec()
+            return SelfInteractionState(self.first.with_struct_from_spec(spec), self.second.with_struct_from_spec(spec))
+        else:
+            return self
+
+    def to_structured_from_state(self, state: 'State') -> 'State':
+        for spec in state.specs:
+            self = self.to_structured_from_spec(spec)
+
+        return self
+
+
+class ModificationState(State):
+    def __init__(self, spec: Spec, modifier: StateModifier):
+        self.spec, self.modifier = spec, modifier
+        self.name = '{}-{{{}}}'.format(str(self.spec), self.modifier.value)
+        self.repr_def = '$x-{$y}'
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return self.name
+
+    def __hash__(self) -> int:
+        return super().__hash__()
+
+    def __eq__(self, other: object):
+        if not isinstance(other, State):
+            return NotImplemented
+        else:
+            return isinstance(other, ModificationState) and self.spec == other.spec and self.modifier == other.modifier
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, State):
+            return NotImplemented
+
+        return str(self) < str(other)
+
+    def __getitem__(self, item):
+        if item == '$x':
+            return self.spec
+        elif item == '$y':
+            return self.modifier
+        else:
+            raise KeyError
+
+    @property
+    def specs(self) -> List[Spec]:
+        return [self.spec]
+
+    @property
+    def is_global(self) -> bool:
+        return False
+
+    @property
+    def is_elemental(self) -> bool:
+        return self.spec.has_resolution(LocusResolution.residue)
+
+    def is_mutually_exclusive_with(self, state: 'State') -> bool:
+        if self == state:
+            return False
+        elif isinstance(state, ModificationState):
+            return self.spec == state.spec
+        else:
+            return False
+
+    @property
+    def is_neutral(self) -> bool:
+        return self.modifier == StateModifier.neutral
+
+    @property
+    def is_homodimer(self):
+        return False
+
+    @property
+    def neutral_states(self) -> List['State']:
+        return [ModificationState(self.spec, StateModifier.neutral)]
+
+    def update_specs(self, updates: Dict[Spec, Spec]) -> None:
+        try:
+            self.spec = updates[self.spec]
+        except KeyError:
+            pass
+
+    def to_non_structured(self) -> 'State':
+        return ModificationState(self.spec.to_non_struct_spec(), self.modifier)
+
+    @property
+    def is_structured(self) -> bool:
+        return self.spec.is_structured
+
+    @property
+    def components(self) -> List[Spec]:
+        return [self.spec.to_component_spec()]
+
+    def is_subset_of(self, other: 'State') -> bool:
+        return isinstance(other, ModificationState) and self.spec.is_subspec_of(other.spec) and self.modifier == other.modifier
+
+    def is_superset_of(self, other: 'State') -> bool:
+        return self == other or other.is_subset_of(self)
+
+    def to_structured_from_spec(self, spec: Spec) -> 'State':
+        if self.spec.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec() and spec.is_structured:
+            return ModificationState(self.spec.with_struct_from_spec(spec), self.modifier)
+        else:
+            return self
+
+    def to_structured_from_state(self, state: 'State') -> 'State':
+        for spec in state.specs:
+            self = self.to_structured_from_spec(spec)
+
+        return self
+
+
+class GlobalState(State):
+    def __init__(self, name: str):
+        self.name = '[{}]'.format(name.strip('[]'))
+        self.repr_def = '[$x]'
+
+    def __str__(self) -> str:
+        return self.name
+
+    def __repr__(self) -> str:
+        return self.name
+
+    def __hash__(self) -> int:
+        return super().__hash__()
+
+    def __eq__(self, other: object):
+        if not isinstance(other, State):
+            return NotImplemented
+        else:
+            return isinstance(other, GlobalState) and self.name == other.name
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, State):
+            return NotImplemented
+
+        return str(self) < str(other)
+
+    def __getitem__(self, item):
+        if item == '$x':
+            return self.name.strip('[]')
+        else:
+            raise KeyError
+
+    @property
+    def specs(self) -> List[Spec]:
+        return []
+
+    @property
+    def is_global(self) -> bool:
+        return True
+
+    @property
+    def is_elemental(self) -> bool:
+        return True
+
+    def is_mutually_exclusive_with(self, state: 'State') -> bool:
+        return False
+
+    @property
+    def is_neutral(self) -> bool:
+        return False
+
+    @property
+    def is_homodimer(self):
+        return False
+
+    @property
+    def neutral_states(self) -> List['State']:
+        return []
+
+    def update_specs(self, updates: Dict[Spec, Spec]) -> None:
+        pass
+
+    def to_non_structured(self) -> 'State':
+        return self
+
+    @property
+    def is_structured(self) -> bool:
+        return True
+
+    @property
+    def components(self) -> List[Spec]:
+        return []
+
+    def is_subset_of(self, other: 'State') -> bool:
+        return self == other
+
+    def is_superset_of(self, other: 'State') -> bool:
+        return self == other or other.is_subset_of(self)
+
+    def to_structured_from_spec(self, spec: Spec) -> 'State':
+        return self
+
+    def to_structured_from_state(self, state: 'State') -> 'State':
+        return self
 
 
 class FullyNeutralState(State):
     def __init__(self) -> None:
+        self.repr_def = '0'
         pass
 
     def __hash__(self) -> int:
@@ -411,23 +727,55 @@ class FullyNeutralState(State):
     def is_superset_of(self, other: 'State') -> bool:
         raise AssertionError
 
+    def to_structured_from_spec(self, spec: Spec) -> 'State':
+        raise AssertionError
 
-def matching_state_def(repr: str) -> Optional[StateDef]:
-    return next((x for x in STATE_DEFS if x.matches_repr(repr)), None)  # type: ignore
+    @property
+    def is_global(self) -> bool:
+        raise AssertionError
+
+    def is_mutually_exclusive_with(self, state: 'State') -> bool:
+        raise AssertionError
+
+    def to_structured_from_state(self, state: 'State') -> 'State':
+        raise AssertionError
+
+    @property
+    def specs(self) -> List[Spec]:
+        raise AssertionError
+
+    def update_specs(self, updates: Dict[Spec, Spec]) -> None:
+        raise AssertionError
+
+    @property
+    def is_homodimer(self):
+        raise AssertionError
 
 
-def state_from_str(repr: str) -> State:
-    repr = repr.strip()
+def state_from_str(state_str: str) -> State:
+    state_str = state_str.strip()
 
-    if repr == FULLY_NEUTRAL_STATE:
+    if re.match(GLOBAL_STATE_REGEX, state_str):
+        return GlobalState(state_str)
+    elif re.match(INTERACTION_STATE_REGEX, state_str):
+        first_str, second_str = re.findall(INTERACTION_STATE_REGEX, state_str)[0]
+        return InteractionState(spec_from_str(first_str), spec_from_str(second_str))
+    elif re.match(EMPTY_BINDING_STATE_REGEX, state_str):
+        spec_str = re.findall(EMPTY_BINDING_STATE_REGEX, state_str)[0]
+        return EmptyBindingState(spec_from_str(spec_str))
+    elif re.match(SELF_INTERACTION_STATE_REGEX, state_str):
+        first_str, second_str = re.findall(SELF_INTERACTION_STATE_REGEX, state_str)[0]
+        first_spec = spec_from_str(first_str)
+        second_spec = spec_from_str(first_str).with_locus(locus_from_str(second_str))
+        return SelfInteractionState(first_spec, second_spec)
+    elif re.match(GLOBAL_STATE_REGEX, state_str):
+        return GlobalState(state_str.strip('[]'))
+    elif re.match(MODIFICATION_STATE_REGEX, state_str):
+        spec_str, mod_str = re.findall(MODIFICATION_STATE_REGEX, state_str)[0]
+        return ModificationState(spec_from_str(spec_str), state_modifier_from_str(mod_str))
+    elif re.match(FULLY_NEUTRAL_STATE_REGEX, state_str):
         return FullyNeutralState()
+    else:
+        raise SyntaxError
 
-    state_def = matching_state_def(repr)
 
-    if not state_def:
-        raise SyntaxError('Could not match State {} with definition'.format(repr))
-
-    variables = state_def.vars_from_repr(repr)
-    state_def.validate_vars(variables)
-
-    return State(state_def, variables)
