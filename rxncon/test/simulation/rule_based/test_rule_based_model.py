@@ -376,9 +376,9 @@ def test_self_regulation():
     rbm = rule_based_model_from_rxncon(rxn_system)
 
     expected_rules = [
-        'Rlm1(MADSD) + Rlm1Gene(Rlm1D) -> Rlm1(MADSD!1).Rlm1Gene(Rlm1D!1) k Rlm1_[MADS]_bind+_Rlm1Gene_[Rlm1]',
-        'PolII() + Rlm1Gene() -> PolII() + Rlm1Gene() + Rlm1mRNA() k PolII_trsc_Rlm1Gene',
-        'Ribo() + Rlm1mRNA() -> Ribo() + Rlm1(MADSD) + Rlm1mRNA() k Ribo_trsl_Rlm1mRNA'
+        'Rlm1(MADSD) + Rlm1Gene(Rlm1D) -> Rlm1(MADSD!1).Rlm1Gene(Rlm1D!1) k',
+        'PolII() + Rlm1Gene() -> PolII() + Rlm1Gene() + Rlm1mRNA() k',
+        'Ribo() + Rlm1mRNA() -> Ribo() + Rlm1(MADSD) + Rlm1mRNA() k'
     ]
 
     assert len(rbm.rules) == len(expected_rules)
