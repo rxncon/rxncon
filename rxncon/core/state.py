@@ -2,8 +2,13 @@ import re
 from enum import unique, Enum
 from typing import List, Dict
 from abc import ABC, abstractproperty, abstractmethod
+import logging
 
 from rxncon.core.spec import Spec, Locus, LocusResolution, locus_from_str, spec_from_str
+from rxncon.util.utils import current_function_name
+
+logger = logging.getLogger(__name__)
+
 
 SPEC_REGEX          = '([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
 STR_REGEX           = '([\w]+)'
@@ -256,6 +261,8 @@ class InteractionState(State):
             elif not self.second.is_structured:
                 return InteractionState(self.first, self.second.with_struct_from_spec(spec))
             else:
+                logger.info('{} : Not structuring homodimer {} with spec {}, since pre-structured.'
+                            .format(current_function_name(), str(self), str(spec)))
                 return self
         else:
             if self.first.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec():

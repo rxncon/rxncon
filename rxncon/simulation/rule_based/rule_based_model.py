@@ -285,7 +285,7 @@ class ComplexExprBuilder:
                 complexes.append(possible_complex)
                 logger.debug('{} : Adding complex {}'.format(current_function_name(), possible_complex))
             else:
-                logger.debug('{} : Not adding complex {}'.format(current_function_name(), possible_complex))
+                logger.info('{} : POSSIBLE DISCONNECTED CONTINGENCY Not adding complex {}'.format(current_function_name(), possible_complex))
 
         return complexes
 
