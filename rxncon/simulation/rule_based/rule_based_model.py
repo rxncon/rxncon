@@ -360,7 +360,7 @@ STATE_TO_MOL_DEF_BUILDER_FN = {
     ],
     # Interaction state.
     '$x--$y': [
-        lambda state, builder: builder.add_site(state['$x']) if builder.name == state['$x'].component_name \
+        lambda state, builder: builder.add_site(state['$x']) if builder.name == str(state['$x'].to_component_spec()) \
                                else builder.add_site(state['$y']),
     ],
     # Self-interaction state.

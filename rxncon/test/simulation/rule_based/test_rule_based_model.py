@@ -2,6 +2,7 @@ from itertools import combinations
 import pytest
 
 from rxncon.input.quick.quick import Quick
+from rxncon.input.excel_book.excel_book import ExcelBook
 from rxncon.simulation.rule_based.rule_based_model import *
 from rxncon.core.state import state_from_str
 from rxncon.venntastic.sets import venn_from_str, ValueSet
@@ -359,6 +360,25 @@ def test_kplus_kminus() -> None:
         'A(r1R~0,r2R~0,bD) + B(aD) -> A(r1R~0,r2R~0,bD!1).B(aD!1) k',
         'A(r1R~0) + C() -> A(r1R~p) + C() k',
         'A(r2R~0) + D() -> A(r2R~p) + D() k'
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+
+def test_self_regulation():
+    rxn_system = Quick("""Rlm1_[MADS]_bind+_Rlm1Gene
+                          PolII_trsc_Rlm1Gene
+                          Ribo_trsl_Rlm1mRNA""").rxncon_system
+
+    rbm = rule_based_model_from_rxncon(rxn_system)
+
+    expected_rules = [
+        'Rlm1(MADSD) + Rlm1Gene(Rlm1D) -> Rlm1(MADSD!1).Rlm1Gene(Rlm1D!1) k Rlm1_[MADS]_bind+_Rlm1Gene_[Rlm1]',
+        'PolII() + Rlm1Gene() -> PolII() + Rlm1Gene() + Rlm1mRNA() k PolII_trsc_Rlm1Gene',
+        'Ribo() + Rlm1mRNA() -> Ribo() + Rlm1(MADSD) + Rlm1mRNA() k Ribo_trsl_Rlm1mRNA'
     ]
 
     assert len(rbm.rules) == len(expected_rules)
