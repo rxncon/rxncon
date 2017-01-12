@@ -232,7 +232,7 @@ class StateEffector(Effector):
 
     @property
     def states(self) -> List[State]:
-        return [self.expr]
+        return [deepcopy(self.expr)]
 
     @property
     def is_structured(self) -> bool:

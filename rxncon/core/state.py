@@ -187,7 +187,7 @@ class InteractionState(State):
 
     @property
     def specs(self) -> List[Spec]:
-        return [self.first, self.second]
+        return [self.first.clone(), self.second.clone()]
 
     @property
     def is_global(self) -> bool:

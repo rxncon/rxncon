@@ -53,6 +53,9 @@ def test_simple_namespace() -> None:
     contingencies = contingencies_from_contingency_list_entries(cles)
 
     effector = contingencies[0].to_structured().effector
+
+    print(effector)
+
     # Note: the precise numbering is not important, but currently is reproducible.
     assert state_from_str('X@0_[xa]--A@1_[ax]') in effector.states
     assert state_from_str('B@2_[(r)]-{p}') in effector.states
