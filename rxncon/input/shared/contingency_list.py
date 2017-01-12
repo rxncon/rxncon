@@ -230,7 +230,8 @@ def _create_boolean_contingency_to_effector(boolean_contingencies: List[Continge
         boolean_contingencies = [x for x in boolean_contingencies if x.subj != current_contingency.subj]
 
         boolean_operator = BooleanOperator(current_contingency.verb)
-        assert all([BooleanOperator(x.verb) == boolean_operator for x in current_contingencies])
+        assert all(BooleanOperator(x.verb) == boolean_operator for x in current_contingencies), \
+            'Boolean operator inconsistent in contingencies {}'.format(', '.join(str(x) for x in current_contingencies))
 
         effector_terms = [_unary_effector_from_boolean_contingency_entry(x) for x in current_contingencies]
 
