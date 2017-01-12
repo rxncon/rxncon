@@ -121,7 +121,8 @@ class Mol:
         return [x for x in self.site_to_bond.values() if x is not None]
 
     def sites_by_bond(self, bond: int) -> List[str]:
-        return [s for s, b in self.site_to_bond.items() if b is not None and bond == b]
+        sites = [s for s, b in self.site_to_bond.items() if b is not None and bond == b]
+        return sites
 
     def with_relabeled_bonds(self, bond_to_bond: Dict[int, int]) -> 'Mol':
         new_mol = self.clone()
@@ -260,7 +261,7 @@ class Complex:
             for bond in mol.bonds:
                 bond_to_site_count[bond] += len(mol.sites_by_bond(bond))
 
-        non_doubly_connected_bonds = [bond for bond, site_count in bond_to_site_count.items() if site_count != 2]
+        non_doubly_connected_bonds = [bond for bond, site_count in bond_to_site_count.items() if site_count % 2 != 0]
         if non_doubly_connected_bonds:
             raise AssertionError('Non doubly connected bonds {} in complex: {}'.format(non_doubly_connected_bonds, str(self)))
 
@@ -693,14 +694,14 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
 
         return filtered_solutions
 
+    def is_satisfiable(states: Iterable[State]) -> bool:
+        for pair in combinations(states, 2):
+            if pair[0].is_mutually_exclusive_with(pair[1]):
+                return False
+
+        return True
+
     def calc_positive_solutions(rxncon_sys: RxnConSystem, solution: Dict[State, bool]) -> List[List[State]]:
-        def is_satisfiable(states: Iterable[State]) -> bool:
-            for pair in combinations(states, 2):
-                if pair[0].is_mutually_exclusive_with(pair[1]):
-                    return False
-
-            return True
-
         def complementary_state_combos(state: State) -> List[List[State]]:
             combos = product(
                 *(rxncon_sys.complementary_states_for_component(spec.to_component_spec(), state) for spec in
@@ -765,6 +766,9 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
                 unstructs = [x for x in states if not x.is_structured]
                 raise AssertionError('Error in building rule for Reaction {}, States {} appear unstructured'
                                      .format(str(reaction), ', '.join(str(x) for x in unstructs)))
+
+            if not is_satisfiable(cont_soln):
+                raise AssertionError('Cannot satisfy contingencies {} simultaneously'.format(' & '.join(str(s) for s in cont_soln)))
 
             states = copy(states)
             builder = ComplexExprBuilder()
