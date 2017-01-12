@@ -84,7 +84,6 @@ class Contingency:
     def _validate_structure_indices(self):
         # Assert that every index is only used once.
         specs = [spec for state in self.effector.states for spec in state.specs]
-        print(specs)
         index_to_specs = defaultdict(set)
 
         for spec in specs:
