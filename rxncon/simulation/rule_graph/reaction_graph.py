@@ -1,9 +1,8 @@
 from typing import Union
 from enum import Enum
 from networkx import DiGraph
-from copy import deepcopy
+import re
 from rxncon.core.reaction import Reaction
-from rxncon.core.state import State
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.spec import Spec, Locus, LocusResolution
 
@@ -112,9 +111,16 @@ def rxngraph_from_rxncon_system(rxncon_system: RxnConSystem) -> ReactionGraph:
             return EdgeType.unknown
 
     def add_reaction_to_graph(rxn: Reaction) -> None:
-        builder.add_spec_information(rxn['$x'])
-        builder.add_spec_information(rxn['$y'])
-        builder.add_external_edge(rxn['$x'], rxn['$y'], get_reaction_type(rxn))
+        edge_type = get_reaction_type(rxn)
+        if edge_type is EdgeType.synthesis:
+            for syn_comp in rxn.synthesised_components:
+                builder.add_spec_information(rxn['$x'])
+                builder.add_spec_information(syn_comp)
+                builder.add_external_edge(rxn['$x'], syn_comp, edge_type)
+        else:
+            builder.add_spec_information(rxn['$x'])
+            builder.add_spec_information(rxn['$y'])
+            builder.add_external_edge(rxn['$x'], rxn['$y'], get_reaction_type(rxn))
 
     builder = GraphBuilder()
 
@@ -141,7 +147,7 @@ def get_node_id(specification: Spec, node_type: Union[NodeType, LocusResolution]
     """
 
     if node_type in [NodeType.component, LocusResolution.component]:
-        return specification.component_name
+        return re.match('[a-zA-Z0-9]+', str(specification)).group()
 
     if node_type in [NodeType.domain, LocusResolution.domain] and specification.locus.domain:
         return '{0}_[{1}]'.format(specification.component_name, specification.locus.domain)
@@ -164,7 +170,7 @@ def get_node_label(specification: Spec, node_type: NodeType) -> str:
 
     """
     if node_type == NodeType.component:
-        return specification.component_name
+        return re.match('[a-zA-Z0-9]+', str(specification)).group()
 
     if node_type == NodeType.domain and specification.locus.domain:
         return specification.locus.domain

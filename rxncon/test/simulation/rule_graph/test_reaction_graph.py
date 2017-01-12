@@ -215,8 +215,8 @@ def test_trsc() -> None:
 
     """
     test_case = RuleTestCase('''A_trsc_B''',
-                             [('A', 'A', NodeType.component), ('BGene', 'BGene', NodeType.component)],
-                             [('A', 'BGene', EdgeWith.external, EdgeType.synthesis)])
+                             [('A', 'A', NodeType.component), ('BmRNA', 'BmRNA', NodeType.component)],
+                             [('A', 'BmRNA', EdgeWith.external, EdgeType.synthesis)])
 
     assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
 
@@ -233,8 +233,8 @@ def test_trsl() -> None:
 
     """
     test_case = RuleTestCase('''A_trsl_B''',
-                             [('A', 'A', NodeType.component), ('BmRNA', 'BmRNA', NodeType.component)],
-                             [('A', 'BmRNA', EdgeWith.external, EdgeType.synthesis)])
+                             [('A', 'A', NodeType.component), ('B', 'B', NodeType.component)],
+                             [('A', 'B', EdgeWith.external, EdgeType.synthesis)])
 
     assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
 
