@@ -3,6 +3,7 @@ from itertools import combinations, product, chain, permutations, count
 from copy import copy, deepcopy
 from collections import defaultdict, OrderedDict
 from re import match
+import logging
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reaction, ReactionTerm, OutputReaction
@@ -11,6 +12,9 @@ from rxncon.core.spec import Spec
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
 from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet, DisjunctiveUnion
+from rxncon.util.utils import current_function_name
+
+logger = logging.getLogger(__name__)
 
 
 NEUTRAL_MOD = '0'
@@ -256,7 +260,9 @@ class Complex:
             for bond in mol.bonds:
                 bond_to_site_count[bond] += len(mol.sites_by_bond(bond))
 
-        assert all(site_count == 2 for _, site_count in bond_to_site_count.items())
+        non_doubly_connected_bonds = [bond for bond, site_count in bond_to_site_count.items() if site_count != 2]
+        if non_doubly_connected_bonds:
+            raise AssertionError('Non doubly connected bonds {} in complex: {}'.format(non_doubly_connected_bonds, str(self)))
 
 
 class ComplexExprBuilder:
@@ -268,11 +274,17 @@ class ComplexExprBuilder:
     def build(self, only_reactants: bool=True) -> List[Complex]:
         complexes = []
 
+        logger.debug('{} : Building complex with molecules {}'.format(current_function_name(),
+                                                                      ' & '.join(str(spec) for spec in self._mol_builders.keys())))
+        logger.debug('{} : Grouped specs are {}'.format(current_function_name(), ', '.join(str(x) for x in self._grouped_specs())))
         for group in self._grouped_specs():
             possible_complex = Complex([self._mol_builders[spec].build() for spec in group])
 
             if not only_reactants or (only_reactants and possible_complex.is_reactant):
                 complexes.append(possible_complex)
+                logger.debug('{} : Adding complex {}'.format(current_function_name(), possible_complex))
+            else:
+                logger.debug('{} : Not adding complex {}'.format(current_function_name(), possible_complex))
 
         return complexes
 
@@ -281,9 +293,8 @@ class ComplexExprBuilder:
             self._mol_builders[spec.to_component_spec()] = MolBuilder(spec.to_component_spec(), is_reactant)
 
     def set_bond(self, first: Spec, second: Spec) -> None:
-        if (first.to_component_spec(), second.to_component_spec()) not in self._bonds and \
-           (second.to_component_spec(), first.to_component_spec()) not in self._bonds:
-            self._bonds.append((first.to_component_spec(), second.to_component_spec()))
+        if (first, second) not in self._bonds and (second, first) not in self._bonds:
+            self._bonds.append((first, second))
             self._current_bond += 1
             self.set_half_bond(first, self._current_bond)
             self.set_half_bond(second, self._current_bond)
@@ -296,16 +307,16 @@ class ComplexExprBuilder:
 
     def _grouped_specs(self) -> List[List[Spec]]:
         grouped_specs = [[spec] for spec in self._mol_builders.keys()]
-
         for bond in self._bonds:
             for i, group in enumerate(grouped_specs):
-                if bond[0] in group:
+                if bond[0].to_component_spec() in group:
                     grouped_specs.pop(i)
                     try:
-                        other_group = next(other_group for other_group in grouped_specs if bond[1] in other_group)
+                        other_group = next(other_group for other_group in grouped_specs if bond[1].to_component_spec() in other_group)
                         other_group += group
                         break
                     except StopIteration:
+                        grouped_specs.insert(i, group)
                         break
 
         return grouped_specs
@@ -332,6 +343,10 @@ STATE_TO_COMPLEX_BUILDER_FN = {
     '$x--0': [
         lambda state, builder: builder.add_mol(state['$x']),
         lambda state, builder: builder.set_half_bond(state['$x'], None)
+    ],
+    # Input state.
+    '[$x]': [
+        lambda state, builder: logger.warning('{} : IGNORING INPUT STATE {}'.format(current_function_name(), str(state)))
     ]
 }
 
@@ -477,10 +492,10 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
 
     def spec_to_bond_states(spec: Spec) -> List[State]:
         assert spec.is_component_spec and spec.is_structured
-        return [state for state in states if spec in (s.to_component_spec() for s in state.specs) if len(state.specs) == 2]
+        return [state for state in states if spec in (s.to_component_spec() for s in state.specs) if len(state.components) == 2]
 
     def neighbor(spec: Spec, state: State) -> Spec:
-        assert spec.is_component_spec and spec.is_structured and len(state.specs) == 2
+        assert spec.is_component_spec and spec.is_structured and len(state.components) == 2
         return [neigh_spec.to_component_spec() for neigh_spec in state.specs if neigh_spec.to_component_spec() != spec][0]
 
     spec_paths = {spec: [] for spec in specs}  # type: Dict[Spec, List[List[State]]]
@@ -516,8 +531,8 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
 
     state_paths = {state: [] for state in states}  # type: Dict[State, List[List[State]]]
     for state in states:
-        for spec in state.specs:
-            for spec_path in spec_paths[spec.to_component_spec()]:
+        for component in state.components:
+            for spec_path in spec_paths[component]:
                 if len(spec_path) > 0 and spec_path[-1] == state:
                     path = spec_path[:-1]
                 else:
@@ -537,6 +552,10 @@ def calc_complexes(states: List[State]) -> List[List[State]]:
 
     while states:
         state = states.pop()
+
+        if state.is_global:
+            continue
+
         for complex in complexes:
             if state in complex:
                 continue
@@ -549,8 +568,9 @@ def calc_complexes(states: List[State]) -> List[List[State]]:
                 new_complex.append(state)
                 complexes.append(new_complex)
 
+    # Make sure that the complexes are completely connected to the reactants.
+    # The function calc_state_paths raises an exception if it's not.
     connected_complexes = []
-
     for complex in complexes:
         try:
             calc_state_paths(complex)
@@ -570,6 +590,8 @@ def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
         constraint = UniversalSet()  # type:  VennSet[State]
 
         for state in complex:
+            assert not state.is_global, 'Global state {} appearing in connectivity constraints.'.format(state)
+
             if any(path == [] for path in state_paths[state]):
                 continue
 
@@ -582,6 +604,7 @@ def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
         complex_constraints.append(constraint.to_simplified_set())
 
     if complex_constraints:
+        logger.debug('{} : Complex constraints {}'.format(current_function_name(), ' XOR '.join(str(x) for x in complex_constraints)))
         return Intersection(cont_set, DisjunctiveUnion(*complex_constraints))
     else:
         return cont_set
@@ -644,14 +667,31 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
     def mol_defs_from_rxncon(rxncon_sys: RxnConSystem) -> Dict[Spec, MolDef]:
         mol_defs = {}
         for spec in rxncon_sys.components():
+            logger.debug('{} : Creating MolDefBuilder for {}'.format(current_function_name(), str(spec)))
             builder = MolDefBuilder(spec)
             for state in rxncon_sys.states_for_component(spec):
+                logger.debug('{} : Applying State {} of type {}'.format(current_function_name(), str(state), state.name))
                 for func in STATE_TO_MOL_DEF_BUILDER_FN[state.repr_def]:
                     func(state, builder)
 
             mol_defs[spec] = builder.build()
 
         return mol_defs
+
+    def remove_global_states(solutions: List[Dict[State, bool]]) -> List[Dict[State, bool]]:
+        filtered_solutions = []
+        for soln in solutions:
+            cleaned_solution = {}
+            for state, val in soln.items():
+                if state.is_global:
+                    logger.warning('{} : REMOVING INPUT STATE {} from contingencies.'.format(current_function_name(), state))
+                else:
+                    cleaned_solution[state] = val
+
+            if cleaned_solution not in filtered_solutions:
+                filtered_solutions.append(cleaned_solution)
+
+        return filtered_solutions
 
     def calc_positive_solutions(rxncon_sys: RxnConSystem, solution: Dict[State, bool]) -> List[List[State]]:
         def is_satisfiable(states: Iterable[State]) -> bool:
@@ -684,11 +724,10 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
                         continue
 
                     try:
-                        state = state.to_structured_from_spec(
-                            spec.with_struct_index(spec_to_index[spec.to_component_spec()]))
+                        state = state.to_structured_from_spec(spec.with_struct_index(spec_to_index[spec.to_component_spec()]))
                     except KeyError:
-                        state = state.to_structured_from_spec(spec.with_struct_index(cur_index))
                         cur_index += 1
+                        state = state.to_structured_from_spec(spec.with_struct_index(cur_index))
                         spec_to_index[spec.to_component_spec()] = cur_index
 
                 struct_states.append(state)
@@ -790,24 +829,33 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
 
         return observables
 
+    logger.debug('{} : Entered function'.format(current_function_name()))
+
     mol_defs = list(mol_defs_from_rxncon(rxncon_sys).values())
+    logger.debug('{} : Generated MolDefs: {}'.format(current_function_name(), ', '.join(str(mol_def) for mol_def in mol_defs)))
 
     rules = []  # type: List[Rule]
 
     for reaction in (x for x in rxncon_sys.reactions if not isinstance(x, OutputReaction)):
+        logger.debug('{} : Generating rules for reaction {}'.format(current_function_name(), str(reaction)))
         strict_cont_set = Intersection(*(venn_from_contingency(x) for x in rxncon_sys.s_contingencies_for_reaction(reaction)))  # type: VennSet[State]
-        quant_contingenies = QuantContingencyConfigs(rxncon_sys.q_contingencies_for_reaction(reaction))
+        quant_contingencies = QuantContingencyConfigs(rxncon_sys.q_contingencies_for_reaction(reaction))
+        logger.debug('{} : Strict contingencies {}'.format(current_function_name(), str(strict_cont_set)))
+        for quant_contingency_set in quant_contingencies:
+            logger.debug('{} : quantitative contingency config: {}'.format(current_function_name(), str(quant_contingency_set)))
 
-        for quant_contingency_set in quant_contingenies:
             cont_set = Intersection(strict_cont_set, quant_contingency_set)  # type: VennSet[State]
             cont_set = with_connectivity_constraints(cont_set)
             solutions = cont_set.calc_solutions()
+            solutions = remove_global_states(solutions)
 
+            logger.debug('{} : contingency solutions {}'.format(current_function_name(), str(solutions)))
             positive_solutions = []  # type: List[List[State]]
             for solution in solutions:
                 positive_solutions += calc_positive_solutions(rxncon_sys, solution)
 
             for positive_solution in positive_solutions:
+                logger.debug('{} : positivized contingency solution {}'.format(current_function_name(), ' & '.join(str(x) for x in positive_solution)))
                 rule = calc_rule(reaction, positive_solution)
                 if not any(rule.is_equivalent_to(existing) for existing in rules):
                     rules.append(rule)

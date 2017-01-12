@@ -47,7 +47,7 @@ def bngl_from_rule_based_model(rule_based_model: RuleBasedModel, settings: BNGLS
         return 'begin reaction rules\n{0}\nend reaction rules\n'.format('\n'.join(rules))
 
     def footer_str() -> str:
-        return 'end model\n\nsimulate_nf({{suffix=>nf,t_end=>100,n_steps=>50}});\n'\
+        return 'end model\n\nwriteXML();\n'\
             .format(settings.maximal_iteration,
                     settings.maximal_aggregate,
                     settings.simulation_method.value,
@@ -113,7 +113,7 @@ def str_from_observable(observable: Observable) -> str:
 
 
 def str_from_rule(rule: Rule) -> str:
-    return '{0} -> {1}   {2}   # {3}'.format(' + '.join(str_from_complex(x) for x in rule.lhs),
+    return '# {3}\n{0} -> {1}   {2}'.format(' + '.join(str_from_complex(x) for x in rule.lhs),
                                              ' + '.join(str_from_complex(x) for x in rule.rhs),
                                              rule.rate.name if rule.rate.name else rule.rate.value,
                                              str(rule.parent_reaction))

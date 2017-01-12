@@ -107,7 +107,7 @@ def test_insulin_no_smoothing() -> None:
         'IR_[TK(Y1163)]-{p}':              '{0} & ( IR_[TK(Y1163)]-{{p}} | ( IR_p+_IR_[TK(Y1163)] & IR_[TK(Y1163)]-{{0}} ))'.format(IR),
         'IR_[JM(Y972)]-{p}':               '{0} & ( IR_[JM(Y972)]-{{p}} | ( IR_ap+_IR_[JM(Y972)] & IR_[JM(Y972)]-{{0}} ))'.format(IR),
         'IR_[JMY972]--0':                  '{0} & (( IR_[JMY972]_ppi-_IRS_[PTB] & IR_[JMY972]--IRS_[PTB] ) | ( IR_[JMY972]_ppi-_Shc_[PTB] & IR_[JMY972]--Shc_[PTB] ) | ( IR_[JMY972]--0 & ~( IR_[JMY972]_ppi+_IRS_[PTB] & IR_[JMY972]--0 & IRS_[PTB]--0 ) & ~( IR_[JMY972]_ppi+_Shc_[PTB] & IR_[JMY972]--0 & Shc_[PTB]--0 )))'.format(IR),
-        'IR_[JMY972]--IRS_[PTB]':          '{0} & {1} & (( IR_[JMY972]_ppi+_IRS_[PTB] & IR_[JMY972]--0 & IRS_[PTB]--0 ) | ( IR_[JMY972]--IRS_[PTB] & ~( IR_[JMY972]_ppi-_IRS_[PTB] & IR_[JMY972]--IRS_[PTB] )))'.format(IR, IRS),
+        'IRS_[PTB]--IR_[JMY972]':          '{0} & {1} & (( IR_[JMY972]_ppi+_IRS_[PTB] & IR_[JMY972]--0 & IRS_[PTB]--0 ) | ( IR_[JMY972]--IRS_[PTB] & ~( IR_[JMY972]_ppi-_IRS_[PTB] & IR_[JMY972]--IRS_[PTB] )))'.format(IR, IRS),
         'IRS_[PTB]--0':                    '{0} & (( IR_[JMY972]_ppi-_IRS_[PTB] & IR_[JMY972]--IRS_[PTB] ) | ( IRS_[PTB]--0 & ~( IR_[JMY972]_ppi+_IRS_[PTB] & IR_[JMY972]--0 & IRS_[PTB]--0 )))'.format(IRS),
         'IR_[JMY972]--Shc_[PTB]':          '{0} & {1} & (( IR_[JMY972]_ppi+_Shc_[PTB] & IR_[JMY972]--0 & Shc_[PTB]--0 ) | ( IR_[JMY972]--Shc_[PTB] & ~( IR_[JMY972]_ppi-_Shc_[PTB] & IR_[JMY972]--Shc_[PTB] )))'.format(IR, Shc),
         'Shc_[PTB]--0':                    '{0} & (( IR_[JMY972]_ppi-_Shc_[PTB] & IR_[JMY972]--Shc_[PTB] ) | ( Shc_[PTB]--0 & ~( IR_[JMY972]_ppi+_Shc_[PTB] & IR_[JMY972]--0 & Shc_[PTB]--0 )))'.format(Shc),
