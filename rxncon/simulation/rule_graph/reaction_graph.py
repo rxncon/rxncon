@@ -28,6 +28,7 @@ class NodeType(Enum):
 
 
 STATES = {'$x--$y': EdgeType.interaction,
+          '$x--0': EdgeType.interaction,
           '$x--[$y]': EdgeType.interaction,
           '$x-{$y}': EdgeType.modification}
 
@@ -105,6 +106,8 @@ def rxngraph_from_rxncon_system(rxncon_system: RxnConSystem) -> ReactionGraph:
         elif len(rxn.produced_states) == 2:
             if all(STATES[produced_state.repr_def] == EdgeType.modification for produced_state in rxn.produced_states):
                 return EdgeType.bimodification
+            elif all(STATES[produced_state.repr_def] == EdgeType.interaction for produced_state in rxn.produced_states):
+                return EdgeType.interaction
             else:
                 return EdgeType.unknown
         else:

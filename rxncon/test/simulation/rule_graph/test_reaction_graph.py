@@ -107,9 +107,9 @@ def test_ipi() -> None:
     assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
 
 
-def test_trans_modification() -> None:
+def test_pos_trans_modification() -> None:
     """
-    Testing trans-modification.
+    Testing positive trans-modification.
 
     Returns:
         None
@@ -119,6 +119,26 @@ def test_trans_modification() -> None:
 
     """
     test_case = RuleTestCase('''A_p+_B_[(a)]''',
+                             [('A', 'A', NodeType.component), ('B_[(a)]', 'a', NodeType.residue),
+                              ('B', 'B', NodeType.component)],
+                             [('B', 'B_[(a)]', EdgeWith.internal, EdgeType.interaction),
+                              ('A', 'B_[(a)]', EdgeWith.external, EdgeType.modification)])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
+def test_neg_trans_modification() -> None:
+    """
+    Testing negative trans-modification.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = RuleTestCase('''A_p-_B_[(a)]''',
                              [('A', 'A', NodeType.component), ('B_[(a)]', 'a', NodeType.residue),
                               ('B', 'B', NodeType.component)],
                              [('B', 'B_[(a)]', EdgeWith.internal, EdgeType.interaction),
@@ -272,5 +292,16 @@ def test_multiple_reactions() -> None:
                               ('A_[b]', 'B_[a]', EdgeWith.external, EdgeType.interaction),
                               ('A_[a1]', 'A_[a2]', EdgeWith.external, EdgeType.interaction),
                               ('A_[(a)]', 'B_[(b)]', EdgeWith.external, EdgeType.bimodification)])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
+def test_test():
+    test_case = RuleTestCase('''Pher_[Ste2]_i-_Ste2_[Pher]''',
+                             [('Pher', 'Pher', NodeType.component), ('Pher_[Ste2]', 'Ste2', NodeType.domain),
+                              ('Ste2', 'Ste2', NodeType.component), ('Ste2_[Pher]', 'Pher', NodeType.domain)],
+                             [('Pher', 'Pher_[Ste2]', EdgeWith.internal, EdgeType.interaction),
+                              ('Ste2', 'Ste2_[Pher]', EdgeWith.internal, EdgeType.interaction),
+                              ('Pher_[Ste2]', 'Ste2_[Pher]', EdgeWith.external, EdgeType.interaction)])
 
     assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
