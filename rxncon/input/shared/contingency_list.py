@@ -52,6 +52,9 @@ class BooleanContingencyNameWithEquivs(BooleanContingencyName):
         super().__init__(name)
         self.equivs = equivs
 
+    def __str__(self) -> str:
+        return 'BooleanContingencyNameWithEquivs<{} :: {}>'.format(self.name, self.equivs)
+
 
 def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str: str) -> ContingencyListEntry:
     subject_str, verb_str, object_str = subject_str.strip(), verb_str.lower().strip(), object_str.strip()
@@ -97,6 +100,7 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
                 pass
 
         object = BooleanContingencyNameWithEquivs(name, equivs)
+        logger.debug('{} : Created {}'.format(current_function_name(), str(object)))
     elif verb == BooleanOperator.op_eqv:
         strs = [x.strip() for x in object_str.split(',')]
         object = (qual_spec_from_str(strs[0]).with_prepended_namespace([subject.name]),
@@ -162,17 +166,20 @@ def _dereference_boolean_contingency_effectors(self: Effector,
                                                effector_table: Dict[BooleanContingencyName, Effector],
                                                equivalence_table: Dict[BooleanContingencyName, List[Tuple[QualSpec, QualSpec]]]) -> None:
     if isinstance(self, _BooleanContingencyEffector):
-        logger.debug('_dereference_boolean_contingency_effectors: {}'.format(self.expr.name))
+        logger.debug('{} : {}'.format(current_function_name(), self.expr))
+        logger.debug('{} : {}'.format(current_function_name(), effector_table))
 
         name   = self.expr.name
         equivs = self.equivs
-        self.__class__ = effector_table[self.expr].__class__
-        self.__dict__  = effector_table[self.expr].__dict__
+        self.__class__ = effector_table[self.expr.name].__class__
+        self.__dict__  = effector_table[self.expr.name].__dict__
         self.name = name
         try:
             self.equivs.merge_with(equivs, [])
+            logger.debug('{} : Merged structure information.'.format(current_function_name()))
         except AttributeError:
             self.equivs = equivs
+            logger.debug('{} : Initialized structure information.'.format(current_function_name()))
     elif isinstance(self, StateEffector):
         pass
     elif isinstance(self, NotEffector):
@@ -228,18 +235,18 @@ def _create_boolean_contingency_to_effector(boolean_contingencies: List[Continge
         effector_terms = [_unary_effector_from_boolean_contingency_entry(x) for x in current_contingencies]
 
         if boolean_operator == BooleanOperator.op_and:
-            assert len(effector_terms) > 1
+            assert len(effector_terms) > 1, 'AND operator {} contains < 2 terms.'.format(' & '.join(str(x) for x in effector_terms))
             effector = AndEffector(*effector_terms)  # type: Effector
         elif boolean_operator == BooleanOperator.op_or:
-            assert len(effector_terms) > 1
+            assert len(effector_terms) > 1, 'OR operator {} contains < 2 terms.'.format(' & '.join(str(x) for x in effector_terms))
             effector = OrEffector(*effector_terms)
         elif boolean_operator == BooleanOperator.op_not:
-            assert len(effector_terms) == 1
+            assert len(effector_terms) == 1, 'AND operator {} contains != 1 term.'.format(' & '.join(str(x) for x in effector_terms))
             effector = NotEffector(effector_terms[0])
         else:
             raise AssertionError
 
-        lookup_table[current_contingency.subj] = effector
+        lookup_table[current_contingency.subj.name] = effector
 
     return lookup_table
 
@@ -256,7 +263,7 @@ def _create_boolean_contingency_to_equivalences(equivalence_contingencies: List[
     for contingency in equivalence_contingencies:
         assert isinstance(contingency.subj, BooleanContingencyName)
         assert isinstance(contingency.obj, tuple)
-        lookup_table[contingency.subj].append(contingency.obj)
+        lookup_table[contingency.subj.name].append(contingency.obj)
 
     return lookup_table
 
