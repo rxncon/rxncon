@@ -163,8 +163,8 @@ class _BooleanContingencyEffector(Effector):
 
 
 def _dereference_boolean_contingency_effectors(self: Effector,
-                                               effector_table: Dict[BooleanContingencyName, Effector],
-                                               equivalence_table: Dict[BooleanContingencyName, List[Tuple[QualSpec, QualSpec]]]) -> None:
+                                               effector_table: Dict[str, Effector],
+                                               equivalence_table: Dict[str, List[Tuple[QualSpec, QualSpec]]]) -> None:
     if isinstance(self, _BooleanContingencyEffector):
         logger.debug('{} : {}'.format(current_function_name(), self.expr))
         logger.debug('{} : {}'.format(current_function_name(), effector_table))
@@ -187,7 +187,7 @@ def _dereference_boolean_contingency_effectors(self: Effector,
     elif isinstance(self, OrEffector) or isinstance(self, AndEffector):
         try:
             assert self.name is not None
-            equivs_list = equivalence_table[BooleanContingencyName(self.name)]
+            equivs_list = equivalence_table[self.name]
 
             for equiv in equivs_list:
                 self.equivs.add_equivalence(*equiv)
@@ -215,8 +215,8 @@ def _contains_boolean_contingency_effectors(self: Effector) -> bool:
 
 
 def _create_boolean_contingency_to_effector(boolean_contingencies: List[ContingencyListEntry]) \
-        -> Dict[BooleanContingencyName, Effector]:
-    lookup_table = {}  # type: Dict[BooleanContingencyName, Effector]
+        -> Dict[str, Effector]:
+    lookup_table = {}  # type: Dict[str, Effector]
 
     if not boolean_contingencies:
         return lookup_table
@@ -230,7 +230,8 @@ def _create_boolean_contingency_to_effector(boolean_contingencies: List[Continge
         boolean_contingencies = [x for x in boolean_contingencies if x.subj != current_contingency.subj]
 
         boolean_operator = BooleanOperator(current_contingency.verb)
-        assert all([BooleanOperator(x.verb) == boolean_operator for x in current_contingencies])
+        assert all(BooleanOperator(x.verb) == boolean_operator for x in current_contingencies), \
+            'Boolean operator inconsistent in contingencies {}'.format(', '.join(str(x) for x in current_contingencies))
 
         effector_terms = [_unary_effector_from_boolean_contingency_entry(x) for x in current_contingencies]
 
@@ -252,8 +253,8 @@ def _create_boolean_contingency_to_effector(boolean_contingencies: List[Continge
 
 
 def _create_boolean_contingency_to_equivalences(equivalence_contingencies: List[ContingencyListEntry]) \
-        -> Dict[BooleanContingencyName, List[Tuple[QualSpec, QualSpec]]]:
-    lookup_table = defaultdict(list)  # type: Dict[BooleanContingencyName, List[Tuple[QualSpec, QualSpec]]]
+        -> Dict[str, List[Tuple[QualSpec, QualSpec]]]:
+    lookup_table = defaultdict(list)  # type: Dict[str, List[Tuple[QualSpec, QualSpec]]]
 
     if not equivalence_contingencies:
         return lookup_table

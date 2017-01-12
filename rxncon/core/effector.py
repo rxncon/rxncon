@@ -3,12 +3,16 @@ from abc import ABCMeta, abstractproperty
 from typing import List, Optional, Dict, Tuple, Any
 from copy import deepcopy
 from enum import Enum, unique
+import logging
 
 from rxncon.core.spec import spec_from_str, Spec
 from rxncon.core.state import State
-
+from rxncon.util.utils import current_function_name
 
 BOOLEAN_CONTINGENCY_REGEX = '^<.*>$'
+
+
+logger = logging.getLogger(__name__)
 
 
 @unique
@@ -247,6 +251,9 @@ class StateEffector(Effector):
 
         assert not (state.is_homodimer and not state.is_structured), 'Please provide structure annotation for homodimer {}'.format(state)
 
+        logger.debug('{} : Merging {}'.format(current_function_name(), str(self)))
+        logger.debug('{} : Equivs {}'.format(current_function_name(), glob_equivs))
+
         for spec in state.specs:
             existing_spec = glob_equivs.find_unqualified_spec(QualSpec(cur_namespace, spec))
 
@@ -260,6 +267,7 @@ class StateEffector(Effector):
                 glob_equivs.add_equivalence(QualSpec([], new_spec), QualSpec(cur_namespace, spec))
 
         state.update_specs(updates)
+        logger.debug('{} : Result {}'.format(current_function_name(), str(state)))
 
         return StateEffector(state)
 

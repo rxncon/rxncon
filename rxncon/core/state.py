@@ -153,8 +153,11 @@ class InteractionState(State):
         if first.resolution > LocusResolution.domain or second.resolution > LocusResolution.domain:
             raise SyntaxError('Resolution for InteractionState too high {} {}'.format(str(first), str(second)))
         self.first, self.second = sorted([first, second])  # type: Spec, Spec
-        self.name = '{}--{}'.format(str(self.first), str(self.second))
         self.repr_def = '$x--$y'
+
+    @property
+    def name(self):
+        return '{}--{}'.format(str(self.first), str(self.second))
 
     def __str__(self) -> str:
         return self.name
@@ -287,8 +290,11 @@ class EmptyBindingState(State):
         if spec.resolution > LocusResolution.domain:
             raise SyntaxError('Resolution for EmptyBindingState too high {}'.format(str(spec)))
         self.spec = spec
-        self.name = '{}--0'.format(str(self.spec))
         self.repr_def = '$x--0'
+
+    @property
+    def name(self):
+        return '{}--0'.format(str(self.spec))
 
     def __str__(self) -> str:
         return self.name
@@ -319,7 +325,7 @@ class EmptyBindingState(State):
 
     @property
     def specs(self) -> List[Spec]:
-        return [self.spec]
+        return [self.spec.clone()]
 
     @property
     def is_global(self) -> bool:
@@ -391,8 +397,11 @@ class SelfInteractionState(State):
         if first.resolution > LocusResolution.domain or second.resolution > LocusResolution.domain:
             raise SyntaxError('Resolution for SelfInteractionState too high {} {}'.format(str(first), str(second)))
         self.first, self.second = sorted([first, second])  # type: Spec, Spec
-        self.name = '{}--[{}]'.format(str(first), str(second.locus))
         self.repr_def = '$x--[$y]'
+
+    @property
+    def name(self):
+        return '{}--[{}]'.format(str(self.first), str(self.second.locus))
 
     def __str__(self) -> str:
         return self.name
@@ -425,7 +434,7 @@ class SelfInteractionState(State):
 
     @property
     def specs(self) -> List[Spec]:
-        return [self.first, self.second]
+        return [self.first.clone(), self.second.clone()]
 
     @property
     def is_global(self) -> bool:
@@ -503,8 +512,11 @@ class SelfInteractionState(State):
 class ModificationState(State):
     def __init__(self, spec: Spec, modifier: StateModifier):
         self.spec, self.modifier = spec, modifier
-        self.name = '{}-{{{}}}'.format(str(self.spec), self.modifier.value)
         self.repr_def = '$x-{$y}'
+
+    @property
+    def name(self):
+        return '{}-{{{}}}'.format(str(self.spec), self.modifier.value)
 
     def __str__(self) -> str:
         return self.name
@@ -537,7 +549,7 @@ class ModificationState(State):
 
     @property
     def specs(self) -> List[Spec]:
-        return [self.spec]
+        return [self.spec.clone()]
 
     @property
     def is_global(self) -> bool:
