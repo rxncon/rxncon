@@ -251,7 +251,12 @@ class InteractionState(State):
             return self
 
         if self.is_homodimer:
-            raise AssertionError
+            if not self.first.is_structured:
+                return InteractionState(self.first.with_struct_from_spec(spec), self.second)
+            elif not self.second.is_structured:
+                return InteractionState(self.first, self.second.with_struct_from_spec(spec))
+            else:
+                return self
         else:
             if self.first.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec():
                 return InteractionState(self.first.with_struct_from_spec(spec), self.second)
