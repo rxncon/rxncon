@@ -3,7 +3,7 @@ from rxncon.core.spec import spec_from_str
 from rxncon.core.state import state_from_str
 from rxncon.input.quick.quick import Quick
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, ReactionTarget, \
-    StateTarget, ComponentStateTarget, SmoothingStrategy, Target
+    StateTarget, ComponentStateTarget, SmoothingStrategy, Target, boolnet_from_boolean_model
 from rxncon.venntastic.sets import venn_from_str
 
 
@@ -531,10 +531,58 @@ def test_state_reaction_relation():
     assert boole_deg_syn_model.reaction_target_by_name('C_syn_A').synthesises_component(neutral_state.components[0])
     assert boole_deg_syn_model.state_target_by_name('A_[(x)]-{0}').is_synthesised_by(boole_deg_syn_model.reaction_target_by_name('C_syn_A'))
 
+
 def test_set_initial_condition():
+    """
+    Testing changing initial conditions.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError if the value of the neutral state is not initialized with True and if the value of the neutral
+        state is not changed to False
+
+    """
     boole_deg_syn_model = boolean_model_from_rxncon(Quick("""C_p+_A_[(x)]""").rxncon_system)
 
     neutral_state = target_from_str('A_[(x)]-{0}')
     assert boole_deg_syn_model.initial_conditions.target_to_value[neutral_state] == True
     boole_deg_syn_model.set_initial_condition(neutral_state, False)
     assert boole_deg_syn_model.initial_conditions.target_to_value[neutral_state] == False
+
+def test_deg_component():
+    """
+    Testing degradation of component without states.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError if the expected rule is not e
+    """
+    boole_deg_model = boolean_model_from_rxncon(Quick("""C_deg_A""").rxncon_system)
+
+    expected = '( C & A )'
+    for rule in boole_deg_model.update_rules:
+        if rule.target == target_from_str('C_deg_A'):
+            assert rule.factor.is_equivalent_to(venn_from_str(expected, target_from_str))
+
+
+def test_boolent_export():
+    """
+    Testing if the boolnet export works as expected.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError if there are issues with the BoolNet export.
+
+    """
+    boole_deg_model = boolean_model_from_rxncon(Quick("""C_deg_A""").rxncon_system)
+    boolnet_str, mapping, init_values = boolnet_from_boolean_model(boole_deg_model)
+    assert 'targets, factors' in boolnet_str
+    assert all(target in mapping.values() for target in list(boole_deg_model._reaction_targets.keys()) + list(boole_deg_model._state_targets.keys()))
+    assert len(mapping) == len(init_values)
+    assert all(init_values[key] == boole_deg_model.initial_conditions.target_to_value[target_from_str(value)] for key, value in mapping.items())
