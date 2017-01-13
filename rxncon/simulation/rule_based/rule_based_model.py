@@ -476,7 +476,6 @@ class Rule:
         return all_found and all_visited
 
 
-
 class RuleBasedModel:
     def __init__(self, mol_defs: List[MolDef], initial_conditions: List[InitialCondition], parameters: List[Parameter],
                  observables: List[Observable], rules: List[Rule]) -> None:
