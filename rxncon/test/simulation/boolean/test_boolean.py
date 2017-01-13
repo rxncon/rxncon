@@ -359,6 +359,9 @@ def test_deg_with_interaction() -> None:
     Returns:
         None
 
+    Raises:
+        AssertionError if a rule is not equivalent to an expected rule.
+
     """
     boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
                                                        D_p+_A_[(r)]
@@ -416,15 +419,13 @@ def test_deg_with_interaction_as_inhibition() -> None:
 
 def test_deg_with_bool_AND() -> None:
     """
-    Testing degradation of interaction reaction.
-
-    Note:
-        A system of 2 reactions is translated to 7 rules.
-        We have a variation of C_deg_A, because if we have the interaction state A_[x]--B_[y],  B_[y]--0 can be
-        produced otherwise not.
+    Testing degradation with Boolean AND.
 
     Returns:
         None
+
+    Raises:
+        AssertionError if a rule is not equivalent to an expected rule.
 
     """
     boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
@@ -453,15 +454,13 @@ def test_deg_with_bool_AND() -> None:
 
 def test_NOT_bool_deg() -> None:
     """
-    Testing degradation of interaction reaction.
-
-    Note:
-        A system of 2 reactions is translated to 7 rules.
-        We have a variation of C_deg_A, because if we have the interaction state A_[x]--B_[y],  B_[y]--0 can be
-        produced otherwise not.
+    Testing degradation with NOT Boolean.
 
     Returns:
         None
+
+    Raises:
+        AssertionError if a rule is not equivalent to an expected rule.
 
     """
     boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
@@ -472,21 +471,15 @@ def test_NOT_bool_deg() -> None:
     target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
 
     expected_rules = {
-        'C_deg_A': '( C & A_[x]--B_[y] & !(A_[(r)]-{p} ) & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
-        'C_deg_A#0/1': '( C & A_[x]--B_[y] & !( A_[(r)]-{p} ) & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
-        'D_p+_A_[(r)]': '( D & ( A_[x]--0 | A_[x]--B_[y]  & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
-        'A_[x]_ppi+_B_[y]': '(( A_[x]--0 | A_[x]--B_[y] ) & (A_[(r)]-{0} | A_[(r)]-{p}) & (A_[x]--B_[y] | B_[y]--0))',
-        'B_[y]--0': '((A_[x]--B_[y] & C_deg_A#0/1 & (B_[y]--0 | A_[x]--B_[y])) | (B_[y]--0 & (B_[y]--0 | A_[x]--B_[y]) & !((B_[y]--0 & A_[x]_ppi+_B_[y] & A_[x]--0))))',
-        'A_[(r)]-{p}': '((A_[(r)]-{0} & D_p+_A_[(r)] & (A_[x]--0 | A_[x]--B_[y]) & (A_[(r)]-{0} | A_[(r)]-{p})) | (A_[(r)]-{p} & (A_[x]--0 | A_[x]--B_[y]) & (A_[(r)]-{0} | A_[(r)]-{p})))',
-        'A_[x]--B_[y]': '((A_[x]--0 & B_[y]--0 & A_[x]_ppi+_B_[y] & (A_[x]--0 | A_[x]--B_[y]) & (A_[(r)]-{0} | A_[(r)]-{p}) & (A_[x]--B_[y] | B_[y]--0) & !((C_deg_A#0/1 | C_deg_A))) | (A_[x]--B_[y] & (A_[x]--0 | A_[x]--B_[y]) & (A_[(r)]-{0} | A_[(r)]',
-        'A_[(r)]-{0}': '(A_[(r)]-{0} & (A_[x]--0 | A_[x]--B_[y]) & (A_[(r)]-{0} | A_[(r)]-{p}) & !((A_[(r)]-{0} & D_p+_A_[(r)])) & !((C_deg_A#0/1 | C_deg_A)))',
-        'A_[x]--0': '(A_[x]--0 & (A_[x]--0 | A_[x]--B_[y]) & (A_[(r)]-{0} | A_[(r)]-{p}) & !((A_[x]--0 & A_[x]_ppi+_B_[y] & B_[y]--0)))',
-        'D': 'D',
-        'C': 'C',
+        'C_deg_A': '( C & A_[x]--B_[y] & ~( A_[(r)]-{p} ) & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
+        'C_deg_A#0/1': '( C & A_[x]--B_[y] & ~( A_[(r)]-{p} ) & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
+        'B_[y]--0': '(( A_[x]--B_[y] & C_deg_A#0/1 & ( B_[y]--0 | A_[x]--B_[y] )) | ( B_[y]--0 & ( B_[y]--0 | A_[x]--B_[y] ) & ~(( B_[y]--0 & A_[x]_ppi+_B_[y] & A_[x]--0 ))))',
+        'A_[(r)]-{p}': '(( A_[(r)]-{0} & D_p+_A_[(r)] & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )) | ( A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
     }
 
     for target_str, factor_str in expected_rules.items():
         assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
+
 
 
 def test_smooth_production_sources() -> None:
