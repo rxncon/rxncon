@@ -33,10 +33,6 @@ class ReactionTerm:
     def __repr__(self) -> str:
         return str(self)
 
-    @property
-    def is_fully_neutral(self) -> bool:
-        return self.states == [FullyNeutralState()]
-
 
 class ReactionDef:
     ARROW = '->'
@@ -112,31 +108,37 @@ class ReactionDef:
             if not states_str:
                 return []
             try:
-                return [parse_vars_str(x, state_from_str) for x in states_str.split(',')]
+                return [parse_vars_str(x, state_from_str) for x in states_str.split('!')]
             except SyntaxError:
                 raise SyntaxError('Could not parse states string {}'.format(states_str))
 
         def parse_specs_str(specs_str: str) -> List[Spec]:
-            return [parse_vars_str(x, spec_from_str).to_component_spec() for x in specs_str.split(',')]
+            return [parse_vars_str(x, spec_from_str).to_component_spec() for x in specs_str.split('!')]
 
         def parse_vars_str(vars_str: str, post_func: Callable[[str], T]) -> T:
-            for var_symbol, var_val in vars.items():
-                for method in members(var_val):
-                    var_with_method = '{0}.{1}'.format(var_symbol, method)
-                    if var_with_method in vars_str:
-                        method_res = getattr(var_val, method)
-                        method_res = method_res if not callable(method_res) else method_res()
-                        vars_str = vars_str.replace(var_with_method, str(method_res))
+            if not vars_str.count('$') == vars_str.count('%'):
+                raise SyntaxError('Error in ReactionDef {}'.format(self.name))
 
-                if var_symbol in vars_str:
-                    vars_str = vars_str.replace(var_symbol, str(var_val))
+            result_str = vars_str
+            for x in re.findall('(\$\S*?%)', vars_str):
+                var_symbol = x.split('.')[0]
 
-            return post_func(vars_str)
+                if var_symbol[-1] == '%':
+                    replacement = str(vars[var_symbol[:-1]])
+                else:
+                    anaphoric_var = vars[var_symbol]
+                    methods_str = x.split('.', maxsplit=1)[1]
+                    assert methods_str[-1] == '%'
+                    replacement = str(eval('anaphoric_var.' + methods_str[:-1]))
+
+                result_str = result_str.replace(x, replacement)
+
+            return post_func(result_str)
 
         if len(definition.split('#')) != 2:
             raise SyntaxError('ReactionDef syntax error: each term should be of the form Specs#States,\n'
-                              'where Specs is one or more Specs separated by commas and States is zero or\n'
-                              'more States separated by commas.\nThe given definition was: {}'.format(definition))
+                              'where Specs is one or more Specs separated by !s and States is zero or\n'
+                              'more States separated by !s.\nThe given definition was: {}'.format(definition))
 
         specs_str, states_str = definition.split('#')
 
@@ -162,7 +164,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$x# + $y#$y-{0} -> $x# + $y#$y-{p}'
+        '$x%# + $y%#$y%-{0} -> $x%# + $y%#$y%-{p}'
     ),
     ReactionDef(
         'dephosphorylation',
@@ -171,7 +173,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$x# + $y#$y-{p} -> $x# + $y#$y-{0}'
+        '$x%# + $y%#$y%-{p} -> $x%# + $y%#$y%-{0}'
     ),
     ReactionDef(
         'auto-phosphorylation',
@@ -180,7 +182,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{0} -> $y#$y-{p}'
+        '$y%#$y%-{0} -> $y%#$y%-{p}'
     ),
     ReactionDef(
         'auto-dephosphorylation',
@@ -189,7 +191,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{P} -> $y#$y-{0}'
+        '$y%#$y%-{P} -> $y%#$y%-{0}'
     ),
     ReactionDef(
         'ubiquitination',
@@ -198,7 +200,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$x# + $y#$y-{0} -> $x# + $y#$y-{ub}'
+        '$x%# + $y%#$y%-{0} -> $x%# + $y%#$y%-{ub}'
     ),
     ReactionDef(
         'deubiquitination',
@@ -207,7 +209,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$x# + $y#$y-{ub} -> $x# + $y#$y-{0}'
+        '$x%# + $y%#$y%-{ub} -> $x%# + $y%#$y%-{0}'
     ),
     ReactionDef(
         'phosphotransfer',
@@ -216,7 +218,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.residue),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$x#$x-{p} + $y#$y-{0} -> $x#$x-{0} + $y#$y-{p}'
+        '$x%#$x%-{p} + $y%#$y%-{0} -> $x%#$x%-{0} + $y%#$y%-{p}'
     ),
     ReactionDef(
         'protein-protein-interaction',
@@ -225,7 +227,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (ProteinSpec, LocusResolution.domain)
         },
-        '$x#$x--0 + $y#$y--0 -> $x,$y#$x--$y'
+        '$x%#$x%--0 + $y%#$y%--0 -> $x%!$y%#$x%--$y%'
     ),
     ReactionDef(
         'protein-protein-dissociation',
@@ -234,7 +236,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (ProteinSpec, LocusResolution.domain)
         },
-        '$x,$y#$x--$y -> $x#$x--0 + $y#$y--0'
+        '$x%!$y%#$x%--$y% -> $x%#$x%--0 + $y%#$y%--0'
     ),
     ReactionDef(
         'interaction',
@@ -243,7 +245,7 @@ REACTION_DEFS = [
             '$x': (Spec, LocusResolution.domain),
             '$y': (Spec, LocusResolution.domain)
         },
-        '$x#$x--0 + $y#$y--0 -> $x,$y#$x--$y'
+        '$x%#$x%--0 + $y%#$y%--0 -> $x%!$y%#$x%--$y%'
     ),
     ReactionDef(
         'dissociation',
@@ -252,7 +254,7 @@ REACTION_DEFS = [
             '$x': (Spec, LocusResolution.domain),
             '$y': (Spec, LocusResolution.domain)
         },
-        '$x,$y#$x--$y -> $x#$x--0 + $y#$y--0'
+        '$x%!$y%#$x%--$y% -> $x%#$x%--0 + $y%#$y%--0'
     ),
     ReactionDef(
         'transcription',
@@ -261,7 +263,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (GeneSpec, LocusResolution.component)
         },
-        '$x# + $y# -> $x# + $y# + $y.to_mrna_component_spec#0'
+        '$x%# + $y%# -> $x%# + $y%# + $y.to_mrna_component_spec()%#0'
     ),
     ReactionDef(
         'translation',
@@ -270,7 +272,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (MRNASpec, LocusResolution.component)
         },
-        '$x# + $y# -> $x# + $y# + $y.to_protein_component_spec#0'
+        '$x%# + $y%# -> $x%# + $y%# + $y.to_protein_component_spec()%#0'
     ),
     ReactionDef(
         'intra-protein-interaction',
@@ -279,7 +281,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (ProteinSpec, LocusResolution.domain)
         },
-        '$x#$x--0,$y--0 -> $x#$x--[$y.locus]'
+        '$x%#$x%--0!$y%--0 -> $x%#$x%--[$y.locus%]'
     ),
     ReactionDef(
         'intra-protein-dissociation',
@@ -288,7 +290,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (ProteinSpec, LocusResolution.domain)
         },
-        '$x#$x--[$y.locus] -> $x#$x--0,$y--0'
+        '$x%#$x%--[$y.locus%] -> $x%#$x%--0!$y%--0'
     ),
     ReactionDef(
         'gene-protein-interaction',
@@ -297,7 +299,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (GeneSpec, LocusResolution.domain)
         },
-        '$x#$x--0 + $y#$y--0 -> $x,$y#$x--$y'
+        '$x%#$x%--0 + $y%#$y%--0 -> $x%!$y%#$x%--$y%'
     ),
     ReactionDef(
         'gene-protein-dissociation',
@@ -306,7 +308,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.domain),
             '$y': (GeneSpec, LocusResolution.domain)
         },
-        '$x,$y#$x--$y -> $x#$x--0 + $y#$y--0'
+        '$x%!$y%#$x%--$y% -> $x%#$x%--0 + $y%#$y%--0'
     ),
     ReactionDef(
         'degradation',
@@ -315,7 +317,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (Spec, LocusResolution.component)
         },
-        '$x# + $y# -> $x#'
+        '$x%# + $y%# -> $x%#'
     ),
     ReactionDef(
         'synthesis',
@@ -324,7 +326,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (Spec, LocusResolution.component)
         },
-        '$x# -> $x# + $y#0'
+        '$x%# -> $x%# + $y%#0'
     ),
     ReactionDef(
         'auto-GuanineNucleotideExchange',
@@ -333,7 +335,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{0} -> $y#$y-{GTP}'
+        '$y%#$y%-{0} -> $y%#$y%-{GTP}'
     ),
     ReactionDef(
         'auto-GTPHydrolysis',
@@ -342,7 +344,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{GTP} -> $y#$y-{0}'
+        '$y%#$y%-{GTP} -> $y%#$y%-{0}'
     ),
     ReactionDef(
         'GTPase-activation',
@@ -351,7 +353,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$x# + $y#$y-{GTP} -> $x# + $y#$y-{0}'
+        '$x%# + $y%#$y%-{GTP} -> $x%# + $y%#$y%-{0}'
     ),
     ReactionDef(
         'guanine-nucleotide-exchange',
@@ -360,7 +362,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$x# + $y#$y-{0} -> $x# + $y#$y-{GTP}'
+        '$x%# + $y%#$y%-{0} -> $x%# + $y%#$y%-{GTP}'
     ),
     ReactionDef(
         'nuclear-export',
@@ -369,7 +371,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.component)
         },
-        '$x# + $y#$y_[(loc)]-{nucleus} -> $x# + $y#$y_[(loc)]-{0}'
+        '$x%# + $y%#$y%_[(loc)]-{nucleus} -> $x%# + $y%#$y%_[(loc)]-{0}'
     ),
     ReactionDef(
         'nuclear-import',
@@ -378,7 +380,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.component)
         },
-        '$x# + $y#$y_[(loc)]-{0} -> $x# + $y#$y_[(loc)]-{nucleus}'
+        '$x%# + $y%#$y%_[(loc)]-{0} -> $x%# + $y%#$y%_[(loc)]-{nucleus}'
     ),
     ReactionDef(
         'flip-out',
@@ -387,7 +389,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.component)
         },
-        '$y#$y_[(direction)]-{0} -> $y#$y_[(direction)]-{out}'
+        '$y%#$y%_[(direction)]-{0} -> $y%#$y%_[(direction)]-{out}'
     ),
     ReactionDef(
         'flip-in',
@@ -396,7 +398,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.component)
         },
-        '$y#$y_[(direction)]-{out} -> $y#$y_[(direction)]-{0}'
+        '$y%#$y%_[(direction)]-{out} -> $y%#$y%_[(direction)]-{0}'
     ),
     ReactionDef(
         'facilitated-uptake-extracellular-cytoplasmic',
@@ -405,7 +407,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (Spec, LocusResolution.component)
         },
-        '$x# + $y#$y_[(loc)]-{0} -> $x# + $y#$y_[(loc)]-{cytosol}'
+        '$x%# + $y%#$y%_[(loc)]-{0} -> $x%# + $y%#$y%_[(loc)]-{cytosol}'
     ),
     ReactionDef(
         'facilitated-uptake-cytoplasmic-extracellular',
@@ -414,7 +416,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (Spec, LocusResolution.component)
         },
-        '$x# + $y#$y_[(loc)]-{cytosol} -> $x# + $y#$y_[(loc)]-{0}'
+        '$x%# + $y%#$y%_[(loc)]-{cytosol} -> $x%# + $y%#$y%_[(loc)]-{0}'
     ),
     ReactionDef(
         'truncation',
@@ -423,7 +425,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (Spec, LocusResolution.residue)
         },
-        '$x# + $y#$y-{0} -> $x# + $y#$y-{truncated}'
+        '$x%# + $y%#$y%-{0} -> $x%# + $y%#$y%-{truncated}'
     ),
     ReactionDef(
         'satellite',
@@ -432,7 +434,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{0} -> $y#$y-{SAT}'
+        '$y%#$y%-{0} -> $y%#$y%-{SAT}'
     ),
     ReactionDef(
         'DuplicationPlaque',
@@ -441,7 +443,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{SAT} -> $y#$y-{DUP}'
+        '$y%#$y%-{SAT} -> $y%#$y%-{DUP}'
     ),
     ReactionDef(
         'SPBDuplication',
@@ -450,7 +452,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{DUP} -> $y#$y-{SPB}'
+        '$y%#$y%-{DUP} -> $y%#$y%-{SPB}'
     ),
     ReactionDef(
         'SPBSeparation',
@@ -459,7 +461,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{SPB} -> $y#$y-{0}'
+        '$y%#$y%-{SPB} -> $y%#$y%-{0}'
     ),
     ReactionDef(
         'DNAlicensing',
@@ -468,7 +470,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{0} -> $y#$y-{LIC}'
+        '$y%#$y%-{0} -> $y%#$y%-{LIC}'
     ),
     ReactionDef(
         'DNAreplicationInitiation',
@@ -477,7 +479,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{LIC} -> $y#$y-{RepInit}'
+        '$y%#$y%-{LIC} -> $y%#$y%-{RepInit}'
     ),
     ReactionDef(
         'DNAreplication',
@@ -486,7 +488,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{RepInit} -> $y#$y-{REP}'
+        '$y%#$y%-{RepInit} -> $y%#$y%-{REP}'
     ),
     ReactionDef(
         'DNAsegregation',
@@ -495,7 +497,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{REP} -> $y#$y-{0}'
+        '$y%#$y%-{REP} -> $y%#$y%-{0}'
     ),
     ReactionDef(
         'CYTpolarisation',
@@ -504,7 +506,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{0} -> $y#$y-{POL}'
+        '$y%#$y%-{0} -> $y%#$y%-{POL}'
     ),
     ReactionDef(
         'CYTbudding',
@@ -513,7 +515,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{POL} -> $y#$y-{BUD}'
+        '$y%#$y%-{POL} -> $y%#$y%-{BUD}'
     ),
     ReactionDef(
         'CYTisotropic',
@@ -522,7 +524,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{BUD} -> $y#$y-{ISO}'
+        '$y%#$y%-{BUD} -> $y%#$y%-{ISO}'
     ),
     ReactionDef(
         'CYTokinesis',
@@ -531,7 +533,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$y#$y-{ISO} -> $y#$y-{0}'
+        '$y%#$y%-{ISO} -> $y%#$y%-{0}'
     ),
     ReactionDef(
         'acetylation',
@@ -540,7 +542,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$x# + $y#$y-{0} -> $x# + $y#$y-{Ac}'
+        '$x%# + $y%#$y%-{0} -> $x%# + $y%#$y%-{Ac}'
     ),
     ReactionDef(
         'Myristoylation',
@@ -549,7 +551,7 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$x# + $y#$y-{0} -> $x# + $y#$y-{Myr}'
+        '$x%# + $y%#$y%-{0} -> $x%# + $y%#$y%-{Myr}'
     ),
     ReactionDef(
         'deacetylation',
@@ -558,16 +560,26 @@ REACTION_DEFS = [
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$x# + $y#$y-{Ac} -> $x# + $y#$y-{0}'
+        '$x%# + $y%#$y%-{Ac} -> $x%# + $y%#$y%-{0}'
     ),
     ReactionDef(
         'demyrstoylation',
-        '$x_Myr-_$y',
+        '$x%_Myr-_$y%',
         {
             '$x': (ProteinSpec, LocusResolution.component),
             '$y': (ProteinSpec, LocusResolution.residue)
         },
-        '$x# + $y#$y-{Myr} -> $x# + $y#$y-{0}'
+        '$x%# + $y%#$y%-{Myr} -> $x%# + $y%#$y%-{0}'
+    ),
+    ReactionDef(
+        'pro-cat-translation',
+        '$x_trslprocat_$y',
+        {
+            '$x': (Spec, LocusResolution.component),
+            '$y': (MRNASpec, LocusResolution.component)
+        },
+        '$x%# + $y%# -> $x%# + $y%# + $y.to_protein_component_spec().with_name_suffix(\'PRO\')%!$y.to_protein_component_spec().with_name_suffix(\'CAT\')%#'
+        '$y.to_protein_component_spec().with_name_suffix(\'PRO\').with_domain(\'PROCAT\')%--$y.to_protein_component_spec().with_name_suffix(\'CAT\').with_domain(\'CATPRO\')%!0'
     )
 ]
 
@@ -761,9 +773,9 @@ def reaction_from_str(repr: str, standardize: bool=True) -> Reaction:
             other = [x for x in keys if x != key][0]
             if not vars[key].has_resolution(reaction_def.vars_def[key][1]):
                 if reaction_def.vars_def[key][1] == LocusResolution.domain:
-                    vars[key].locus.domain = vars[other].component_name
+                    vars[key].locus.domain = vars[other].name
                 elif reaction_def.vars_def[key][1] == LocusResolution.residue:
-                    vars[key].locus.residue = vars[other].component_name
+                    vars[key].locus.residue = vars[other].name
                 else:
                     raise NotImplementedError
 
