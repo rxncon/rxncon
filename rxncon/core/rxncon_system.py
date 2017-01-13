@@ -246,15 +246,24 @@ class RxnConSystem:
     def _unsatisfiable_contingencies(self) -> List[Tuple[Contingency, str]]:
         unsatisfiable = []
         for contingency in self.contingencies:
+            local_unsatisfiables = []
+
             solutions = contingency.to_venn_set().calc_solutions()
             if len(solutions) == 0:
                 unsatisfiable.append((contingency, 'Zero consistent solutions found.'))
+
+            at_least_one_consistent_soln = False
 
             for solution in solutions:
                 trues = [state for state, val in solution.items() if val]
                 if any(state.is_mutually_exclusive_with(other) for state, other in product(trues, trues)):
                     state, other = next((state, other) for state, other in product(trues, trues) if state.is_mutually_exclusive_with(other))
-                    unsatisfiable.append((contingency, 'State {} mutually exclusive with {}.'.format(str(state), str(other))))
+                    local_unsatisfiables.append((contingency, 'State {} mutually exclusive with {}.'.format(str(state), str(other))))
                     break
+                else:
+                    at_least_one_consistent_soln = True
+
+            if not at_least_one_consistent_soln:
+                unsatisfiable += local_unsatisfiables
 
         return unsatisfiable
