@@ -665,7 +665,7 @@ class QuantContingencyConfigs:
 
 
 def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
-    def mol_defs_from_rxncon(rxncon_sys: RxnConSystem) -> Dict[Spec, MolDef]:
+    def mol_defs_from_rxncon(rxncon_sys: RxnConSystem) -> List[MolDef]:
         mol_defs = {}
         for spec in rxncon_sys.components():
             logger.debug('{} : Creating MolDefBuilder for {}'.format(current_function_name(), str(spec)))
@@ -677,7 +677,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
 
             mol_defs[spec] = builder.build()
 
-        return mol_defs
+        return list(mol_defs.values())
 
     def remove_global_states(solutions: List[Dict[State, bool]]) -> List[Dict[State, bool]]:
         filtered_solutions = []
@@ -837,7 +837,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
 
     logger.debug('{} : Entered function'.format(current_function_name()))
 
-    mol_defs = list(mol_defs_from_rxncon(rxncon_sys).values())
+    mol_defs = mol_defs_from_rxncon(rxncon_sys)
     logger.debug('{} : Generated MolDefs: {}'.format(current_function_name(), ', '.join(str(mol_def) for mol_def in mol_defs)))
 
     rules = []  # type: List[Rule]
@@ -847,6 +847,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         strict_cont_set = Intersection(*(venn_from_contingency(x) for x in rxncon_sys.s_contingencies_for_reaction(reaction)))  # type: VennSet[State]
         quant_contingencies = QuantContingencyConfigs(rxncon_sys.q_contingencies_for_reaction(reaction))
         logger.debug('{} : Strict contingencies {}'.format(current_function_name(), str(strict_cont_set)))
+
         for quant_contingency_set in quant_contingencies:
             logger.debug('{} : quantitative contingency config: {}'.format(current_function_name(), str(quant_contingency_set)))
 
