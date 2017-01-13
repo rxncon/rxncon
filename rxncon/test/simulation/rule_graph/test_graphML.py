@@ -87,16 +87,6 @@ def test_file_exists():
         gml_system.to_file(NOT_A_DIRECTORY)
 
 
-def test_forcing_write():
-    graph = DiGraph()
-    graph.add_node('A', str_value='A', int_value=1, float_value=1.0)
-    gml_system = XGMML(graph, "name")
-    with pytest.raises(FileExistsError):
-        gml_system.to_file(File_EXISTS)
-    gml_system.to_file(File_EXISTS, force=True)
-    minidom.parse(File_EXISTS)
-
-
 def test_simple_system() -> None:
     """
     Testing a simple system of 2 reactions and 1 contingency.

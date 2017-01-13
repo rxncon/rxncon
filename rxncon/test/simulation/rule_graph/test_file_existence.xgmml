@@ -1,9 +1,1 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-    <graph directed="1"  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.cs.rpi.edu/XGMML">
-    <att name="selected" value="1" type="boolean" />
-    <att name="name" value="name" type="string"/>
-    <att name="shared name" value="name" type="string"/>
-    
-<node id="A" label="A"><att name="rxnconID" value="A" type="string"/><att name="str_value" value="A" type="string"/><att name="float_value" value="1.0" type="double"/><att name="int_value" value="1" type="integer"/></node>
-
-</graph>
+THIS FILE IS ONLY TO CHECK IF THE EXISTING TESTS ARE WORKING AS EXPECTED.
