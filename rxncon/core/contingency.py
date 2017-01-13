@@ -4,8 +4,10 @@ from collections import defaultdict
 import logging
 from rxncon.util.utils import current_function_name
 
-from rxncon.core.effector import Effector, StructEquivalences, QualSpec, StateEffector, TrivialStructEquivalences
+from rxncon.core.effector import Effector, StructEquivalences, QualSpec, StateEffector, TrivialStructEquivalences, NotEffector, \
+    AndEffector, OrEffector
 from rxncon.core.reaction import Reaction
+from rxncon.venntastic.sets import Set, ValueSet, Intersection, Complement, Union, UniversalSet
 
 
 logger = logging.getLogger(__name__)
@@ -80,6 +82,39 @@ class Contingency:
                                                     str(self.effector), str(sc.effector)))
             sc._validate_structure_indices()
             return sc
+
+    def to_venn_set(self, k_plus_strict=False, k_minus_strict=False, structured=True, state_wrapper=lambda x: x) -> Set:
+        def parse_effector(eff: Effector) -> Set:
+            if isinstance(eff, StateEffector):
+                if structured:
+                    return ValueSet(state_wrapper(eff.expr))
+                else:
+                    return ValueSet(state_wrapper(eff.expr.to_non_structured()))
+            elif isinstance(eff, NotEffector):
+                return Complement(parse_effector(eff.expr))
+            elif isinstance(eff, OrEffector):
+                return Union(*(parse_effector(x) for x in eff.exprs))
+            elif isinstance(eff, AndEffector):
+                return Intersection(*(parse_effector(x) for x in eff.exprs))
+            else:
+                raise AssertionError
+
+        if k_plus_strict:
+            positive = (ContingencyType.requirement, ContingencyType.positive)
+        else:
+            positive = (ContingencyType.requirement,)
+
+        if k_minus_strict:
+            negative = (ContingencyType.inhibition, ContingencyType.negative)
+        else:
+            negative = (ContingencyType.inhibition,)
+
+        if self.type in positive:
+            return parse_effector(self.effector)
+        elif self.type in negative:
+            return Complement(parse_effector(self.effector))
+        else:
+            return UniversalSet()
 
     def _validate_structure_indices(self):
         # Assert that every index is only used once.

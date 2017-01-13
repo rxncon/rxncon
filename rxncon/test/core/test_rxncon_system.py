@@ -1,3 +1,5 @@
+import pytest
+
 from rxncon.input.quick.quick import Quick
 from rxncon.core.state import state_from_str
 from rxncon.core.reaction import reaction_from_str
@@ -68,7 +70,7 @@ def test_translation() -> None:
     ])
 
 
-def test_non_elemental_contingency()-> None:
+def test_non_elemental_contingency() -> None:
     rxncon_sys = Quick('''A_trsl_BmRNA
                        C_p+_B_[(r1)]
                        D_p+_B_[(r2)]
@@ -80,3 +82,12 @@ def test_non_elemental_contingency()-> None:
     assert state_from_str('B@1_[(r1)]-{p}') in contingencies[0].effector.states
     assert state_from_str('B@1_[(r2)]-{p}') in contingencies[0].effector.states
     assert contingencies[0].effector.name == 'B-{p}'
+
+
+def test_inconsistent_system() -> None:
+    with pytest.raises(AssertionError):
+        rxncon_sys = Quick('''A_ppi_B ; ! <X>
+                           C_p+_B_[(r1)]
+                           D_p+_B_[(r2)]
+                           <X> ; AND B_[(r1)]-{p}
+                           <X> ; AND B_[(r1)]-{0}''').rxncon_system

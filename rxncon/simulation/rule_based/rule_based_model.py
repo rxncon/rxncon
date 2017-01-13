@@ -476,7 +476,6 @@ class Rule:
         return all_found and all_visited
 
 
-
 class RuleBasedModel:
     def __init__(self, mol_defs: List[MolDef], initial_conditions: List[InitialCondition], parameters: List[Parameter],
                  observables: List[Observable], rules: List[Rule]) -> None:
@@ -611,27 +610,6 @@ def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
         return cont_set
 
 
-def venn_from_contingency(contingency: Contingency) -> VennSet:
-    def parse_effector(eff: Effector) -> VennSet:
-        if isinstance(eff, StateEffector):
-            return ValueSet(eff.expr)
-        elif isinstance(eff, NotEffector):
-            return Complement(parse_effector(eff.expr))
-        elif isinstance(eff, OrEffector):
-            return Union(*(parse_effector(x) for x in eff.exprs))
-        elif isinstance(eff, AndEffector):
-            return Intersection(*(parse_effector(x) for x in eff.exprs))
-        else:
-            raise AssertionError
-
-    if contingency.type in [ContingencyType.requirement]:
-        return parse_effector(contingency.effector)
-    elif contingency.type in [ContingencyType.inhibition]:
-        return Complement(parse_effector(contingency.effector))
-    else:
-        return UniversalSet()
-
-
 class QuantContingencyConfigs:
     def __init__(self, q_contingencies: List[Contingency]) -> None:
         self.q_contingencies = deepcopy(q_contingencies)
@@ -649,7 +627,7 @@ class QuantContingencyConfigs:
         if combis == [[]]:
             self.combi_sets = [UniversalSet()]
         else:
-            self.combi_sets = [Intersection(*(venn_from_contingency(x) for x in combi)) for combi in combis]
+            self.combi_sets = [Intersection(*(x.to_venn_set() for x in combi)) for combi in combis]
 
         self.current_combi_set = -1
 
@@ -823,7 +801,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         output_rxns = [rxn for rxn in rxncon_sys.reactions if isinstance(rxn, OutputReaction)]
         for rxn in output_rxns:
             logger.debug('{} : calculating observable {}'.format(current_function_name(), str(rxn)))
-            solns = Intersection(*(venn_from_contingency(x) for x
+            solns = Intersection(*(x.to_venn_set() for x
                                    in rxncon_sys.contingencies_for_reaction(rxn))).calc_solutions()
             positive_solns = []  # type: List[List[State]]
             for soln in solns:
@@ -844,7 +822,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
 
     for reaction in (x for x in rxncon_sys.reactions if not isinstance(x, OutputReaction)):
         logger.debug('{} : Generating rules for reaction {}'.format(current_function_name(), str(reaction)))
-        strict_cont_set = Intersection(*(venn_from_contingency(x) for x in rxncon_sys.s_contingencies_for_reaction(reaction)))  # type: VennSet[State]
+        strict_cont_set = Intersection(*(x.to_venn_set() for x in rxncon_sys.s_contingencies_for_reaction(reaction)))  # type: VennSet[State]
         quant_contingencies = QuantContingencyConfigs(rxncon_sys.q_contingencies_for_reaction(reaction))
         logger.debug('{} : Strict contingencies {}'.format(current_function_name(), str(strict_cont_set)))
 

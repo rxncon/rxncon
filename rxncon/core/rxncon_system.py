@@ -1,4 +1,5 @@
 from typing import List, Dict, Tuple
+from itertools import product
 from collections import defaultdict
 import logging
 
@@ -49,6 +50,11 @@ class RxnConSystem:
         if missing_reactions:
             raise AssertionError('Reactions(s) {0} appear(s) in contingencies, but are not defined in reaction list'
                                  .format(', '.join(str(reaction) for reaction in missing_reactions)))
+
+        unsatisfiable_contingencies = self._unsatisfiable_contingencies()
+        if unsatisfiable_contingencies:
+            reason_str = ', '.join('{} : {}'.format(cont, reason) for cont, reason in unsatisfiable_contingencies)
+            raise AssertionError('Unsatisfiable contingencies: {}'.format(reason_str))
 
     def components(self) -> List[Spec]:
         if not self._components:
@@ -236,3 +242,19 @@ class RxnConSystem:
             required_reactions.append(contingency.target)
 
         return [reaction for reaction in required_reactions if reaction not in self.reactions]
+
+    def _unsatisfiable_contingencies(self) -> List[Tuple[Contingency, str]]:
+        unsatisfiable = []
+        for contingency in self.contingencies:
+            solutions = contingency.to_venn_set().calc_solutions()
+            if len(solutions) == 0:
+                unsatisfiable.append((contingency, 'Zero consistent solutions found.'))
+
+            for solution in solutions:
+                trues = [state for state, val in solution.items() if val]
+                if any(state.is_mutually_exclusive_with(other) for state, other in product(trues, trues)):
+                    state, other = next((state, other) for state, other in product(trues, trues) if state.is_mutually_exclusive_with(other))
+                    unsatisfiable.append((contingency, 'State {} mutually exclusive with {}.'.format(str(state), str(other))))
+                    break
+
+        return unsatisfiable

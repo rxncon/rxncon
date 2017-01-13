@@ -664,7 +664,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             None
         """
         for reaction in rxncon_sys.reactions:
-            factors = (factor_from_contingency(x) for x in rxncon_sys.contingencies_for_reaction(reaction))
+            factors = (x.to_venn_set(k_plus_strict=True, k_minus_strict=True, structured=False, state_wrapper=StateTarget)
+                       for x in rxncon_sys.contingencies_for_reaction(reaction))
             cont = Intersection(*factors).to_simplified_set()  # type: VennSet[StateTarget]
             # The reaction is not a degradation reaction
             if not reaction.degraded_components:
