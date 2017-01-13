@@ -440,3 +440,15 @@ def test_smooth_production_sources() -> None:
     for rule in boolean_model.update_rules:
         if rule.target == target_from_str('A_[b]--0'):
             assert rule.factor.is_equivalent_to(venn_from_str(expected, target_from_str))
+
+
+def test_trslprocat():
+    rxn_system = Quick("""Ribo_trslprocat_Ssy5mRNA
+                          A_p+_Ssy5CAT
+                          B_deg_Ssy5PRO""").rxncon_system
+
+    rbm = boolean_model_from_rxncon(rxn_system)
+
+    for rule in rbm.update_rules:
+        print()
+        print(rule)

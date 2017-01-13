@@ -181,9 +181,13 @@ class RxnConSystem:
 
     def _expand_reaction_terms(self, terms: List[ReactionTerm]) -> None:
         for term in terms:
-            if term.is_fully_neutral:
-                term.states = [state for component in term.specs for state in self.states_for_component(component)
-                               if state.is_neutral and state != FullyNeutralState()]
+            if FullyNeutralState() in term.states:
+                existing_states = [state for state in term.states if state != FullyNeutralState()]
+                new_states = [state for component in term.specs for state in self.states_for_component(component)
+                              if state.is_neutral and state != FullyNeutralState() and state not in existing_states and
+                              not any(state.is_mutually_exclusive_with(existing) for existing in existing_states)]
+
+                term.states = existing_states + new_states
 
     def _expand_non_elemental_contingencies(self) -> None:
         def expanded_effector(effector: Effector) -> Effector:
