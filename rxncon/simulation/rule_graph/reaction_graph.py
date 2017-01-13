@@ -3,7 +3,7 @@ import re
 from typing import Union
 from enum import Enum
 from networkx import DiGraph
-from rxncon.core.reaction import Reaction
+from rxncon.core.reaction import Reaction, OutputReaction
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.spec import Spec, LocusResolution
 from rxncon.util.utils import current_function_name
@@ -285,8 +285,9 @@ def rxngraph_from_rxncon_system(rxncon_system: RxnConSystem) -> ReactionGraph:
     builder = GraphBuilder()
 
     for reaction in rxncon_system.reactions:
-        logger.debug('{}: {}'.format(current_function_name(), str(reaction)))
-        add_reaction_to_graph(reaction)
+        if not isinstance(reaction, OutputReaction):
+            logger.debug('{}: {}'.format(current_function_name(), str(reaction)))
+            add_reaction_to_graph(reaction)
 
     return ReactionGraph(builder.get_graph())
 
