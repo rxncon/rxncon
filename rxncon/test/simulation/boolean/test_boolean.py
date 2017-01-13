@@ -414,6 +414,81 @@ def test_deg_with_interaction_as_inhibition() -> None:
             raise AssertionError
 
 
+def test_deg_with_bool_AND() -> None:
+    """
+    Testing degradation of interaction reaction.
+
+    Note:
+        A system of 2 reactions is translated to 7 rules.
+        We have a variation of C_deg_A, because if we have the interaction state A_[x]--B_[y],  B_[y]--0 can be
+        produced otherwise not.
+
+    Returns:
+        None
+
+    """
+    boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
+                                                       D_p+_A_[(r)]
+                                                       C_deg_A; ! <x>
+                                                       <x>; AND A_[x]--B_[y]; AND A_[(r)]-{p}""").rxncon_system)
+    target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
+
+    expected_rules = {
+        'C_deg_A': '(( C & A_[x]--B_[y] & A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
+        'C_deg_A#0/1': '(( C & A_[x]--B_[y] & A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
+        'D_p+_A_[(r)]': '(( D & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
+        'A_[x]_ppi+_B_[y]': '((( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | B_[y]--0 )))',
+        'B_[y]--0': '((( A_[x]--B_[y] & C_deg_A#0/1 & ( A_[x]--B_[y] | B_[y]--0 )) | ( B_[y]--0 & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( B_[y]--0 & A_[x]_ppi+_B_[y] & A_[x]--0 )))))',
+        'A_[(r)]-{p}': '((( A_[(r)]-{0} & D_p+_A_[(r)] & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( C_deg_A | C_deg_A#0/1 ))) | ( A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( C_deg_A | C_deg_A#0/1 )))))',
+        'A_[x]--B_[y]': '(( A_[x]--0 & B_[y]--0 & A_[x]_ppi+_B_[y] & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( C_deg_A | C_deg_A#0/1 ))) | ( A_[x]--B_[y] & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( A_[x]--B_[y] & C_deg_A#0/1 )) & ~(( C_deg_A | C_deg_A#0/1 ))))',
+        'A_[(r)]-{0}': '( A_[(r)]-{0} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( A_[(r)]-{0} & D_p+_A_[(r)] )))',
+        'A_[x]--0': '(( A_[x]--0 & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( A_[x]--0 & A_[x]_ppi+_B_[y] & B_[y]--0 ))))',
+        'D': 'D',
+        'C': 'C'
+    }
+
+    for target_str, factor_str in expected_rules.items():
+        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
+
+
+def test_NOT_bool_deg() -> None:
+    """
+    Testing degradation of interaction reaction.
+
+    Note:
+        A system of 2 reactions is translated to 7 rules.
+        We have a variation of C_deg_A, because if we have the interaction state A_[x]--B_[y],  B_[y]--0 can be
+        produced otherwise not.
+
+    Returns:
+        None
+
+    """
+    boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
+                                                       D_p+_A_[(r)]
+                                                       C_deg_A; ! <x>
+                                                       <x>; AND A_[x]--B_[y]; AND <NOT>
+                                                       <NOT>; NOT A_[(r)]-{p}""").rxncon_system)
+    target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
+
+    expected_rules = {
+        'C_deg_A': '( C & A_[x]--B_[y] & !(A_[(r)]-{p} ) & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
+        'C_deg_A#0/1': '( C & A_[x]--B_[y] & !( A_[(r)]-{p} ) & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
+        'D_p+_A_[(r)]': '( D & ( A_[x]--0 | A_[x]--B_[y]  & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
+        'A_[x]_ppi+_B_[y]': '(( A_[x]--0 | A_[x]--B_[y] ) & (A_[(r)]-{0} | A_[(r)]-{p}) & (A_[x]--B_[y] | B_[y]--0))',
+        'B_[y]--0': '((A_[x]--B_[y] & C_deg_A#0/1 & (B_[y]--0 | A_[x]--B_[y])) | (B_[y]--0 & (B_[y]--0 | A_[x]--B_[y]) & !((B_[y]--0 & A_[x]_ppi+_B_[y] & A_[x]--0))))',
+        'A_[(r)]-{p}': '((A_[(r)]-{0} & D_p+_A_[(r)] & (A_[x]--0 | A_[x]--B_[y]) & (A_[(r)]-{0} | A_[(r)]-{p})) | (A_[(r)]-{p} & (A_[x]--0 | A_[x]--B_[y]) & (A_[(r)]-{0} | A_[(r)]-{p})))',
+        'A_[x]--B_[y]': '((A_[x]--0 & B_[y]--0 & A_[x]_ppi+_B_[y] & (A_[x]--0 | A_[x]--B_[y]) & (A_[(r)]-{0} | A_[(r)]-{p}) & (A_[x]--B_[y] | B_[y]--0) & !((C_deg_A#0/1 | C_deg_A))) | (A_[x]--B_[y] & (A_[x]--0 | A_[x]--B_[y]) & (A_[(r)]-{0} | A_[(r)]',
+        'A_[(r)]-{0}': '(A_[(r)]-{0} & (A_[x]--0 | A_[x]--B_[y]) & (A_[(r)]-{0} | A_[(r)]-{p}) & !((A_[(r)]-{0} & D_p+_A_[(r)])) & !((C_deg_A#0/1 | C_deg_A)))',
+        'A_[x]--0': '(A_[x]--0 & (A_[x]--0 | A_[x]--B_[y]) & (A_[(r)]-{0} | A_[(r)]-{p}) & !((A_[x]--0 & A_[x]_ppi+_B_[y] & B_[y]--0)))',
+        'D': 'D',
+        'C': 'C',
+    }
+
+    for target_str, factor_str in expected_rules.items():
+        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
+
+
 def test_smooth_production_sources() -> None:
     """
     Testing smoothing function.
@@ -440,3 +515,33 @@ def test_smooth_production_sources() -> None:
     for rule in boolean_model.update_rules:
         if rule.target == target_from_str('A_[b]--0'):
             assert rule.factor.is_equivalent_to(venn_from_str(expected, target_from_str))
+
+
+def test_state_reaction_relation():
+    """
+    Testing the relation between states and reactions not tested before.
+
+    Returns:
+        None
+
+    """
+    boole_deg_syn_model = boolean_model_from_rxncon(Quick("""C_deg_A
+                                                             C_syn_A
+                                                             C_p+_A_[(x)]
+                                                             C_p-_A_[(x)]""").rxncon_system)
+
+    neutral_state = target_from_str('A_[(x)]-{0}')
+
+    assert boole_deg_syn_model.state_target_by_name('A_[(x)]-{p}').is_produced_by(boole_deg_syn_model.reaction_target_by_name('C_p+_A_[(x)]'))
+    assert boole_deg_syn_model.state_target_by_name('A_[(x)]-{p}').is_consumed_by(boole_deg_syn_model.reaction_target_by_name('C_p-_A_[(x)]'))
+    assert boole_deg_syn_model.state_target_by_name('A_[(x)]-{p}').is_degraded_by(boole_deg_syn_model.reaction_target_by_name('C_deg_A'))
+    assert boole_deg_syn_model.reaction_target_by_name('C_syn_A').synthesises_component(neutral_state.components[0])
+    assert boole_deg_syn_model.state_target_by_name('A_[(x)]-{0}').is_synthesised_by(boole_deg_syn_model.reaction_target_by_name('C_syn_A'))
+
+def test_set_initial_condition():
+    boole_deg_syn_model = boolean_model_from_rxncon(Quick("""C_p+_A_[(x)]""").rxncon_system)
+
+    neutral_state = target_from_str('A_[(x)]-{0}')
+    assert boole_deg_syn_model.initial_conditions.target_to_value[neutral_state] == True
+    boole_deg_syn_model.set_initial_condition(neutral_state, False)
+    assert boole_deg_syn_model.initial_conditions.target_to_value[neutral_state] == False
