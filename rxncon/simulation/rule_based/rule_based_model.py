@@ -822,6 +822,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         observables = []
         output_rxns = [rxn for rxn in rxncon_sys.reactions if isinstance(rxn, OutputReaction)]
         for rxn in output_rxns:
+            logger.debug('{} : calculating observable {}'.format(current_function_name(), str(rxn)))
             solns = Intersection(*(venn_from_contingency(x) for x
                                    in rxncon_sys.contingencies_for_reaction(rxn))).calc_solutions()
             positive_solns = []  # type: List[List[State]]
@@ -829,6 +830,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
                 positive_solns += calc_positive_solutions(rxncon_sys, soln)
 
             for index, positive_soln in enumerate(positive_solns):
+                logger.debug('{} : solution {} : {}'.format(current_function_name(), index, positive_soln))
                 observables.append(Observable('{}{}'.format(rxn.name, index), observable_complex(positive_soln)))
 
         return observables

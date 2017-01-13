@@ -367,7 +367,7 @@ class EmptyBindingState(State):
         return self == other or other.is_subset_of(self)
 
     def to_structured_from_spec(self, spec: Spec) -> 'State':
-        if self.spec.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec():
+        if spec.is_structured and self.spec.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec():
             return EmptyBindingState(self.spec.with_struct_from_spec(spec))
         else:
             return self
