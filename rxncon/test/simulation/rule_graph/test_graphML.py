@@ -1,7 +1,9 @@
 import os
+import pytest
 import time
 import tempfile
 from xml.dom import minidom
+from networkx import DiGraph
 
 from rxncon.input.quick.quick import Quick
 from rxncon.simulation.rule_graph.regulatory_graph import RegulatoryGraph
@@ -11,6 +13,8 @@ from rxncon.input.excel_book.excel_book import ExcelBook
 PHEROMONE_XLS   = os.path.join(os.path.dirname(__file__), 'pheromone.xls')
 PHEROMONE_XGMML = os.path.join(os.path.dirname(__file__), 'pheromone_layout.xgmml')
 NODE_LAYOUT_MANIPULATION = os.path.join(os.path.dirname(__file__), 'example_node_layout.xgmml')
+File_EXISTS = os.path.join(os.path.dirname(__file__), 'test_file_existence.xgmml')
+NOT_A_DIRECTORY = os.path.join(os.path.dirname(__file__), 'NOT_A_DIR/test_file_existence.xgmml')
 
 
 def _is_xgmml_export_test_case_correct(test_case_quick: str, expected_xgmml: str) -> bool:
@@ -66,6 +70,33 @@ def _can_xgmml_be_written_to_file(test_case_quick_string: str) -> bool:
     return file_exists and file_size > 0
 
 
+def _get_node_att_type(element: minidom.Element, attribute_name: str) -> str:
+    for child in element.childNodes:
+        if child.attributes and child.getAttribute('name') == attribute_name:
+            return child.getAttribute('type')
+
+def test_file_exists():
+    graph = DiGraph()
+    graph.add_node('A', str_value='A', int_value=1, float_value=1.0)
+
+    gml_system = XGMML(graph, "name")
+    with pytest.raises(FileExistsError):
+        gml_system.to_file(File_EXISTS)
+
+    with pytest.raises(NotADirectoryError):
+        gml_system.to_file(NOT_A_DIRECTORY)
+
+
+def test_forcing_write():
+    graph = DiGraph()
+    graph.add_node('A', str_value='A', int_value=1, float_value=1.0)
+    gml_system = XGMML(graph, "name")
+    with pytest.raises(FileExistsError):
+        gml_system.to_file(File_EXISTS)
+    gml_system.to_file(File_EXISTS, force=True)
+    minidom.parse(File_EXISTS)
+
+
 def test_simple_system() -> None:
     """
     Testing a simple system of 2 reactions and 1 contingency.
@@ -109,6 +140,30 @@ def test_simple_system() -> None:
 
     assert _is_xgmml_export_test_case_correct(test_case_quick_str, expected_xgmml)
     assert _can_xgmml_be_written_to_file(test_case_quick_str)
+
+
+def test_format_attributes():
+    """
+    Testing attribute annotation in xgmml.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError if an expected attribute type is not within the node attributes.
+
+    """
+    graph = DiGraph()
+    graph.add_node('A', str_value='A', int_value=1, float_value=1.0)
+    format_attribute_system_str = XGMML(graph, "graph").to_string()
+
+    expected_attribute_type = ['integer', 'double', 'string']
+    xmldoc_actual = minidom.parseString(format_attribute_system_str)
+    actual_node_attribute_types = [_get_node_att_type(xmldoc_actual.getElementsByTagName('node')[0], attribute_name=attribute)
+                                   for attribute in ['int_value', 'float_value', 'str_value']]
+    while expected_attribute_type:
+        attribute_type = expected_attribute_type.pop()
+        assert attribute_type in actual_node_attribute_types
 
 
 def test_creating_writing_xgmml_from_regulatory_graph_simple_boolean() -> None:

@@ -1050,6 +1050,7 @@ def test_component_trsc_trsl() -> None:
 
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
+
 def test_state_trsc_trsl() -> None:
     test_case = RuleTestCase('''D_trsc_A
                                 E_trsl_A
