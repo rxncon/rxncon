@@ -7,12 +7,14 @@ import logging
 from rxncon.core.spec import Spec, Locus, LocusResolution, locus_from_str, spec_from_str
 from rxncon.util.utils import current_function_name
 
+
 logger = logging.getLogger(__name__)
 
 
 SPEC_REGEX          = '([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
 STR_REGEX           = '([\w]+)'
 LOCUS_REGEX         = '([\w\/\(\)]+)'
+
 
 FULLY_NEUTRAL_STATE_REGEX    = '^0$'
 INTERACTION_STATE_REGEX      = '^{}--{}$'.format(SPEC_REGEX, SPEC_REGEX)
@@ -47,6 +49,7 @@ class StateModifier(Enum):
     myr       = 'myr'
     ac        = 'ac'
 
+
 def state_modifier_from_str(modifier_str: str) -> StateModifier:
     try:
         return StateModifier(modifier_str.lower())
@@ -54,21 +57,6 @@ def state_modifier_from_str(modifier_str: str) -> StateModifier:
         valid_modifiers = [modifier.value for modifier in StateModifier.__members__.values()]  # type: ignore
         raise ValueError('Invalid StateModifier {}, valid modifiers are {}'
                          .format(modifier_str, ', '.join(valid_modifiers)))
-
-
-TYPE_TO_REGEX = {
-    Spec:          SPEC_REGEX,
-    str:           STR_REGEX,
-    StateModifier: STR_REGEX,
-    Locus:         LOCUS_REGEX
-}
-
-TYPE_TO_CONSTRUCTOR = {
-    Spec:          spec_from_str,
-    str:           lambda x: x.strip(),
-    StateModifier: state_modifier_from_str,
-    Locus:         locus_from_str
-}
 
 
 class State(ABC):
@@ -379,7 +367,7 @@ class EmptyBindingState(State):
         return self == other or other.is_subset_of(self)
 
     def to_structured_from_spec(self, spec: Spec) -> 'State':
-        if self.spec.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec():
+        if spec.is_structured and self.spec.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec():
             return EmptyBindingState(self.spec.with_struct_from_spec(spec))
         else:
             return self
@@ -803,6 +791,4 @@ def state_from_str(state_str: str) -> State:
     elif re.match(FULLY_NEUTRAL_STATE_REGEX, state_str):
         return FullyNeutralState()
     else:
-        raise SyntaxError
-
-
+        raise SyntaxError('Unable to parse State string {}'.format(state_str))

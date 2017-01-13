@@ -7,8 +7,8 @@ import re
 
 
 class Spec(ABC):
-    def __init__(self, component_name: str, struct_index: Optional[int], locus: 'Locus') -> None:
-        self.component_name, self.struct_index, self.locus = component_name, struct_index, locus
+    def __init__(self, name: str, struct_index: Optional[int], locus: 'Locus') -> None:
+        self.name, self.struct_index, self.locus = name, struct_index, locus
         self._validate()
 
     def __hash__(self) -> int:
@@ -20,9 +20,9 @@ class Spec(ABC):
     def __str__(self) -> str:
         def struct_name(spec: Spec, spec_suffix: 'SpecSuffix') -> str:
             if spec.struct_index is not None:
-                return "{0}{1}@{2}".format(spec.component_name, spec_suffix.value, spec.struct_index)
+                return "{0}{1}@{2}".format(spec.name, spec_suffix.value, spec.struct_index)
             else:
-                return "{0}{1}".format(spec.component_name, spec_suffix.value)
+                return "{0}{1}".format(spec.name, spec_suffix.value)
 
         suffix = spec_to_suffix[type(self)]
 
@@ -34,21 +34,21 @@ class Spec(ABC):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Spec):
             return NotImplemented
-        return isinstance(other, type(self)) and self.component_name == other.component_name and self.locus == other.locus \
+        return isinstance(other, type(self)) and self.name == other.name and self.locus == other.locus \
             and self.struct_index == other.struct_index
 
     def __lt__(self, other: 'Spec') -> bool:
         return str(self) < str(other)
 
-    def clone(self):
+    def clone(self) -> 'Spec':
         return deepcopy(self)
 
     def is_subspec_of(self, other: 'Spec') -> bool:
         if self == other:
             return True
 
-        spec_pairs = zip([self.component_name, self.locus.domain, self.locus.subdomain, self.locus.residue],
-                         [other.component_name, other.locus.domain, other.locus.subdomain, other.locus.residue])
+        spec_pairs = zip([self.name, self.locus.domain, self.locus.subdomain, self.locus.residue],
+                         [other.name, other.locus.domain, other.locus.subdomain, other.locus.residue])
 
         for my_property, other_property in spec_pairs:
             if my_property and other_property and my_property != other_property:
@@ -72,31 +72,38 @@ class Spec(ABC):
     def is_component_spec(self) -> bool:
         return self.has_resolution(LocusResolution.component)
 
+    def with_name_suffix(self, suffix: str) -> 'Spec':
+        assert suffix not in SpecSuffix.__members__
+        return type(self)(self.name + suffix, self.struct_index, self.locus)
+
     def with_struct_index(self, index: int) -> 'Spec':
-        return type(self)(self.component_name, index, self.locus)
+        return type(self)(self.name, index, self.locus)
 
     def with_struct_from_spec(self, other: 'Spec') -> 'Spec':
         assert other.struct_index is not None
-        assert self.component_name == other.component_name
-        return type(self)(self.component_name, other.struct_index, self.locus)
+        assert self.name == other.name
+        return type(self)(self.name, other.struct_index, self.locus)
 
     def with_locus(self, locus: 'Locus') -> 'Spec':
-        return type(self)(self.component_name, self.struct_index, copy(locus))
+        return type(self)(self.name, self.struct_index, locus.clone())
+
+    def with_domain(self, domain: str) -> 'Spec':
+        return type(self)(self.name, self.struct_index, self.locus.with_domain(domain))
 
     def to_non_struct_spec(self) -> 'Spec':
-        return type(self)(self.component_name, None, self.locus)
+        return type(self)(self.name, None, self.locus)
 
     def to_component_spec(self) -> 'Spec':
-        return type(self)(self.component_name, self.struct_index, EmptyLocus())
+        return type(self)(self.name, self.struct_index, EmptyLocus())
 
     def to_protein_component_spec(self) -> 'ProteinSpec':
-        return ProteinSpec(self.component_name, None, EmptyLocus())
+        return ProteinSpec(self.name, None, EmptyLocus())
 
     def to_dna_component_spec(self) -> 'GeneSpec':
-        return GeneSpec(self.component_name, None, EmptyLocus())
+        return GeneSpec(self.name, None, EmptyLocus())
 
     def to_mrna_component_spec(self) -> 'MRNASpec':
-        return MRNASpec(self.component_name, None, EmptyLocus())
+        return MRNASpec(self.name, None, EmptyLocus())
 
     @property
     def resolution(self) -> 'LocusResolution':
@@ -106,7 +113,7 @@ class Spec(ABC):
         return self.resolution == resolution
 
     def _validate(self) -> None:
-        assert self.component_name is not None and re.match('\w+', self.component_name)
+        assert self.name is not None and re.match('\w+', self.name)
 
 
 class ProteinSpec(Spec):
@@ -149,7 +156,7 @@ class Locus:
         elif not self.domain and not self.subdomain and not self.residue:
             return ''
         else:
-            raise AssertionError
+            raise AssertionError('Unable to stringify Spec')
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Locus):
@@ -164,6 +171,15 @@ class Locus:
             assert self.domain is not None
         if self.residue:
             assert re.match("\w+", self.residue)
+
+    def clone(self) -> 'Locus':
+        return deepcopy(self)
+
+    def with_domain(self, domain: str) -> 'Locus':
+        l = self.clone()
+        l.domain = domain
+        l._validate()
+        return l
 
     @property
     def is_empty(self) -> bool:
@@ -180,7 +196,7 @@ class Locus:
         elif self.residue is not None:
             return LocusResolution.residue
         else:
-            raise NotImplementedError
+            raise AssertionError('Inconsistent resolution for Spec {}'.format(str(self)))
 
 
 def EmptyLocus() -> Locus:
@@ -236,25 +252,25 @@ def locus_from_str(locus_str: str) -> Locus:
         domain, subdomain, residue = None, None, None  # type: Optional[str], Optional[str], Optional[str]
 
         if re.match(DOMAIN_SUBDOMAIN_RESIDUE_REGEX, full_locus_str):
-            domain = full_locus_str.split('/')[0]
+            domain    = full_locus_str.split('/')[0]
             subdomain = full_locus_str.split('/')[1].split('(')[0]
-            residue = full_locus_str.split('/')[1].split('(')[1].strip(')')
+            residue   = full_locus_str.split('/')[1].split('(')[1].strip(')')
         elif re.match(DOMAIN_RESIDUE_REGEX, full_locus_str):
-            domain = full_locus_str.split('(')[0]
+            domain    = full_locus_str.split('(')[0]
             subdomain = None
-            residue = full_locus_str.split('(')[1].strip(')')
+            residue   = full_locus_str.split('(')[1].strip(')')
         elif re.match(DOMAIN_SUBDOMAIN_REGEX, full_locus_str):
-            domain = full_locus_str.split('/')[0]
+            domain    = full_locus_str.split('/')[0]
             subdomain = full_locus_str.split('/')[1]
-            residue = None
+            residue   = None
         elif re.match(RESIDUE_REGEX, full_locus_str):
-            domain = None
+            domain    = None
             subdomain = None
-            residue = full_locus_str.strip('()')
+            residue   = full_locus_str.strip('()')
         elif re.match(DOMAIN_REGEX, full_locus_str):
-            domain = full_locus_str
+            domain    = full_locus_str
             subdomain = None
-            residue = None
+            residue   = None
         else:
             raise SyntaxError('Could not parse locus string {}'.format(full_locus_str))
 

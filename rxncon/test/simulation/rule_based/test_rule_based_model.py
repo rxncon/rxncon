@@ -385,3 +385,26 @@ def test_self_regulation():
 
     for actual_rule in rbm.rules:
         assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+
+def test_trslprocat():
+    rxn_system = Quick("""Ribo_trslprocat_Ssy5mRNA
+                          A_p+_Ssy5CAT
+                          B_deg_Ssy5PRO""").rxncon_system
+
+    rbm = rule_based_model_from_rxncon(rxn_system)
+
+    for rule in rbm.rules:
+        print()
+        print(rule)
+
+    # expected_rules = [
+    #     'Rlm1(MADSD) + Rlm1Gene(Rlm1D) -> Rlm1(MADSD!1).Rlm1Gene(Rlm1D!1) k',
+    #     'PolII() + Rlm1Gene() -> PolII() + Rlm1Gene() + Rlm1mRNA() k',
+    #     'Ribo() + Rlm1mRNA() -> Ribo() + Rlm1(MADSD) + Rlm1mRNA() k'
+    # ]
+    #
+    # assert len(rbm.rules) == len(expected_rules)
+    #
+    # for actual_rule in rbm.rules:
+    #     assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)

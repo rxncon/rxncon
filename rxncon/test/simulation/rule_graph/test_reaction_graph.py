@@ -1,6 +1,7 @@
 import pytest
 from typing import Tuple, List
 from collections import namedtuple
+from rxncon.input.excel_book.excel_book import ExcelBook
 from networkx import DiGraph
 from rxncon.input.quick.quick import Quick
 from rxncon.simulation.rule_graph.reaction_graph import ReactionGraph, EdgeWith, EdgeType, NodeType, rxngraph_from_rxncon_system
@@ -315,5 +316,3 @@ def test_multiple_reactions() -> None:
                               ('A_[(a)]', 'B_[(b)]', EdgeWith.external, EdgeType.bimodification)])
 
     assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
-
-

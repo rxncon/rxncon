@@ -3,7 +3,7 @@ import re
 from typing import Union
 from enum import Enum
 from networkx import DiGraph
-from rxncon.core.reaction import Reaction
+from rxncon.core.reaction import Reaction, OutputReaction
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.spec import Spec, LocusResolution
 from rxncon.util.utils import current_function_name
@@ -285,8 +285,9 @@ def rxngraph_from_rxncon_system(rxncon_system: RxnConSystem) -> ReactionGraph:
     builder = GraphBuilder()
 
     for reaction in rxncon_system.reactions:
-        logger.debug('{}: {}'.format(current_function_name(), str(reaction)))
-        add_reaction_to_graph(reaction)
+        if not isinstance(reaction, OutputReaction):
+            logger.debug('{}: {}'.format(current_function_name(), str(reaction)))
+            add_reaction_to_graph(reaction)
 
     return ReactionGraph(builder.get_graph())
 
@@ -311,7 +312,7 @@ def get_node_id(specification: Spec, node_type: Union[NodeType, LocusResolution]
         return str(specification.to_component_spec())
 
     if node_type in [NodeType.domain, LocusResolution.domain] and specification.locus.domain:
-        return '{0}_[{1}]'.format(specification.component_name, specification.locus.domain)
+        return '{0}_[{1}]'.format(specification.name, specification.locus.domain)
 
     if node_type in [NodeType.residue, LocusResolution.residue] and specification.locus.residue:
             return str(specification)
