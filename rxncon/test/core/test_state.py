@@ -6,7 +6,6 @@ import pytest
 def test_input_state() -> None:
     state = state_from_str('[BLA]')
     assert isinstance(state, GlobalState)
-    print(state)
 
 
 ###                      ###

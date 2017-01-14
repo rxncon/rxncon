@@ -259,7 +259,6 @@ class RxnConSystem:
                 if any(state.is_mutually_exclusive_with(other) for state, other in product(trues, trues)):
                     state, other = next((state, other) for state, other in product(trues, trues) if state.is_mutually_exclusive_with(other))
                     local_unsatisfiables.append((contingency, 'State {} mutually exclusive with {}.'.format(str(state), str(other))))
-                    break
                 else:
                     at_least_one_consistent_soln = True
 
