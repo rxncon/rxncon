@@ -205,7 +205,7 @@ class InteractionState(State):
 
     @property
     def is_homodimer(self):
-        return self.first.to_non_struct_spec() == self.second.to_non_struct_spec()
+        return self.first.to_component_spec().to_non_struct_spec() == self.second.to_component_spec().to_non_struct_spec()
 
     @property
     def neutral_states(self) -> List['State']:
@@ -217,10 +217,12 @@ class InteractionState(State):
     def update_specs(self, updates: Dict[Spec, Spec]) -> None:
         try:
             self.first = updates[self.first]
+            self.first, self.second = sorted([self.first, self.second])
         except KeyError:
             pass
         try:
             self.second = updates[self.second]
+            self.first, self.second = sorted([self.first, self.second])
         except KeyError:
             pass
 
@@ -458,10 +460,12 @@ class SelfInteractionState(State):
     def update_specs(self, updates: Dict[Spec, Spec]) -> None:
         try:
             self.first = updates[self.first]
+            self.first, self.second = sorted([self.first, self.second])
         except KeyError:
             pass
         try:
             self.second = updates[self.second]
+            self.first, self.second = sorted([self.first, self.second])
         except KeyError:
             pass
 
