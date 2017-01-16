@@ -1,4 +1,5 @@
 from rxncon.core.reaction import *
+import pytest
 
 
 def test_simple_reaction() -> None:
@@ -22,3 +23,17 @@ def test_ipi_reaction() -> None:
 
     assert rxn.terms_lhs == [ReactionTerm([spec_from_str('A')], [state_from_str('A_[n]--0'), state_from_str('A_[m]--0')])]
     assert rxn.terms_rhs == [ReactionTerm([spec_from_str('A')], [state_from_str('A_[n]--[m]')])]
+
+
+def test_output_reaction() -> None:
+    rxn = reaction_from_str('[Output]')
+
+    assert rxn.components_rhs == []
+    assert rxn.components_lhs == []
+    assert rxn.degraded_components == []
+    assert rxn.synthesised_components == []
+
+    assert rxn.consumed_states == []
+    assert rxn.produced_states == []
+    assert rxn.synthesised_states == []
+    assert rxn.degraded_states == []
