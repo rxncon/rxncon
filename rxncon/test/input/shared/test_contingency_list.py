@@ -35,6 +35,47 @@ def test_nested_boolean() -> None:
     expected = venn_from_str('( A_[x]--B_[y] & A_[(r)]-{p} & B_[z]--D_[y] & B_[(r1)]-{p} & B_[(r2)]-{p} )', state_from_str)
     assert venn_from_effector(contingencies[0].effector).is_equivalent_to(expected)
 
+def test_contingency_equivalence():
+    cles1 = [
+        cle_from_str('<C1>', 'AND', 'A_[x]--B_[y]'),
+        cle_from_str('<C1>', 'AND', 'A_[(r)]-{p}'),
+        cle_from_str('<C2>', 'NOT', 'B_[(r1)]-{p}'),
+        cle_from_str('<C1C2>', 'OR', '<C1>'),
+        cle_from_str('<C1C2>', 'OR', '<C2>'),
+        cle_from_str('A_[q]_ppi+_Q_[a]', '!', '<C1C2>')
+    ]
+
+    cles2 = [
+        cle_from_str('<C1>', 'AND', 'A_[x]--B_[y]'),
+        cle_from_str('<C1>', 'AND', 'A_[(r)]-{p}'),
+        cle_from_str('<C2>', 'NOT', 'B_[(r1)]-{p}'),
+        cle_from_str('<C1C2>', 'OR', '<C1>'),
+        cle_from_str('<C1C2>', 'OR', '<C2>'),
+        cle_from_str('A_[q]_ppi+_Q_[a]', '!', '<C1C2>')
+    ]
+    contingencies1 = contingencies_from_contingency_list_entries(cles1)
+    assert len(contingencies1) == 1
+    contingencies2 = contingencies_from_contingency_list_entries(cles2)
+    assert len(contingencies2) == 1
+    assert contingencies1 == contingencies2
+
+
+def test_nested_OR_NOT_boolean():
+    cles = [
+        cle_from_str('<C1>', 'AND', 'A_[x]--B_[y]'),
+        cle_from_str('<C1>', 'AND', 'A_[(r)]-{p}'),
+        cle_from_str('<C2>', 'NOT', 'B_[(r1)]-{p}'),
+        cle_from_str('<C1C2>', 'OR', '<C1>'),
+        cle_from_str('<C1C2>', 'OR', '<C2>'),
+        cle_from_str('A_[q]_ppi+_Q_[a]', '!', '<C1C2>')
+    ]
+
+    contingencies = contingencies_from_contingency_list_entries(cles)
+    assert len(contingencies) == 1
+
+    expected = venn_from_str('( ( A_[x]--B_[y] & A_[(r)]-{p} ) | ~( B_[(r1)]-{p} ) )', state_from_str)
+    assert venn_from_effector(contingencies[0].effector).is_equivalent_to(expected)
+
 
 def test_simple_namespace() -> None:
     cles = [
@@ -86,3 +127,4 @@ def test_insulin_homodimer() -> None:
     assert state_from_str('IR@0_[IRBD]--IR@2_[IRBD]') in states
     assert state_from_str('IR@0_[lig]--insulin@3_[IR]') in states
     assert state_from_str('IR@2_[lig]--insulin@4_[IR]') in states
+

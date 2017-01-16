@@ -86,6 +86,35 @@ def test_validated_sbtab_raises_value_error_wrong_type() -> None:
         sbtab = ValidatedSBtabData(sbtab_input, definitions)
 
 
+def test_input_type_validated_sbtab_() -> None:
+
+    sbtab_input= [
+        ['!!SBtab SBtabVersion "0.8" Document="Hynne_2001" TableType="Compound" TableName="Test_Compound"'],
+        ['!Charge', '!Compound', '!InitialValue', '!IsConstant', '!Comment'],
+        ['1',  'compound', '1.5', 'True', 'some mode comments']
+    ]
+
+    definitions = sbtab_data_from_file(DEFINITIONS_PATH)
+
+    sbtab = ValidatedSBtabData(sbtab_input, definitions)
+
+    assert sbtab.version       == '0.8'
+    assert sbtab.document_name == 'Hynne_2001'
+    assert sbtab.table_type    == 'Compound'
+    assert sbtab.table_name    == 'Test_Compound'
+    assert len(sbtab.entries)  == 1
+
+    # Assert both "entry[property]" and the "entry.property" work.
+    entry = sbtab.entries[0]
+    assert entry.field_names   == ['Charge', 'Compound', 'InitialValue', 'IsConstant', 'Comment']  # type: ignore
+
+    assert entry.Charge        == 1                                   # type: ignore
+    assert entry.Compound      == 'compound'                               # type: ignore
+    assert math.isclose(entry.InitialValue, 1.5)                        # type: ignore
+    assert entry.IsConstant    == True                          # type: ignore
+    assert entry.Comment       == 'some mode comments'                        # type: ignore
+
+
 def test_validated_sbtab_tiger_contingencies() -> None:
     definitions = sbtab_data_from_file(RXNCON_DEFINITIONS_PATH)
 
