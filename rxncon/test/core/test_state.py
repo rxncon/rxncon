@@ -163,7 +163,8 @@ def test_ppi_structured_index() -> None:
 def test_ppi_mutual_exclusivity() -> None:
     assert state_from_str('A_[x]--B_[y]').is_mutually_exclusive_with(state_from_str('A_[x]--C_[z]'))
 
-
+def test_ppi_is_global() -> None:
+    assert not state_from_str('A_[x]--B_[y]').is_global
 ###                          ###
 # Test self-interaction states #
 ###                          ###
@@ -246,6 +247,8 @@ def test_ipi_update_spec() -> None:
     state.update_specs({spec_from_str('A_[y]'):spec_from_str('A_[z]')})
     assert state == state_from_str('A_[z]--[z]')
 
+def test_ipi_is_global() -> None:
+    assert not state_from_str('A_[x]--[y]').is_global
 
 def test_ipi_is_structured() -> None:
     assert not state_from_str('A_[x]--[y]').is_structured
@@ -259,6 +262,18 @@ def test_ipi_to_structured_from_spec() -> None:
 def test_ipi_to_structured_from_state() -> None:
     structured_homodimer = state_from_str('A_[x]--[y]').to_structured_from_state(state_from_str('A@0_[w]--[z]'))
     assert structured_homodimer == state_from_str('A@0_[x]--[y]')
+
+def test_ipi_is_superset_of():
+
+    # Happy path, subset, bond.
+    assert state_from_str('A_[m]--[n]').is_subset_of(state_from_str('A_[m]--[n]'))
+    assert state_from_str('A_[m]--[n]').is_superset_of(state_from_str('A_[m]--[n]'))
+
+    # Sad path, superset, bond.
+    assert not state_from_str('A_[m]--B').is_subset_of(state_from_str('A_[m]--[n]'))
+    assert not state_from_str('A--A').is_subset_of(state_from_str('A_[m]--[n]'))
+    assert not state_from_str('A_[m]--[n]').is_subset_of(state_from_str('A--A'))
+    assert not state_from_str('A_[m]--B_[n]').is_subset_of(state_from_str('A_[m]--[n]'))
 
 
 ###                      ###
@@ -291,6 +306,9 @@ def test_properties_fully_neutral() -> None:
         fully_neutral_state.is_neutral
 
     with pytest.raises(AssertionError):
+        fully_neutral_state.neutral_states
+
+    with pytest.raises(AssertionError):
         fully_neutral_state.to_structured_from_spec(spec_from_str('A_[m]'))
 
     with pytest.raises(AssertionError):
@@ -308,6 +326,14 @@ def test_properties_fully_neutral() -> None:
     with pytest.raises(AssertionError):
         fully_neutral_state.is_homodimer
 
+
+def test_sort_fully_neutral():
+    assert state_from_str('0') < state_from_str('A_[x]--0')
+    assert state_from_str('0') < state_from_str('A_[x]--A_[y]')
+    assert state_from_str('0') < state_from_str('A_[x]--B_[y]')
+    assert state_from_str('0') < state_from_str('A_[(x)]-{p}')
+    assert state_from_str('0') < state_from_str('A_[(x)]-{0}')
+    assert state_from_str('0') < state_from_str('[OUT]')
 
 ###                      ###
 #   Test homodimer state   #
@@ -378,3 +404,13 @@ def test_global_state_propterties() -> None:
     assert state.is_structured
     assert state.neutral_states == []
 
+def test_global_get_item():
+    with pytest.raises(KeyError):
+        state_from_str('[BLA]')['$y']
+
+    assert state_from_str('[BLA]') > state_from_str('X_[x]--0')
+    assert state_from_str('[BLA]') > state_from_str('X_[x]--A_[y]')
+    assert state_from_str('[BLA]') > state_from_str('X_[x]--B_[y]')
+    assert state_from_str('[BLA]') > state_from_str('X_[(x)]-{p}')
+    assert state_from_str('[BLA]') > state_from_str('X_[(x)]-{0}')
+    assert state_from_str('[BLA]') < state_from_str('[OUT]')
