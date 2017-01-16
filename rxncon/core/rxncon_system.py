@@ -9,6 +9,7 @@ from rxncon.core.reaction import Reaction, ReactionTerm
 from rxncon.core.state import State, FullyNeutralState
 from rxncon.core.spec import Spec
 from rxncon.util.utils import current_function_name
+from rxncon.venntastic.sets import UniversalSet, Intersection, Set
 
 logger = logging.getLogger(__name__)
 
@@ -53,8 +54,8 @@ class RxnConSystem:
 
         unsatisfiable_contingencies = self._unsatisfiable_contingencies()
         if unsatisfiable_contingencies:
-            reason_str = ', '.join('{} : {}'.format(cont, reason) for cont, reason in unsatisfiable_contingencies)
-            raise AssertionError('Unsatisfiable contingencies: {}'.format(reason_str))
+            reason_str = ', '.join('{} : {}'.format(rxn, reason) for rxn, reason in unsatisfiable_contingencies)
+            raise AssertionError('Unsatisfiable reaction contingencies: {}'.format(reason_str))
 
     def components(self) -> List[Spec]:
         if not self._components:
@@ -243,23 +244,28 @@ class RxnConSystem:
 
         return [reaction for reaction in required_reactions if reaction not in self.reactions]
 
-    def _unsatisfiable_contingencies(self) -> List[Tuple[Contingency, str]]:
+    def _unsatisfiable_contingencies(self) -> List[Tuple[Reaction, str]]:
         unsatisfiable = []
-        for contingency in self.contingencies:
-            local_unsatisfiables = []
 
-            solutions = contingency.to_venn_set().calc_solutions()
+        for reaction in self.reactions:
+            contingencies = self.s_contingencies_for_reaction(reaction)
+
+            total_set = UniversalSet()  # type: Set[State]
+            for contingency in contingencies:
+                total_set = Intersection(total_set, contingency.to_venn_set())
+
+            solutions = total_set.calc_solutions()
             if len(solutions) == 0:
-                unsatisfiable.append((contingency, 'Zero consistent solutions found.'))
+                unsatisfiable.append((reaction, 'Zero consistent solutions found.'))
 
+            local_unsatisfiables = []
             at_least_one_consistent_soln = False
 
             for solution in solutions:
                 trues = [state for state, val in solution.items() if val]
                 if any(state.is_mutually_exclusive_with(other) for state, other in product(trues, trues)):
                     state, other = next((state, other) for state, other in product(trues, trues) if state.is_mutually_exclusive_with(other))
-                    local_unsatisfiables.append((contingency, 'State {} mutually exclusive with {}.'.format(str(state), str(other))))
-                    break
+                    local_unsatisfiables.append((reaction, 'State {} mutually exclusive with {}.'.format(str(state), str(other))))
                 else:
                     at_least_one_consistent_soln = True
 

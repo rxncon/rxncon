@@ -171,6 +171,7 @@ class TrivialStructEquivalences(StructEquivalences):
     def indices_in_root_namespace(self) -> List[int]:
         return [x for x in range(self.cur_index)]
 
+
 class StructCounter:
     def __init__(self) -> None:
         self.value = 2
