@@ -1,10 +1,11 @@
-from typing import List, Dict, Tuple, Iterable
+from typing import List, Dict, Tuple, Optional
 from copy import deepcopy
 from enum import Enum
+from itertools import product
 
 from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union, Complement, UniversalSet, EmptySet
 from rxncon.core.reaction import Reaction
-from rxncon.core.state import State
+from rxncon.core.state import State, InteractionState
 from rxncon.core.spec import Spec
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
@@ -148,15 +149,17 @@ class ReactionTarget(Target):
         reaction_parent: A elemental reaction of the rxncon system.
 
     """
-    def __init__(self, reaction_parent: Reaction) -> None:
+    def __init__(self, reaction_parent: Reaction, contingency_variant=0, interaction_variant=0, contingency_factor=None) -> None:
         self.reaction_parent     = reaction_parent  # type: Reaction
         self.produced_targets    = [StateTarget(x) for x in reaction_parent.produced_states]  # type: List[StateTarget]
         self.consumed_targets    = [StateTarget(x) for x in reaction_parent.consumed_states]  # type: List[StateTarget]
         self.synthesised_targets = [StateTarget(x) for x in reaction_parent.synthesised_states]  # type: List[StateTarget]
         self.degraded_targets    = [StateTarget(x) for x in reaction_parent.degraded_states]  # type: List[StateTarget]
 
-        self.contingency_variant_index = 0
-        self.interaction_variant_index = 0
+        self.contingency_variant_index = contingency_variant
+        self.interaction_variant_index = interaction_variant
+
+        self.contingency_factor  = contingency_factor  # type: Optional[VennSet[StateTarget]]
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -416,6 +419,10 @@ class StateTarget(Target):
         """
         return [StateTarget(x) for x in self._state_parent.neutral_states]
 
+    @property
+    def is_interaction(self) -> bool:
+        return isinstance(self._state_parent, InteractionState)
+
     def is_mutually_exclusive_with(self, other: 'StateTarget') -> bool:
         """
         Asking if a state is mutually exclusive with another state.
@@ -484,6 +491,9 @@ class ComponentStateTarget(StateTarget):
         """
         return True
 
+    @property
+    def is_interaction(self) -> bool:
+        return False
 
 class UpdateRule:
     """
@@ -571,7 +581,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         return BooleanModelConfig(conds)
 
-    def calc_component_factors() -> None:
+    def calc_component_presence_factors() -> Tuple[Dict[Spec, VennSet[StateTarget]], List[ComponentStateTarget]]:
         """
         Calculates the factors for components.
 
@@ -591,6 +601,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             None
 
         """
+        component_state_targets = []
+        component_to_factor     = {}
         for component in rxncon_sys.components():
             grouped_states = rxncon_sys.states_for_component_grouped(component)
             # component is not part of any state
@@ -603,7 +615,9 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 component_to_factor[component] = \
                     Intersection(*(Union(*(ValueSet(StateTarget(x)) for x in group)) for group in grouped_states.values()))
 
-    def calc_contingency_factors() -> None:
+        return component_to_factor, component_state_targets
+
+    def calc_reaction_targets_with_dnf_contingencies() -> List[ReactionTarget]:
         """
         Calculates contingency factors for reaction targets.
 
@@ -617,29 +631,36 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Returns:
             None
         """
+
+        reaction_targets = []
+
         for reaction in rxncon_sys.reactions:
             factors = (x.to_venn_set(k_plus_strict=True, k_minus_strict=True, structured=False, state_wrapper=StateTarget)
                        for x in rxncon_sys.contingencies_for_reaction(reaction))
             cont = Intersection(*factors).to_simplified_set()  # type: VennSet[StateTarget]
             # The reaction is not a degradation reaction
             if not reaction.degraded_components:
-                reaction_target_to_factor[ReactionTarget(reaction)] = cont
+                reaction_targets.append(ReactionTarget(reaction, contingency_factor=cont))
             # The reaction is a degradation reaction
             else:
                 # The reaction is split into separated entities according to the number of minterms of the
-                # disjunctive normal from (dnf). Each minterm will be assigned to a entity of the degradation reaction.
+                # disjunctive normal form (dnf). Each minterm will be assigned to a entity of the degradation reaction.
                 for index, factor in enumerate(cont.to_dnf_list()):
-                    target = ReactionTarget(reaction)
-                    target.contingency_variant_index = index
-                    reaction_target_to_factor[target] = factor
+                    reaction_targets.append(ReactionTarget(reaction, contingency_variant=index, contingency_factor=factor))
 
-    def update_degradations_with_component_states() -> None:
-        for reaction_target in reaction_target_to_factor.keys():
+        return reaction_targets
+
+    def update_degradations_add_component_states(reaction_targets: List[ReactionTarget],
+                                                  component_state_targets: List[ComponentStateTarget]) -> List[ReactionTarget]:
+        result = deepcopy(reaction_targets)
+        for reaction_target in result:
             for degraded_component in reaction_target.degraded_components:
                 if ComponentStateTarget(degraded_component) in component_state_targets:
                     reaction_target.degraded_targets.append(ComponentStateTarget(degraded_component))
 
-    def update_degradations_with_contingencies() -> None:
+        return result
+
+    def update_degradations_add_contingent_states(reaction_targets: List[ReactionTarget]) -> List[ReactionTarget]:
         def degraded_state_targets(component: Spec, soln: Dict[StateTarget, bool]) -> List[StateTarget]:
             # soln evaluates to False if solution is tautology.
             if not soln and ComponentStateTarget(component) in component_state_targets:
@@ -653,30 +674,17 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                     trues += target.complementary_state_targets(rxncon_sys, component)
                 return trues
 
-        for reaction_target, contingency_factor in reaction_target_to_factor.items():
-            if contingency_factor.is_equivalent_to(UniversalSet()) and not reaction_target.degraded_components:
-                pass
+        result = deepcopy(reaction_targets)
 
-            if contingency_factor.is_equivalent_to(UniversalSet()) and reaction_target.degraded_components:
-                for degraded_component in reaction_target.degraded_components:
-                    reaction_target.degraded_targets += degraded_state_targets(degraded_component, {})
+        for reaction_target in result:
+            solutions = reaction_target.contingency_factor.calc_solutions()
 
-            # Make sure the contingency concerns the object, not the subject of the degradation.
-            contingency_components = []  # type: List[Spec]
+            for degraded_component, solution in product(reaction_target.degraded_components, solutions):
+                reaction_target.degraded_targets.extend(degraded_state_targets(degraded_component, solution))
 
-            for state in (state for state in contingency_factor.values if state):
-                contingency_components.extend(state.components)
+        return result
 
-            if not any(x in reaction_target.degraded_components for x in contingency_components):
-                continue
-
-            solns = contingency_factor.calc_solutions()
-            assert len(solns) == 1
-            soln = solns[0]
-            for degraded_component in reaction_target.degraded_components:
-                reaction_target.degraded_targets += degraded_state_targets(degraded_component, soln)
-
-    def update_degradations_for_interaction_states() -> None:
+    def update_degradations_add_interaction_state_partner(reaction_targets: List[ReactionTarget]) -> List[ReactionTarget]:
         """
         Update degradation reactions for interaction states.
 
@@ -691,36 +699,29 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         """
 
-        def state_exclusive_with_contingency(state: StateTarget, contingency_factor: VennSet) -> bool:
-            solns = contingency_factor.calc_solutions()
-            assert len(solns) == 1
-            true_states  = [state for state, val in solns[0].items() if val]
-            false_states = [state for state, val in solns[0].items() if not val]
+        result = []
 
-            if state in false_states or any(true_state.is_mutually_exclusive_with(state) for true_state in true_states):
-                return True
-            else:
-                return False
+        for reaction_target in reaction_targets:
+            appended = False
+            for index, interaction_target in enumerate(x for x in reaction_target.degraded_targets if x.is_interaction):
+                empty_partners = [neutral_target for neutral_target in interaction_target.neutral_targets
+                                  if not any(component in reaction_target.degraded_components for component in neutral_target.components)]
+                assert len(empty_partners) == 1
+                new_reaction = deepcopy(reaction_target)
+                new_reaction.interaction_variant_index = index
+                new_reaction.consumed_targets.append(interaction_target)
+                new_reaction.produced_targets.append(empty_partners[0])
 
-        new_reactions = {}  # type: Dict[ReactionTarget, VennSet]
+                result.append(new_reaction)
+                appended = True
 
-        for reaction_target, contingency_factor in reaction_target_to_factor.items():
-            for num, interaction_state in enumerate(state for state in rxncon_sys.states if len(state.components) > 1
-                                                    and any(reaction_target.degrades_component(spec) for spec in state.components)
-                                                    and not state_exclusive_with_contingency(StateTarget(state), contingency_factor)):
-                neutral_targets = StateTarget(interaction_state).neutral_targets
-                new_reaction_target = deepcopy(reaction_target)
+            if not appended:
+                result.append(deepcopy(reaction_target))
 
-                new_reaction_target.consumed_targets.append(StateTarget(interaction_state))
-                new_reaction_target.produced_targets += \
-                    [x for x in neutral_targets if not any(component in new_reaction_target.degraded_components for component in x.components)]
+        return result
 
-                new_reaction_target.interaction_variant_index = num + 1
-                new_reactions[new_reaction_target] = contingency_factor
-
-        reaction_target_to_factor.update(new_reactions)
-
-    def update_syntheses_with_component_states() -> None:
+    def update_syntheses_with_component_states(reaction_targets: List[ReactionTarget],
+                                               component_state_targets: List[ComponentStateTarget]) -> List[ReactionTarget]:
         """
         Update synthesis reaction with component states.
 
@@ -731,10 +732,15 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             None
 
         """
-        for reaction_target, _ in reaction_target_to_factor.items():
+
+        result = deepcopy(reaction_targets)
+
+        for reaction_target in result:
             for component in reaction_target.synthesised_components:
                 if ComponentStateTarget(component) in component_state_targets:
                     reaction_target.synthesised_targets.append(ComponentStateTarget(component))
+
+        return result
 
     def calc_reaction_rules() -> None:
         """
@@ -751,10 +757,10 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         """
 
-        for reaction_target, contingency_factor in reaction_target_to_factor.items():
-            components = (component_to_factor[x] for x in reaction_target.components_lhs)
+        for reaction_target in reaction_targets:
+            components = (component_presence_factor[x] for x in reaction_target.components_lhs)
             component_factor = Intersection(*components)  # type: VennSet[StateTarget]
-            reaction_rules.append(UpdateRule(reaction_target, Intersection(component_factor, contingency_factor).to_simplified_set()))
+            reaction_rules.append(UpdateRule(reaction_target, Intersection(component_factor, reaction_target.contingency_factor).to_simplified_set()))
 
     def calc_state_rules() -> None:
         """
@@ -791,7 +797,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             return Union(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
 
         def component_factor(state_target: StateTarget) -> VennSet[StateTarget]:
-            return Intersection(*(component_to_factor[x] for x in state_target.components))
+            return Intersection(*(component_presence_factor[x] for x in state_target.components))
 
         def degradation_factor(state_target: StateTarget) -> VennSet[ReactionTarget]:
             return Complement(Union(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
@@ -830,20 +836,15 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                                                 tot_prod_fac,
                                                 tot_cons_fac).to_simplified_set()))
 
-    component_to_factor       = {}  # type: Dict[Spec, VennSet]
-    reaction_target_to_factor = {}  # type: Dict[ReactionTarget, VennSet]
-    component_state_targets   = []  # type: List[ComponentStateTarget]
+    component_presence_factor, component_state_targets = calc_component_presence_factors()
 
-    calc_component_factors()
-    calc_contingency_factors()
-    update_degradations_with_component_states()
-    update_degradations_with_contingencies()
-    update_degradations_for_interaction_states()
-    update_syntheses_with_component_states()
+    state_targets    = [StateTarget(x) for x in rxncon_sys.states] + component_state_targets
 
-    state_targets    = [StateTarget(x) for x in rxncon_sys.states]
-    state_targets.extend(component_state_targets)
-    reaction_targets = list(reaction_target_to_factor.keys())
+    reaction_targets = calc_reaction_targets_with_dnf_contingencies()
+    reaction_targets = update_degradations_add_component_states(reaction_targets, component_state_targets)
+    reaction_targets = update_degradations_add_contingent_states(reaction_targets)
+    reaction_targets = update_degradations_add_interaction_state_partner(reaction_targets)
+    reaction_targets = update_syntheses_with_component_states(reaction_targets, component_state_targets)
 
     reaction_rules = []  # type: List[UpdateRule]
     state_rules    = []  # type: List[UpdateRule]

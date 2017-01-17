@@ -366,12 +366,11 @@ def test_deg_with_boolean_AND() -> None:
 
     expected_rules = {
         'C_deg_A': '(( C & A_[x]--B_[y] & A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
-        'C_deg_A#0/1': '(( C & A_[x]--B_[y] & A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
         'D_p+_A_[(r)]': '(( D & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
         'A_[x]_ppi+_B_[y]': '((( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | B_[y]--0 )))',
-        'B_[y]--0': '((( A_[x]--B_[y] & C_deg_A#0/1 & ( A_[x]--B_[y] | B_[y]--0 )) | ( B_[y]--0 & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( B_[y]--0 & A_[x]_ppi+_B_[y] & A_[x]--0 )))))',
-        'A_[(r)]-{p}': '((( A_[(r)]-{0} & D_p+_A_[(r)] & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( C_deg_A | C_deg_A#0/1 ))) | ( A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( C_deg_A | C_deg_A#0/1 )))))',
-        'A_[x]--B_[y]': '(( A_[x]--0 & B_[y]--0 & A_[x]_ppi+_B_[y] & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( C_deg_A | C_deg_A#0/1 ))) | ( A_[x]--B_[y] & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( A_[x]--B_[y] & C_deg_A#0/1 )) & ~(( C_deg_A | C_deg_A#0/1 ))))',
+        'B_[y]--0': '((( A_[x]--B_[y] & C_deg_A & ( A_[x]--B_[y] | B_[y]--0 )) | ( B_[y]--0 & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( B_[y]--0 & A_[x]_ppi+_B_[y] & A_[x]--0 )))))',
+        'A_[(r)]-{p}': '((( A_[(r)]-{0} & D_p+_A_[(r)] & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~( C_deg_A  )) | ( A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~( C_deg_A ))))',
+        'A_[x]--B_[y]': '(( A_[x]--0 & B_[y]--0 & A_[x]_ppi+_B_[y] & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[x]--B_[y] | B_[y]--0 ) & ~( C_deg_A )) | ( A_[x]--B_[y] & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( A_[x]--B_[y] & C_deg_A )) & ~( C_deg_A )))',
         'A_[(r)]-{0}': '( A_[(r)]-{0} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( A_[(r)]-{0} & D_p+_A_[(r)] )))',
         'A_[x]--0': '(( A_[x]--0 & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( A_[x]--0 & A_[x]_ppi+_B_[y] & B_[y]--0 ))))',
         'D': 'D',
@@ -402,8 +401,7 @@ def test_deg_with_boolean_NOT() -> None:
 
     expected_rules = {
         'C_deg_A': '( C & A_[x]--B_[y] & ~( A_[(r)]-{p} ) & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
-        'C_deg_A#0/1': '( C & A_[x]--B_[y] & ~( A_[(r)]-{p} ) & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
-        'B_[y]--0': '(( A_[x]--B_[y] & C_deg_A#0/1 & ( B_[y]--0 | A_[x]--B_[y] )) | ( B_[y]--0 & ( B_[y]--0 | A_[x]--B_[y] ) & ~(( B_[y]--0 & A_[x]_ppi+_B_[y] & A_[x]--0 ))))',
+        'B_[y]--0': '(( A_[x]--B_[y] & C_deg_A & ( B_[y]--0 | A_[x]--B_[y] )) | ( B_[y]--0 & ( B_[y]--0 | A_[x]--B_[y] ) & ~(( B_[y]--0 & A_[x]_ppi+_B_[y] & A_[x]--0 ))))',
         'A_[(r)]-{p}': '(( A_[(r)]-{0} & D_p+_A_[(r)] & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )) | ( A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
     }
 
@@ -432,10 +430,12 @@ def test_deg_with_interaction() -> None:
                                                        C_deg_A""").rxncon_system)
     target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
 
+    A = '( ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[(r)]-{p} | A_[(r)]-{0} ) )'
+
     expected_rules = {
-        'A_[x]--0':     '( A_[x]--0 & ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[(r)]-{p} | A_[(r)]-{0} ) & ~(( A_[x]_ppi+_B_[y] & A_[x]--0 & B_[y]--0 )) & ~(( C_deg_A#0/1 | C_deg_A )))',
-        'B_[y]--0':     '(( C_deg_A#0/1 & A_[x]--B_[y] & ( B_[y]--0 | A_[x]--B_[y] )) | ( B_[y]--0 & ( B_[y]--0 | A_[x]--B_[y] ) & ~(( A_[x]--0 & B_[y]--0 & A_[x]_ppi+_B_[y] ))))',
-        'A_[x]--B_[y]': '(( A_[x]--0 & A_[x]_ppi+_B_[y] & B_[y]--0 & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | B_[y]--0 ) & ( A_[x]--B_[y] | A_[x]--0 ) & ~(( C_deg_A | C_deg_A#0/1 ))) | ( A_[x]--B_[y] & ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( A_[x]--B_[y] & C_deg_A#0/1 )) & ~(( C_deg_A | C_deg_A#0/1 ))))'
+        'A_[x]--0':     '( A_[x]--0 & ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[(r)]-{p} | A_[(r)]-{0} ) & ~(( A_[x]_ppi+_B_[y] & A_[x]--0 & B_[y]--0 )) & ~( C_deg_A ))',
+        'B_[y]--0':     '(( C_deg_A & A_[x]--B_[y] & ( B_[y]--0 | A_[x]--B_[y] )) | ( B_[y]--0 & ( B_[y]--0 | A_[x]--B_[y] ) & ~(( A_[x]--0 & B_[y]--0 & A_[x]_ppi+_B_[y] ))))',
+        'A_[x]--B_[y]': '{} & ~( C_deg_A ) & (( A_[x]_ppi+_B_[y] & A_[x]--0 & B_[y]--0 ) | ( A_[x]--B_[y] & ~( C_deg_A & A_[x]--B_[y] ) ) )'.format(A)
     }
 
     for target_str, factor_str in expected_rules.items():
@@ -448,14 +448,9 @@ def test_deg_with_interaction_as_requirement() -> None:
                                                        C_deg_A; ! A_[x]--B_[y]""").rxncon_system)
 
     assert boolean_model.reaction_target_by_name('C_deg_A').degraded_targets    == [target_from_str('A_[x]--B_[y]')]
-    assert boolean_model.reaction_target_by_name('C_deg_A').consumed_targets    == []
-    assert boolean_model.reaction_target_by_name('C_deg_A').produced_targets    == []
+    assert boolean_model.reaction_target_by_name('C_deg_A').consumed_targets    == [target_from_str('A_[x]--B_[y]')]
+    assert boolean_model.reaction_target_by_name('C_deg_A').produced_targets    == [target_from_str('B_[y]--0')]
     assert boolean_model.reaction_target_by_name('C_deg_A').synthesised_targets == []
-
-    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').degraded_targets    == [target_from_str('A_[x]--B_[y]')]
-    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').consumed_targets    == [target_from_str('A_[x]--B_[y]')]
-    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').produced_targets    == [target_from_str('B_[y]--0')]
-    assert boolean_model.reaction_target_by_name('C_deg_A#0/1').synthesised_targets == []
 
 
 def test_deg_with_interaction_as_inhibition() -> None:
@@ -464,7 +459,7 @@ def test_deg_with_interaction_as_inhibition() -> None:
                                                        A_[x]_ppi+_E_[w]
                                                        C_deg_A; x A_[x]--B_[y]""").rxncon_system)
 
-    for rxn in ['C_deg_A', 'C_deg_A#0/1', 'C_deg_A#0/2']:
+    for rxn in ['C_deg_A', 'C_deg_A#0/1']:
         target = boolean_model.reaction_target_by_name(rxn)
         assert not target.synthesised_targets
         assert target_from_str('A_[x]--0') in target.degraded_targets
