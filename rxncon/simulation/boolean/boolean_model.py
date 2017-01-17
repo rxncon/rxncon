@@ -539,52 +539,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
           The boolean model.
 
     """
-    def factor_from_contingency(contingency: Contingency) -> VennSet[StateTarget]:
-        """
-        Calculates factors from contingency.
-
-        Note:
-            Positive quantitative contingencies are handled like required contingencies.
-            Negative quantitative contingencies are handled like inhibitions.
-
-        Args:
-            contingency: rxncon system contingency (contextual constraint defined on a reaction)
-
-        Returns:
-            If there are contingencies a VennSet of StateTargets is returned, the UniversalSet otherwise.
-
-        """
-        def parse_effector(eff: Effector) -> VennSet[StateTarget]:
-            """
-            Reshape VennSet of StateEffectors into VennSet of StateTargets.
-
-            Args:
-                eff: VennSet of StateEffectors.
-
-            Returns:
-                VennSet of StateTargets.
-
-            Raises:
-                AssertionError if effector is not known.
-
-            """
-            if isinstance(eff, StateEffector):
-                return ValueSet(StateTarget(eff.expr.to_non_structured()))
-            elif isinstance(eff, NotEffector):
-                return Complement(parse_effector(eff.expr))
-            elif isinstance(eff, OrEffector):
-                return Union(*(parse_effector(x) for x in eff.exprs))
-            elif isinstance(eff, AndEffector):
-                return Intersection(*(parse_effector(x) for x in eff.exprs))
-            else:
-                raise AssertionError
-
-        if contingency.type in [ContingencyType.requirement, ContingencyType.positive]:
-            return parse_effector(contingency.effector)
-        elif contingency.type in [ContingencyType.inhibition, ContingencyType.negative]:
-            return Complement(parse_effector(contingency.effector))
-        else:
-            return UniversalSet()
 
     def initial_conditions(reaction_targets: List[ReactionTarget], state_targets: List[StateTarget]) -> BooleanModelConfig:
         """
