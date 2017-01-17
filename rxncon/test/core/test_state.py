@@ -101,15 +101,11 @@ def test_ppi_props() -> None:
     assert not state.is_elemental
     assert elems_eq(state.components, [spec_from_str('A'), spec_from_str('B')])
     assert not state.is_neutral
-    # @todo JCR 20160920 This is not correct, the state A--0 should be replaced by the list of domains of A that
-    # @todo              can bind to B. Perhaps we should invent a new notation for this, since this property cannot
-    # @todo              be known by just looking at the state itself, but requires knowledge of the rest of the system.
     assert elems_eq(state.neutral_states, [state_from_str('A--0'), state_from_str('B_[n]--0')])
 
 
 def test_ppi_parsing() -> None:
-    # @todo JCR 20160920 Bonds are symmetric. We need extra structure to allow this is the StateDef.
-    # assert state_from_string('A_[x]--B_[y]') == state_from_string('B_[y]--A_[x]')
+    assert state_from_str('A_[x]--B_[y]') == state_from_str('B_[y]--A_[x]')
 
     # Too fine resolution (higher than elemental) raises.
     with pytest.raises(SyntaxError):
@@ -174,8 +170,6 @@ def test_ppi_is_global() -> None:
 ###                          ###
 
 def test_ipi_props() -> None:
-    # NOTE : States with free binding domain are the same states as tested in 'test_ppi_props', tested there.
-
     # Elemental state, bond.
     state = state_from_str('A_[m]--[n]')
     assert state.is_elemental
@@ -183,33 +177,30 @@ def test_ipi_props() -> None:
     assert not state.is_neutral
     assert elems_eq(state.neutral_states, [state_from_str('A_[m]--0'), state_from_str('A_[n]--0')])
 
-    # # Non-elemental state, bond.
-    # state = state_from_str('A--A_[n]')
-    # assert not state.is_elemental
-    # assert elems_eq(state.components, [spec_from_str('A')])
-    # assert not state.is_neutral
-    # # @todo JCR 20160920 This is not correct, the state A--0 should be replaced by the list of domains of A that
-    # # @todo              can bind to B. Perhaps we should invent a new notation for this, since this property cannot
-    # # @todo              be known by just looking at the state itself, but requires knowledge of the rest of the system.
-    # # @todo              Furthermore, the state A--0 is a superset of the other one, so it should not appear independently.
-    # assert elems_eq(state.neutral_states, [state_from_str('A--0'), state_from_str('A_[n]--0')])
-
 
 def test_ipi_parsing() -> None:
-    # @todo JCR 20160920 Bonds are symmetric. We need extra structure to capture this is the StateDef.
-    # assert state_from_string('A_[x]--B_[y]') == state_from_string('B_[y]--A_[x]')
+    assert state_from_str('A_[x]--B_[y]') == state_from_str('B_[y]--A_[x]')
 
     # Too fine resolution (higher than elemental) raises.
     with pytest.raises(SyntaxError):
         state_from_str('A_[(x)]--[(y)]')
 
+    with pytest.raises(AssertionError):
+        state = state_from_str('A@1_[x]--[y]')
+        state.update_specs({
+            spec_from_str('A@1_[x]'): spec_from_str('A@5_[x]'),
+        })
 
 def test_ipi_superset_subset() -> None:
-    # NOTE : States with free binding domain are the same states as tested in 'test_ppi_superset_subset', tested there.
+    # Happy path, subset, bond.
+    assert state_from_str('A_[m]--[n]').is_subset_of(state_from_str('A_[m]--[n]'))
+    assert state_from_str('A_[m]--[n]').is_superset_of(state_from_str('A_[m]--[n]'))
 
-    # @todo JCR 20160920 There is a problem here: the StateDef requires the second variable in the State string to be
-    # @todo              a Locus (i.e. '[n]') and not a full Spec (i.e. 'A_[n]').
-    pass
+    # Sad path, superset, bond.
+    assert not state_from_str('A_[m]--B').is_subset_of(state_from_str('A_[m]--[n]'))
+    assert not state_from_str('A--A').is_subset_of(state_from_str('A_[m]--[n]'))
+    assert not state_from_str('A_[m]--[n]').is_subset_of(state_from_str('A--A'))
+    assert not state_from_str('A_[m]--B_[n]').is_subset_of(state_from_str('A_[m]--[n]'))
 
 
 def test_ipi_sorting() -> None:
@@ -218,9 +209,6 @@ def test_ipi_sorting() -> None:
     assert state_from_str('A_[x]--[y]') != state_from_str('B_[x]--[y]')
     assert state_from_str('A_[x]--[y]') < state_from_str('B_[x]--[y]')
     assert state_from_str('A_[a]--[b]') < state_from_str('A_[x]--[y]')
-
-    #with pytest.raises(NotImplemented):
-    #    state_from_str('A_[a]--[b]') == spec_from_str('A_[a]')
 
 
 def test_ipi_get_item() -> None:
@@ -272,21 +260,10 @@ def test_ipi_to_structured_from_state() -> None:
     assert structured_homodimer == state_from_str('A@0_[x]--[y]')
 
 
-def test_ipi_is_superset_of():
-    # Happy path, subset, bond.
-    assert state_from_str('A_[m]--[n]').is_subset_of(state_from_str('A_[m]--[n]'))
-    assert state_from_str('A_[m]--[n]').is_superset_of(state_from_str('A_[m]--[n]'))
-
-    # Sad path, superset, bond.
-    assert not state_from_str('A_[m]--B').is_subset_of(state_from_str('A_[m]--[n]'))
-    assert not state_from_str('A--A').is_subset_of(state_from_str('A_[m]--[n]'))
-    assert not state_from_str('A_[m]--[n]').is_subset_of(state_from_str('A--A'))
-    assert not state_from_str('A_[m]--B_[n]').is_subset_of(state_from_str('A_[m]--[n]'))
-
-
 ###                      ###
 # Test Fully Neutral state #
 ###                      ###
+
 def test_fully_neutral() -> None:
     assert state_from_str('0') == FullyNeutralState()
 
@@ -342,11 +319,13 @@ def test_sort_fully_neutral():
     assert state_from_str('0') < state_from_str('A_[(x)]-{0}')
     assert state_from_str('0') < state_from_str('[OUT]')
 
+
 ###                      ###
 #   Test homodimer state   #
 ###                      ###
 def test_homodimer_same_struct_index() -> None:
-    state_from_str('A@4_[x]--A@4_[x]')
+    with pytest.raises(AssertionError):
+        state_from_str('A@4_[x]--A@4_[x]')
 
 
 def test_homodimer_to_structured_from_spec_non_structured() -> None:

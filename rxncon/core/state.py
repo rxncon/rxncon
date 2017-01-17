@@ -138,10 +138,8 @@ class State(ABC):
 
 class InteractionState(State):
     def __init__(self, first: Spec, second: Spec):
-        if first.resolution > LocusResolution.domain or second.resolution > LocusResolution.domain:
-            raise SyntaxError('Resolution for InteractionState too high {} {}'.format(str(first), str(second)))
         self.first, self.second = sorted([first, second])  # type: Spec, Spec
-        self.repr_def = '$x--$y'
+        self._validate()
 
     @property
     def name(self):
@@ -176,6 +174,13 @@ class InteractionState(State):
         else:
             raise KeyError
 
+    def _validate(self):
+        if self.first.resolution > LocusResolution.domain or self.second.resolution > LocusResolution.domain:
+            raise SyntaxError('Resolution for InteractionState too high {} {}'.format(str(self.first), str(self.second)))
+
+        if self.first.is_structured and self.second.is_structured:
+            assert not self.first.struct_index == self.second.struct_index
+
     @property
     def specs(self) -> List[Spec]:
         return [self.first.clone(), self.second.clone()]
@@ -186,8 +191,7 @@ class InteractionState(State):
 
     @property
     def is_elemental(self) -> bool:
-        return self.first.has_resolution(LocusResolution.domain) and \
-            self.second.has_resolution(LocusResolution.domain)
+        return self.first.has_resolution(LocusResolution.domain) and self.second.has_resolution(LocusResolution.domain)
 
     def is_mutually_exclusive_with(self, state: 'State') -> bool:
         if self == state:
@@ -225,6 +229,7 @@ class InteractionState(State):
             pass
 
         self.first, self.second = sorted([self.first, self.second])
+        self._validate()
 
     def to_non_structured(self) -> 'State':
         return InteractionState(self.first.to_non_struct_spec(), self.second.to_non_struct_spec())
@@ -382,10 +387,10 @@ class EmptyBindingState(State):
 
 class SelfInteractionState(State):
     def __init__(self, first: Spec, second: Spec):
-        assert first.to_component_spec() == second.to_component_spec()
-        if first.resolution > LocusResolution.domain or second.resolution > LocusResolution.domain:
-            raise SyntaxError('Resolution for SelfInteractionState too high {} {}'.format(str(first), str(second)))
+
+
         self.first, self.second = sorted([first, second])  # type: Spec, Spec
+        self._validate()
 
     @property
     def name(self):
@@ -419,6 +424,11 @@ class SelfInteractionState(State):
             return self.second
         else:
             raise KeyError
+
+    def _validate(self):
+        assert self.first.to_component_spec() == self.second.to_component_spec()
+        if self.first.resolution > LocusResolution.domain or self.second.resolution > LocusResolution.domain:
+            raise SyntaxError('Resolution for SelfInteractionState too high {} {}'.format(str(self.first), str(self.second)))
 
     @property
     def specs(self) -> List[Spec]:
@@ -466,6 +476,7 @@ class SelfInteractionState(State):
             pass
 
         self.first, self.second = sorted([self.first, self.second])
+        self._validate()
 
     def to_non_structured(self) -> 'State':
         return SelfInteractionState(self.first.to_non_struct_spec(), self.second.to_non_struct_spec())

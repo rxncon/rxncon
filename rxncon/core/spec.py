@@ -34,8 +34,7 @@ class Spec(ABC):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Spec):
             return NotImplemented
-        return isinstance(other, type(self)) and self.name == other.name and self.locus == other.locus \
-            and self.struct_index == other.struct_index
+        return isinstance(other, type(self)) and self.name == other.name and self.locus == other.locus and self.struct_index == other.struct_index
 
     def __lt__(self, other: 'Spec') -> bool:
         return str(self) < str(other)
