@@ -1,10 +1,10 @@
-import pytest
-from typing import Tuple, List
 from collections import namedtuple
-from rxncon.input.excel_book.excel_book import ExcelBook
+from typing import Tuple, List
+
 from networkx import DiGraph
+
 from rxncon.input.quick.quick import Quick
-from rxncon.simulation.rule_graph.reaction_graph import ReactionGraph, EdgeWith, EdgeType, NodeType, rxngraph_from_rxncon_system
+from rxncon.visualization.reaction_graph import EdgeWith, EdgeType, NodeType, rxngraph_from_rxncon_system
 
 RuleTestCase = namedtuple('RuleTestCase', ['quick_string', 'node_tuples', 'edge_tuples'])
 

@@ -1,14 +1,15 @@
 import os
-import pytest
-import time
 import tempfile
+import time
 from xml.dom import minidom
+
+import pytest
 from networkx import DiGraph
 
-from rxncon.input.quick.quick import Quick
-from rxncon.simulation.rule_graph.regulatory_graph import RegulatoryGraph
-from rxncon.simulation.rule_graph.graphML import map_layout2xgmml, XGMML, _get_labels_and_coordinates_dict
 from rxncon.input.excel_book.excel_book import ExcelBook
+from rxncon.input.quick.quick import Quick
+from rxncon.visualization.regulatory_graph import RegulatoryGraph
+from rxncon.visualization.graphML import map_layout2xgmml, XGMML, _get_labels_and_coordinates_dict
 
 PHEROMONE_XLS   = os.path.join(os.path.dirname(__file__), 'pheromone.xls')
 PHEROMONE_XGMML = os.path.join(os.path.dirname(__file__), 'pheromone_layout.xgmml')

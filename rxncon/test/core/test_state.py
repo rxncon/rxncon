@@ -162,9 +162,13 @@ def test_ppi_structured_index() -> None:
 
 def test_ppi_mutual_exclusivity() -> None:
     assert state_from_str('A_[x]--B_[y]').is_mutually_exclusive_with(state_from_str('A_[x]--C_[z]'))
+    assert not state_from_str('A_[x]--B_[y]').is_mutually_exclusive_with(state_from_str('A_[y]--C_[z]'))
+
 
 def test_ppi_is_global() -> None:
     assert not state_from_str('A_[x]--B_[y]').is_global
+
+
 ###                          ###
 # Test self-interaction states #
 ###                          ###
@@ -242,29 +246,33 @@ def test_ipi_is_homodimer() -> None:
 
 def test_ipi_update_spec() -> None:
     state = state_from_str('A_[x]--[y]')
-    state.update_specs({spec_from_str('A_[x]'):spec_from_str('A_[z]')})
+    state.update_specs({spec_from_str('A_[x]'): spec_from_str('A_[z]')})
     assert state == state_from_str('A_[y]--[z]')
-    state.update_specs({spec_from_str('A_[y]'):spec_from_str('A_[z]')})
+    state.update_specs({spec_from_str('A_[y]'): spec_from_str('A_[z]')})
     assert state == state_from_str('A_[z]--[z]')
+
 
 def test_ipi_is_global() -> None:
     assert not state_from_str('A_[x]--[y]').is_global
 
+
 def test_ipi_is_structured() -> None:
     assert not state_from_str('A_[x]--[y]').is_structured
     assert state_from_str('A@0_[x]--[y]').is_structured
+
 
 def test_ipi_to_structured_from_spec() -> None:
     homodimer = state_from_str('A_[x]--[y]')
     structured_homodimer = homodimer.to_structured_from_spec(spec_from_str('A@0'))
     assert structured_homodimer == state_from_str('A@0_[x]--[y]')
 
+
 def test_ipi_to_structured_from_state() -> None:
     structured_homodimer = state_from_str('A_[x]--[y]').to_structured_from_state(state_from_str('A@0_[w]--[z]'))
     assert structured_homodimer == state_from_str('A@0_[x]--[y]')
 
-def test_ipi_is_superset_of():
 
+def test_ipi_is_superset_of():
     # Happy path, subset, bond.
     assert state_from_str('A_[m]--[n]').is_subset_of(state_from_str('A_[m]--[n]'))
     assert state_from_str('A_[m]--[n]').is_superset_of(state_from_str('A_[m]--[n]'))
@@ -279,7 +287,6 @@ def test_ipi_is_superset_of():
 ###                      ###
 # Test Fully Neutral state #
 ###                      ###
-
 def test_fully_neutral() -> None:
     assert state_from_str('0') == FullyNeutralState()
 
@@ -338,40 +345,66 @@ def test_sort_fully_neutral():
 ###                      ###
 #   Test homodimer state   #
 ###                      ###
-def test_homodi_to_structured_from_spec_non_sturcured() -> None:
-    homodimer = state_from_str('A_[x]--A_[y]')
-    structured_spec0 = spec_from_str('A@0')
-    structured_spec1 = spec_from_str('A@1')
-    structured_homodimer = homodimer.to_structured_from_spec(structured_spec0)
-    structured_homodimer = structured_homodimer.to_structured_from_spec(structured_spec1)
+def test_homodimer_same_struct_index() -> None:
+    state_from_str('A@4_[x]--A@4_[x]')
+
+
+def test_homodimer_to_structured_from_spec_non_structured() -> None:
+    structured_homodimer = state_from_str('A_[x]--A_[y]')\
+        .to_structured_from_spec(spec_from_str('A@0'))\
+        .to_structured_from_spec(spec_from_str('A@1'))
+
     assert structured_homodimer == state_from_str('A@0_[x]--A@1_[y]')
 
 
-def test_homodi_to_structured_from_spec_structured() -> None:
-    homodimer = state_from_str('A@0_[x]--A@1_[y]')
-    structured_spec0 = spec_from_str('A@2')
-    structured_spec1 = spec_from_str('A@3')
-    structured_homodimer = homodimer.to_structured_from_spec(structured_spec0)
-    structured_homodimer = structured_homodimer.to_structured_from_spec(structured_spec1)
+def test_homodimer_to_structured_from_spec_previously_structured() -> None:
+    # A previously structured homodimer should remain invariant upon updating its specs.
+    structured_homodimer = state_from_str('A@0_[x]--A@1_[y]')\
+        .to_structured_from_spec(spec_from_str('A@2'))\
+        .to_structured_from_spec(spec_from_str('A@3'))
+
     assert structured_homodimer == state_from_str('A@0_[x]--A@1_[y]')
 
 
-def test_homodi_to_structured_from_state() -> None:
-    structured_homodimer = state_from_str('A@0_[x]--A@1_[y]')
-    non_structured_diff_homodimer = state_from_str('B_[z]--B_[w]')
-    non_structured_homodimer = state_from_str('A_[z]--A_[w]')
+def test_homodimer_to_structured_from_state_overlapping() -> None:
+    structured_homodimer = state_from_str('A_[z]--A_[w]').to_structured_from_state(state_from_str('A@0_[x]--A@1_[y]'))
+    assert structured_homodimer == state_from_str('A@0_[w]--A@1_[z]')
 
+
+def test_homodimer_to_structured_from_state_non_overlapping() -> None:
     with pytest.raises(AssertionError):
-        non_structured_diff_homodimer.to_structured_from_state(structured_homodimer)
-
-    non_structured_homodimer = non_structured_homodimer.to_structured_from_state(structured_homodimer)
-    new_idx = set([spec.struct_index for spec in non_structured_homodimer.specs])
-    assert len(new_idx) == 2
-    assert all(idx in [0, 1] for idx in new_idx)
+        state_from_str('B_[z]--B_[w]').to_structured_from_state(state_from_str('A@0_[x]--A@1_[y]'))
 
 
-##### EmptyBindingState #####
+def test_homodimer_update_specs() -> None:
+    structured_homodimer = state_from_str('A@0_[x]--A@1_[y]')
+
+    structured_homodimer.update_specs({
+        spec_from_str('A@0_[x]'): spec_from_str('A@5_[x]'),
+        spec_from_str('A@1_[y]'): spec_from_str('A@7_[y]')
+    })
+
+    assert structured_homodimer == state_from_str('A@5_[x]--A@7_[y]')
+
+
+def test_homodimer_update_specs_flip():
+    structured_homodimer = state_from_str('A@0_[x]--A@1_[y]')
+
+    structured_homodimer.update_specs({
+        spec_from_str('A@0_[x]'): spec_from_str('A@1_[x]'),
+        spec_from_str('A@1_[y]'): spec_from_str('A@0_[y]')
+    })
+
+    assert structured_homodimer == state_from_str('A@1_[x]--A@0_[y]')
+
+
+###                       ###
+#     EmptyBindingState     #
+###                       ###
 def test_resolution_EmptyBindingState() -> None:
+    with pytest.raises(SyntaxError):
+        state_from_str('A_[(x)]--0')
+
     with pytest.raises(SyntaxError):
         EmptyBindingState(spec_from_str('A_[(x)]'))
 
@@ -381,30 +414,32 @@ def test_ordering_EmptyBindingState() -> None:
     assert state_from_str('A_[x]--0') < state_from_str('B_[x]--0')
     assert state_from_str('A_[x]--0') < state_from_str('A_[y]--0')
 
-    #with pytest.raises(NotImplemented):
-    #    state_from_str('A_[x]--0') == spec_from_str('A_[x]')
 
 ###                      ###
 #   Test global state      #
 ###                      ###
 def test_input_state() -> None:
-    state = state_from_str('[BLA]')
-    assert isinstance(state, GlobalState)
+    assert isinstance(state_from_str('[BLA]'), GlobalState)
+    assert isinstance(state_from_str('[BLA123]'), GlobalState)
 
-def test_global_state_propterties() -> None:
+
+def test_global_state_properties() -> None:
     state = state_from_str('[BLA]')
     assert state.is_global
     assert state.is_elemental
-    assert not all(state.is_mutually_exclusive_with(state_to_test)for state_to_test in [state_from_str('[BLUB]'),
-                                                                                        state_from_str('A_[x]--B_[y]'),
-                                                                                        state_from_str('A_[x]--0'),
-                                                                                        state_from_str('A_[(r)]-{p}'),
-                                                                                        state_from_str('A_[(r)]-{0}')] )
+    assert not any(state.is_mutually_exclusive_with(state_to_test) for state_to_test in [
+        state_from_str('[BLUB]'),
+        state_from_str('A_[x]--B_[y]'),
+        state_from_str('A_[x]--0'),
+        state_from_str('A_[(r)]-{p}'),
+        state_from_str('A_[(r)]-{0}')
+    ])
     assert not state.is_homodimer
     assert state.is_structured
     assert state.neutral_states == []
 
-def test_global_get_item():
+
+def test_global_state_get_item():
     with pytest.raises(KeyError):
         state_from_str('[BLA]')['$y']
 

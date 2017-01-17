@@ -217,14 +217,14 @@ class InteractionState(State):
     def update_specs(self, updates: Dict[Spec, Spec]) -> None:
         try:
             self.first = updates[self.first]
-            self.first, self.second = sorted([self.first, self.second])
         except KeyError:
             pass
         try:
             self.second = updates[self.second]
-            self.first, self.second = sorted([self.first, self.second])
         except KeyError:
             pass
+
+        self.first, self.second = sorted([self.first, self.second])
 
     def to_non_structured(self) -> 'State':
         return InteractionState(self.first.to_non_struct_spec(), self.second.to_non_struct_spec())
@@ -280,7 +280,6 @@ class EmptyBindingState(State):
         if spec.resolution > LocusResolution.domain:
             raise SyntaxError('Resolution for EmptyBindingState too high {}'.format(str(spec)))
         self.spec = spec
-        self.repr_def = '$x--0'
 
     @property
     def name(self):
@@ -387,7 +386,6 @@ class SelfInteractionState(State):
         if first.resolution > LocusResolution.domain or second.resolution > LocusResolution.domain:
             raise SyntaxError('Resolution for SelfInteractionState too high {} {}'.format(str(first), str(second)))
         self.first, self.second = sorted([first, second])  # type: Spec, Spec
-        self.repr_def = '$x--[$y]'
 
     @property
     def name(self):
@@ -460,14 +458,14 @@ class SelfInteractionState(State):
     def update_specs(self, updates: Dict[Spec, Spec]) -> None:
         try:
             self.first = updates[self.first]
-            self.first, self.second = sorted([self.first, self.second])
         except KeyError:
             pass
         try:
             self.second = updates[self.second]
-            self.first, self.second = sorted([self.first, self.second])
         except KeyError:
             pass
+
+        self.first, self.second = sorted([self.first, self.second])
 
     def to_non_structured(self) -> 'State':
         return SelfInteractionState(self.first.to_non_struct_spec(), self.second.to_non_struct_spec())
@@ -504,7 +502,6 @@ class SelfInteractionState(State):
 class ModificationState(State):
     def __init__(self, spec: Spec, modifier: StateModifier):
         self.spec, self.modifier = spec, modifier
-        self.repr_def = '$x-{$y}'
 
     @property
     def name(self):
@@ -610,7 +607,6 @@ class ModificationState(State):
 class GlobalState(State):
     def __init__(self, name: str):
         self.name = '[{}]'.format(name.strip('[]'))
-        self.repr_def = '[$x]'
 
     def __str__(self) -> str:
         return self.name
@@ -695,7 +691,6 @@ class GlobalState(State):
 
 class FullyNeutralState(State):
     def __init__(self) -> None:
-        self.repr_def = '0'
         pass
 
     def __hash__(self) -> int:

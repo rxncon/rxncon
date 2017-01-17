@@ -1,8 +1,9 @@
+from collections import namedtuple
 
 from networkx import DiGraph
-from collections import namedtuple
+
 import rxncon.input.quick.quick as qui
-from rxncon.simulation.rule_graph.regulatory_graph import RegulatoryGraph, NodeType, EdgeInteractionType
+from rxncon.visualization.regulatory_graph import RegulatoryGraph, NodeType, EdgeInteractionType
 
 
 RuleTestCase = namedtuple('RuleTestCase', ['quick_string', 'reaction_node_strings', 'state_node_strings',

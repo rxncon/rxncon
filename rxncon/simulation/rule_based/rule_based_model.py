@@ -7,10 +7,9 @@ import logging
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reaction, ReactionTerm, OutputReaction
-from rxncon.core.state import State, StateModifier
+from rxncon.core.state import State, StateModifier, ModificationState, InteractionState, SelfInteractionState, GlobalState, EmptyBindingState
 from rxncon.core.spec import Spec
 from rxncon.core.contingency import Contingency, ContingencyType
-from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
 from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet, DisjunctiveUnion
 from rxncon.util.utils import current_function_name
 
@@ -325,28 +324,28 @@ class ComplexExprBuilder:
 
 STATE_TO_COMPLEX_BUILDER_FN = {
     # Covalent modification state.
-    '$x-{$y}': [
+    ModificationState: [
         lambda state, builder: builder.add_mol(state['$x']),
         lambda state, builder: builder.set_mod(state['$x'], state['$y'])
     ],
     # Interaction state.
-    '$x--$y': [
+    InteractionState: [
         lambda state, builder: builder.add_mol(state['$x']),
         lambda state, builder: builder.add_mol(state['$y']),
         lambda state, builder: builder.set_bond(state['$x'], state['$y'])
     ],
     # Self-interaction state.
-    '$x--[$y]': [
+    SelfInteractionState: [
         lambda state, builder: builder.add_mol(state['$x']),
         lambda state, builder: builder.set_bond(state.specs[0], state.specs[1])
     ],
     # Empty binding state.
-    '$x--0': [
+    EmptyBindingState: [
         lambda state, builder: builder.add_mol(state['$x']),
         lambda state, builder: builder.set_half_bond(state['$x'], None)
     ],
     # Input state.
-    '[$x]': [
+    GlobalState: [
         lambda state, builder: logger.warning('{} : IGNORING INPUT STATE {}'.format(current_function_name(), str(state)))
     ]
 }
@@ -354,22 +353,22 @@ STATE_TO_COMPLEX_BUILDER_FN = {
 
 STATE_TO_MOL_DEF_BUILDER_FN = {
     # Covalent modification state.
-    '$x-{$y}': [
+    ModificationState: [
         lambda state, builder: builder.add_site(state['$x']),
         lambda state, builder: builder.add_mod(state['$x'], state['$y'])
     ],
     # Interaction state.
-    '$x--$y': [
+    InteractionState: [
         lambda state, builder: builder.add_site(state['$x']) if builder.name == str(state['$x'].to_component_spec()) \
                                else builder.add_site(state['$y']),
     ],
     # Self-interaction state.
-    '$x--[$y]': [
+    SelfInteractionState: [
         lambda state, builder: builder.add_site(state.specs[0]),
         lambda state, builder: builder.add_site(state.specs[1])
     ],
     # Empty binding state.
-    '$x--0': [
+    EmptyBindingState: [
         lambda state, builder: builder.add_site(state['$x'])
     ]
 }
@@ -650,7 +649,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             builder = MolDefBuilder(spec)
             for state in rxncon_sys.states_for_component(spec):
                 logger.debug('{} : Applying State {} of type {}'.format(current_function_name(), str(state), state.name))
-                for func in STATE_TO_MOL_DEF_BUILDER_FN[state.repr_def]:
+                for func in STATE_TO_MOL_DEF_BUILDER_FN[type(state)]:
                     func(state, builder)
 
             mol_defs[spec] = builder.build()
@@ -765,7 +764,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             assert all(x.is_structured for x in states)
 
             for state in states:
-                for func in STATE_TO_COMPLEX_BUILDER_FN[state.repr_def]:
+                for func in STATE_TO_COMPLEX_BUILDER_FN[type(state)]:
                     func(state, builder)
 
             return builder.build()
@@ -789,7 +788,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             assert all(x.is_structured for x in states)
 
             for state in states:
-                for func in STATE_TO_COMPLEX_BUILDER_FN[state.repr_def]:
+                for func in STATE_TO_COMPLEX_BUILDER_FN[type(state)]:
                     func(state, builder)
 
             complexes = builder.build(only_reactants=False)

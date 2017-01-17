@@ -1,15 +1,17 @@
 #!/usr/bin/python3
 
-import os, sys
 import logging
+import os
+import sys
+
 import click
 import click_log
 import colorama
 
 from rxncon.input.excel_book.excel_book import ExcelBook
-from rxncon.simulation.rule_graph.regulatory_graph import RegulatoryGraph
-from rxncon.simulation.rule_graph.graphML import map_layout2xgmml
-from rxncon.simulation.rule_graph.graphML import XGMML
+from rxncon.visualization import RegulatoryGraph
+from rxncon.visualization import XGMML
+from rxncon.visualization import map_layout2xgmml
 
 logger = logging.Logger(__name__)
 
