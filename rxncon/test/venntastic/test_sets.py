@@ -287,6 +287,8 @@ def test_disjunctive_union(sets: List[Set]) -> None:
         assert DisjunctiveUnion(x, y).is_equivalent_to(Union(Difference(x, y), Difference(y, x)))
         assert Union(Difference(x, y), Difference(y, x)).is_equivalent_to(DisjunctiveUnion(x, y))
 
+        assert DisjunctiveUnion(x, y).is_equivalent_to(Difference(Union(x, y), Intersection(x, y)))
+        assert Difference(Union(x, y), Intersection(x, y)).is_equivalent_to(DisjunctiveUnion(x, y))
 
 def test_is_equivalent_to() -> None:
     assert UniversalSet().is_equivalent_to(UniversalSet())
