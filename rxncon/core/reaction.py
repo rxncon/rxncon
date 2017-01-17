@@ -2,8 +2,7 @@ from typing import Dict, Any, List, Optional, Callable, TypeVar
 import re
 
 from rxncon.core.spec import Spec, MRNASpec, ProteinSpec, LocusResolution, GeneSpec, spec_from_str
-from rxncon.core.state import State, state_from_str, FullyNeutralState
-from rxncon.util.utils import members
+from rxncon.core.state import State, state_from_str
 
 T = TypeVar('T')
 
