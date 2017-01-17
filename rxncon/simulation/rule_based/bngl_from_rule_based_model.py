@@ -66,10 +66,11 @@ def bngl_from_rule_based_model(rule_based_model: RuleBasedModel, settings: BNGLS
 
 
 def str_from_mol_def(mol_def: MolDef) -> str:
-    def site_str(site_def: Tuple[str, List[str]]) -> str:
-        return '~'.join([site_def[0]] + site_def[1])
+    def site_str(site_name: str, site_def: List[str]) -> str:
+        return '~'.join([site_name] + sorted(site_def))
 
-    return '{0}({1})'.format(mol_def.name, ','.join(site_str(x) for x in mol_def.site_defs.items()))
+    return '{0}({1})'.format(mol_def.name, ','.join(site_str(site, mol_def.site_defs[site])
+                                                    for site in sorted(mol_def.site_defs)))
 
 
 def str_from_mol(mol: Mol) -> str:
@@ -82,7 +83,7 @@ def str_from_mol(mol: Mol) -> str:
 
         return s
 
-    return '{0}({1})'.format(mol.name, ','.join(site_str(x) for x in mol.sites))
+    return '{0}({1})'.format(mol.name, ','.join(site_str(x) for x in sorted(mol.sites)))
 
 
 def str_from_complex(complex: Complex) -> str:

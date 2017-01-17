@@ -20,14 +20,17 @@ NEUTRAL_MOD = '0'
 INITIAL_MOLECULE_COUNT = 100
 SITE_NAME_REGEX = '^[a-zA-Z0-9]+$'
 
+
 class MolDef:
     def __init__(self, name: str, site_defs: Dict[str, List[str]]) -> None:
         self.name, self.site_defs = name, site_defs
 
     def __str__(self) -> str:
         site_strs = []
-        for site_name, site_def in self.site_defs.items():
-            site_strs.append('{0}:{1}'.format(site_name, '~'.join(x for x in site_def))) if site_def else site_strs.append(site_name)
+        for site_def in sorted(self.site_defs):
+            site_name = self.site_defs[site_def]
+            site_strs.append('{0}:{1}'.format(site_name, '~'.join(x for x in sorted(site_def)))) \
+                if site_def else site_strs.append(site_name)
         return '{0}({1})'.format(self.name, ','.join(site_strs))
 
     def __repr__(self) -> str:
