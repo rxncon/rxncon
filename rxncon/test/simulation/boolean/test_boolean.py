@@ -284,7 +284,7 @@ def test_deg_with_inhibition() -> None:
     assert target_from_str('A_[(res)]-{ub}') in boolean_model.reaction_target_by_name('C_deg_A').degraded_targets
 
 
-def test_deg_with_boolean_contingency() -> None:
+def test_deg_with_boolean_OR() -> None:
     """
     Testing a degradation reaction with boolean contingencies.
 
@@ -345,6 +345,70 @@ def test_deg_with_boolean_contingency() -> None:
             assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
     else:
         raise AssertionError
+
+
+def test_deg_with_boolean_AND() -> None:
+    """
+    Testing degradation with Boolean AND.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError if a rule is not equivalent to an expected rule.
+
+    """
+    boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
+                                                       D_p+_A_[(r)]
+                                                       C_deg_A; ! <x>
+                                                       <x>; AND A_[x]--B_[y]; AND A_[(r)]-{p}""").rxncon_system)
+    target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
+
+    expected_rules = {
+        'C_deg_A': '(( C & A_[x]--B_[y] & A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
+        'C_deg_A#0/1': '(( C & A_[x]--B_[y] & A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
+        'D_p+_A_[(r)]': '(( D & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
+        'A_[x]_ppi+_B_[y]': '((( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | B_[y]--0 )))',
+        'B_[y]--0': '((( A_[x]--B_[y] & C_deg_A#0/1 & ( A_[x]--B_[y] | B_[y]--0 )) | ( B_[y]--0 & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( B_[y]--0 & A_[x]_ppi+_B_[y] & A_[x]--0 )))))',
+        'A_[(r)]-{p}': '((( A_[(r)]-{0} & D_p+_A_[(r)] & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( C_deg_A | C_deg_A#0/1 ))) | ( A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( C_deg_A | C_deg_A#0/1 )))))',
+        'A_[x]--B_[y]': '(( A_[x]--0 & B_[y]--0 & A_[x]_ppi+_B_[y] & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( C_deg_A | C_deg_A#0/1 ))) | ( A_[x]--B_[y] & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( A_[x]--B_[y] & C_deg_A#0/1 )) & ~(( C_deg_A | C_deg_A#0/1 ))))',
+        'A_[(r)]-{0}': '( A_[(r)]-{0} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( A_[(r)]-{0} & D_p+_A_[(r)] )))',
+        'A_[x]--0': '(( A_[x]--0 & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( A_[x]--0 & A_[x]_ppi+_B_[y] & B_[y]--0 ))))',
+        'D': 'D',
+        'C': 'C'
+    }
+
+    for target_str, factor_str in expected_rules.items():
+        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
+
+
+def test_deg_with_boolean_NOT() -> None:
+    """
+    Testing degradation with NOT Boolean.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError if a rule is not equivalent to an expected rule.
+
+    """
+    boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
+                                                       D_p+_A_[(r)]
+                                                       C_deg_A; ! <x>
+                                                       <x>; AND A_[x]--B_[y]; AND <NOT>
+                                                       <NOT>; NOT A_[(r)]-{p}""").rxncon_system)
+    target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
+
+    expected_rules = {
+        'C_deg_A': '( C & A_[x]--B_[y] & ~( A_[(r)]-{p} ) & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
+        'C_deg_A#0/1': '( C & A_[x]--B_[y] & ~( A_[(r)]-{p} ) & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
+        'B_[y]--0': '(( A_[x]--B_[y] & C_deg_A#0/1 & ( B_[y]--0 | A_[x]--B_[y] )) | ( B_[y]--0 & ( B_[y]--0 | A_[x]--B_[y] ) & ~(( B_[y]--0 & A_[x]_ppi+_B_[y] & A_[x]--0 ))))',
+        'A_[(r)]-{p}': '(( A_[(r)]-{0} & D_p+_A_[(r)] & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )) | ( A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
+    }
+
+    for target_str, factor_str in expected_rules.items():
+        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
 
 
 def test_deg_with_interaction() -> None:
@@ -417,71 +481,6 @@ def test_deg_with_interaction_as_inhibition() -> None:
             raise AssertionError
 
 
-def test_deg_with_bool_AND() -> None:
-    """
-    Testing degradation with Boolean AND.
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError if a rule is not equivalent to an expected rule.
-
-    """
-    boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
-                                                       D_p+_A_[(r)]
-                                                       C_deg_A; ! <x>
-                                                       <x>; AND A_[x]--B_[y]; AND A_[(r)]-{p}""").rxncon_system)
-    target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
-
-    expected_rules = {
-        'C_deg_A': '(( C & A_[x]--B_[y] & A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
-        'C_deg_A#0/1': '(( C & A_[x]--B_[y] & A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
-        'D_p+_A_[(r)]': '(( D & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
-        'A_[x]_ppi+_B_[y]': '((( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | B_[y]--0 )))',
-        'B_[y]--0': '((( A_[x]--B_[y] & C_deg_A#0/1 & ( A_[x]--B_[y] | B_[y]--0 )) | ( B_[y]--0 & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( B_[y]--0 & A_[x]_ppi+_B_[y] & A_[x]--0 )))))',
-        'A_[(r)]-{p}': '((( A_[(r)]-{0} & D_p+_A_[(r)] & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( C_deg_A | C_deg_A#0/1 ))) | ( A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( C_deg_A | C_deg_A#0/1 )))))',
-        'A_[x]--B_[y]': '(( A_[x]--0 & B_[y]--0 & A_[x]_ppi+_B_[y] & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( C_deg_A | C_deg_A#0/1 ))) | ( A_[x]--B_[y] & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[x]--B_[y] | B_[y]--0 ) & ~(( A_[x]--B_[y] & C_deg_A#0/1 )) & ~(( C_deg_A | C_deg_A#0/1 ))))',
-        'A_[(r)]-{0}': '( A_[(r)]-{0} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( A_[(r)]-{0} & D_p+_A_[(r)] )))',
-        'A_[x]--0': '(( A_[x]--0 & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ) & ~(( A_[x]--0 & A_[x]_ppi+_B_[y] & B_[y]--0 ))))',
-        'D': 'D',
-        'C': 'C'
-    }
-
-    for target_str, factor_str in expected_rules.items():
-        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
-
-
-def test_NOT_bool_deg() -> None:
-    """
-    Testing degradation with NOT Boolean.
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError if a rule is not equivalent to an expected rule.
-
-    """
-    boolean_model = boolean_model_from_rxncon(Quick("""A_[x]_ppi+_B_[y]
-                                                       D_p+_A_[(r)]
-                                                       C_deg_A; ! <x>
-                                                       <x>; AND A_[x]--B_[y]; AND <NOT>
-                                                       <NOT>; NOT A_[(r)]-{p}""").rxncon_system)
-    target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
-
-    expected_rules = {
-        'C_deg_A': '( C & A_[x]--B_[y] & ~( A_[(r)]-{p} ) & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
-        'C_deg_A#0/1': '( C & A_[x]--B_[y] & ~( A_[(r)]-{p} ) & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
-        'B_[y]--0': '(( A_[x]--B_[y] & C_deg_A#0/1 & ( B_[y]--0 | A_[x]--B_[y] )) | ( B_[y]--0 & ( B_[y]--0 | A_[x]--B_[y] ) & ~(( B_[y]--0 & A_[x]_ppi+_B_[y] & A_[x]--0 ))))',
-        'A_[(r)]-{p}': '(( A_[(r)]-{0} & D_p+_A_[(r)] & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )) | ( A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
-    }
-
-    for target_str, factor_str in expected_rules.items():
-        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
-
-
-
 def test_smooth_production_sources() -> None:
     """
     Testing smoothing function.
@@ -510,7 +509,7 @@ def test_smooth_production_sources() -> None:
             assert rule.factor.is_equivalent_to(venn_from_str(expected, target_from_str))
 
 
-def test_state_reaction_relation():
+def test_state_target_properties():
     """
     Testing the relation between states and reactions not tested before.
 
@@ -518,18 +517,18 @@ def test_state_reaction_relation():
         None
 
     """
-    boole_deg_syn_model = boolean_model_from_rxncon(Quick("""C_deg_A
-                                                             C_syn_A
-                                                             C_p+_A_[(x)]
-                                                             C_p-_A_[(x)]""").rxncon_system)
+    boolean_model = boolean_model_from_rxncon(Quick("""C_deg_A
+                                                    C_syn_A
+                                                    C_p+_A_[(x)]
+                                                    C_p-_A_[(x)]""").rxncon_system)
 
     neutral_state = target_from_str('A_[(x)]-{0}')
 
-    assert boole_deg_syn_model.state_target_by_name('A_[(x)]-{p}').is_produced_by(boole_deg_syn_model.reaction_target_by_name('C_p+_A_[(x)]'))
-    assert boole_deg_syn_model.state_target_by_name('A_[(x)]-{p}').is_consumed_by(boole_deg_syn_model.reaction_target_by_name('C_p-_A_[(x)]'))
-    assert boole_deg_syn_model.state_target_by_name('A_[(x)]-{p}').is_degraded_by(boole_deg_syn_model.reaction_target_by_name('C_deg_A'))
-    assert boole_deg_syn_model.reaction_target_by_name('C_syn_A').synthesises_component(neutral_state.components[0])
-    assert boole_deg_syn_model.state_target_by_name('A_[(x)]-{0}').is_synthesised_by(boole_deg_syn_model.reaction_target_by_name('C_syn_A'))
+    assert boolean_model.state_target_by_name('A_[(x)]-{p}').is_produced_by(boolean_model.reaction_target_by_name('C_p+_A_[(x)]'))
+    assert boolean_model.state_target_by_name('A_[(x)]-{p}').is_consumed_by(boolean_model.reaction_target_by_name('C_p-_A_[(x)]'))
+    assert boolean_model.state_target_by_name('A_[(x)]-{p}').is_degraded_by(boolean_model.reaction_target_by_name('C_deg_A'))
+    assert boolean_model.reaction_target_by_name('C_syn_A').synthesises_component(neutral_state.components[0])
+    assert boolean_model.state_target_by_name('A_[(x)]-{0}').is_synthesised_by(boolean_model.reaction_target_by_name('C_syn_A'))
 
 
 def test_set_initial_condition():
@@ -544,14 +543,16 @@ def test_set_initial_condition():
         state is not changed to False
 
     """
-    boole_deg_syn_model = boolean_model_from_rxncon(Quick("""C_p+_A_[(x)]""").rxncon_system)
+    boolean_model = boolean_model_from_rxncon(Quick("""C_p+_A_[(x)]""").rxncon_system)
 
     neutral_state = target_from_str('A_[(x)]-{0}')
-    assert boole_deg_syn_model.initial_conditions.target_to_value[neutral_state] == True
-    boole_deg_syn_model.set_initial_condition(neutral_state, False)
-    assert boole_deg_syn_model.initial_conditions.target_to_value[neutral_state] == False
+    assert boolean_model.initial_conditions.target_to_value[neutral_state] == True
 
-def test_deg_component():
+    boolean_model.set_initial_condition(neutral_state, False)
+    assert boolean_model.initial_conditions.target_to_value[neutral_state] == False
+
+
+def test_deg_of_component_without_states():
     """
     Testing degradation of component without states.
 
@@ -561,15 +562,20 @@ def test_deg_component():
     Raises:
         AssertionError if the expected rule is not e
     """
-    boole_deg_model = boolean_model_from_rxncon(Quick("""C_deg_A""").rxncon_system)
+    boolean_model = boolean_model_from_rxncon(Quick("""C_deg_A""").rxncon_system)
 
-    expected = '( C & A )'
-    for rule in boole_deg_model.update_rules:
-        if rule.target == target_from_str('C_deg_A'):
-            assert rule.factor.is_equivalent_to(venn_from_str(expected, target_from_str))
+    target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
+
+    expected_rules = {
+        'C_deg_A': '( C & A )',
+        'A':       '( A & ~( C_deg_A ))',
+        'C':       'C'
+    }
+    for target_str, factor_str in expected_rules.items():
+        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
 
 
-def test_boolent_export():
+def test_boolnet_export():
     """
     Testing if the boolnet export works as expected.
 

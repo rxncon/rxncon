@@ -55,12 +55,6 @@ def test_monomial_symbols() -> None:
 
 
 ### POLYNOMIAL ALGEBRA ###
-def test_polynomial_multiplication_by_polynomial(x_plus_y: Polynomial, x_minus_y: Polynomial, x_sq_minus_y_sq: Polynomial,
-                                                 x_sq_plus_two_xy_plus_y_sq: Polynomial) -> None:
-    assert x_plus_y * x_minus_y == x_sq_minus_y_sq
-    assert x_plus_y * x_plus_y == x_sq_plus_two_xy_plus_y_sq
-
-
 def test_polynomial_multiplication_by_int(x_plus_y: Polynomial, two_x_plus_two_y: Polynomial) -> None:
     assert x_plus_y * 2 == two_x_plus_two_y
     assert 2 * x_plus_y == two_x_plus_two_y

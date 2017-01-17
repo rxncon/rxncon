@@ -6,62 +6,34 @@ from xml.dom import minidom
 import pytest
 from networkx import DiGraph
 
-from rxncon.input.excel_book.excel_book import ExcelBook
 from rxncon.input.quick.quick import Quick
-from rxncon.visualization.regulatory_graph import RegulatoryGraph
 from rxncon.visualization.graphML import map_layout2xgmml, XGMML, _get_labels_and_coordinates_dict
+from rxncon.visualization.regulatory_graph import RegulatoryGraph
 
-PHEROMONE_XLS   = os.path.join(os.path.dirname(__file__), 'pheromone.xls')
-PHEROMONE_XGMML = os.path.join(os.path.dirname(__file__), 'pheromone_layout.xgmml')
+
 NODE_LAYOUT_MANIPULATION = os.path.join(os.path.dirname(__file__), 'example_node_layout.xgmml')
-File_EXISTS = os.path.join(os.path.dirname(__file__), 'test_file_existence.xgmml')
+EXISTING_FILE = os.path.join(os.path.dirname(__file__), 'test_file_existence.xgmml')
 NOT_A_DIRECTORY = os.path.join(os.path.dirname(__file__), 'NOT_A_DIR/test_file_existence.xgmml')
 
 
-def _is_xgmml_export_test_case_correct(test_case_quick: str, expected_xgmml: str) -> bool:
-    """
+def test_file_exists() -> None:
+    graph = DiGraph()
+    graph.add_node('A', str_value='A', int_value=1, float_value=1.0)
 
-    Args:
-        test_case_quick: rxncon system in quick format.
-        expected_xgmml: expected xgmml content.
+    gml_system = XGMML(graph, "name")
+    with pytest.raises(FileExistsError):
+        gml_system.to_file(EXISTING_FILE)
 
-    Returns:
-        bool: True if the created xgmml is the same as the expected, False otherwise.
-
-    """
-    actual_system = Quick(test_case_quick)
-    reg_system = RegulatoryGraph(actual_system.rxncon_system)
-    actual_graph = reg_system.to_graph()
-    gml_system = XGMML(actual_graph, "test_graph")
-
-    expected_xgmml_lines= [line.strip() for line in expected_xgmml.split("\n") if line.strip()]
-    produced_xgmml_lines = [line.strip() for line in gml_system.to_string().split("\n") if line.strip()]
-
-    if not sorted(produced_xgmml_lines) == sorted(expected_xgmml_lines):
-        for i, line in enumerate(produced_xgmml_lines):
-            if line not in expected_xgmml_lines:
-                print("generated line: {}".format(line))
-                print("expected line: {}".format(expected_xgmml_lines[i]))
-
-    return sorted(produced_xgmml_lines) == sorted(expected_xgmml_lines)
+    with pytest.raises(NotADirectoryError):
+        gml_system.to_file(NOT_A_DIRECTORY)
 
 
-def _can_xgmml_be_written_to_file(test_case_quick_string: str) -> bool:
-    """
-    Writing xgmml.
+def test_write_output() -> None:
+    digraph = _digraph_from_quick_str('''A_[b]_ppi+_B_[a]; ! A_[(x)]-{p}
+                                      C_p+_A_[(x)]''')
 
-    Args:
-        test_case_quick_string: rxncon system in quick format.
-
-    Returns:
-        bool: True if file was written and is not empty, False otherwise.
-
-    """
-    actual_system = Quick(test_case_quick_string)
-    reg_system = RegulatoryGraph(actual_system.rxncon_system)
-    actual_graph = reg_system.to_graph()
     name = "test{0}".format(time.time())
-    gml_system = XGMML(actual_graph, "name")
+    gml_system = XGMML(digraph, "name")
 
     path = "{0}/{1}.xgmml".format(tempfile.gettempdir(), name)
     gml_system.to_file(path)
@@ -71,24 +43,7 @@ def _can_xgmml_be_written_to_file(test_case_quick_string: str) -> bool:
     return file_exists and file_size > 0
 
 
-def _get_node_att_type(element: minidom.Element, attribute_name: str) -> str:
-    for child in element.childNodes:
-        if child.attributes and child.getAttribute('name') == attribute_name:
-            return child.getAttribute('type')
-
-def test_file_exists():
-    graph = DiGraph()
-    graph.add_node('A', str_value='A', int_value=1, float_value=1.0)
-
-    gml_system = XGMML(graph, "name")
-    with pytest.raises(FileExistsError):
-        gml_system.to_file(File_EXISTS)
-
-    with pytest.raises(NotADirectoryError):
-        gml_system.to_file(NOT_A_DIRECTORY)
-
-
-def test_simple_system() -> None:
+def test_graph_from_simple_system() -> None:
     """
     Testing a simple system of 2 reactions and 1 contingency.
 
@@ -99,13 +54,10 @@ def test_simple_system() -> None:
         AsssertionError: If the created xgmml differes from the expected.
 
     """
-    test_case_quick_str = '''A_[b]_ppi+_B_[a]; ! A_[(x)]-{p}
-                         C_p+_A_[(x)]'''
+    digraph = _digraph_from_quick_str('''A_[b]_ppi+_B_[a]; ! A_[(x)]-{p}
+                                      C_p+_A_[(x)]''')
 
-
-
-    expected_xgmml = """
-                        <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+    expected_xgmml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                         <graph directed="1"  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.cs.rpi.edu/XGMML">
                         <att name="selected" value="1" type="boolean" />
                         <att name="name" value="test_graph" type="string"/>
@@ -129,35 +81,10 @@ def test_simple_system() -> None:
                         <edge source="C_p+_A_[(x)]" target="A_[(x)]-{0}"><att name="interaction" value="consume" type="string"/></edge>
                         </graph>"""
 
-    assert _is_xgmml_export_test_case_correct(test_case_quick_str, expected_xgmml)
-    assert _can_xgmml_be_written_to_file(test_case_quick_str)
+    assert is_digraph_to_xgmml_correct(digraph, expected_xgmml)
 
 
-def test_format_attributes():
-    """
-    Testing attribute annotation in xgmml.
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError if an expected attribute type is not within the node attributes.
-
-    """
-    graph = DiGraph()
-    graph.add_node('A', str_value='A', int_value=1, float_value=1.0)
-    format_attribute_system_str = XGMML(graph, "graph").to_string()
-
-    expected_attribute_type = ['integer', 'double', 'string']
-    xmldoc_actual = minidom.parseString(format_attribute_system_str)
-    actual_node_attribute_types = [_get_node_att_type(xmldoc_actual.getElementsByTagName('node')[0], attribute_name=attribute)
-                                   for attribute in ['int_value', 'float_value', 'str_value']]
-    while expected_attribute_type:
-        attribute_type = expected_attribute_type.pop()
-        assert attribute_type in actual_node_attribute_types
-
-
-def test_creating_writing_xgmml_from_regulatory_graph_simple_boolean() -> None:
+def test_graph_from_simple_boolean() -> None:
     """
     Testing if a DiGraph can be written as xgmml and writen to file.
 
@@ -171,12 +98,12 @@ def test_creating_writing_xgmml_from_regulatory_graph_simple_boolean() -> None:
         AsssertionError: If the created xgmml differes from the expected.
 
     """
-    test_case_quick_str = '''A_[b]_ppi+_B_[a]; ! <comp>; ! C_[(x)]-{p}
-                        <comp>; AND A_[(x)]-{p}; AND A_[c]--C_[a]; AND A_[d]--D_[a]
-                        A_[d]_ppi+_D_[a]
-                        A_[c]_ppi+_C_[a]
-                        C_p+_A_[(x)]
-                        D_p+_C_[(x)]'''
+    digraph = _digraph_from_quick_str('''A_[b]_ppi+_B_[a]; ! <comp>; ! C_[(x)]-{p}
+                                      <comp>; AND A_[(x)]-{p}; AND A_[c]--C_[a]; AND A_[d]--D_[a]
+                                      A_[d]_ppi+_D_[a]
+                                      A_[c]_ppi+_C_[a]
+                                      C_p+_A_[(x)]
+                                      D_p+_C_[(x)]''')
 
     expected_xgmml = '''
                         <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
@@ -232,11 +159,10 @@ def test_creating_writing_xgmml_from_regulatory_graph_simple_boolean() -> None:
                         <edge source="B_[a]--0" target="A_[b]_ppi+_B_[a]"><att name="interaction" value="ss" type="string"/></edge>
                         </graph>'''
 
-    assert _is_xgmml_export_test_case_correct(test_case_quick_str, expected_xgmml)
-    assert _can_xgmml_be_written_to_file(test_case_quick_str)
+    assert is_digraph_to_xgmml_correct(digraph, expected_xgmml)
 
 
-def test_creating_writing_xgmml_from_regulatory_graph_complex_boolean() -> None:
+def test_graph_from_complex_boolean() -> None:
     """
     Testing a nested boolean.
 
@@ -250,16 +176,16 @@ def test_creating_writing_xgmml_from_regulatory_graph_complex_boolean() -> None:
         AsssertionError: If the created xgmml differes from the expected.
 
     """
-    test_case_quick_str = """A_ppi+_B; ! <comp>
-                         <comp>; AND <comp1>; AND <comp2>
-                         <comp1>; OR <comp3>; OR A--C
-                         <comp2>; AND A--D; AND A--E
-                         <comp3>; AND A--F; AND A--G
-                         A_ppi+_C
-                         A_ppi+_D
-                         A_ppi+_E
-                         A_ppi+_F
-                         A_ppi+_G"""
+    digraph = _digraph_from_quick_str("""A_ppi+_B; ! <comp>
+                                      <comp>; AND <comp1>; AND <comp2>
+                                      <comp1>; OR <comp3>; OR A--C
+                                      <comp2>; AND A--D; AND A--E
+                                      <comp3>; AND A--F; AND A--G
+                                      A_ppi+_C
+                                      A_ppi+_D
+                                      A_ppi+_E
+                                      A_ppi+_F
+                                      A_ppi+_G""")
 
     expected_xgmml = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
                         <graph directed="1"  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.cs.rpi.edu/XGMML">
@@ -336,39 +262,36 @@ def test_creating_writing_xgmml_from_regulatory_graph_complex_boolean() -> None:
                         <edge source="A_[G]_ppi+_G_[A]" target="A_[G]--0"><att name="interaction" value="consume" type="string"/></edge>
                         </graph>"""
 
-    assert _is_xgmml_export_test_case_correct(test_case_quick_str, expected_xgmml)
-    assert _can_xgmml_be_written_to_file(test_case_quick_str)
+    assert is_digraph_to_xgmml_correct(digraph, expected_xgmml)
 
 
-def test_map_layout2xgmml() -> None:
+def test_format_attributes() -> None:
     """
-    Testing if the new graph gets the correct layout of the old graph.
+    Testing attribute annotation in xgmml.
 
     Returns:
         None
 
     Raises:
-        AssertionError: If the node coordinates of the new graph differ from expected coordinates.
+        AssertionError if an expected attribute type is not within the node attributes.
 
     """
+    graph = DiGraph()
+    graph.add_node('A', str_value='A', int_value=1, float_value=1.0)
+    format_attribute_system_str = XGMML(graph, "graph").to_string()
 
-    book = ExcelBook(PHEROMONE_XLS)
-    reg_graph = RegulatoryGraph(book.rxncon_system)
-    gml_system = XGMML(reg_graph.to_graph(), "pheromone_layout")
-    mapped_layout = map_layout2xgmml(gml_system.to_string(), PHEROMONE_XGMML)
-    xmldoc_no_layout = minidom.parseString(mapped_layout)
-    xmldoc_no_layout_info = _get_labels_and_coordinates_dict(xmldoc_no_layout)
-    xmldoc_expected_layout = minidom.parse(PHEROMONE_XGMML)
-    xmldoc_expected_layout_info = _get_labels_and_coordinates_dict(xmldoc_expected_layout)
-    assert all(xmldoc_no_layout_info[no_layout_node] == xmldoc_expected_layout_info[no_layout_node]
-               for no_layout_node in xmldoc_no_layout_info)
-    assert all(xmldoc_no_layout_info[expected_layout_node] == xmldoc_expected_layout_info[expected_layout_node]
-               for expected_layout_node in xmldoc_expected_layout_info)
+    expected_attribute_type = ['integer', 'double', 'string']
+    xmldoc_actual = minidom.parseString(format_attribute_system_str)
+    actual_node_attribute_types = [_get_node_att_type(xmldoc_actual.getElementsByTagName('node')[0], attribute_name=attribute)
+                                   for attribute in ['int_value', 'float_value', 'str_value']]
+    while expected_attribute_type:
+        attribute_type = expected_attribute_type.pop()
+        assert attribute_type in actual_node_attribute_types
 
 
-def test_adding_node() -> None:
+def test_layout_remains_correct_when_adding_node() -> None:
     """
-    Testing if the new graph gets tie correct layout of the old graph if we add an additional node.
+    Testing if the new graph gets the correct layout of the old graph if we add an additional node.
 
     Returns:
         None
@@ -380,7 +303,6 @@ def test_adding_node() -> None:
     test_case = Quick("""A_[b]_ppi+_B_[a]; ! A_[(c)]-{p}
                          C_p+_A_[(c)]; ! C_[d]--D_[c]
                          C_[d]_ppi+_D_[c]""")
-
 
     reg_graph = RegulatoryGraph(test_case.rxncon_system)
     gml_system = XGMML(reg_graph.to_graph(), "add_node")
@@ -396,7 +318,7 @@ def test_adding_node() -> None:
                for expected_layout_node in xmldoc_expected_layout_info)
 
 
-def test_removing_node() -> None:
+def test_layout_remains_correct_when_removing_node() -> None:
     """
     Testing if the new graph gets tie correct layout of the old graph if we remove a node.
 
@@ -420,3 +342,49 @@ def test_removing_node() -> None:
     assert all(xmldoc_no_layout_info[no_layout_node] == xmldoc_expected_layout_info[no_layout_node]
                for no_layout_node in xmldoc_no_layout_info)
 
+
+def is_digraph_to_xgmml_correct(digraph: DiGraph, expected_xgmml: str) -> bool:
+    """
+
+    Args:
+        test_case_quick:
+        expected_xgmml: expected xgmml content.
+
+    Returns:
+        bool: True if the created xgmml is the same as the expected, False otherwise.
+
+    """
+    gml_system = XGMML(digraph, "test_graph")
+
+    expected_xgmml_lines = [line.strip() for line in expected_xgmml.split("\n") if line.strip()]
+    produced_xgmml_lines = [line.strip() for line in gml_system.to_string().split("\n") if line.strip()]
+
+    if not sorted(produced_xgmml_lines) == sorted(expected_xgmml_lines):
+        for i, line in enumerate(produced_xgmml_lines):
+            if line not in expected_xgmml_lines:
+                print("generated line: {}".format(line))
+                print("expected line:  {}".format(expected_xgmml_lines[i]))
+
+    return sorted(produced_xgmml_lines) == sorted(expected_xgmml_lines)
+
+
+def _digraph_from_quick_str(quick_str: str) -> DiGraph:
+    """
+    Creating a regulatory graph.
+
+    Args:
+        quick_str: A rxncon system in quick format.
+
+    Returns:
+        A regulatory graph.
+
+    """
+    actual_system = Quick(quick_str)
+    reg_system = RegulatoryGraph(actual_system.rxncon_system)
+    return reg_system.to_graph()
+
+
+def _get_node_att_type(element: minidom.Element, attribute_name: str) -> str:
+    for child in element.childNodes:
+        if child.attributes and child.getAttribute('name') == attribute_name:
+            return child.getAttribute('type')

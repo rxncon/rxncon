@@ -6,7 +6,323 @@ from networkx import DiGraph
 from rxncon.input.quick.quick import Quick
 from rxncon.visualization.reaction_graph import EdgeWith, EdgeType, NodeType, rxngraph_from_rxncon_system
 
-RuleTestCase = namedtuple('RuleTestCase', ['quick_string', 'node_tuples', 'edge_tuples'])
+ReactionGraphTestCase = namedtuple('ReactionGraphTestCase', ['quick_string', 'node_tuples', 'edge_tuples'])
+
+
+def test_ppi() -> None:
+    """
+    Testing protein-protein interaction ppi.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = ReactionGraphTestCase('''A_[b]_ppi+_B_[a]''',
+                                      [
+                                          ('A', 'A', NodeType.component), ('A_[b]', 'b', NodeType.domain),
+                                          ('B', 'B', NodeType.component), ('B_[a]', 'a', NodeType.domain)
+                                      ],
+                                      [
+                                          ('A', 'A_[b]', EdgeWith.internal, EdgeType.interaction),
+                                          ('B', 'B_[a]', EdgeWith.internal, EdgeType.interaction),
+                                          ('A_[b]', 'B_[a]', EdgeWith.external, EdgeType.interaction)
+                                      ])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
+def test_ipi() -> None:
+    """
+    Testing intra-protein interaction (ipi.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = ReactionGraphTestCase('''A_[a1]_ipi+_A_[a2]''',
+                                      [
+                                          ('A', 'A', NodeType.component),
+                                          ('A_[a1]', 'a1', NodeType.domain),
+                                          ('A_[a2]', 'a2', NodeType.domain)
+                                      ],
+                                      [
+                                          ('A', 'A_[a1]', EdgeWith.internal, EdgeType.interaction),
+                                          ('A', 'A_[a2]', EdgeWith.internal, EdgeType.interaction),
+                                          ('A_[a1]', 'A_[a2]', EdgeWith.external, EdgeType.interaction)
+                                      ])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
+def test_dissociation() -> None:
+    """
+    Testing dissociation reaction (i-).
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = ReactionGraphTestCase('''Pher_[Ste2]_i-_Ste2_[Pher]''',
+                                      [
+                                          ('Pher', 'Pher', NodeType.component),
+                                          ('Pher_[Ste2]', 'Ste2', NodeType.domain),
+                                          ('Ste2', 'Ste2', NodeType.component),
+                                          ('Ste2_[Pher]', 'Pher', NodeType.domain)
+                                      ],
+                                      [
+                                          ('Pher', 'Pher_[Ste2]', EdgeWith.internal, EdgeType.interaction),
+                                          ('Ste2', 'Ste2_[Pher]', EdgeWith.internal, EdgeType.interaction),
+                                          ('Pher_[Ste2]', 'Ste2_[Pher]', EdgeWith.external, EdgeType.interaction)
+                                      ])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
+def test_pos_trans_modification() -> None:
+    """
+    Testing positive trans-modification.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = ReactionGraphTestCase('''A_p+_B_[(a)]''',
+                                      [
+                                          ('A', 'A', NodeType.component),
+                                          ('B_[(a)]', 'a', NodeType.residue),
+                                          ('B', 'B', NodeType.component)
+                                      ],
+                                      [
+                                          ('B', 'B_[(a)]', EdgeWith.internal, EdgeType.interaction),
+                                          ('A', 'B_[(a)]', EdgeWith.external, EdgeType.modification)
+                                      ])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
+def test_neg_trans_modification() -> None:
+    """
+    Testing negative trans-modification.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = ReactionGraphTestCase('''A_p-_B_[(a)]''',
+                                      [
+                                          ('A', 'A', NodeType.component),
+                                          ('B_[(a)]', 'a', NodeType.residue),
+                                          ('B', 'B', NodeType.component)
+                                      ],
+                                      [
+                                          ('B', 'B_[(a)]', EdgeWith.internal, EdgeType.interaction),
+                                          ('A', 'B_[(a)]', EdgeWith.external, EdgeType.modification)
+                                      ])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
+def test_cis_modification() -> None:
+    """
+    Testing cis-modification.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = ReactionGraphTestCase('''A_ap+_A_[(a)]''',
+                                      [
+                                          ('A', 'A', NodeType.component),
+                                          ('A_[(a)]', 'a', NodeType.residue)
+                                      ],
+                                      [
+                                          ('A', 'A_[(a)]', EdgeWith.internal, EdgeType.interaction),
+                                          ('A', 'A_[(a)]', EdgeWith.external, EdgeType.modification)
+                                      ])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
+def test_bidirectional_modification() -> None:
+    """
+    Testing bi-directional modification.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = ReactionGraphTestCase('''A_[(a)]_pt_B_[(b)]''',
+                                      [
+                                          ('A', 'A', NodeType.component),
+                                          ('A_[(a)]', 'a', NodeType.residue),
+                                          ('B', 'B', NodeType.component),
+                                          ('B_[(b)]', 'b', NodeType.residue)
+                                      ],
+                                      [
+                                          ('A', 'A_[(a)]', EdgeWith.internal, EdgeType.interaction),
+                                          ('B', 'B_[(b)]', EdgeWith.internal, EdgeType.interaction),
+                                          ('A_[(a)]', 'B_[(b)]', EdgeWith.external, EdgeType.bimodification)
+                                      ])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
+def test_degradation() -> None:
+    """
+    Testing degradation reaction.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = ReactionGraphTestCase('''A_deg_B''',
+                                      [
+                                          ('A', 'A', NodeType.component),
+                                          ('B', 'B', NodeType.component)
+                                      ],
+                                      [
+                                          ('A', 'B', EdgeWith.external, EdgeType.degradation)
+                                      ])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
+def test_synthesis() -> None:
+    """
+    Testing general synthesis reaction.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = ReactionGraphTestCase('''A_syn_B''',
+                                      [
+                                          ('A', 'A', NodeType.component),
+                                          ('B', 'B', NodeType.component)
+                                      ],
+                                      [
+                                          ('A', 'B', EdgeWith.external, EdgeType.synthesis)
+                                      ])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
+def test_trsc() -> None:
+    """
+    Testing general synthesis reaction.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = ReactionGraphTestCase('''A_trsc_B''',
+                                      [
+                                          ('A', 'A', NodeType.component),
+                                          ('BmRNA', 'BmRNA', NodeType.component)
+                                      ],
+                                      [
+                                          ('A', 'BmRNA', EdgeWith.external, EdgeType.synthesis)
+                                      ])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
+def test_trsl() -> None:
+    """
+    Testing general synthesis reaction.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = ReactionGraphTestCase('''A_trsl_B''',
+                                      [
+                                          ('A', 'A', NodeType.component),
+                                          ('B', 'B', NodeType.component)
+                                      ],
+                                      [
+                                          ('A', 'B', EdgeWith.external, EdgeType.synthesis)
+                                      ])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
+
+
+def test_multiple_reactions() -> None:
+    """
+    Testing multiple reactions in combination.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = ReactionGraphTestCase('''A_[b]_ppi+_B_[a]
+                                      A_[a1]_ipi+_A_[a2]
+                                      A_p+_B_[(a)]
+                                      A_ap+_A_[(a)]
+                                      A_[(a)]_pt_B_[(b)]''',
+                                      [
+                                          ('A', 'A', NodeType.component),
+                                          ('A_[b]', 'b', NodeType.domain),
+                                          ('A_[a1]', 'a1', NodeType.domain),
+                                          ('A_[a2]', 'a2', NodeType.domain),
+                                          ('A_[(a)]', 'a', NodeType.residue),
+                                          ('B', 'B', NodeType.component),
+                                          ('B_[a]', 'a', NodeType.domain),
+                                          ('B_[(a)]', 'a', NodeType.residue),
+                                          ('B_[(b)]', 'b', NodeType.residue)
+                                      ],
+                                      [
+                                          ('A', 'A_[b]', EdgeWith.internal, EdgeType.interaction),
+                                          ('A', 'A_[(a)]', EdgeWith.internal, EdgeType.interaction),
+                                          ('A', 'A_[a1]', EdgeWith.internal, EdgeType.interaction),
+                                          ('A', 'A_[a2]', EdgeWith.internal, EdgeType.interaction),
+                                          ('B', 'B_[(b)]', EdgeWith.internal, EdgeType.interaction),
+                                          ('B', 'B_[a]', EdgeWith.internal, EdgeType.interaction),
+                                          ('B', 'B_[(a)]', EdgeWith.internal, EdgeType.interaction),
+                                          ('A', 'A_[(a)]', EdgeWith.external, EdgeType.modification),
+                                          ('A', 'B_[(a)]', EdgeWith.external, EdgeType.modification),
+                                          ('A_[b]', 'B_[a]', EdgeWith.external, EdgeType.interaction),
+                                          ('A_[a1]', 'A_[a2]', EdgeWith.external, EdgeType.interaction),
+                                          ('A_[(a)]', 'B_[(b)]', EdgeWith.external, EdgeType.bimodification)
+                                      ])
+
+    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
 
 
 def _get_state_nodes(node_tuples: List[Tuple[str, str, NodeType]], expected_graph: DiGraph) -> DiGraph:
@@ -26,7 +342,7 @@ def _get_state_nodes(node_tuples: List[Tuple[str, str, NodeType]], expected_grap
     return expected_graph
 
 
-def _is_graph_test_case_correct(actual_graph: DiGraph, test_case: RuleTestCase) -> bool:
+def _is_graph_test_case_correct(actual_graph: DiGraph, test_case: ReactionGraphTestCase) -> bool:
     """
     Checking if the created and expected graph are equal.
 
@@ -64,255 +380,3 @@ def _create_reaction_graph(quick_string: str) -> DiGraph:
     """
     actual_system = Quick(quick_string)
     return rxngraph_from_rxncon_system(actual_system.rxncon_system).reaction_graph
-
-
-def test_ppi() -> None:
-    """
-    Testing protein-protein interaction ppi.
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError: If generated graph differs from expected graph.
-
-    """
-    test_case = RuleTestCase('''A_[b]_ppi+_B_[a]''',
-                             [('A', 'A', NodeType.component), ('A_[b]', 'b', NodeType.domain),
-                              ('B', 'B', NodeType.component), ('B_[a]', 'a', NodeType.domain)],
-                             [('A', 'A_[b]', EdgeWith.internal, EdgeType.interaction),
-                              ('B', 'B_[a]', EdgeWith.internal, EdgeType.interaction),
-                              ('A_[b]', 'B_[a]', EdgeWith.external, EdgeType.interaction)])
-
-    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
-
-
-def test_ipi() -> None:
-    """
-    Testing intra-protein interaction (ipi.
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError: If generated graph differs from expected graph.
-
-    """
-    test_case = RuleTestCase('''A_[a1]_ipi+_A_[a2]''',
-                             [('A', 'A', NodeType.component), ('A_[a1]', 'a1', NodeType.domain),
-                              ('A_[a2]', 'a2', NodeType.domain)],
-                             [('A', 'A_[a1]', EdgeWith.internal, EdgeType.interaction),
-                              ('A', 'A_[a2]', EdgeWith.internal, EdgeType.interaction),
-                              ('A_[a1]', 'A_[a2]', EdgeWith.external, EdgeType.interaction)])
-
-    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
-
-
-def test_dissociation() -> None:
-    """
-    Testing dissociation reaction (i-).
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError: If generated graph differs from expected graph.
-
-    """
-    test_case = RuleTestCase('''Pher_[Ste2]_i-_Ste2_[Pher]''',
-                             [('Pher', 'Pher', NodeType.component), ('Pher_[Ste2]', 'Ste2', NodeType.domain),
-                              ('Ste2', 'Ste2', NodeType.component), ('Ste2_[Pher]', 'Pher', NodeType.domain)],
-                             [('Pher', 'Pher_[Ste2]', EdgeWith.internal, EdgeType.interaction),
-                              ('Ste2', 'Ste2_[Pher]', EdgeWith.internal, EdgeType.interaction),
-                              ('Pher_[Ste2]', 'Ste2_[Pher]', EdgeWith.external, EdgeType.interaction)])
-
-    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
-
-
-def test_pos_trans_modification() -> None:
-    """
-    Testing positive trans-modification.
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError: If generated graph differs from expected graph.
-
-    """
-    test_case = RuleTestCase('''A_p+_B_[(a)]''',
-                             [('A', 'A', NodeType.component), ('B_[(a)]', 'a', NodeType.residue),
-                              ('B', 'B', NodeType.component)],
-                             [('B', 'B_[(a)]', EdgeWith.internal, EdgeType.interaction),
-                              ('A', 'B_[(a)]', EdgeWith.external, EdgeType.modification)])
-
-    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
-
-
-def test_neg_trans_modification() -> None:
-    """
-    Testing negative trans-modification.
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError: If generated graph differs from expected graph.
-
-    """
-    test_case = RuleTestCase('''A_p-_B_[(a)]''',
-                             [('A', 'A', NodeType.component), ('B_[(a)]', 'a', NodeType.residue),
-                              ('B', 'B', NodeType.component)],
-                             [('B', 'B_[(a)]', EdgeWith.internal, EdgeType.interaction),
-                              ('A', 'B_[(a)]', EdgeWith.external, EdgeType.modification)])
-
-    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
-
-
-def test_cis_modification() -> None:
-    """
-    Testing cis-modification.
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError: If generated graph differs from expected graph.
-
-    """
-    test_case = RuleTestCase('''A_ap+_A_[(a)]''',
-                             [('A', 'A', NodeType.component), ('A_[(a)]', 'a', NodeType.residue)],
-                             [('A', 'A_[(a)]', EdgeWith.internal, EdgeType.interaction),
-                              ('A', 'A_[(a)]', EdgeWith.external, EdgeType.modification)])
-
-    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
-
-
-def test_bidirectional_modification() -> None:
-    """
-    Testing bi-directional modification.
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError: If generated graph differs from expected graph.
-
-    """
-    test_case = RuleTestCase('''A_[(a)]_pt_B_[(b)]''',
-                             [('A', 'A', NodeType.component), ('A_[(a)]', 'a', NodeType.residue),
-                              ('B', 'B', NodeType.component), ('B_[(b)]', 'b', NodeType.residue)],
-                             [('A', 'A_[(a)]', EdgeWith.internal, EdgeType.interaction),
-                              ('B', 'B_[(b)]', EdgeWith.internal, EdgeType.interaction),
-                              ('A_[(a)]', 'B_[(b)]', EdgeWith.external, EdgeType.bimodification)])
-
-    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
-
-
-def test_degradation() -> None:
-    """
-    Testing degradation reaction.
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError: If generated graph differs from expected graph.
-
-    """
-    test_case = RuleTestCase('''A_deg_B''',
-                             [('A', 'A', NodeType.component), ('B', 'B', NodeType.component)],
-                             [('A', 'B', EdgeWith.external, EdgeType.degradation)])
-
-    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
-
-
-def test_synthesis() -> None:
-    """
-    Testing general synthesis reaction.
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError: If generated graph differs from expected graph.
-
-    """
-    test_case = RuleTestCase('''A_syn_B''',
-                             [('A', 'A', NodeType.component), ('B', 'B', NodeType.component)],
-                             [('A', 'B', EdgeWith.external, EdgeType.synthesis)])
-
-    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
-
-
-def test_trsc() -> None:
-    """
-    Testing general synthesis reaction.
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError: If generated graph differs from expected graph.
-
-    """
-    test_case = RuleTestCase('''A_trsc_B''',
-                             [('A', 'A', NodeType.component), ('BmRNA', 'BmRNA', NodeType.component)],
-                             [('A', 'BmRNA', EdgeWith.external, EdgeType.synthesis)])
-
-    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
-
-
-def test_trsl() -> None:
-    """
-    Testing general synthesis reaction.
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError: If generated graph differs from expected graph.
-
-    """
-    test_case = RuleTestCase('''A_trsl_B''',
-                             [('A', 'A', NodeType.component), ('B', 'B', NodeType.component)],
-                             [('A', 'B', EdgeWith.external, EdgeType.synthesis)])
-
-    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
-
-
-def test_multiple_reactions() -> None:
-    """
-    Testing multiple reactions in combination.
-
-    Returns:
-        None
-
-    Raises:
-        AssertionError: If generated graph differs from expected graph.
-
-    """
-    test_case = RuleTestCase('''A_[b]_ppi+_B_[a]
-                                A_[a1]_ipi+_A_[a2]
-                                A_p+_B_[(a)]
-                                A_ap+_A_[(a)]
-                                A_[(a)]_pt_B_[(b)]''',
-                             [('A', 'A', NodeType.component), ('A_[b]', 'b', NodeType.domain),
-                              ('A_[a1]', 'a1', NodeType.domain), ('A_[a2]', 'a2', NodeType.domain),
-                              ('A_[(a)]', 'a', NodeType.residue),
-                              ('B', 'B', NodeType.component), ('B_[a]', 'a', NodeType.domain),
-                              ('B_[(a)]', 'a', NodeType.residue), ('B_[(b)]', 'b', NodeType.residue)],
-                             [('A', 'A_[b]', EdgeWith.internal, EdgeType.interaction),
-                              ('A', 'A_[(a)]', EdgeWith.internal, EdgeType.interaction),
-                              ('A', 'A_[a1]', EdgeWith.internal, EdgeType.interaction),
-                              ('A', 'A_[a2]', EdgeWith.internal, EdgeType.interaction),
-                              ('B', 'B_[(b)]', EdgeWith.internal, EdgeType.interaction),
-                              ('B', 'B_[a]', EdgeWith.internal, EdgeType.interaction),
-                              ('B', 'B_[(a)]', EdgeWith.internal, EdgeType.interaction),
-                              ('A', 'A_[(a)]', EdgeWith.external, EdgeType.modification),
-                              ('A', 'B_[(a)]', EdgeWith.external, EdgeType.modification),
-                              ('A_[b]', 'B_[a]', EdgeWith.external, EdgeType.interaction),
-                              ('A_[a1]', 'A_[a2]', EdgeWith.external, EdgeType.interaction),
-                              ('A_[(a)]', 'B_[(b)]', EdgeWith.external, EdgeType.bimodification)])
-
-    assert _is_graph_test_case_correct(_create_reaction_graph(test_case.quick_string), test_case)
