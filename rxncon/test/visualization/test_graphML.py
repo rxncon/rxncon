@@ -40,7 +40,7 @@ def test_write_output() -> None:
     file_exists = os.path.exists(path)
     file_size = os.stat(path).st_size
     os.remove(path)
-    return file_exists and file_size > 0
+    assert file_exists and file_size > 0
 
 
 def test_graph_from_simple_system() -> None:

@@ -131,7 +131,7 @@ class State(ABC):
     def to_structured_from_state(self, state: 'State') -> 'State':
         pass
 
-    @abstractmethod
+    @abstractproperty
     def components(self) -> List[Spec]:
         pass
 

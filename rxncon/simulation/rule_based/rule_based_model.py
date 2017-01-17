@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, Iterable
+from typing import Dict, List, Optional, Tuple, Iterable, Type, Callable
 from itertools import combinations, product, chain, permutations, count
 from copy import copy, deepcopy
 from collections import defaultdict, OrderedDict
@@ -27,10 +27,12 @@ class MolDef:
 
     def __str__(self) -> str:
         site_strs = []
-        for site_def in sorted(self.site_defs):
-            site_name = self.site_defs[site_def]
-            site_strs.append('{0}:{1}'.format(site_name, '~'.join(x for x in sorted(site_def)))) \
-                if site_def else site_strs.append(site_name)
+        for name in sorted(self.site_defs.keys()):
+            site_def = self.site_defs[name]
+            if site_def:
+                site_strs.append('{0}:{1}'.format(name, '~'.join(x for x in sorted(site_def))))
+            else:
+                site_strs.append(name)
         return '{0}({1})'.format(self.name, ','.join(site_strs))
 
     def __repr__(self) -> str:
@@ -351,7 +353,7 @@ STATE_TO_COMPLEX_BUILDER_FN = {
     GlobalState: [
         lambda state, builder: logger.warning('{} : IGNORING INPUT STATE {}'.format(current_function_name(), str(state)))
     ]
-}
+}  # type: Dict[Type[State], List[Callable[[State, ComplexExprBuilder], None]]]
 
 
 STATE_TO_MOL_DEF_BUILDER_FN = {
@@ -374,7 +376,7 @@ STATE_TO_MOL_DEF_BUILDER_FN = {
     EmptyBindingState: [
         lambda state, builder: builder.add_site(state['$x'])
     ]
-}
+}  # type: Dict[Type[State], List[Callable[[State, MolDefBuilder], None]]]
 
 
 class Parameter:
@@ -651,7 +653,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             logger.debug('{} : Creating MolDefBuilder for {}'.format(current_function_name(), str(spec)))
             builder = MolDefBuilder(spec)
             for state in rxncon_sys.states_for_component(spec):
-                logger.debug('{} : Applying State {} of type {}'.format(current_function_name(), str(state), state.name))
+                logger.debug('{} : Applying State {} of type {}'.format(current_function_name(), str(state), type(state)))
                 for func in STATE_TO_MOL_DEF_BUILDER_FN[type(state)]:
                     func(state, builder)
 

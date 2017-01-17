@@ -504,7 +504,7 @@ def test_smooth_production_sources() -> None:
             assert rule.factor.is_equivalent_to(venn_from_str(expected, target_from_str))
 
 
-def test_state_target_properties():
+def test_state_target_properties() -> None:
     """
     Testing the relation between states and reactions not tested before.
 
@@ -519,6 +519,7 @@ def test_state_target_properties():
 
     neutral_state = target_from_str('A_[(x)]-{0}')
 
+    assert isinstance(neutral_state, StateTarget)
     assert boolean_model.state_target_by_name('A_[(x)]-{p}').is_produced_by(boolean_model.reaction_target_by_name('C_p+_A_[(x)]'))
     assert boolean_model.state_target_by_name('A_[(x)]-{p}').is_consumed_by(boolean_model.reaction_target_by_name('C_p-_A_[(x)]'))
     assert boolean_model.state_target_by_name('A_[(x)]-{p}').is_degraded_by(boolean_model.reaction_target_by_name('C_deg_A'))
@@ -526,7 +527,7 @@ def test_state_target_properties():
     assert boolean_model.state_target_by_name('A_[(x)]-{0}').is_synthesised_by(boolean_model.reaction_target_by_name('C_syn_A'))
 
 
-def test_set_initial_condition():
+def test_set_initial_condition() -> None:
     """
     Testing changing initial conditions.
 
@@ -547,7 +548,7 @@ def test_set_initial_condition():
     assert boolean_model.initial_conditions.target_to_value[neutral_state] == False
 
 
-def test_deg_of_component_without_states():
+def test_deg_of_component_without_states() -> None:
     """
     Testing degradation of component without states.
 
@@ -570,7 +571,7 @@ def test_deg_of_component_without_states():
         assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
 
 
-def test_boolnet_export():
+def test_boolnet_export() -> None:
     """
     Testing if the boolnet export works as expected.
 

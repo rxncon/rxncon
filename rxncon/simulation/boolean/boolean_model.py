@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict, Tuple, Optional, TypeVar, Generic, Sequence
 from copy import deepcopy
 from enum import Enum
 from itertools import product
@@ -7,8 +7,6 @@ from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union
 from rxncon.core.reaction import Reaction
 from rxncon.core.state import State, InteractionState
 from rxncon.core.spec import Spec
-from rxncon.core.contingency import Contingency, ContingencyType
-from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
 from rxncon.core.rxncon_system import RxnConSystem
 
 
@@ -153,17 +151,18 @@ class ReactionTarget(Target):
         reaction_parent: A elemental reaction of the rxncon system.
 
     """
-    def __init__(self, reaction_parent: Reaction, contingency_variant=0, interaction_variant=0, contingency_factor=None) -> None:
+    def __init__(self, reaction_parent: Reaction, contingency_variant: int=0,
+                 interaction_variant: int=0, contingency_factor: VennSet[StateTarget]=UniversalSet()) -> None:
         self.reaction_parent     = reaction_parent  # type: Reaction
-        self.produced_targets    = [StateTarget(x) for x in reaction_parent.produced_states]  # type: List[StateTarget]
-        self.consumed_targets    = [StateTarget(x) for x in reaction_parent.consumed_states]  # type: List[StateTarget]
+        self.produced_targets    = [StateTarget(x) for x in reaction_parent.produced_states]     # type: List[StateTarget]
+        self.consumed_targets    = [StateTarget(x) for x in reaction_parent.consumed_states]     # type: List[StateTarget]
         self.synthesised_targets = [StateTarget(x) for x in reaction_parent.synthesised_states]  # type: List[StateTarget]
-        self.degraded_targets    = [StateTarget(x) for x in reaction_parent.degraded_states]  # type: List[StateTarget]
+        self.degraded_targets    = [StateTarget(x) for x in reaction_parent.degraded_states]     # type: List[StateTarget]
 
         self.contingency_variant_index = contingency_variant
         self.interaction_variant_index = interaction_variant
 
-        self.contingency_factor  = contingency_factor  # type: Optional[VennSet[StateTarget]]
+        self.contingency_factor  = contingency_factor  # type: VennSet[StateTarget]
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -526,8 +525,7 @@ class UpdateRule:
             factor: Is the updating rule for the respective target.
 
     """
-    def __init__(self, target: Target, factor: VennSet) -> None:
-
+    def __init__(self, target: Target, factor: VennSet[Target]) -> None:
         self.target = target
         self.factor = factor
 
@@ -634,8 +632,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             None
 
         """
-        component_state_targets = []
-        component_to_factor     = {}
+        component_state_targets = []  # type: List[ComponentStateTarget]
+        component_to_factor     = {}  # type: Dict[Spec, VennSet[StateTarget]]
         for component in rxncon_sys.components():
             grouped_states = rxncon_sys.states_for_component_grouped(component)
             # component is not part of any state
@@ -880,6 +878,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             return
         elif knockout_strategy in (KnockoutStrategy.knockout_all_states, KnockoutStrategy.knockout_neutral_states):
             for state_rule in state_rules:
+                assert isinstance(state_rule.target, StateTarget)
+
                 if knockout_strategy == KnockoutStrategy.knockout_neutral_states and not state_rule.target.is_neutral:
                     continue
 
@@ -892,7 +892,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
     component_presence_factor, component_state_targets = calc_component_presence_factors()
 
-    state_targets    = [StateTarget(x) for x in rxncon_sys.states] + component_state_targets
+    state_targets    = [StateTarget(x) for x in rxncon_sys.states] + component_state_targets  # type: List[StateTarget]
 
     reaction_targets = calc_reaction_targets_with_dnf_contingencies()
     reaction_targets = update_degradations_add_component_states(reaction_targets, component_state_targets)
@@ -911,7 +911,9 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
     update_state_rules_with_knockouts(knockout_strategy)
     calc_knockout_rules()
 
-    return BooleanModel(state_targets, reaction_targets, knockout_targets, reaction_rules + state_rules + knockout_rules,
+    all_rules = reaction_rules + state_rules + knockout_rules
+
+    return BooleanModel(state_targets, reaction_targets, knockout_targets, all_rules,
                         initial_conditions(reaction_targets, state_targets, knockout_targets))
 
 

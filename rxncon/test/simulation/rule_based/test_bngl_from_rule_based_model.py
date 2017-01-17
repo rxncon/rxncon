@@ -3,7 +3,7 @@ from rxncon.input.quick.quick import Quick
 from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_rxncon
 from rxncon.simulation.rule_based.bngl_from_rule_based_model import bngl_from_rule_based_model
 
-def test_simple_system():
+def test_simple_system() -> None:
     rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p}
                                              A_[b]_ppi-_B_[a]
                                              C_p+_A_[(r)]
