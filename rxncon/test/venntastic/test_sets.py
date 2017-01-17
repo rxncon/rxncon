@@ -53,6 +53,13 @@ def test_values() -> None:
     assert set(venn_from_str('1 | 2 | 3 | 4 | 2', int).values) == {1, 2, 3, 4}
 
 
+def test_dnf_form() -> None:
+    assert venn_from_str('1 & 2', int).to_dnf_set().is_equivalent_to(venn_from_str('1 & 2', int))
+    assert venn_from_str('1 | 2', int).to_dnf_set().is_equivalent_to(venn_from_str('1 | 2', int))
+    assert UniversalSet().to_dnf_set().is_equivalent_to(UniversalSet())
+    assert EmptySet().to_dnf_set().is_equivalent_to(EmptySet())
+
+
 def test_list_form() -> None:
     assert venn_from_str('1', int).to_dnf_list() == [venn_from_str('1', int)]
 
