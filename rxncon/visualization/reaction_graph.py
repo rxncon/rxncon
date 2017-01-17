@@ -7,6 +7,7 @@ from rxncon.core.reaction import Reaction, OutputReaction
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.spec import Spec, LocusResolution
 from rxncon.util.utils import current_function_name
+from rxncon.core.state import ModificationState, InteractionState, SelfInteractionState, EmptyBindingState, GlobalState
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +31,12 @@ class NodeType(Enum):
     residue   = '20'
 
 
-STATES = {'$x--$y': EdgeType.interaction,
-          '$x--0': EdgeType.interaction,
-          '$x--[$y]': EdgeType.interaction,
-          '$x-{$y}': EdgeType.modification}
-
+STATES = {
+    InteractionState:     EdgeType.interaction,
+    EmptyBindingState:    EdgeType.interaction,
+    SelfInteractionState: EdgeType.interaction,
+    ModificationState:    EdgeType.modification
+}
 
 
 class ReactionGraph:
@@ -247,11 +249,11 @@ def rxngraph_from_rxncon_system(rxncon_system: RxnConSystem) -> ReactionGraph:
         elif len(rxn.components_lhs) < len(rxn.components_rhs):
             return EdgeType.synthesis
         elif len(rxn.produced_states) == 1:
-            return STATES[rxn.produced_states[0].repr_def]
+            return STATES[type(rxn.produced_states[0])]
         elif len(rxn.produced_states) == 2:
-            if all(STATES[produced_state.repr_def] == EdgeType.modification for produced_state in rxn.produced_states):
+            if all(STATES[type(produced_state)] == EdgeType.modification for produced_state in rxn.produced_states):
                 return EdgeType.bimodification
-            elif all(STATES[produced_state.repr_def] == EdgeType.interaction for produced_state in rxn.produced_states):
+            elif all(STATES[type(produced_state)] == EdgeType.interaction for produced_state in rxn.produced_states):
                 return EdgeType.interaction
             else:
                 return EdgeType.unknown
