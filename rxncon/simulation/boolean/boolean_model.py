@@ -21,13 +21,14 @@ class BooleanModel:
         initial_conditions: Initial conditions of the system.
     """
 
-    def __init__(self, state_targets: List['StateTarget'], reaction_targets: List['ReactionTarget'],
+    def __init__(self, state_targets: List['StateTarget'], reaction_targets: List['ReactionTarget'], knockout_targets: List['KnockoutTarget'],
                  update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig') -> None:
 
         self.update_rules       = update_rules
         self.initial_conditions = initial_conditions
         self._state_targets     = {str(x): x for x in state_targets}
         self._reaction_targets  = {str(x): x for x in reaction_targets}
+        self._knockout_targets  = {str(x): x for x in knockout_targets}
         self._validate_update_rules()
         self._validate_initial_conditions()
 
@@ -54,6 +55,9 @@ class BooleanModel:
 
     def reaction_target_by_name(self, name: str) -> 'ReactionTarget':
         return self._reaction_targets[name]
+
+    def knockout_target_by_name(self, name: str) -> 'KnockoutTarget':
+        return self._knockout_targets[name]
 
     def _validate_update_rules(self) -> None:
         """
@@ -495,6 +499,24 @@ class ComponentStateTarget(StateTarget):
     def is_interaction(self) -> bool:
         return False
 
+
+class KnockoutTarget(ComponentStateTarget):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Target):
+            return NotImplemented
+        return isinstance(other, KnockoutTarget) and self.component == other.component
+
+    def __str__(self) -> str:
+        return 'Knockout<{}>'.format(str(self.component))
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
+
+
 class UpdateRule:
     """
     Updating rule of the boolean model.
@@ -536,8 +558,15 @@ class SmoothingStrategy(Enum):
     smooth_production_sources = 'smooth_production_sources'
 
 
+class KnockoutStrategy(Enum):
+    no_knockouts            = 'no_knockout'
+    knockout_neutral_states = 'knockout_neutral_states'
+    knockout_all_states     = 'knockout_all_states'
+
+
 def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
-                              smoothing_strategy: SmoothingStrategy=SmoothingStrategy.no_smoothing) -> BooleanModel:
+                              smoothing_strategy: SmoothingStrategy=SmoothingStrategy.no_smoothing,
+                              knockout_strategy: KnockoutStrategy=KnockoutStrategy.no_knockouts) -> BooleanModel:
     """
     Constructs a boolean model from a rxncon system and a smoothing strategy.
 
@@ -550,7 +579,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
     """
 
-    def initial_conditions(reaction_targets: List[ReactionTarget], state_targets: List[StateTarget]) -> BooleanModelConfig:
+    def initial_conditions(reaction_targets: List[ReactionTarget], state_targets: List[StateTarget], knockout_targets: List[KnockoutTarget])\
+            -> BooleanModelConfig:
         """
         Calculates default initial conditions of the boolean model.
 
@@ -578,6 +608,9 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             # All reaction targets and non-neutral state targets are False.
             else:
                 conds[state_target] = False
+
+        for knockout_target in knockout_targets:
+            conds[knockout_target] = True
 
         return BooleanModelConfig(conds)
 
@@ -742,6 +775,12 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         return result
 
+    def calc_knockout_targets(knockout_strategy: KnockoutStrategy) -> List[KnockoutTarget]:
+        if knockout_strategy == KnockoutStrategy.no_knockouts:
+            return []
+        else:
+            return [KnockoutTarget(component) for component in rxncon_sys.components()]
+
     def calc_reaction_rules() -> None:
         """
         Calculate the rules of reaction targets.
@@ -836,6 +875,21 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                                                 tot_prod_fac,
                                                 tot_cons_fac).to_simplified_set()))
 
+    def update_state_rules_with_knockouts(knockout_strategy: KnockoutStrategy) -> None:
+        if knockout_strategy == KnockoutStrategy.no_knockouts:
+            return
+        elif knockout_strategy in (KnockoutStrategy.knockout_all_states, KnockoutStrategy.knockout_neutral_states):
+            for state_rule in state_rules:
+                if knockout_strategy == KnockoutStrategy.knockout_neutral_states and not state_rule.target.is_neutral:
+                    continue
+
+                for component in state_rule.target.components:
+                    state_rule.factor = Intersection(state_rule.factor, ValueSet(KnockoutTarget(component)))
+
+    def calc_knockout_rules() -> None:
+        for knockout_target in knockout_targets:
+            knockout_rules.append(UpdateRule(knockout_target, UniversalSet()))
+
     component_presence_factor, component_state_targets = calc_component_presence_factors()
 
     state_targets    = [StateTarget(x) for x in rxncon_sys.states] + component_state_targets
@@ -846,14 +900,19 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
     reaction_targets = update_degradations_add_interaction_state_partner(reaction_targets)
     reaction_targets = update_syntheses_with_component_states(reaction_targets, component_state_targets)
 
+    knockout_targets = calc_knockout_targets(knockout_strategy)
+
     reaction_rules = []  # type: List[UpdateRule]
     state_rules    = []  # type: List[UpdateRule]
+    knockout_rules = []  # type: List[UpdateRule]
 
     calc_reaction_rules()
     calc_state_rules()
+    update_state_rules_with_knockouts(knockout_strategy)
+    calc_knockout_rules()
 
-    return BooleanModel(state_targets, reaction_targets, reaction_rules + state_rules,
-                        initial_conditions(reaction_targets, state_targets))
+    return BooleanModel(state_targets, reaction_targets, knockout_targets, reaction_rules + state_rules + knockout_rules,
+                        initial_conditions(reaction_targets, state_targets, knockout_targets))
 
 
 ### SIMULATION STUFF ###
@@ -904,6 +963,8 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
             return '({})'.format(' | '.join(str_from_factor(x) for x in factor.exprs))
         elif isinstance(factor, EmptySet):
             return '0'
+        elif isinstance(factor, UniversalSet):
+            return '1'
         else:
             raise AssertionError('Could not parse factor {}'.format(factor))
 
@@ -945,6 +1006,7 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
         """
         nonlocal reaction_index
         nonlocal state_index
+        nonlocal knockout_index
 
         try:
             return boolnet_names[target]
@@ -953,6 +1015,11 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
                 name = 'R{}'.format(reaction_index)
                 boolnet_names[target] = name
                 reaction_index += 1
+                return name
+            elif isinstance(target, KnockoutTarget):
+                name = 'K{}'.format(knockout_index)
+                boolnet_names[target] = name
+                knockout_index += 1
                 return name
             elif isinstance(target, StateTarget):
                 name = 'S{}'.format(state_index)
@@ -966,6 +1033,7 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
 
     reaction_index = 0
     state_index    = 0
+    knockout_index = 0
 
     def sort_key(rule_str: str) -> Tuple[str, int]:
         """
