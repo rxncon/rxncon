@@ -310,41 +310,6 @@ def test_boolean_with_input_state() -> None:
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
 
-def test_boolean_structured() -> None:
-    """
-    Testing a regulatory graph for structured boolean contingency.
-
-    Note:
-        A system of 2 reactions, 1 boolean contingency.
-
-    Returns:
-        AssertionError: If generated graph differs from expected graph.
-
-    """
-
-    test_case = RegulatoryGraphTestCase("""IR_[lig]_i+_insulin_[IR]; ! <IR-empty>
-                                <IR-empty>; AND IR@0--IR@2; AND IR@0_[lig]--0; AND IR@2_[lig]--0
-                                IR_[IR]_ppi+_IR_[IR]""",
-                                        ['IR_[lig]_i+_insulin_[IR]', 'IR_[IR]_ppi+_IR_[IR]'],
-                                        ['IR_[IR]--IR_[IR]', 'IR_[IR]--0', 'IR_[lig]--insulin_[IR]', 'IR_[lig]--0',
-                              'insulin_[IR]--0'],
-                                        [('IR-empty', 'IR-empty', 'AND')],
-                                        [('IR_[IR]_ppi+_IR_[IR]', 'IR_[IR]--IR_[IR]', EdgeInteractionType.produce),
-                              ('IR_[IR]_ppi+_IR_[IR]', 'IR_[IR]--0', EdgeInteractionType.consume),
-                             ('IR_[IR]--0', 'IR_[IR]_ppi+_IR_[IR]', EdgeInteractionType.source_state),
-                             ('IR_[lig]_i+_insulin_[IR]', 'IR_[lig]--insulin_[IR]', EdgeInteractionType.produce),
-                             ('IR_[lig]_i+_insulin_[IR]', 'IR_[lig]--0', EdgeInteractionType.consume),
-                             ('IR_[lig]_i+_insulin_[IR]', 'insulin_[IR]--0', EdgeInteractionType.consume),
-                             ('IR_[lig]--0', 'IR_[lig]_i+_insulin_[IR]', EdgeInteractionType.source_state),
-                             ('insulin_[IR]--0', 'IR_[lig]_i+_insulin_[IR]', EdgeInteractionType.source_state),
-                             ('IR-empty', 'IR_[lig]_i+_insulin_[IR]', EdgeInteractionType.required),
-                             ('IR_[IR]--IR_[IR]', 'IR-empty', EdgeInteractionType.AND),
-                             ('IR_[lig]--0', 'IR-empty', EdgeInteractionType.AND),
-                             ('IR_[lig]--0', 'IR-empty', EdgeInteractionType.AND)])
-
-    assert True #_is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
-
-
 def test_degradation_no_contingency() -> None:
     """
     Testing a regulatory graph for degradation reaction without contingencies.

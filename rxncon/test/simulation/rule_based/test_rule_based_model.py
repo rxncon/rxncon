@@ -38,15 +38,15 @@ def test_complex_from_str_inequivalent() -> None:
 def test_invalid_complexes() -> None:
     # Two molecules, not connected by any bond.
     with pytest.raises(AssertionError):
-        c = complex_from_str('A().B()')
+        complex_from_str('A().B()')
 
     # Single dangling bond.
     with pytest.raises(AssertionError):
-        c = complex_from_str('A(x!1)')
+        complex_from_str('A(x!1)')
 
     # Two molecules with two dangling bonds.
     with pytest.raises(AssertionError):
-        c = complex_from_str('A(x!1).B(y!2)')
+        complex_from_str('A(x!1).B(y!2)')
 
 
 def test_rule_from_str_equivalent() -> None:

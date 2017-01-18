@@ -36,8 +36,6 @@ def test_simplifies() -> None:
     x1 = Intersection(ValueSet(1), ValueSet(2))
     x2 = Intersection(ValueSet(1), Complement(ValueSet(2)))
 
-    z = Union(x1, x2)
-
     assert Union(x1, x2).is_equivalent_to(ValueSet(1))
 
 

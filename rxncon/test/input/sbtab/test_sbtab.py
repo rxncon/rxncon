@@ -83,7 +83,7 @@ def test_validated_sbtab_raises_value_error_wrong_type() -> None:
     definitions = sbtab_data_from_file(DEFINITIONS_PATH)
 
     with pytest.raises(ValueError):
-        sbtab = ValidatedSBtabData(sbtab_input, definitions)
+        ValidatedSBtabData(sbtab_input, definitions)
 
 
 def test_input_type_validated_sbtab_() -> None:

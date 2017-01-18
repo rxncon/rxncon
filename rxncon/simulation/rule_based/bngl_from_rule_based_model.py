@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Tuple, List
+from typing import List
 
 from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel, MolDef, Complex, \
     InitialCondition, Mol, Parameter, Rule, Observable

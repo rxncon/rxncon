@@ -55,7 +55,7 @@ def test_structured_specs() -> None:
     assert not protein_spec.to_mrna_component_spec().struct_index
 
     with pytest.raises(SyntaxError):
-        empty_spec = spec_from_str('0@1')
+        spec_from_str('0@1')
 
 
 def test_super_sub() -> None:

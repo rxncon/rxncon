@@ -11,7 +11,7 @@ SHUFFLED_COLUMNS_XLS          = os.path.join(os.path.dirname(__file__), 'shuffle
 
 def test_missing_necessary_sheet() -> None:
     with pytest.raises(SyntaxError):
-        excel = ExcelBook(MISSING_NECESSARY_SHEET_XLS)
+        ExcelBook(MISSING_NECESSARY_SHEET_XLS)
 
 
 def test_missing_unnecessary_sheet() -> None:

@@ -1,6 +1,6 @@
-from rxncon.core.reaction import *
-import pytest
-
+from rxncon.core.reaction import reaction_from_str, ReactionTerm
+from rxncon.core.state import state_from_str
+from rxncon.core.spec import spec_from_str
 
 def test_simple_reaction() -> None:
     rxn = reaction_from_str('A_p+_B_[(r)]')

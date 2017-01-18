@@ -15,7 +15,7 @@ def test_doubly_defined_time_derivatives(first_lotke_volterra_ode: ODE, second_l
     second_lotke_volterra_ode.time_derivative = Symbol('x')
 
     with pytest.raises(AssertionError):
-        ode_sys = ODESystem([first_lotke_volterra_ode, second_lotke_volterra_ode])
+        ODESystem([first_lotke_volterra_ode, second_lotke_volterra_ode])
 
 
 def test_single_ode_to_py_code(first_lotke_volterra_ode: ODE, second_lotke_volterra_ode: ODE,

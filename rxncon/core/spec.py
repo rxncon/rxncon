@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from abc import ABC
-from copy import copy, deepcopy
+from copy import deepcopy
 from typing import Optional, MutableMapping, Type, Tuple
 from enum import Enum, unique
 import re

@@ -1,6 +1,7 @@
 from rxncon.core.spec import spec_from_str
 from rxncon.core.state import state_from_str
-from rxncon.input.quick.quick import *
+from rxncon.core.reaction import reaction_from_str
+from rxncon.input.quick.quick import Quick
 from rxncon.core.contingency import ContingencyType
 
 
