@@ -78,7 +78,7 @@ valid_overexpression_strategies = [strategy.value for strategy in Overexpression
 
 def validate_smoothing_strategy(ctx, param, value):
     try:
-        strategy = SmoothingStrategy(value)
+        SmoothingStrategy(value)
         return value
     except ValueError:
         raise click.BadParameter('Valid strategies are: {}'.format(', '.join(valid_smoothing_strategies)))
@@ -86,7 +86,7 @@ def validate_smoothing_strategy(ctx, param, value):
 
 def validate_knockout_strategy(ctx, param, value):
     try:
-        strategy = KnockoutStrategy(value)
+        KnockoutStrategy(value)
         return value
     except ValueError:
         raise click.BadParameter('Valid strategies are: {}'.format(', '.join(valid_knockout_strategies)))
@@ -94,7 +94,7 @@ def validate_knockout_strategy(ctx, param, value):
 
 def validate_overexpression_strategy(ctx, param, value):
     try:
-        strategy = OverexpressionStrategy(value)
+        OverexpressionStrategy(value)
         return value
     except ValueError:
         raise click.BadParameter('Valid strategies are: {}'.format(', '.join(valid_knockout_strategies)))

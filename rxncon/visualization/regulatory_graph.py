@@ -321,7 +321,7 @@ class RegulatoryGraph:
             """
             for degraded_component in reaction.degraded_components:
                 if degraded_component in state.components:
-                    complements = self.rxncon_system.complementary_states_for_component(degraded_component, state)
+                    complements = self.rxncon_system.complement_states_for_component(degraded_component, state)
                     # If we have one unique complement of a state we know what gets degraded.
                     if len(complements) == 1:
                         self._add_edge(source=str(reaction), target=str(complements[0]), interaction=EdgeInteractionType.degrade)
@@ -409,7 +409,7 @@ class RegulatoryGraph:
         if contingencies:
             self.add_contingency_information_to_graph(contingencies)
 
-            cont = Intersection(*(_effector_to_vennset(contingency.effector, contingency.type) for contingency in contingencies)).to_simplified_set()
+            cont = Intersection(*(_effector_to_vennset(contingency.effector, contingency.contingency_type) for contingency in contingencies)).to_simplified_set()
             dnf_of_cont = cont.to_dnf_nested_list()
 
             for index, nested_list in enumerate(dnf_of_cont):
@@ -620,7 +620,7 @@ class RegulatoryGraph:
                 raise AssertionError
 
         for contingency in contingencies:
-            _add_information_from_effector_to_graph(contingency.effector, edge_type_mapping[contingency.type],
+            _add_information_from_effector_to_graph(contingency.effector, edge_type_mapping[contingency.contingency_type],
                                                     _target_name_from_reaction_or_effector(contingency.target))
 
     def _add_node(self, id: str, label: str, type: NodeType) -> None:

@@ -12,7 +12,7 @@ from rxncon.util.utils import current_function_name
 BOOLEAN_CONTINGENCY_REGEX = '^<.*>$'
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 @unique
@@ -23,7 +23,7 @@ class BooleanOperator(Enum):
     op_eqv = 'eqv'
 
 
-class BooleanContingencyName:
+class BooleanContingencyName:  # pylint: disable=too-few-public-methods
     def __init__(self, name: str) -> None:
         assert re.match(BOOLEAN_CONTINGENCY_REGEX, name)
         self.name = name
@@ -137,7 +137,7 @@ class StructEquivalences:
 
 
 class TrivialStructEquivalences(StructEquivalences):
-    def __init__(self, initial_struct_specs: Dict[Spec, Spec]=None) -> None:
+    def __init__(self, initial_struct_specs: Dict[Spec, Spec]=None) -> None:  # pylint: disable=super-init-not-called
         if not initial_struct_specs:
             self.struct_specs = {}  # type: Dict[Spec, Spec]
         else:
@@ -172,7 +172,7 @@ class TrivialStructEquivalences(StructEquivalences):
         return [x for x in range(self.cur_index)]
 
 
-class StructCounter:
+class StructCounter:  # pylint: disable=too-few-public-methods
     def __init__(self) -> None:
         self.value = 2
 
@@ -190,7 +190,7 @@ class Effector(metaclass=ABCMeta):
 
     @name.setter
     def name(self, value: str) -> None:
-        self._name = value
+        self._name = value  # pylint: disable=attribute-defined-outside-init
 
     @abstractproperty
     def states(self) -> List[State]:
@@ -205,7 +205,8 @@ class Effector(metaclass=ABCMeta):
                                   cur_namespace: List[str]=None) -> 'Effector':
         raise NotImplementedError
 
-    def _init_to_struct_effector_args(self, glob_equivs: Optional[StructEquivalences], cur_index: Optional[StructCounter],
+    @staticmethod
+    def _init_to_struct_effector_args(glob_equivs: Optional[StructEquivalences], cur_index: Optional[StructCounter],
                                       cur_namespace: Optional[List[str]]) -> Tuple[StructEquivalences, StructCounter, List[str]]:
         if glob_equivs is None:
             glob_equivs = StructEquivalences()
@@ -252,8 +253,8 @@ class StateEffector(Effector):
 
         assert not (state.is_homodimer and not state.is_structured), 'Please provide structure annotation for homodimer {}'.format(state)
 
-        logger.debug('{} : Merging {}'.format(current_function_name(), str(self)))
-        logger.debug('{} : Equivs {}'.format(current_function_name(), glob_equivs))
+        LOGGER.debug('{} : Merging {}'.format(current_function_name(), str(self)))
+        LOGGER.debug('{} : Equivs {}'.format(current_function_name(), glob_equivs))
 
         for spec in state.specs:
             existing_spec = glob_equivs.find_unqualified_spec(QualSpec(cur_namespace, spec))
@@ -268,11 +269,12 @@ class StateEffector(Effector):
                 glob_equivs.add_equivalence(QualSpec([], new_spec), QualSpec(cur_namespace, spec))
 
         state.update_specs(updates)
-        logger.debug('{} : Result {}'.format(current_function_name(), str(state)))
+        LOGGER.debug('{} : Result {}'.format(current_function_name(), str(state)))
 
         return StateEffector(state)
 
-    def _generate_index(self, glob_equivs: StructEquivalences, cur_index: StructCounter) -> int:
+    @staticmethod
+    def _generate_index(glob_equivs: StructEquivalences, cur_index: StructCounter) -> int:
         index = cur_index.value
         while index in glob_equivs.indices_in_root_namespace():
             cur_index.increment()

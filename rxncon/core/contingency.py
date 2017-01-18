@@ -2,17 +2,17 @@ from enum import unique, Enum
 from copy import deepcopy
 from collections import defaultdict
 import logging
-from typing import Any, Callable, Set as TgSet, Dict
+from typing import Any, Callable, Set as TgSet, Dict, List, Optional  # pylint: disable=unused-import
 
 from rxncon.util.utils import current_function_name
 from rxncon.core.effector import Effector, StructEquivalences, QualSpec, StateEffector, TrivialStructEquivalences, NotEffector, \
-    AndEffector, OrEffector
+    AndEffector, OrEffector, StructCounter
 from rxncon.core.reaction import Reaction
 from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Complement, Union, UniversalSet
 from rxncon.core.state import State
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 @unique
@@ -26,25 +26,32 @@ class ContingencyType(Enum):
 
 
 class Contingency:
-    def __init__(self, target: Reaction, type: ContingencyType, effector: Effector) -> None:
-        self.target, self.type, self.effector = target, type, effector
+    def __init__(self, target: Reaction, contingency_type: ContingencyType, effector: Effector) -> None:
+        self.target, self.contingency_type, self.effector = target, contingency_type, effector
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Contingency):
             return NotImplemented
-        return self.target == other.target and self.type == other.type and self.effector == other.effector
+        return self.target == other.target and self.contingency_type == other.contingency_type and self.effector == other.effector
 
     def __repr__(self) -> str:
         return str(self)
 
     def __str__(self) -> str:
-        return 'Contingency({0}, {1}, {2}'.format(str(self.target), str(self.type), str(self.effector))
+        return 'Contingency({0}, {1}, {2}'.format(str(self.target), str(self.contingency_type), str(self.effector))
 
     def clone(self) -> 'Contingency':
         return deepcopy(self)
 
+    def with_merged_struct_effector(self, equivs: Optional[StructEquivalences]=None, counter: Optional[StructCounter]=None,
+                                    namespace: Optional[List[str]]=None) -> 'Contingency':
+        structured = self.clone()
+        structured.effector = structured.effector.to_merged_struct_effector(equivs, counter, namespace)
+        structured.validate_struct_indices()
+        return structured
+
     def to_structured(self) -> 'Contingency':
-        logger.debug('{}: {}'.format(current_function_name(), str(self)))
+        LOGGER.debug('{}: {}'.format(current_function_name(), str(self)))
 
         if isinstance(self.effector, StateEffector) and self.effector.is_structured:
             # A fully structured StateEffector is fine.
@@ -60,30 +67,16 @@ class Contingency:
                                            QualSpec([str(self.target)], spec.to_component_spec()))
                 except KeyError:
                     pass
-            sc = self.clone()
-            sc.effector = sc.effector.to_merged_struct_effector(equivs, None, [str(self.target)])
-            assert isinstance(sc.effector, StateEffector)
-            logger.info('{}: {} :: {} -> {}'.format(current_function_name(), str(self.target),
-                                                    str(self.effector.expr), str(sc.effector.expr)))
-            sc._validate_structure_indices()
-            return sc
+
+            return self.with_merged_struct_effector(equivs, None, [str(self.target)])
         elif self.effector.is_structured:
             # A fully structured Boolean Effector needs to have its structure indices merged.
-            sc = self.clone()
-            sc.effector = sc.effector.to_merged_struct_effector()
-            logger.info('{}: {} :: {} -> {}'.format(current_function_name(), str(self.target),
-                                                    str(self.effector), str(sc.effector)))
-            sc._validate_structure_indices()
-            return sc
+            return self.with_merged_struct_effector()
         else:
             # For a non-structured Boolean Effector, assume all Specs that could match, actually do match.
-            sc = self.clone()
             struct_components = {spec.to_non_struct_spec(): spec for spec in self.target.components_lhs_structured}
-            sc.effector = sc.effector.to_merged_struct_effector(TrivialStructEquivalences(struct_components), None, None)
-            logger.info('{}: {} :: {} -> {}'.format(current_function_name(), str(self.target),
-                                                    str(self.effector), str(sc.effector)))
-            sc._validate_structure_indices()
-            return sc
+            equivs = TrivialStructEquivalences(struct_components)  # pylint: disable=redefined-variable-type
+            return self.with_merged_struct_effector(equivs)
 
     def to_venn_set(self, k_plus_strict: bool=False, k_minus_strict: bool=False, structured: bool=True,
                     state_wrapper: Callable[[State], Any]=lambda x: x) -> VennSet[Any]:
@@ -112,14 +105,14 @@ class Contingency:
         else:
             negative = (ContingencyType.inhibition,)  # type: ignore
 
-        if self.type in positive:
+        if self.contingency_type in positive:
             return parse_effector(self.effector)
-        elif self.type in negative:
+        elif self.contingency_type in negative:
             return Complement(parse_effector(self.effector))
         else:
             return UniversalSet()
 
-    def _validate_structure_indices(self) -> None:
+    def validate_struct_indices(self) -> None:
         # Assert that every index is only used once.
         specs = [spec for state in self.effector.states for spec in state.specs]
         index_to_specs = defaultdict(set)  # type: Dict[int, TgSet]

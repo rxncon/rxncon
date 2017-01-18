@@ -30,7 +30,7 @@ def test_single_contingency() -> None:
     contingencies = rxncon_sys.contingencies_for_reaction(reaction_from_str('A_p+_B_[(r)]'))
     assert len(contingencies) == 1
     assert contingencies[0].effector.states == [state_from_str('A@0_[(x)]-{p}')]
-    assert contingencies[0].type == ContingencyType.requirement
+    assert contingencies[0].contingency_type == ContingencyType.requirement
 
 
 def test_bidirectional_verb() -> None:
@@ -41,7 +41,7 @@ def test_bidirectional_verb() -> None:
     contingencies = rxncon_sys.contingencies_for_reaction(reaction_from_str('A_[x]_ppi+_B_[y]'))
     assert len(contingencies) == 1
     assert contingencies[0].effector.states == [state_from_str('A@0_[(x)]-{p}')]
-    assert contingencies[0].type == ContingencyType.requirement
+    assert contingencies[0].contingency_type == ContingencyType.requirement
 
     #  Reverse direction
     contingencies = rxncon_sys.contingencies_for_reaction(reaction_from_str('A_[x]_ppi-_B_[y]'))

@@ -4,6 +4,7 @@ import os, logging
 import click
 import click_log
 import colorama
+import sys
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.input.excel_book.excel_book import ExcelBook

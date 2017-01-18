@@ -9,12 +9,13 @@ from rxncon.core.reaction import Reaction, ReactionTerm
 from rxncon.core.state import State, FullyNeutralState
 from rxncon.core.spec import Spec
 from rxncon.util.utils import current_function_name
-from rxncon.venntastic.sets import UniversalSet, Intersection, Set
-
-logger = logging.getLogger(__name__)
+from rxncon.venntastic.sets import UniversalSet, Intersection, Set  # pylint: disable=unused-import
 
 
-class RxnConSystem:
+LOGGER = logging.getLogger(__name__)
+
+
+class RxnConSystem:  # pylint: disable=too-many-instance-attributes
     def __init__(self, reactions: List[Reaction], contingencies: List[Contingency]) -> None:
         self.reactions     = reactions
         self.contingencies = contingencies
@@ -33,7 +34,7 @@ class RxnConSystem:
         self._calculate_global_states()
         self._calculate_states()
 
-        self._expand_non_elemental_contingencies()
+        self._expand_non_elemental_states()
         self._structure_contingencies()
 
         self.validate()
@@ -68,12 +69,12 @@ class RxnConSystem:
 
     def q_contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
         assert reaction in self.reactions
-        return [x for x in self.contingencies if x.target == reaction and x.type
+        return [x for x in self.contingencies if x.target == reaction and x.contingency_type
                 in [ContingencyType.positive, ContingencyType.negative]]
 
     def s_contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
         assert reaction in self.reactions
-        return [x for x in self.contingencies if x.target == reaction and x.type
+        return [x for x in self.contingencies if x.target == reaction and x.contingency_type
                 in [ContingencyType.requirement, ContingencyType.inhibition]]
 
     @property
@@ -125,20 +126,20 @@ class RxnConSystem:
 
         return grouped
 
-    def complementary_states(self, state: State) -> List[State]:
+    def complement_states(self, state: State) -> List[State]:
         states = []  # type: List[State]
         for component in state.components:
-            states += self.complementary_states_for_component(component, state)
+            states += self.complement_states_for_component(component, state)
 
         return states
 
-    def complementary_states_for_component(self, component: Spec, state: State) -> List[State]:
+    def complement_states_for_component(self, component: Spec, state: State) -> List[State]:
         if not state.is_structured:
             for group in self.states_for_component_grouped(component).values():
                 if state in group:
                     return [x for x in group if x != state]
         else:
-            complements = self.complementary_states_for_component(component.to_non_struct_spec(), state.to_non_structured())
+            complements = self.complement_states_for_component(component.to_non_struct_spec(), state.to_non_structured())
             return [x.to_structured_from_state(state) for x in complements]
 
     def _calculate_components(self) -> None:
@@ -196,7 +197,7 @@ class RxnConSystem:
 
                 term.states = existing_states + new_states
 
-    def _expand_non_elemental_contingencies(self) -> None:
+    def _expand_non_elemental_states(self) -> None:
         def expanded_effector(effector: Effector) -> Effector:
             if isinstance(effector, StateEffector):
                 if effector.expr.is_elemental:
@@ -208,7 +209,7 @@ class RxnConSystem:
                                              'state {}'.format(effector.expr)
                     assert all(state.is_elemental for state in elemental_states)
 
-                    logger.info('{}: {} -> {}'.format(current_function_name(), str(effector.expr),
+                    LOGGER.info('{}: {} -> {}'.format(current_function_name(), str(effector.expr),
                                                       ' | '.join(str(x) for x in elemental_states)))
 
                     if len(elemental_states) == 1:
@@ -252,7 +253,7 @@ class RxnConSystem:
 
             total_set = UniversalSet()  # type: Set[State]
             for contingency in contingencies:
-                total_set = Intersection(total_set, contingency.to_venn_set())
+                total_set = Intersection(total_set, contingency.to_venn_set())  # pylint: disable=redefined-variable-type
 
             solutions = total_set.calc_solutions()
             if len(solutions) == 0:

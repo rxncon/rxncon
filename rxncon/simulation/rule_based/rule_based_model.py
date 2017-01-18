@@ -680,7 +680,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
     def calc_positive_solutions(rxncon_sys: RxnConSystem, solution: Dict[State, bool]) -> List[List[State]]:
         def complementary_state_combos(state: State) -> List[List[State]]:
             combos = product(
-                *(rxncon_sys.complementary_states_for_component(spec.to_component_spec(), state) for spec in
+                *(rxncon_sys.complement_states_for_component(spec.to_component_spec(), state) for spec in
                   state.specs))
             return [list(combo) for combo in combos if is_satisfiable(combo)]
 

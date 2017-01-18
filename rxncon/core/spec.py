@@ -1,9 +1,16 @@
 from collections import OrderedDict
 from abc import ABC
 from copy import deepcopy
-from typing import Optional, MutableMapping, Type, Tuple
+from typing import Optional, MutableMapping, Type, Tuple  # pylint: disable=unused-import
 from enum import Enum, unique
 import re
+
+
+DOMAIN_SUBDOMAIN_RESIDUE_REGEX = r'^[\w:-]+\/[\w:-]+\([\w:-]+\)$'
+DOMAIN_RESIDUE_REGEX = r'^[\w:-]+\([\w:-]+\)$'
+DOMAIN_SUBDOMAIN_REGEX = r'^[\w:-]+\/[\w:-]+$'
+RESIDUE_REGEX = r'^\([\w:-]+\)$'
+DOMAIN_REGEX = r'^[\w:-]+$'
 
 
 class Spec(ABC):
@@ -24,7 +31,7 @@ class Spec(ABC):
             else:
                 return "{0}{1}".format(spec.name, spec_suffix.value)
 
-        suffix = spec_to_suffix[type(self)]
+        suffix = SPEC_TO_SUFFIX[type(self)]
 
         if str(self.locus):
             return '{0}_[{1}]'.format(struct_name(self, suffix), str(self.locus))
@@ -34,7 +41,8 @@ class Spec(ABC):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Spec):
             return NotImplemented
-        return isinstance(other, type(self)) and self.name == other.name and self.locus == other.locus and self.struct_index == other.struct_index
+        return isinstance(other, type(self)) and self.name == other.name and self.locus == other.locus and \
+            self.struct_index == other.struct_index
 
     def __lt__(self, other: 'Spec') -> bool:
         return str(self) < str(other)
@@ -72,8 +80,12 @@ class Spec(ABC):
         return self.has_resolution(LocusResolution.component)
 
     def with_name_suffix(self, suffix: str) -> 'Spec':
-        assert suffix not in SpecSuffix.__members__  # type: ignore
-        return type(self)(self.name + suffix, self.struct_index, self.locus)
+        # Assure the suffix is not reserved, i.e. 'Gene', 'mRNA'
+        try:
+            SpecSuffix(suffix)
+            raise SyntaxError('Cannot use reserved suffix {} in Spec.with_name_suffix'.format(suffix))
+        except ValueError:
+            return type(self)(self.name + suffix, self.struct_index, self.locus)
 
     def with_struct_index(self, index: int) -> 'Spec':
         return type(self)(self.name, index, self.locus)
@@ -112,7 +124,7 @@ class Spec(ABC):
         return self.resolution == resolution
 
     def _validate(self) -> None:
-        assert self.name is not None and re.match('\w+', self.name)
+        assert self.name is not None and re.match(r'\w+', self.name)
 
 
 class ProteinSpec(Spec):
@@ -133,7 +145,7 @@ class GeneSpec(Spec):
 class Locus:
     def __init__(self, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]) -> None:
         self.domain, self.subdomain, self.residue = domain, subdomain, residue
-        self._validate()
+        self.validate()
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -162,23 +174,23 @@ class Locus:
             return NotImplemented
         return self.domain == other.domain and self.subdomain == other.subdomain and self.residue == other.residue
 
-    def _validate(self) -> None:
+    def validate(self) -> None:
         if self.domain:
-            assert re.match("\w+", self.domain)
+            assert re.match(r'\w+', self.domain)
         if self.subdomain:
-            assert re.match("\w+", self.subdomain)
+            assert re.match(r'\w+', self.subdomain)
             assert self.domain is not None
         if self.residue:
-            assert re.match("\w+", self.residue)
+            assert re.match(r'\w+', self.residue)
 
     def clone(self) -> 'Locus':
         return deepcopy(self)
 
     def with_domain(self, domain: str) -> 'Locus':
-        l = self.clone()
-        l.domain = domain
-        l._validate()
-        return l
+        locus = self.clone()
+        locus.domain = domain
+        locus.validate()
+        return locus
 
     @property
     def is_empty(self) -> bool:
@@ -198,7 +210,7 @@ class Locus:
             raise AssertionError('Inconsistent resolution for Spec {}'.format(str(self)))
 
 
-def EmptyLocus() -> Locus:
+def EmptyLocus() -> Locus:  # pylint: disable=invalid-name
     return Locus(None, None, None)
 
 
@@ -229,7 +241,7 @@ class SpecSuffix(Enum):
     protein = ''
 
 
-suffix_to_spec = OrderedDict(
+SUFFIX_TO_SPEC = OrderedDict(
     [
         (SpecSuffix.mrna, MRNASpec),
         (SpecSuffix.dna, GeneSpec),
@@ -237,17 +249,11 @@ suffix_to_spec = OrderedDict(
     ]
 )  # type: MutableMapping[SpecSuffix, Type[Spec]]
 
-spec_to_suffix = OrderedDict((k, v) for v, k in suffix_to_spec.items())  # type: MutableMapping[Type[Spec], SpecSuffix]
+SPEC_TO_SUFFIX = OrderedDict((k, v) for v, k in SUFFIX_TO_SPEC.items())  # type: MutableMapping[Type[Spec], SpecSuffix]
 
 
 def locus_from_str(locus_str: str) -> Locus:
     def locus_items_from_str(full_locus_str: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
-        DOMAIN_SUBDOMAIN_RESIDUE_REGEX = '^[\w:-]+\/[\w:-]+\([\w:-]+\)$'
-        DOMAIN_RESIDUE_REGEX = '^[\w:-]+\([\w:-]+\)$'
-        DOMAIN_SUBDOMAIN_REGEX = '^[\w:-]+\/[\w:-]+$'
-        RESIDUE_REGEX = '^\([\w:-]+\)$'
-        DOMAIN_REGEX = '^[\w:-]+$'
-
         domain, subdomain, residue = None, None, None  # type: Optional[str], Optional[str], Optional[str]
 
         if re.match(DOMAIN_SUBDOMAIN_RESIDUE_REGEX, full_locus_str):
@@ -279,29 +285,26 @@ def locus_from_str(locus_str: str) -> Locus:
 
 
 def spec_from_str(spec_str: str) -> Spec:
-    def spec_from_suffixed_name_and_locus(name: str, struct_index: Optional[int], locus: Locus) -> Spec:
-        for suffix in suffix_to_spec:
+    def spec_from_suffixed_name_and_locus(name: str, struct_index: Optional[int], locus: Locus) -> Spec:  # pylint: disable=invalid-name
+        for suffix in SUFFIX_TO_SPEC:
             if name.endswith(suffix.value):
                 name = name[:len(name) - len(suffix.value)]
-                return suffix_to_spec[suffix](name, struct_index, locus)
+                return SUFFIX_TO_SPEC[suffix](name, struct_index, locus)
             elif name.lower().endswith(suffix.value.lower()):
                 raise SyntaxError('Please use correct capitalization \'{}\' in component \'{}\'.'.format(suffix.value, name))
 
         raise SyntaxError('Could not parse spec component_name {}'.format(name))
 
-    if not re.match('[A-Za-z][A-Za-z0-9]*(@[\d]+)*(_\[[[A-Za-z0-9]\/\(\)]+\])*', spec_str):
+    if not re.match(r'[A-Za-z][A-Za-z0-9]*(@[\d]+)*(_\[[[A-Za-z0-9]\/\(\)]+\])*', spec_str):
         raise SyntaxError('Spec str {} does not match validating regex.'.format(spec_str))
 
-    DOMAIN_DELIMITER = '_'
-    STRUCT_DELIMITER = '@'
-
     struct_index = None
-    items = spec_str.split(DOMAIN_DELIMITER, maxsplit=1)
+    items = spec_str.split('_', maxsplit=1)
 
-    if not re.match('[a-zA-Z]', items[0]):
+    if not re.match(r'[a-zA-Z]', items[0]):
         raise SyntaxError('Spec has to start with letter character.')
-    elif STRUCT_DELIMITER in items[0]:
-        name, struct_index_str = items[0].split(STRUCT_DELIMITER)
+    elif '@' in items[0]:
+        name, struct_index_str = items[0].split('@')
         struct_index = int(struct_index_str)
     else:
         name = items[0]

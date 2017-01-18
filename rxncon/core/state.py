@@ -6,23 +6,22 @@ import logging
 from copy import deepcopy
 
 from rxncon.core.spec import Spec, LocusResolution, locus_from_str, spec_from_str
-from rxncon.util.utils import current_function_name
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
-SPEC_REGEX          = '([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
-STR_REGEX           = '([\w]+)'
-LOCUS_REGEX         = '([\w\/\(\)]+)'
+SPEC_REGEX          = r'([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
+STR_REGEX           = r'([\w]+)'
+LOCUS_REGEX         = r'([\w\/\(\)]+)'
 
 
-FULLY_NEUTRAL_STATE_REGEX    = '^0$'
-INTERACTION_STATE_REGEX      = '^{}--{}$'.format(SPEC_REGEX, SPEC_REGEX)
-EMPTY_BINDING_STATE_REGEX    = '^{}--0$'.format(SPEC_REGEX)
-SELF_INTERACTION_STATE_REGEX = '^{}--\[{}\]$'.format(SPEC_REGEX, LOCUS_REGEX)
-GLOBAL_STATE_REGEX           = '^\[{}\]$'.format(STR_REGEX)
-MODIFICATION_STATE_REGEX     = '^' + SPEC_REGEX + '-{' + STR_REGEX + '}$'
+FULLY_NEUTRAL_STATE_REGEX    = r'^0$'
+INTERACTION_STATE_REGEX      = r'^{}--{}$'.format(SPEC_REGEX, SPEC_REGEX)
+EMPTY_BINDING_STATE_REGEX    = r'^{}--0$'.format(SPEC_REGEX)
+SELF_INTERACTION_STATE_REGEX = r'^{}--\[{}\]$'.format(SPEC_REGEX, LOCUS_REGEX)
+GLOBAL_STATE_REGEX           = r'^\[{}\]$'.format(STR_REGEX)
+MODIFICATION_STATE_REGEX     = r'^' + SPEC_REGEX + r'-{' + STR_REGEX + r'}$'
 
 
 @unique
@@ -48,14 +47,14 @@ class StateModifier(Enum):
     iso 	  = 'iso'
     cyt 	  = 'cyt'
     myr       = 'myr'
-    ac        = 'ac'
+    ac        = 'ac'  # pylint: disable=invalid-name
 
 
 def state_modifier_from_str(modifier_str: str) -> StateModifier:
     try:
         return StateModifier(modifier_str.lower())
     except ValueError:
-        valid_modifiers = [modifier.value for modifier in StateModifier.__members__.values()]  # type: ignore
+        valid_modifiers = [modifier.value for modifier in StateModifier.__members__.values()]  # type: ignore, pylint: disable=no-member
         raise ValueError('Invalid StateModifier {}, valid modifiers are {}'
                          .format(modifier_str, ', '.join(valid_modifiers)))
 
@@ -245,22 +244,12 @@ class InteractionState(State):
         if not spec.is_structured:
             return self
 
-        if self.is_homodimer:
-            if not self.first.is_structured:
-                return InteractionState(self.first.with_struct_from_spec(spec), self.second)
-            elif not self.second.is_structured:
-                return InteractionState(self.first, self.second.with_struct_from_spec(spec))
-            else:
-                logger.info('{} : Not structuring homodimer {} with spec {}, since pre-structured.'
-                            .format(current_function_name(), str(self), str(spec)))
-                return self
+        if not self.first.is_structured and self.first.to_component_spec() == spec.to_non_struct_spec().to_component_spec():
+            return InteractionState(self.first.with_struct_from_spec(spec), self.second)
+        elif not self.second.is_structured and self.second.to_component_spec() == spec.to_non_struct_spec().to_component_spec():
+            return InteractionState(self.first, self.second.with_struct_from_spec(spec))
         else:
-            if self.first.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec():
-                return InteractionState(self.first.with_struct_from_spec(spec), self.second)
-            elif self.second.to_non_struct_spec().to_component_spec() == spec.to_non_struct_spec().to_component_spec():
-                return InteractionState(self.first, self.second.with_struct_from_spec(spec))
-            else:
-                return self
+            return self
 
     def to_structured_from_state(self, state: 'State') -> 'State':
         if self.is_homodimer and state.is_homodimer and state.is_structured:
@@ -704,7 +693,7 @@ class FullyNeutralState(State):
         raise AssertionError
 
 
-def state_from_str(state_str: str) -> State:
+def state_from_str(state_str: str) -> State:  # pylint: disable=too-many-return-statements
     state_str = state_str.strip()
 
     if re.match(GLOBAL_STATE_REGEX, state_str):

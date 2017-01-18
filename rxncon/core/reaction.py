@@ -6,17 +6,17 @@ from rxncon.core.state import State, state_from_str
 
 T = TypeVar('T')
 
-SPEC_REGEX_MATCHING     = '([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
-SPEC_REGEX_NON_MATCHING = '(?:[A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
+SPEC_REGEX_MATCHING     = r'([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
+SPEC_REGEX_NON_MATCHING = r'(?:[A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
 
-OUTPUT_REACTION_REGEX   = '^\[[\w-]*\]$'
+OUTPUT_REACTION_REGEX   = r'^\[[\w-]*\]$'
 
 BIDIRECTIONAL_VERBS = [
     'ppi', 'ipi', 'i', 'bind'
 ]
 
 
-class ReactionTerm:
+class ReactionTerm:  # pylint:disable=too-few-public-methods
     def __init__(self, specs: List[Spec], states: List[State]) -> None:
         assert all(spec.is_component_spec for spec in specs)
         self.specs, self.states = specs, states
@@ -36,63 +36,63 @@ class ReactionTerm:
 class ReactionDef:
     ARROW = '->'
 
-    def __init__(self, name: str, repr_def: str, vars_def: Dict[str, Any], rule_def: str) -> None:
-        self.name, self.repr_def, self.vars_def, self.rule_def = name, repr_def, vars_def, rule_def
+    def __init__(self, reaction_class: str, name_def: str, vars_def: Dict[str, Any], rule_def: str) -> None:
+        self.reaction_class, self.name_def, self.vars_def, self.rule_def = reaction_class, name_def, vars_def, rule_def
         self._parse_reactants_def()
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ReactionDef):
             return NotImplemented
-        return self.name == other.name and self.repr_def == other.repr_def \
+        return self.reaction_class == other.reaction_class and self.name_def == other.name_def \
             and self.vars_def == other.vars_def and self.rule_def == other.rule_def
 
     def __repr__(self) -> str:
         return str(self)
 
     def __str__(self) -> str:
-        return 'ReactionDef: {0}; repr_def: {1}; rule_def: {2} '.format(self.name, self.repr_def, self.rule_def)
+        return 'ReactionDef: {0}; name_def: {1}; rule_def: {2} '.format(self.reaction_class, self.name_def, self.rule_def)
 
-    def matches_repr(self, repr: str) -> bool:
-        return True if re.match(self._to_matching_regex(), repr) else False
+    def matches_name_def(self, name: str) -> bool:
+        return True if re.match(self._to_matching_regex(), name) else False
 
-    def repr_from_vars(self, vars: Dict[str, Any]) -> str:
-        representation = self.repr_def
-        for var, val in vars.items():
+    def name_from_vars(self, var_to_val: Dict[str, Any]) -> str:
+        representation = self.name_def
+        for var, val in var_to_val.items():
             representation = representation.replace(var, str(val))
 
         return representation
 
-    def vars_from_repr(self, repr: str) -> Dict[str, Any]:
-        assert self.matches_repr(repr)
+    def vars_from_name(self, name: str) -> Dict[str, Any]:
+        assert self.matches_name_def(name)
 
-        variables = {}
-        for var, var_def in self.vars_def.items():
+        var_to_val = {}
+        for var, _ in self.vars_def.items():
             var_regex = self._to_base_regex().replace(var, SPEC_REGEX_MATCHING)
             for other_var in self.vars_def.keys():
                 if other_var != var:
                     var_regex = var_regex.replace(other_var, SPEC_REGEX_NON_MATCHING)
 
-            val_str = re.match(var_regex, repr).group(1)
-            val_spec = spec_from_str(val_str)
+            val_str = re.match(var_regex, name).group(1)
+            val = spec_from_str(val_str)
 
-            variables[var] = val_spec
+            var_to_val[var] = val
 
-        return variables
+        return var_to_val
 
-    def validate_vars(self, vars: Dict[str, Any]) -> None:
-        for var, val in vars.items():
+    def validate_vars(self, var_to_val: Dict[str, Any]) -> None:
+        for var, val in var_to_val.items():
             assert isinstance(val, self.vars_def[var][0]), \
                 'In Reaction {0}: {1} is of type {2}, required to be of type {3}\nVariables: {4}'\
-                .format(self.repr_def, var, type(val), self.vars_def[var][0], vars)
+                .format(self.name_def, var, type(val), self.vars_def[var][0], var_to_val)
             assert val.has_resolution(self.vars_def[var][1]), \
                 'In Reaction {0}: {1} is of resolution {2}, required to be of resolution {3}\nVariables: {4}'\
-                .format(self.repr_def, var, val.resolution, self.vars_def[var][1], vars)
+                .format(self.name_def, var, val.resolution, self.vars_def[var][1], var_to_val)
 
-    def terms_lhs_from_vars(self, vars: Dict[str, Any]) -> List[ReactionTerm]:
-        return [self._parse_term(x, vars) for x in self.reactant_defs_lhs]
+    def terms_lhs_from_vars(self, var_to_val: Dict[str, Any]) -> List[ReactionTerm]:
+        return [self._parse_term(x, var_to_val) for x in self.reactant_defs_lhs]
 
-    def terms_rhs_from_vars(self, vars: Dict[str, Any]) -> List[ReactionTerm]:
-        return [self._parse_term(x, vars) for x in self.reactant_defs_rhs]
+    def terms_rhs_from_vars(self, var_to_val: Dict[str, Any]) -> List[ReactionTerm]:
+        return [self._parse_term(x, var_to_val) for x in self.reactant_defs_rhs]
 
     def _parse_reactants_def(self) -> None:
         assert self.ARROW in self.rule_def
@@ -102,7 +102,7 @@ class ReactionDef:
         self.reactant_defs_lhs = [x.strip() for x in reactants_def_lhs_str.split('+')]
         self.reactant_defs_rhs = [x.strip() for x in reactants_def_rhs_str.split('+')]
 
-    def _parse_term(self, definition: str, vars: Dict[str, Any]) -> ReactionTerm:
+    def _parse_term(self, term_def: str, var_to_val: Dict[str, Any]) -> ReactionTerm:
         def parse_states_str(states_str: str) -> List[State]:
             if not states_str:
                 return []
@@ -116,36 +116,36 @@ class ReactionDef:
 
         def parse_vars_str(vars_str: str, post_func: Callable[[str], T]) -> T:
             if not vars_str.count('$') == vars_str.count('%'):
-                raise SyntaxError('Error in ReactionDef {}'.format(self.name))
+                raise SyntaxError('Error in ReactionDef {}'.format(self.reaction_class))
 
             result_str = vars_str
-            for x in re.findall('(\$\S*?%)', vars_str):
+            for x in re.findall(r'(\$\S*?%)', vars_str):
                 var_symbol = x.split('.')[0]
 
                 if var_symbol[-1] == '%':
-                    replacement = str(vars[var_symbol[:-1]])
+                    replacement = str(var_to_val[var_symbol[:-1]])
                 else:
-                    anaphoric_var = vars[var_symbol]
+                    anaphoric_var = var_to_val[var_symbol]  # pylint:disable=unused-variable
                     methods_str = x.split('.', maxsplit=1)[1]
                     assert methods_str[-1] == '%'
-                    replacement = str(eval('anaphoric_var.' + methods_str[:-1]))
+                    replacement = str(eval('anaphoric_var.' + methods_str[:-1]))  # pylint:disable=eval-used
 
                 result_str = result_str.replace(x, replacement)
 
             return post_func(result_str)
 
-        if len(definition.split('#')) != 2:
+        if len(term_def.split('#')) != 2:
             raise SyntaxError('ReactionDef syntax error: each term should be of the form Specs#States,\n'
                               'where Specs is one or more Specs separated by !s and States is zero or\n'
-                              'more States separated by !s.\nThe given definition was: {}'.format(definition))
+                              'more States separated by !s.\nThe given definition was: {}'.format(term_def))
 
-        specs_str, states_str = definition.split('#')
+        specs_str, states_str = term_def.split('#')
 
         return ReactionTerm(parse_specs_str(specs_str), parse_states_str(states_str))
 
     def _to_base_regex(self) -> str:
         # The (?i) makes the regex case insensitive.
-        return '(?i)^{}$'.format(self.repr_def.replace('+', '\+'))
+        return r'(?i)^{}$'.format(self.name_def.replace('+', r'\+'))
 
     def _to_matching_regex(self) -> str:
         regex = self._to_base_regex()
@@ -577,21 +577,21 @@ REACTION_DEFS = [
             '$x': (Spec, LocusResolution.component),
             '$y': (MRNASpec, LocusResolution.component)
         },
-        '$x%# + $y%# -> $x%# + $y%# + $y.to_protein_component_spec().with_name_suffix(\'PRO\')%!$y.to_protein_component_spec().with_name_suffix(\'CAT\')%#'
-        '$y.to_protein_component_spec().with_name_suffix(\'PRO\').with_domain(\'PROCAT\')%--$y.to_protein_component_spec().with_name_suffix(\'CAT\').with_domain(\'CATPRO\')%!0'
+        '$x%# + $y%# -> $x%# + $y%# + $y.to_protein_component_spec().with_name_suffix(\'PRO\')%!$y.to_protein_component_spec().with_name_suffix(\'CAT\')%#'                       # pylint: disable=line-too-long
+        '$y.to_protein_component_spec().with_name_suffix(\'PRO\').with_domain(\'PROCAT\')%--$y.to_protein_component_spec().with_name_suffix(\'CAT\').with_domain(\'CATPRO\')%!0'  # pylint: disable=line-too-long
     )
 ]
 
 
-class Reaction:
-    def __init__(self, definition: ReactionDef, vars: Dict[str, Any]) -> None:
-        self._definition = definition
-        self._vars       = vars
+class Reaction:  # pylint: disable=too-many-instance-attributes
+    def __init__(self, reaction_def: ReactionDef, var_to_val: Dict[str, Any]) -> None:
+        self.reaction_class = reaction_def.reaction_class
+        self.reaction_def   = reaction_def
+        self.var_to_val     = var_to_val
 
-        self.name        = definition.name
-        self.terms_lhs   = definition.terms_lhs_from_vars(vars)
-        self.terms_rhs   = definition.terms_rhs_from_vars(vars)
-        self._repr       = definition.repr_from_vars(vars)
+        self.terms_lhs = reaction_def.terms_lhs_from_vars(var_to_val)
+        self.terms_rhs = reaction_def.terms_rhs_from_vars(var_to_val)
+        self.name      = reaction_def.name_from_vars(var_to_val)
 
         self._consumed_states    = None  # type: Optional[List[State]]
         self._produced_states    = None  # type: Optional[List[State]]
@@ -605,15 +605,15 @@ class Reaction:
         return str(self)
 
     def __str__(self) -> str:
-        return self._repr
+        return self.name
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Reaction):
             return NotImplemented
-        return self._definition == other._definition and self._vars == other._vars
+        return self.reaction_def == other.reaction_def and self.var_to_val == other.var_to_val
 
     def __getitem__(self, item: str) -> Any:
-        return self._vars[item]
+        return self.var_to_val[item]
 
     def invalidate_state_cache(self) -> None:
         self._consumed_states    = None
@@ -687,7 +687,7 @@ class Reaction:
 
 
 class OutputReaction(Reaction):
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str) -> None:  # pylint: disable=super-init-not-called
         self.name      = name
         self.terms_lhs = []
         self.terms_rhs = []
@@ -695,7 +695,7 @@ class OutputReaction(Reaction):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Reaction):
             return NotImplemented
-        return isinstance(other, OutputReaction) and self.name == other.name
+        return isinstance(other, OutputReaction) and self.name == other.reaction_class
 
     def __str__(self) -> str:
         return self.name
@@ -739,62 +739,62 @@ class OutputReaction(Reaction):
         pass
 
 
-def matching_reaction_def(repr: str) -> Optional[ReactionDef]:
-    return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_repr(repr)), None)  # type: ignore
+def matching_reaction_def(name: str) -> Optional[ReactionDef]:
+    return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_name_def(name)), None)  # type: ignore
 
 
-def reaction_from_str(repr: str, standardize: bool=True) -> Reaction:
-    def fixed_spec_types(reaction_def: ReactionDef, vars: Dict[str, Any]) -> Dict[str, Any]:
-        keys = vars.keys()
+def reaction_from_str(name: str, standardize: bool=True) -> Reaction:
+    def fixed_spec_types(reaction_def: ReactionDef, var_to_val: Dict[str, Any]) -> Dict[str, Any]:
+        keys = var_to_val.keys()
         assert len(list(keys)) == 2
 
         for key in keys:
             required_type = reaction_def.vars_def[key][0]
-            if not isinstance(vars[key], required_type) and isinstance(vars[key], ProteinSpec):
+            if not isinstance(var_to_val[key], required_type) and isinstance(var_to_val[key], ProteinSpec):
                 if required_type is GeneSpec:
-                    vars[key] = vars[key].to_dna_component_spec()
+                    var_to_val[key] = var_to_val[key].to_dna_component_spec()
                 elif required_type is MRNASpec:
-                    vars[key] = vars[key].to_mrna_component_spec()
+                    var_to_val[key] = var_to_val[key].to_mrna_component_spec()
                 else:
                     raise NotImplementedError
 
-        return vars
+        return var_to_val
 
-    def fixed_resolutions(reaction_def: ReactionDef, vars: Dict[str, Any]) -> Dict[str, Any]:
-        keys = vars.keys()
+    def fixed_resolutions(reaction_def: ReactionDef, var_to_val: Dict[str, Any]) -> Dict[str, Any]:
+        keys = var_to_val.keys()
         assert len(list(keys)) == 2
 
         for key in keys:
-            if reaction_def.vars_def[key][1] < vars[key].resolution:
+            if reaction_def.vars_def[key][1] < var_to_val[key].resolution:
                 raise SyntaxError('In reaction {0}, the specified resolution for variable {1}\n is higher than the required {2}'
-                                  .format(repr, str(vars[key]), reaction_def.vars_def[key][1]))
+                                  .format(name, str(var_to_val[key]), reaction_def.vars_def[key][1]))
 
             other = [x for x in keys if x != key][0]
-            if not vars[key].has_resolution(reaction_def.vars_def[key][1]):
+            if not var_to_val[key].has_resolution(reaction_def.vars_def[key][1]):
                 if reaction_def.vars_def[key][1] == LocusResolution.domain:
-                    vars[key].locus.domain = vars[other].name
+                    var_to_val[key].locus.domain = var_to_val[other].name
                 elif reaction_def.vars_def[key][1] == LocusResolution.residue:
-                    vars[key].locus.residue = vars[other].name
+                    var_to_val[key].locus.residue = var_to_val[other].name
                 else:
                     raise NotImplementedError
 
-        return vars
+        return var_to_val
 
-    repr = repr.strip()
+    name = name.strip()
 
-    if re.match(OUTPUT_REACTION_REGEX, repr):
-        return OutputReaction(repr)
+    if re.match(OUTPUT_REACTION_REGEX, name):
+        return OutputReaction(name)
 
-    reaction_def = matching_reaction_def(repr)
+    reaction_def = matching_reaction_def(name)
 
     if not reaction_def:
-        raise SyntaxError('Could not match reaction {} with definition'.format(repr))
+        raise SyntaxError('Could not match reaction {} with definition'.format(name))
 
-    vars = reaction_def.vars_from_repr(repr)
+    var_to_val = reaction_def.vars_from_name(name)
 
     if standardize:
-        vars = fixed_spec_types(reaction_def, vars)
-        vars = fixed_resolutions(reaction_def, vars)
+        var_to_val = fixed_spec_types(reaction_def, var_to_val)
+        var_to_val = fixed_resolutions(reaction_def, var_to_val)
 
-    reaction_def.validate_vars(vars)
-    return Reaction(reaction_def, vars)
+    reaction_def.validate_vars(var_to_val)
+    return Reaction(reaction_def, var_to_val)

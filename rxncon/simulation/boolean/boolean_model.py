@@ -451,7 +451,7 @@ class StateTarget(Target):
         return self._state_parent.is_mutually_exclusive_with(other._state_parent)
 
     def complementary_state_targets(self, rxnconsys: RxnConSystem, component: Spec) -> List['StateTarget']:
-        others = rxnconsys.complementary_states_for_component(component, self._state_parent)
+        others = rxnconsys.complement_states_for_component(component, self._state_parent)
         return [StateTarget(x) for x in others]
 
 
