@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from typing import Tuple
+from typing import Tuple, Optional
 import os, sys
 import click
 import logging
@@ -10,21 +10,23 @@ import colorama
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.input.excel_book.excel_book import ExcelBook
 from rxncon.simulation.boolean.boolean_model import boolnet_from_boolean_model, boolean_model_from_rxncon, \
-    SmoothingStrategy, KnockoutStrategy
+    SmoothingStrategy, KnockoutStrategy, OverexpressionStrategy
 
 
 colorama.init()
 logger = logging.getLogger(__name__)
 
 
-def boolnet_strs_from_rxncon(rxncon: RxnConSystem, knockout_strategy: KnockoutStrategy, smoothing_strategy: SmoothingStrategy) \
+def boolnet_strs_from_rxncon(rxncon: RxnConSystem, smoothing_strategy: SmoothingStrategy, knockout_strategy: KnockoutStrategy,
+                             overexpression_strategy: OverexpressionStrategy) \
         -> Tuple[str, str, str]:
     def sort_key(key_val_pair):
         k, v = key_val_pair
         return k[0], int(k[1:])
 
     model_str, symbol_dict, initial_val_dict = \
-        boolnet_from_boolean_model(boolean_model_from_rxncon(rxncon, smoothing_strategy=smoothing_strategy, knockout_strategy=knockout_strategy))
+        boolnet_from_boolean_model(boolean_model_from_rxncon(rxncon, smoothing_strategy=smoothing_strategy, knockout_strategy=knockout_strategy,
+                                                             overexpression_strategy=overexpression_strategy))
 
     symbol_str      = '\n'.join('{0}, {1}'.format(boolnet_sym, rxncon_sym) for boolnet_sym, rxncon_sym
                                 in sorted(symbol_dict.items(), key=sort_key)) + '\n'
@@ -35,7 +37,8 @@ def boolnet_strs_from_rxncon(rxncon: RxnConSystem, knockout_strategy: KnockoutSt
     return model_str, symbol_str, initial_val_str
 
 
-def write_boolnet(excel_filename: str, knockout_strategy: KnockoutStrategy, smoothing_strategy: SmoothingStrategy, base_name=None):
+def write_boolnet(excel_filename: str, smoothing_strategy: SmoothingStrategy, knockout_strategy: KnockoutStrategy,
+                  overexpression_strategy: OverexpressionStrategy, base_name: Optional[str]=None):
     if not base_name:
         base_name = os.path.splitext(os.path.basename(excel_filename))[0]
 
@@ -53,7 +56,7 @@ def write_boolnet(excel_filename: str, knockout_strategy: KnockoutStrategy, smoo
           .format(len(rxncon_system.reactions), len(rxncon_system.contingencies)))
 
     print('Generating BoolNet output using smoothing strategy [{}] ...'.format(smoothing_strategy.name))
-    model_str, symbol_str, initial_val_str = boolnet_strs_from_rxncon(rxncon_system, knockout_strategy, smoothing_strategy)
+    model_str, symbol_str, initial_val_str = boolnet_strs_from_rxncon(rxncon_system, smoothing_strategy, knockout_strategy, overexpression_strategy)
 
     print('Writing BoolNet model file [{}] ...'.format(boolnet_model_filename))
     with open(boolnet_model_filename, mode='w') as f:
@@ -68,8 +71,10 @@ def write_boolnet(excel_filename: str, knockout_strategy: KnockoutStrategy, smoo
         f.write(initial_val_str)
 
 
-valid_smoothing_strategies = [strategy.value for strategy in SmoothingStrategy.__members__.values()]
-valid_knockout_strategies  = [strategy.value for strategy in KnockoutStrategy.__members__.values()]
+valid_smoothing_strategies      = [strategy.value for strategy in SmoothingStrategy.__members__.values()]
+valid_knockout_strategies       = [strategy.value for strategy in KnockoutStrategy.__members__.values()]
+valid_overexpression_strategies = [strategy.value for strategy in OverexpressionStrategy.__members__.values()]
+
 
 def validate_smoothing_strategy(ctx, param, value):
     try:
@@ -87,22 +92,34 @@ def validate_knockout_strategy(ctx, param, value):
         raise click.BadParameter('Valid strategies are: {}'.format(', '.join(valid_knockout_strategies)))
 
 
+def validate_overexpression_strategy(ctx, param, value):
+    try:
+        strategy = OverexpressionStrategy(value)
+        return value
+    except ValueError:
+        raise click.BadParameter('Valid strategies are: {}'.format(', '.join(valid_knockout_strategies)))
+
+
 @click.command()
-@click.option('--knockout', default='no_knockout',
-              help='Generate knockouts. Default: no_knockout. Choices: {}'.format(', '.join(valid_knockout_strategies)),
-              callback=validate_knockout_strategy)
 @click.option('--smoothing', default='no_smoothing',
               help='Smoothing strategy. Default: no_smoothing. Choices: {}'.format(', '.join(valid_smoothing_strategies)),
               callback=validate_smoothing_strategy)
+@click.option('--knockout', default='no_knockout',
+              help='Generate knockouts. Default: no_knockout. Choices: {}'.format(', '.join(valid_knockout_strategies)),
+              callback=validate_knockout_strategy)
+@click.option('--overexpression', default='no_overexpression',
+              help='Generate overexpressions. Default: no_overexpression. Choices: {}'.format(', '.join(valid_overexpression_strategies)),
+              callback=validate_overexpression_strategy)
 @click.option('--output', default=None,
               help='Base name for output files. Default: \'fn\' for input file \'fn.xls\'')
 @click.argument('excel_file')
 @click_log.simple_verbosity_option(default='WARNING')
 @click_log.init()
-def run(knockout, smoothing, output, excel_file):
-    knockout_strategy = KnockoutStrategy(knockout)
+def run(overexpression, knockout, smoothing, output, excel_file):
     smoothing_strategy = SmoothingStrategy(smoothing)
-    write_boolnet(excel_file, knockout_strategy, smoothing_strategy, output)
+    knockout_strategy = KnockoutStrategy(knockout)
+    overexpression_strategy = OverexpressionStrategy(overexpression)
+    write_boolnet(excel_file, smoothing_strategy, knockout_strategy, overexpression_strategy, output)
 
 
 def setup_logging_colors():
@@ -139,10 +156,10 @@ def setup_logging_colors():
     click_log.ColorFormatter.format = format
 
 if __name__ == '__main__':
-    # try:
+    try:
         setup_logging_colors()
         run()
-    # except Exception as e:
-    #     print('ERROR: {}\n{}\nPlease re-run this command with the \'-v DEBUG\' option.'.format(type(e), e))
+    except Exception as e:
+        print('ERROR: {}\n{}\nPlease re-run this command with the \'-v DEBUG\' option.'.format(type(e), e))
 
 

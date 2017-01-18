@@ -18,15 +18,16 @@ class BooleanModel:
         update_rules: Rules for updating the system.
         initial_conditions: Initial conditions of the system.
     """
-
     def __init__(self, state_targets: List['StateTarget'], reaction_targets: List['ReactionTarget'], knockout_targets: List['KnockoutTarget'],
-                 update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig') -> None:
+                 overexpression_targets: List['OverexpressionTarget'], update_rules: List['UpdateRule'],
+                 initial_conditions: 'BooleanModelConfig') -> None:
 
-        self.update_rules       = update_rules
-        self.initial_conditions = initial_conditions
-        self._state_targets     = {str(x): x for x in state_targets}
-        self._reaction_targets  = {str(x): x for x in reaction_targets}
-        self._knockout_targets  = {str(x): x for x in knockout_targets}
+        self.update_rules            = sorted(update_rules)
+        self.initial_conditions      = initial_conditions
+        self._state_targets          = {str(x): x for x in state_targets}
+        self._reaction_targets       = {str(x): x for x in reaction_targets}
+        self._knockout_targets       = {str(x): x for x in knockout_targets}
+        self._overexpression_targets = {str(x): x for x in overexpression_targets}
         self._validate_update_rules()
         self._validate_initial_conditions()
 
@@ -56,6 +57,9 @@ class BooleanModel:
 
     def knockout_target_by_name(self, name: str) -> 'KnockoutTarget':
         return self._knockout_targets[name]
+
+    def overexpression_target_by_name(self, name: str) -> 'OverexpressionTarget':
+        return self._overexpression_targets[name]
 
     def _validate_update_rules(self) -> None:
         """
@@ -415,6 +419,10 @@ class StateTarget(Target):
         return self._state_parent.is_neutral
 
     @property
+    def is_homodimer(self) -> bool:
+        return self._state_parent.is_homodimer
+
+    @property
     def neutral_targets(self) -> List['StateTarget']:
         """
         Asking for the neutral states of state target.
@@ -518,6 +526,21 @@ class KnockoutTarget(ComponentStateTarget):
         return hash(str(self))
 
 
+class OverexpressionTarget(ComponentStateTarget):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Target):
+            return NotImplemented
+        return isinstance(other, OverexpressionTarget) and self.component == other.component
+
+    def __str__(self) -> str:
+        return 'Overexpression<{}>'.format(str(self.component))
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __hash__(self) -> int:
+        return hash(str(self))
+
 
 class UpdateRule:
     """
@@ -531,6 +554,18 @@ class UpdateRule:
     def __init__(self, target: Target, factor: VennSet[Target]) -> None:
         self.target = target
         self.factor = factor
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, UpdateRule):
+            return NotImplemented
+        else:
+            return self.target == other.target and self.factor.is_equivalent_to(other.factor)
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, UpdateRule):
+            return NotImplemented
+        else:
+            return str(self.target) < str(other.target)
 
     def __str__(self) -> str:
         return "target: {0}, factors: {1}".format(self.target, self.factor)
@@ -560,14 +595,21 @@ class SmoothingStrategy(Enum):
 
 
 class KnockoutStrategy(Enum):
-    no_knockouts            = 'no_knockout'
+    no_knockout             = 'no_knockout'
     knockout_neutral_states = 'knockout_neutral_states'
     knockout_all_states     = 'knockout_all_states'
 
 
+class OverexpressionStrategy(Enum):
+    no_overexpression          = 'no_overexpression'
+    overexpress_neutral_states = 'overexpress_neutral_states'
+    overexpress_all_states     = 'overexpress_all_states'
+
+
 def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                               smoothing_strategy: SmoothingStrategy=SmoothingStrategy.no_smoothing,
-                              knockout_strategy: KnockoutStrategy=KnockoutStrategy.no_knockouts) -> BooleanModel:
+                              knockout_strategy: KnockoutStrategy=KnockoutStrategy.no_knockout,
+                              overexpression_strategy: OverexpressionStrategy=OverexpressionStrategy.no_overexpression) -> BooleanModel:
     """
     Constructs a boolean model from a rxncon system and a smoothing strategy.
 
@@ -580,7 +622,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
     """
 
-    def initial_conditions(reaction_targets: List[ReactionTarget], state_targets: List[StateTarget], knockout_targets: List[KnockoutTarget])\
+    def initial_conditions(reaction_targets: List[ReactionTarget], state_targets: List[StateTarget],
+                           knockout_targets: List[KnockoutTarget], overexpression_targets: List[OverexpressionTarget])\
             -> BooleanModelConfig:
         """
         Calculates default initial conditions of the boolean model.
@@ -612,6 +655,9 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         for knockout_target in knockout_targets:
             conds[knockout_target] = False
+
+        for overexpression_target in overexpression_targets:
+            conds[overexpression_target] = False
 
         return BooleanModelConfig(conds)
 
@@ -741,13 +787,18 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             for index, interaction_target in enumerate(x for x in reaction_target.degraded_targets if x.is_interaction):
                 empty_partners = [neutral_target for neutral_target in interaction_target.neutral_targets
                                   if not any(component in reaction_target.degraded_components for component in neutral_target.components)]
-                assert len(empty_partners) == 1
-                new_reaction = deepcopy(reaction_target)
-                new_reaction.interaction_variant_index = index
-                new_reaction.consumed_targets.append(interaction_target)
-                new_reaction.produced_targets.append(empty_partners[0])
 
-                result.append(new_reaction)
+                if interaction_target.is_homodimer:
+                    assert len(empty_partners) == 0
+                    result.append(deepcopy(reaction_target))
+                else:
+                    assert len(empty_partners) == 1
+                    new_reaction = deepcopy(reaction_target)
+                    new_reaction.interaction_variant_index = index
+                    new_reaction.consumed_targets.append(interaction_target)
+                    new_reaction.produced_targets.append(empty_partners[0])
+                    result.append(new_reaction)
+
                 appended = True
 
             if not appended:
@@ -778,10 +829,16 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         return result
 
     def calc_knockout_targets(knockout_strategy: KnockoutStrategy) -> List[KnockoutTarget]:
-        if knockout_strategy == KnockoutStrategy.no_knockouts:
+        if knockout_strategy == KnockoutStrategy.no_knockout:
             return []
         else:
             return [KnockoutTarget(component) for component in rxncon_sys.components()]
+
+    def calc_overexpression_targets(overexpression_strategy: OverexpressionStrategy) -> List[OverexpressionTarget]:
+        if overexpression_strategy == OverexpressionStrategy.no_overexpression:
+            return []
+        else:
+            return [OverexpressionTarget(component) for component in rxncon_sys.components()]
 
     def calc_reaction_rules() -> None:
         """
@@ -878,7 +935,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                                                 tot_cons_fac).to_simplified_set()))
 
     def update_state_rules_with_knockouts(knockout_strategy: KnockoutStrategy) -> None:
-        if knockout_strategy == KnockoutStrategy.no_knockouts:
+        if knockout_strategy == KnockoutStrategy.no_knockout:
             return
         elif knockout_strategy in (KnockoutStrategy.knockout_all_states, KnockoutStrategy.knockout_neutral_states):
             for state_rule in state_rules:
@@ -887,12 +944,31 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 if knockout_strategy == KnockoutStrategy.knockout_neutral_states and not state_rule.target.is_neutral:
                     continue
 
-                knockout_factor = Complement(Intersection(*(ValueSet(KnockoutTarget(component)) for component in state_rule.target.components)))
+                knockout_factor = Complement(Union(*(ValueSet(KnockoutTarget(component)) for component in state_rule.target.components)))
                 state_rule.factor = Intersection(knockout_factor, state_rule.factor)
+
+
+    def update_state_rules_with_overexpressions(overexpression_strategy: OverexpressionStrategy) -> None:
+        if overexpression_strategy == OverexpressionStrategy.no_overexpression:
+            return
+        elif overexpression_strategy in (OverexpressionStrategy.overexpress_all_states,
+                                         OverexpressionStrategy.overexpress_neutral_states):
+            for state_rule in state_rules:
+                assert isinstance(state_rule.target, StateTarget)
+
+                if overexpression_strategy == OverexpressionStrategy.overexpress_neutral_states and not state_rule.target.is_neutral:
+                    continue
+
+                overexpression_factor = Intersection(*(ValueSet(OverexpressionTarget(component)) for component in state_rule.target.components))
+                state_rule.factor = Union(overexpression_factor, state_rule.factor)
 
     def calc_knockout_rules() -> None:
         for knockout_target in knockout_targets:
             knockout_rules.append(UpdateRule(knockout_target, ValueSet(knockout_target)))
+
+    def calc_overexpression_rules() -> None:
+        for overexpression_target in overexpression_targets:
+            overexpression_rules.append(UpdateRule(overexpression_target, ValueSet(overexpression_target)))
 
     component_presence_factor, component_state_targets = calc_component_presence_factors()
 
@@ -904,21 +980,25 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
     reaction_targets = update_degradations_add_interaction_state_partner(reaction_targets)
     reaction_targets = update_syntheses_with_component_states(reaction_targets, component_state_targets)
 
-    knockout_targets = calc_knockout_targets(knockout_strategy)
+    knockout_targets       = calc_knockout_targets(knockout_strategy)
+    overexpression_targets = calc_overexpression_targets(overexpression_strategy)
 
-    reaction_rules = []  # type: List[UpdateRule]
-    state_rules    = []  # type: List[UpdateRule]
-    knockout_rules = []  # type: List[UpdateRule]
+    reaction_rules       = []  # type: List[UpdateRule]
+    state_rules          = []  # type: List[UpdateRule]
+    knockout_rules       = []  # type: List[UpdateRule]
+    overexpression_rules = []  # type: List[UpdateRule]
 
     calc_reaction_rules()
     calc_state_rules()
     update_state_rules_with_knockouts(knockout_strategy)
+    update_state_rules_with_overexpressions(overexpression_strategy)
     calc_knockout_rules()
+    calc_overexpression_rules()
 
-    all_rules = reaction_rules + state_rules + knockout_rules
+    all_rules = reaction_rules + state_rules + knockout_rules + overexpression_rules
 
-    return BooleanModel(state_targets, reaction_targets, knockout_targets, all_rules,
-                        initial_conditions(reaction_targets, state_targets, knockout_targets))
+    return BooleanModel(state_targets, reaction_targets, knockout_targets, overexpression_targets, all_rules,
+                        initial_conditions(reaction_targets, state_targets, knockout_targets, overexpression_targets))
 
 
 ### SIMULATION STUFF ###
@@ -940,6 +1020,35 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
         3. The third return value is a mapping of the initial condition.
 
     """
+    def initialize_boolnet_names() -> None:
+        nonlocal boolnet_names
+        nonlocal reaction_index
+        nonlocal state_index
+        nonlocal knockout_index
+        nonlocal overexpression_index
+        for update_rule in boolean_model.update_rules:
+            target = update_rule.target
+            if target in boolnet_names.keys():
+                raise AssertionError
+            elif isinstance(target, ReactionTarget):
+                name = 'R{}'.format(reaction_index)
+                boolnet_names[target] = name
+                reaction_index += 1
+            elif isinstance(target, KnockoutTarget):
+                name = 'K{}'.format(knockout_index)
+                boolnet_names[target] = name
+                knockout_index += 1
+            elif isinstance(target, OverexpressionTarget):
+                name = 'O{}'.format(overexpression_index)
+                boolnet_names[target] = name
+                overexpression_index += 1
+            elif isinstance(target, StateTarget):
+                name = 'S{}'.format(state_index)
+                boolnet_names[target] = name
+                state_index += 1
+            else:
+                raise AssertionError
+
     def str_from_factor(factor: VennSet) -> str:
         """
         Translates a factor into a string.
@@ -960,7 +1069,7 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
 
         """
         if isinstance(factor, ValueSet):
-            return boolnet_name_from_target(factor.value)
+            return boolnet_names[factor.value]
         elif isinstance(factor, Complement):
             return '!({})'.format(str_from_factor(factor.expr))
         elif isinstance(factor, Intersection):
@@ -985,61 +1094,17 @@ def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[s
             The string of the update rule.
 
         """
-        return '{0}, {1}'.format(boolnet_name_from_target(update_rule.target),
+        return '{0}, {1}'.format(boolnet_names[update_rule.target],
                                  str_from_factor(update_rule.factor))
-
-    def boolnet_name_from_target(target: Target) -> str:
-        """
-        Creates a valid BoolNet name from the respective target.
-
-        Note:
-            The target name is replaced by a abbreviation, which is a valid BoolNet name. Reaction targets are replaced
-            by R{} and states are replaced by S{} where {} is a continuous numerating for state and reaction targets
-            respectively. The replacement is tracked by boolnet_names.
-
-        Args:
-            target: A StateTarget or ReactionTarget.
-
-        Mutates:
-            boolnet_names: A mapping of target and its abbreviation.
-
-        Returns:
-            The string representation of a valid BoolNet name.
-
-        Raises:
-            AssertionError: If the target is neither a ReactionTarget nor a StateTarget an error is raised.
-
-        """
-        nonlocal reaction_index
-        nonlocal state_index
-        nonlocal knockout_index
-
-        try:
-            return boolnet_names[target]
-        except KeyError:
-            if isinstance(target, ReactionTarget):
-                name = 'R{}'.format(reaction_index)
-                boolnet_names[target] = name
-                reaction_index += 1
-                return name
-            elif isinstance(target, KnockoutTarget):
-                name = 'K{}'.format(knockout_index)
-                boolnet_names[target] = name
-                knockout_index += 1
-                return name
-            elif isinstance(target, StateTarget):
-                name = 'S{}'.format(state_index)
-                boolnet_names[target] = name
-                state_index += 1
-                return name
-            else:
-                raise AssertionError
 
     boolnet_names  = {}  # type: Dict[Target, str]
 
-    reaction_index = 0
-    state_index    = 0
-    knockout_index = 0
+    reaction_index       = 0
+    state_index          = 0
+    knockout_index       = 0
+    overexpression_index = 0
+
+    initialize_boolnet_names()
 
     def sort_key(rule_str: str) -> Tuple[str, int]:
         """
