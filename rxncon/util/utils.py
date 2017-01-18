@@ -1,11 +1,9 @@
-import functools
-from typing import List, TypeVar, Callable, Any
+from typing import List, TypeVar
 import inspect
 from colorama import Fore
 
 
 T = TypeVar('T')
-
 
 
 def elems_eq(first_list: List[T], second_list: List[T]) -> bool:

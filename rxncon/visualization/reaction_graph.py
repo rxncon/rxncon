@@ -7,7 +7,7 @@ from rxncon.core.reaction import Reaction, OutputReaction
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.spec import Spec, LocusResolution
 from rxncon.util.utils import current_function_name
-from rxncon.core.state import ModificationState, InteractionState, SelfInteractionState, EmptyBindingState, GlobalState
+from rxncon.core.state import ModificationState, InteractionState, SelfInteractionState, EmptyBindingState
 
 logger = logging.getLogger(__name__)
 

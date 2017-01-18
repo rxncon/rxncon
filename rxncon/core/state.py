@@ -3,8 +3,9 @@ from enum import unique, Enum
 from typing import List, Dict
 from abc import ABC, abstractproperty, abstractmethod
 import logging
+from copy import deepcopy
 
-from rxncon.core.spec import Spec, Locus, LocusResolution, locus_from_str, spec_from_str
+from rxncon.core.spec import Spec, LocusResolution, locus_from_str, spec_from_str
 from rxncon.util.utils import current_function_name
 
 
@@ -60,6 +61,9 @@ def state_modifier_from_str(modifier_str: str) -> StateModifier:
 
 
 class State(ABC):
+    def clone(self):
+        return deepcopy(self)
+
     @abstractproperty
     def is_elemental(self) -> bool:
         return False
@@ -112,9 +116,12 @@ class State(ABC):
     def to_structured_from_spec(self, spec: Spec) -> 'State':
         pass
 
-    @abstractmethod
     def to_structured_from_state(self, state: 'State') -> 'State':
-        pass
+        structured = self.clone()
+        for spec in state.specs:
+            structured = structured.to_structured_from_spec(spec)
+
+        return structured
 
     @abstractproperty
     def components(self) -> List[Spec]:
@@ -248,10 +255,7 @@ class InteractionState(State):
             assert isinstance(state, InteractionState)
             return InteractionState(self.first.with_struct_from_spec(state.first), self.second.with_struct_from_spec(state.second))
         else:
-            for spec in state.specs:
-                structured = self.to_structured_from_spec(spec)
-
-            return structured
+            return super().to_structured_from_state(state)
 
 
 class EmptyBindingState(State):
@@ -341,12 +345,6 @@ class EmptyBindingState(State):
             return EmptyBindingState(self.spec.with_struct_from_spec(spec))
         else:
             return self
-
-    def to_structured_from_state(self, state: 'State') -> 'State':
-        for spec in state.specs:
-            structured = self.to_structured_from_spec(spec)
-
-        return structured
 
 
 class SelfInteractionState(State):
@@ -453,12 +451,6 @@ class SelfInteractionState(State):
         else:
             return self
 
-    def to_structured_from_state(self, state: 'State') -> 'State':
-        for spec in state.specs:
-            structured = self.to_structured_from_spec(spec)
-
-        return structured
-
 
 class ModificationState(State):
     def __init__(self, spec: Spec, modifier: StateModifier) -> None:
@@ -546,12 +538,6 @@ class ModificationState(State):
         else:
             return self
 
-    def to_structured_from_state(self, state: 'State') -> 'State':
-        for spec in state.specs:
-            structured = self.to_structured_from_spec(spec)
-
-        return structured
-
 
 class GlobalState(State):
     def __init__(self, name: str) -> None:
@@ -626,9 +612,6 @@ class GlobalState(State):
         return self == other or other.is_subset_of(self)
 
     def to_structured_from_spec(self, spec: Spec) -> 'State':
-        return self
-
-    def to_structured_from_state(self, state: 'State') -> 'State':
         return self
 
 

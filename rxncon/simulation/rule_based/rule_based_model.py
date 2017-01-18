@@ -141,6 +141,7 @@ class Mol:
         for site in self.sites:
             assert match(SITE_NAME_REGEX, site), 'Invalid site name: {}'.format(site)
 
+
 def site_name(spec: Spec) -> str:
     bad_chars = ['[', ']', '/', '(', ')']
     spec_str = (spec.locus.domain + 'D' if spec.locus.domain else '') + \
