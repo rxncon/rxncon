@@ -167,7 +167,7 @@ class ReactionTarget(Target):
         self.interaction_variant_index = interaction_variant
 
         if contingency_factor is None:
-            self.contingency_factor = UniversalSet()
+            self.contingency_factor = UniversalSet()      # type: VennSet[StateTarget]
         else:
             self.contingency_factor = contingency_factor  # type: VennSet[StateTarget]
 
@@ -760,7 +760,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         for reaction_target in result:
             solutions = reaction_target.contingency_factor.calc_solutions()
 
-            for degraded_component, solution in product(reaction_target.degraded_components, solutions):
+            for degraded_component, solution in product(reaction_target.degraded_components, solutions):  # type: ignore
                 reaction_target.degraded_targets.extend(degraded_state_targets(degraded_component, solution))
 
         return result
@@ -972,7 +972,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
     component_presence_factor, component_state_targets = calc_component_presence_factors()
 
-    state_targets    = [StateTarget(x) for x in rxncon_sys.states] + component_state_targets  # type: List[StateTarget]
+    state_targets    = [StateTarget(x) for x in rxncon_sys.states]  # type: List[StateTarget]
+    state_targets   += component_state_targets
 
     reaction_targets = calc_reaction_targets_with_dnf_contingencies()
     reaction_targets = update_degradations_add_component_states(reaction_targets, component_state_targets)

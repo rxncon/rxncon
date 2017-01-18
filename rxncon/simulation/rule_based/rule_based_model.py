@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, Iterable, Type, Callable
+from typing import Dict, List, Optional, Tuple, Iterable, Iterator
 from itertools import combinations, product, chain, permutations, count
 from copy import copy, deepcopy
 from collections import defaultdict, OrderedDict
@@ -351,7 +351,7 @@ STATE_TO_COMPLEX_BUILDER_FN = {
     GlobalState: [
         lambda state, builder: logger.warning('{} : IGNORING INPUT STATE {}'.format(current_function_name(), str(state)))
     ]
-}  # type: Dict[Type[State], List[Callable[[State, ComplexExprBuilder], None]]]
+}  # type: ignore
 
 
 STATE_TO_MOL_DEF_BUILDER_FN = {
@@ -370,7 +370,7 @@ STATE_TO_MOL_DEF_BUILDER_FN = {
     EmptyBindingState: [
         lambda state, builder: builder.add_site(state.spec)
     ]
-}  # type: Dict[Type[State], List[Callable[[State, MolDefBuilder], None]]]
+}  # type: ignore
 
 
 class Parameter:
@@ -608,7 +608,7 @@ def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
         return cont_set
 
 
-class QuantContingencyConfigs:
+class QuantContingencyConfigs(Iterator[VennSet[State]]):
     def __init__(self, q_contingencies: List[Contingency]) -> None:
         self.q_contingencies = deepcopy(q_contingencies)
 
@@ -656,7 +656,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         return list(mol_defs.values())
 
     def remove_global_states(solutions: List[Dict[State, bool]]) -> List[Dict[State, bool]]:
-        filtered_solutions = []
+        filtered_solutions = []  # type: List[Dict[State, bool]]
         for soln in solutions:
             cleaned_solution = {}
             for state, val in soln.items():
