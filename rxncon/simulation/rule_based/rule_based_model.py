@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, Iterable, Iterator
+from typing import Dict, List, Optional, Tuple, Iterable, Iterator  # pylint: disable=unused-import
 from itertools import combinations, product, chain, permutations, count
 from copy import copy, deepcopy
 from collections import defaultdict, OrderedDict
@@ -7,14 +7,15 @@ import logging
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reaction, ReactionTerm, OutputReaction
-from rxncon.core.state import State, StateModifier, ModificationState, InteractionState, SelfInteractionState, GlobalState, EmptyBindingState
+from rxncon.core.state import State, StateModifier, ModificationState, InteractionState, SelfInteractionState, GlobalState, \
+    EmptyBindingState
 from rxncon.core.spec import Spec
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet, DisjunctiveUnion
 from rxncon.util.utils import current_function_name
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 NEUTRAL_MOD            = '0'
@@ -282,17 +283,18 @@ class ComplexExprBuilder:
     def build(self, only_reactants: bool=True) -> List[Complex]:
         complexes = []
 
-        logger.debug('{} : Building complex with molecules {}'.format(current_function_name(),
+        LOGGER.debug('{} : Building complex with molecules {}'.format(current_function_name(),
                                                                       ' & '.join(str(spec) for spec in self._mol_builders.keys())))
-        logger.debug('{} : Grouped specs are {}'.format(current_function_name(), ', '.join(str(x) for x in self._grouped_specs())))
+        LOGGER.debug('{} : Grouped specs are {}'.format(current_function_name(), ', '.join(str(x) for x in self._grouped_specs())))
         for group in self._grouped_specs():
             possible_complex = Complex([self._mol_builders[spec].build() for spec in group])
 
             if not only_reactants or (only_reactants and possible_complex.is_reactant):
                 complexes.append(possible_complex)
-                logger.debug('{} : Adding complex {}'.format(current_function_name(), possible_complex))
+                LOGGER.debug('{} : Adding complex {}'.format(current_function_name(), possible_complex))
             else:
-                logger.info('{} : POSSIBLE DISCONNECTED CONTINGENCY Not adding complex {}'.format(current_function_name(), possible_complex))
+                LOGGER.info('{} : POSSIBLE DISCONNECTED CONTINGENCY Not adding complex {}'
+                            .format(current_function_name(), possible_complex))
 
         return complexes
 
@@ -349,7 +351,7 @@ STATE_TO_COMPLEX_BUILDER_FN = {
         lambda state, builder: builder.set_half_bond(state.spec, None)
     ],
     GlobalState: [
-        lambda state, builder: logger.warning('{} : IGNORING INPUT STATE {}'.format(current_function_name(), str(state)))
+        lambda state, builder: LOGGER.warning('{} : IGNORING INPUT STATE {}'.format(current_function_name(), str(state)))
     ]
 }  # type: ignore
 
@@ -373,7 +375,7 @@ STATE_TO_MOL_DEF_BUILDER_FN = {
 }  # type: ignore
 
 
-class Parameter:
+class Parameter:  # pylint: disable=too-few-public-methods
     def __init__(self, name: str, value: Optional[str]) -> None:
         self.name, self.value = name, value
 
@@ -392,8 +394,8 @@ class Parameter:
         return str(self)
 
 
-class InitialCondition:
-    def __init__(self, complex: Complex, value: Parameter) -> None:
+class InitialCondition:  # pylint: disable=too-few-public-methods
+    def __init__(self, complex: Complex, value: Parameter) -> None:  # pylint: disable=redefined-builtin
         self.complex, self.value = complex, value
 
     def __str__(self) -> str:
@@ -406,8 +408,8 @@ class InitialCondition:
         return self.complex.is_equivalent_to(other.complex) and self.value.name == other.value.name
 
 
-class Observable:
-    def __init__(self, name: str, complex: Complex) -> None:
+class Observable:  # pylint: disable=too-few-public-methods
+    def __init__(self, name: str, complex: Complex) -> None:  # pylint: disable=redefined-builtin
         self.name, self.complex = name, complex
 
     def __str__(self) -> str:
@@ -417,7 +419,7 @@ class Observable:
         return 'Observable<{}>'.format(str(self))
 
 
-class Rule:
+class Rule:  # pylint: disable=too-few-public-methods
     def __init__(self, lhs: List[Complex], rhs: List[Complex], rate: Parameter, parent_reaction: Reaction=None) -> None:
         self.lhs, self.rhs, self.rate = sorted(lhs), sorted(rhs), rate
         self.parent_reaction = parent_reaction
@@ -448,7 +450,7 @@ class Rule:
         other_lhs = deepcopy(other.lhs)
         other_rhs = deepcopy(other.rhs)
 
-        for complex in my_lhs + my_rhs:
+        for complex in my_lhs + my_rhs:  # pylint: disable=redefined-builtin
             complex.found = False  # type: ignore
 
         for complex in other_lhs + other_rhs:
@@ -474,9 +476,9 @@ class Rule:
         return all_found and all_visited
 
 
-class RuleBasedModel:
-    def __init__(self, mol_defs: List[MolDef], initial_conditions: List[InitialCondition], parameters: List[Parameter],
-                 observables: List[Observable], rules: List[Rule]) -> None:
+class RuleBasedModel:  # pylint: disable=too-few-public-methods
+    def __init__(self, mol_defs: List[MolDef], initial_conditions: List[InitialCondition], parameters: List[Parameter],  # pylint: disable=too-many-arguments
+                 observables: List[Observable], rules: List[Rule]) -> None:   # pylint: disable=too-many-arguments
         self.mol_defs, self.initial_conditions, self.parameters, self.observables, self.rules = mol_defs, initial_conditions, \
             parameters, observables, rules
 
@@ -512,8 +514,8 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
             else:
                 next_num = next(nums)
 
-            for s in current_path + [state]:
-                s.visited.append(next_num)  # type: ignore
+            for visited_state in current_path + [state]:
+                visited_state.visited.append(next_num)  # type: ignore
 
             visit_nodes(current_path + [state], neighbor(current_spec, state), next_num)
 
@@ -545,7 +547,7 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
     return state_paths
 
 
-def calc_complexes(states: List[State]) -> List[List[State]]:
+def calc_connected_complexes(states: List[State]) -> List[List[State]]:
     complexes = [[]]  # type: List[List[State]]
 
     while states:
@@ -554,7 +556,7 @@ def calc_complexes(states: List[State]) -> List[List[State]]:
         if state.is_global:
             continue
 
-        for complex in complexes:
+        for complex in complexes:  # pylint: disable=redefined-builtin
             if state in complex:
                 continue
             elif not any(state.is_mutually_exclusive_with(other) for other in complex):
@@ -580,10 +582,10 @@ def calc_complexes(states: List[State]) -> List[List[State]]:
 
 
 def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
-    complexes = calc_complexes(cont_set.values)
+    complexes = calc_connected_complexes(cont_set.values)
     complex_constraints = []
 
-    for complex in complexes:
+    for complex in complexes:  # pylint: disable=redefined-builtin
         state_paths = calc_state_paths(complex)
         constraint = UniversalSet()  # type:  VennSet[State]
 
@@ -597,27 +599,27 @@ def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
             for path in state_paths[state]:
                 state_constraints.append(Intersection(*(ValueSet(x) for x in path)))
 
-            constraint = Intersection(constraint, Union(*state_constraints))
+            constraint = Intersection(constraint, Union(*state_constraints))  # pylint: disable=redefined-variable-type
 
         complex_constraints.append(constraint.to_simplified_set())
 
     if complex_constraints:
-        logger.debug('{} : Complex constraints {}'.format(current_function_name(), ' XOR '.join(str(x) for x in complex_constraints)))
+        LOGGER.debug('{} : Complex constraints {}'.format(current_function_name(), ' XOR '.join(str(x) for x in complex_constraints)))
         return Intersection(cont_set, DisjunctiveUnion(*complex_constraints))
     else:
         return cont_set
 
 
-class QuantContingencyConfigs(Iterator[VennSet[State]]):
+class QuantContingencyConfigs(Iterator[VennSet[State]]):  # pylint: disable=too-few-public-methods
     def __init__(self, q_contingencies: List[Contingency]) -> None:
         self.q_contingencies = deepcopy(q_contingencies)
 
         combis = [[]]  # type: List[List[Contingency]]
-        for c in self.q_contingencies:
+        for contingency in self.q_contingencies:
             new_combis = []
             for combi in combis:
-                new_combis.append(combi + [Contingency(c.target, ContingencyType.inhibition, c.effector)])
-                combi.append(Contingency(c.target, ContingencyType.requirement, c.effector))
+                new_combis.append(combi + [Contingency(contingency.target, ContingencyType.inhibition, contingency.effector)])
+                combi.append(Contingency(contingency.target, ContingencyType.requirement, contingency.effector))
             combis.extend(new_combis)
 
         self.combi_sets = []  # type: List[VennSet[State]]
@@ -640,14 +642,14 @@ class QuantContingencyConfigs(Iterator[VennSet[State]]):
             raise StopIteration
 
 
-def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
+def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  # pylint: disable=too-many-locals
     def mol_defs_from_rxncon(rxncon_sys: RxnConSystem) -> List[MolDef]:
         mol_defs = {}
         for spec in rxncon_sys.components():
-            logger.debug('{} : Creating MolDefBuilder for {}'.format(current_function_name(), str(spec)))
+            LOGGER.debug('{} : Creating MolDefBuilder for {}'.format(current_function_name(), str(spec)))
             builder = MolDefBuilder(spec)
             for state in rxncon_sys.states_for_component(spec):
-                logger.debug('{} : Applying State {} of type {}'.format(current_function_name(), str(state), type(state)))
+                LOGGER.debug('{} : Applying State {} of type {}'.format(current_function_name(), str(state), type(state)))
                 for func in STATE_TO_MOL_DEF_BUILDER_FN[type(state)]:
                     func(state, builder)
 
@@ -661,7 +663,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
             cleaned_solution = {}
             for state, val in soln.items():
                 if state.is_global:
-                    logger.warning('{} : REMOVING INPUT STATE {} from contingencies.'.format(current_function_name(), state))
+                    LOGGER.warning('{} : REMOVING INPUT STATE {} from contingencies.'.format(current_function_name(), state))
                 else:
                     cleaned_solution[state] = val
 
@@ -798,7 +800,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
         observables = []
         output_rxns = [rxn for rxn in rxncon_sys.reactions if isinstance(rxn, OutputReaction)]
         for rxn in output_rxns:
-            logger.debug('{} : calculating observable {}'.format(current_function_name(), str(rxn)))
+            LOGGER.debug('{} : calculating observable {}'.format(current_function_name(), str(rxn)))
             solns = Intersection(*(x.to_venn_set() for x
                                    in rxncon_sys.contingencies_for_reaction(rxn))).calc_solutions()
             positive_solns = []  # type: List[List[State]]
@@ -806,39 +808,41 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:
                 positive_solns += calc_positive_solutions(rxncon_sys, soln)
 
             for index, positive_soln in enumerate(positive_solns):
-                logger.debug('{} : solution {} : {}'.format(current_function_name(), index, positive_soln))
+                LOGGER.debug('{} : solution {} : {}'.format(current_function_name(), index, positive_soln))
                 observables.append(Observable('{}{}'.format(rxn.name, index), observable_complex(positive_soln)))
 
         return observables
 
-    logger.debug('{} : Entered function'.format(current_function_name()))
+    LOGGER.debug('{} : Entered function'.format(current_function_name()))
 
     mol_defs = mol_defs_from_rxncon(rxncon_sys)
-    logger.debug('{} : Generated MolDefs: {}'.format(current_function_name(), ', '.join(str(mol_def) for mol_def in mol_defs)))
+    LOGGER.debug('{} : Generated MolDefs: {}'.format(current_function_name(), ', '.join(str(mol_def) for mol_def in mol_defs)))
 
     rules = []  # type: List[Rule]
 
     for reaction in (x for x in rxncon_sys.reactions if not isinstance(x, OutputReaction)):
-        logger.debug('{} : Generating rules for reaction {}'.format(current_function_name(), str(reaction)))
-        strict_cont_set = Intersection(*(x.to_venn_set() for x in rxncon_sys.s_contingencies_for_reaction(reaction)))  # type: VennSet[State]
+        LOGGER.debug('{} : Generating rules for reaction {}'.format(current_function_name(), str(reaction)))
+        strict_cont_set = Intersection(*(x.to_venn_set() for x in
+                                         rxncon_sys.s_contingencies_for_reaction(reaction)))  # type: VennSet[State]
         quant_contingencies = QuantContingencyConfigs(rxncon_sys.q_contingencies_for_reaction(reaction))
-        logger.debug('{} : Strict contingencies {}'.format(current_function_name(), str(strict_cont_set)))
+        LOGGER.debug('{} : Strict contingencies {}'.format(current_function_name(), str(strict_cont_set)))
 
         for quant_contingency_set in quant_contingencies:
-            logger.debug('{} : quantitative contingency config: {}'.format(current_function_name(), str(quant_contingency_set)))
+            LOGGER.debug('{} : quantitative contingency config: {}'.format(current_function_name(), str(quant_contingency_set)))
 
             cont_set = Intersection(strict_cont_set, quant_contingency_set)  # type: VennSet[State]
             cont_set = with_connectivity_constraints(cont_set)
             solutions = cont_set.calc_solutions()
             solutions = remove_global_states(solutions)
 
-            logger.debug('{} : contingency solutions {}'.format(current_function_name(), str(solutions)))
+            LOGGER.debug('{} : contingency solutions {}'.format(current_function_name(), str(solutions)))
             positive_solutions = []  # type: List[List[State]]
             for solution in solutions:
                 positive_solutions += calc_positive_solutions(rxncon_sys, solution)
 
             for positive_solution in positive_solutions:
-                logger.debug('{} : positivized contingency solution {}'.format(current_function_name(), ' & '.join(str(x) for x in positive_solution)))
+                LOGGER.debug('{} : positivized contingency solution {}'
+                             .format(current_function_name(), ' & '.join(str(x) for x in positive_solution)))
                 rule = calc_rule(reaction, positive_solution)
                 if not any(rule.is_equivalent_to(existing) for existing in rules):
                     rules.append(rule)
