@@ -1,6 +1,8 @@
 import pytest
 import itertools as itt
 from typing import List
+from copy import deepcopy
+
 
 from rxncon.venntastic.sets import ValueSet, Union, Intersection, Complement, EmptySet, UniversalSet, Difference, venn_from_str, Set, \
     DisjunctiveUnion
@@ -58,6 +60,21 @@ def test_dnf_form() -> None:
     assert EmptySet().to_dnf_set().is_equivalent_to(EmptySet())
 
 
+def test_nary_sets_constructor() -> None:
+    assert Union() == EmptySet()
+    assert Intersection() == UniversalSet()
+    assert DisjunctiveUnion() == EmptySet()
+
+    assert Union(venn_from_str('1', int)).is_equivalent_to(venn_from_str('1', int))
+    assert Intersection(venn_from_str('1', int)).is_equivalent_to(venn_from_str('1', int))
+    assert DisjunctiveUnion(venn_from_str('1', int)).is_equivalent_to(venn_from_str('1', int))
+
+
+def test_deepcopy(sets: List[Set]) -> None:
+    for x in sets:
+        assert x.is_equivalent_to(deepcopy(x))
+
+
 def test_list_form() -> None:
     assert venn_from_str('1', int).to_dnf_list() == [venn_from_str('1', int)]
 
@@ -70,6 +87,7 @@ def test_list_form() -> None:
 
     assert UniversalSet().to_dnf_list() == [UniversalSet()]
     assert EmptySet().to_dnf_list() == [EmptySet()]
+
 
 def test_nested_list_form() -> None:
     assert venn_from_str('1', int).to_dnf_nested_list() == [[venn_from_str('1', int)]]

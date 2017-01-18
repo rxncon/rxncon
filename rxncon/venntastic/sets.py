@@ -4,6 +4,7 @@ from typing import Dict, List, Generic, Optional, TypeVar, MutableMapping, Calla
 from collections import OrderedDict
 from itertools import product
 import re
+from copy import deepcopy
 
 from pyeda.inter import And, Or, Not, Xor, expr
 from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies, Expression, Literal, \
@@ -238,6 +239,13 @@ class Complement(UnarySet[T], Generic[T]):
 
 
 class NarySet(Set[T], Generic[T]):
+    def __new__(cls, *exprs: Set[T], **kwargs: Any) -> Set[T]:
+        assert len(exprs) > 0
+        if len(exprs) == 1:
+            return deepcopy(exprs[0])
+        else:
+            return super().__new__(cls, *exprs, **kwargs)
+
     def __init__(self, *exprs: Set[T]) -> None:
         self.exprs = exprs
 
@@ -247,6 +255,15 @@ class NarySet(Set[T], Generic[T]):
 
 
 class Intersection(NarySet[T], Generic[T]):
+    def __new__(cls, *exprs: Set[T], **kwargs: Any) -> Set[T]:
+        if len(exprs) == 0:
+            return UniversalSet()
+        else:
+            return NarySet.__new__(cls, *exprs)
+
+    def __deepcopy__(self, memodict):
+        return Intersection(*(deepcopy(x) for x in self.exprs))
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Set):
             return NotImplemented
@@ -269,6 +286,15 @@ class Intersection(NarySet[T], Generic[T]):
 
 
 class Union(NarySet[T], Generic[T]):
+    def __new__(cls, *exprs: Set[T], **kwargs: Any) -> Set[T]:
+        if len(exprs) == 0:
+            return EmptySet()
+        else:
+            return NarySet.__new__(cls, *exprs)
+
+    def __deepcopy__(self, memodict):
+        return Union(*(deepcopy(x) for x in self.exprs))
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Set):
             return NotImplemented
@@ -291,6 +317,15 @@ class Union(NarySet[T], Generic[T]):
 
 
 class DisjunctiveUnion(NarySet[T], Generic[T]):
+    def __new__(cls, *exprs: Set[T], **kwargs: Any) -> Set[T]:
+        if len(exprs) == 0:
+            return EmptySet()
+        else:
+            return super().__new__(cls, *exprs)
+
+    def __deepcopy__(self, memodict):
+        return DisjunctiveUnion(*(deepcopy(x) for x in self.exprs))
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Set):
             return NotImplemented

@@ -152,7 +152,7 @@ class ReactionTarget(Target):
 
     """
     def __init__(self, reaction_parent: Reaction, contingency_variant: int=0,
-                 interaction_variant: int=0, contingency_factor: VennSet['StateTarget']=UniversalSet()) -> None:
+                 interaction_variant: int=0, contingency_factor: VennSet['StateTarget']=None) -> None:
         self.reaction_parent     = reaction_parent  # type: Reaction
         self.produced_targets    = [StateTarget(x) for x in reaction_parent.produced_states]     # type: List[StateTarget]
         self.consumed_targets    = [StateTarget(x) for x in reaction_parent.consumed_states]     # type: List[StateTarget]
@@ -162,7 +162,10 @@ class ReactionTarget(Target):
         self.contingency_variant_index = contingency_variant
         self.interaction_variant_index = interaction_variant
 
-        self.contingency_factor  = contingency_factor  # type: VennSet[StateTarget]
+        if contingency_factor is None:
+            self.contingency_factor = UniversalSet()
+        else:
+            self.contingency_factor = contingency_factor  # type: VennSet[StateTarget]
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -608,7 +611,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 conds[state_target] = False
 
         for knockout_target in knockout_targets:
-            conds[knockout_target] = True
+            conds[knockout_target] = False
 
         return BooleanModelConfig(conds)
 
@@ -643,6 +646,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             # component is part of at least one state
             else:
                 # mutually exclusive states are combined by OR
+
                 component_to_factor[component] = \
                     Intersection(*(Union(*(ValueSet(StateTarget(x)) for x in group)) for group in grouped_states.values()))
 
@@ -682,7 +686,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         return reaction_targets
 
     def update_degradations_add_component_states(reaction_targets: List[ReactionTarget],
-                                                  component_state_targets: List[ComponentStateTarget]) -> List[ReactionTarget]:
+                                                 component_state_targets: List[ComponentStateTarget]) -> List[ReactionTarget]:
         result = deepcopy(reaction_targets)
         for reaction_target in result:
             for degraded_component in reaction_target.degraded_components:
@@ -883,12 +887,12 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 if knockout_strategy == KnockoutStrategy.knockout_neutral_states and not state_rule.target.is_neutral:
                     continue
 
-                for component in state_rule.target.components:
-                    state_rule.factor = Intersection(state_rule.factor, ValueSet(KnockoutTarget(component)))
+                knockout_factor = Complement(Intersection(*(ValueSet(KnockoutTarget(component)) for component in state_rule.target.components)))
+                state_rule.factor = Intersection(knockout_factor, state_rule.factor)
 
     def calc_knockout_rules() -> None:
         for knockout_target in knockout_targets:
-            knockout_rules.append(UpdateRule(knockout_target, UniversalSet()))
+            knockout_rules.append(UpdateRule(knockout_target, ValueSet(knockout_target)))
 
     component_presence_factor, component_state_targets = calc_component_presence_factors()
 
