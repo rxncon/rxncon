@@ -1,25 +1,10 @@
-from enum import Enum
 from typing import List
 
 from rxncon.simulation.rule_based.rule_based_model import RuleBasedModel, MolDef, Complex, \
     InitialCondition, Mol, Parameter, Rule, Observable
 
 
-class BNGLSimulationMethods(Enum):
-    ODE = 'ode'
-    SSA = 'ssa'
-
-
-class BNGLSettings:
-    def __init__(self) -> None:
-        self.maximal_iteration = 1
-        self.maximal_aggregate = 4
-        self.simulation_method = BNGLSimulationMethods.ODE
-        self.simulation_time_end = 10
-        self.simulation_time_steps = 100
-
-
-def bngl_from_rule_based_model(rule_based_model: RuleBasedModel, settings: BNGLSettings=BNGLSettings()) -> str:
+def bngl_from_rule_based_model(rule_based_model: RuleBasedModel) -> str:
     def header_str() -> str:
         return 'begin model'
 
@@ -47,12 +32,7 @@ def bngl_from_rule_based_model(rule_based_model: RuleBasedModel, settings: BNGLS
         return 'begin reaction rules\n{0}\nend reaction rules\n'.format('\n'.join(rules))
 
     def footer_str() -> str:
-        return 'end model\n\nsimulate_nf({{t_end=>100,n_steps=>10}});\n'\
-            .format(settings.maximal_iteration,
-                    settings.maximal_aggregate,
-                    settings.simulation_method.value,
-                    settings.simulation_time_end,
-                    settings.simulation_time_steps)
+        return 'end model\n\nsimulate_nf({t_end=>100,n_steps=>10});\n'
 
     bngl_strs = [header_str(),
                  parameters_str(),
@@ -74,19 +54,19 @@ def str_from_mol_def(mol_def: MolDef) -> str:
 
 
 def str_from_mol(mol: Mol) -> str:
-    def site_str(site: str) -> str:
-        s = site
+    def full_site_str(site: str) -> str:
+        site_str = site
         if site in mol.site_to_mod.keys():
-            s += '~{}'.format(mol.site_to_mod[site])
+            site_str += '~{}'.format(mol.site_to_mod[site])
         if site in mol.site_to_bond.keys():
-            s += '!{}'.format(mol.site_to_bond[site]) if mol.site_to_bond[site] is not None else ''
+            site_str += '!{}'.format(mol.site_to_bond[site]) if mol.site_to_bond[site] is not None else ''
 
-        return s
+        return site_str
 
-    return '{0}({1})'.format(mol.name, ','.join(site_str(x) for x in sorted(mol.sites)))
+    return '{0}({1})'.format(mol.name, ','.join(full_site_str(x) for x in sorted(mol.sites)))
 
 
-def str_from_complex(complex: Complex) -> str:
+def str_from_complex(complex: Complex) -> str:  # pylint: disable=redefined-builtin
     return '.'.join(str_from_mol(mol) for mol in complex.mols)
 
 
@@ -115,6 +95,6 @@ def str_from_observable(observable: Observable) -> str:
 
 def str_from_rule(rule: Rule) -> str:
     return '# {3}\n{0} -> {1}   {2}'.format(' + '.join(str_from_complex(x) for x in rule.lhs),
-                                             ' + '.join(str_from_complex(x) for x in rule.rhs),
-                                             rule.rate.name if rule.rate.name else rule.rate.value,
-                                             str(rule.parent_reaction))
+                                            ' + '.join(str_from_complex(x) for x in rule.rhs),
+                                            rule.rate.name if rule.rate.name else rule.rate.value,
+                                            str(rule.parent_reaction))

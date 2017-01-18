@@ -20,7 +20,7 @@ LOGGER = logging.getLogger(__name__)
 
 NEUTRAL_MOD            = '0'
 INITIAL_MOLECULE_COUNT = 100
-SITE_NAME_REGEX        = '^[a-zA-Z0-9]+$'
+SITE_NAME_REGEX        = r'^[a-zA-Z0-9]+$'
 
 
 class MolDef:

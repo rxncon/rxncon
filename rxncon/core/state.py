@@ -1,7 +1,7 @@
 import re
 from enum import unique, Enum
 from typing import List, Dict
-from abc import ABC, abstractproperty, abstractmethod
+from abc import ABCMeta, abstractproperty, abstractmethod
 import logging
 from copy import deepcopy
 
@@ -59,7 +59,7 @@ def state_modifier_from_str(modifier_str: str) -> StateModifier:
                          .format(modifier_str, ', '.join(valid_modifiers)))
 
 
-class State(ABC):
+class State(metaclass=ABCMeta):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, State):
             return NotImplemented

@@ -3,7 +3,8 @@ from rxncon.core.spec import spec_from_str
 from rxncon.core.state import state_from_str
 from rxncon.input.quick.quick import Quick
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, ReactionTarget, \
-    StateTarget, ComponentStateTarget, SmoothingStrategy, Target, boolnet_from_boolean_model
+    StateTarget, ComponentStateTarget, SmoothingStrategy, Target
+from rxncon.simulation.boolean.boolnet_from_boolean_model import boolnet_from_boolean_model
 from rxncon.venntastic.sets import venn_from_str
 
 

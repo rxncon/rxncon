@@ -9,9 +9,9 @@ import colorama
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.input.excel_book.excel_book import ExcelBook
-from rxncon.simulation.boolean.boolean_model import boolnet_from_boolean_model, boolean_model_from_rxncon, \
+from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, \
     SmoothingStrategy, KnockoutStrategy, OverexpressionStrategy
-
+from rxncon.simulation.boolean.boolnet_from_boolean_model import boolnet_from_boolean_model
 
 colorama.init()
 logger = logging.getLogger(__name__)

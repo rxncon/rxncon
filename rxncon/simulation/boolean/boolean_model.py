@@ -1,52 +1,28 @@
-from typing import List, Dict, Tuple, Optional, TypeVar, Generic, Sequence
 from copy import deepcopy
 from enum import Enum
 from itertools import product
+from typing import List, Dict, Tuple
+from abc import ABCMeta
 
-from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union, Complement, UniversalSet, EmptySet
 from rxncon.core.reaction import Reaction
-from rxncon.core.state import State, InteractionState
-from rxncon.core.spec import Spec
 from rxncon.core.rxncon_system import RxnConSystem
+from rxncon.core.spec import Spec
+from rxncon.core.state import State, InteractionState
+from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union, Complement, UniversalSet
 
 
 class BooleanModel:
-    """
-    Definition of the boolean model.
-
-    Args:
-        update_rules: Rules for updating the system.
-        initial_conditions: Initial conditions of the system.
-    """
-    def __init__(self, state_targets: List['StateTarget'], reaction_targets: List['ReactionTarget'], knockout_targets: List['KnockoutTarget'],
-                 overexpression_targets: List['OverexpressionTarget'], update_rules: List['UpdateRule'],
-                 initial_conditions: 'BooleanModelConfig') -> None:
-
+    def __init__(self, targets: List['Target'], update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig') -> None:
         self.update_rules            = sorted(update_rules)
         self.initial_conditions      = initial_conditions
-        self._state_targets          = {str(x): x for x in state_targets}
-        self._reaction_targets       = {str(x): x for x in reaction_targets}
-        self._knockout_targets       = {str(x): x for x in knockout_targets}
-        self._overexpression_targets = {str(x): x for x in overexpression_targets}
+        self._state_targets          = {str(x): x for x in targets if isinstance(x, StateTarget)}
+        self._reaction_targets       = {str(x): x for x in targets if isinstance(x, ReactionTarget)}
+        self._knockout_targets       = {str(x): x for x in targets if isinstance(x, KnockoutTarget)}
+        self._overexpression_targets = {str(x): x for x in targets if isinstance(x, OverexpressionTarget)}
         self._validate_update_rules()
         self._validate_initial_conditions()
 
     def set_initial_condition(self, target: 'Target', value: bool) -> None:
-
-        """
-        Assigning initial values to the boolean model.
-
-        Args:
-            target: StateTarget or ReactionTarget.
-            value: boolean value.
-
-        Mutates:
-            initial_conditions: Mapping of state and reaction targets to specific boolean values.
-
-        Returns:
-            None
-
-        """
         self.initial_conditions.set_target(target, value)
 
     def state_target_by_name(self, name: str) -> 'StateTarget':
@@ -135,11 +111,7 @@ class BooleanModelConfig:
         assert set(model_targets) == set(config_targets) and len(model_targets) == len(config_targets)
 
 
-class Target:
-    """
-    Parent class: a ReactionTarget or a StateTarget of the boolean model
-
-    """
+class Target(metaclass=ABCMeta):  # pylint: disable=too-few-public-methods
     def __hash__(self) -> int:
         return hash(str(self))
 
@@ -147,7 +119,7 @@ class Target:
         return str(self)
 
 
-class ReactionTarget(Target):
+class ReactionTarget(Target):  # pylint: disable=too-many-instance-attributes
     """
     Reaction of the boolean model.
 
@@ -194,56 +166,15 @@ class ReactionTarget(Target):
         return str(self)
 
     def produces(self, state_target: 'StateTarget') -> bool:
-        """
-        Checks if the reaction produces this particular state.
-
-        Args:
-            state_target: State of the boolean model consumed, produced, degraded or synthesised by reaction targets or regulating reaction targets.
-
-        Returns:
-            bool: True if the state target is in the list of produced targets, False otherwise.
-
-        """
         return state_target in self.produced_targets
 
     def consumes(self, state_target: 'StateTarget') -> bool:
-        """
-        Checks if the reaction consumes this particular state.
-
-        Args:
-            state_target: State of the boolean model consumed, produced, degraded or synthesised by reaction targets or regulating reaction targets.
-
-        Returns:
-            bool: True if the state target is in the list of consumed targets, False otherwise.
-
-        """
         return state_target in self.consumed_targets
 
     def synthesises(self, state_target: 'StateTarget') -> bool:
-        """
-        Checks if the reaction synthesises this particular state.
-
-        Args:
-            state_target: State of the boolean model consumed, produced, degraded or synthesised by reaction targets or regulating reaction targets.
-
-        Returns:
-            bool: True if the state target is in the list of synthesised targets, False otherwise.
-
-        """
         return state_target in self.synthesised_targets
 
     def degrades(self, state_target: 'StateTarget') -> bool:
-        """
-        Checks if the reaction degrades this particular state target.
-
-        Args:
-            state_target: State of the boolean model consumed, produced, degraded or synthesised by reaction targets or
-                regulating reaction targets.
-
-        Returns:
-            bool: True if the state target is in the list of degraded targets, False otherwise.
-
-        """
         return state_target in self.degraded_targets
 
     @property
@@ -328,18 +259,18 @@ class StateTarget(Target):
 
     """
     def __init__(self, state_parent: State) -> None:
-        self._state_parent = state_parent
+        self.state_parent = state_parent
 
     def __hash__(self) -> int:
         return hash(str(self))
 
     def __str__(self) -> str:
-        return str(self._state_parent)
+        return str(self.state_parent)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Target):
             return NotImplemented
-        return isinstance(other, StateTarget) and self._state_parent == other._state_parent
+        return isinstance(other, StateTarget) and self.state_parent == other.state_parent
 
     def is_produced_by(self, reaction_target: ReactionTarget) -> bool:
         """
@@ -402,7 +333,7 @@ class StateTarget(Target):
             List of components.
 
         """
-        return self._state_parent.components
+        return self.state_parent.components
 
     def shares_component_with(self, other_target: 'StateTarget') -> bool:
         return any(x in other_target.components for x in self.components)
@@ -416,11 +347,11 @@ class StateTarget(Target):
             bool: True if neutral, False otherwise.
 
         """
-        return self._state_parent.is_neutral
+        return self.state_parent.is_neutral
 
     @property
     def is_homodimer(self) -> bool:
-        return self._state_parent.is_homodimer
+        return self.state_parent.is_homodimer
 
     @property
     def neutral_targets(self) -> List['StateTarget']:
@@ -431,11 +362,11 @@ class StateTarget(Target):
             List of neutral StateTargets.
 
         """
-        return [StateTarget(x) for x in self._state_parent.neutral_states]
+        return [StateTarget(x) for x in self.state_parent.neutral_states]
 
     @property
     def is_interaction(self) -> bool:
-        return isinstance(self._state_parent, InteractionState)
+        return isinstance(self.state_parent, InteractionState)
 
     def is_mutually_exclusive_with(self, other: 'StateTarget') -> bool:
         """
@@ -448,22 +379,15 @@ class StateTarget(Target):
             bool: True if state is mutually exclusive, False otherwise.
 
         """
-        return self._state_parent.is_mutually_exclusive_with(other._state_parent)
+        return self.state_parent.is_mutually_exclusive_with(other.state_parent)
 
     def complementary_state_targets(self, rxnconsys: RxnConSystem, component: Spec) -> List['StateTarget']:
-        others = rxnconsys.complement_states_for_component(component, self._state_parent)
+        others = rxnconsys.complement_states_for_component(component, self.state_parent)
         return [StateTarget(x) for x in others]
 
 
 class ComponentStateTarget(StateTarget):
-    """
-    ComponentStateTarget corresponding to Components which have no states in the boolean model.
-
-    Args:
-        component (Specification): A reaction partner or part of state.
-
-    """
-    def __init__(self, component: Spec) -> None:
+    def __init__(self, component: Spec) -> None:  # pylint: disable=super-init-not-called
         self.component = component
 
     def __eq__(self, other: object) -> bool:
@@ -543,14 +467,6 @@ class OverexpressionTarget(ComponentStateTarget):
 
 
 class UpdateRule:
-    """
-    Updating rule of the boolean model.
-
-    Args:
-            target: Is a ReactionTarget or StateTarget.
-            factor: Is the updating rule for the respective target.
-
-    """
     def __init__(self, target: Target, factor: VennSet[Target]) -> None:
         self.target = target
         self.factor = factor
@@ -621,7 +537,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
           The boolean model.
 
     """
-
     def initial_conditions(reaction_targets: List[ReactionTarget], state_targets: List[StateTarget],
                            knockout_targets: List[KnockoutTarget], overexpression_targets: List[OverexpressionTarget])\
             -> BooleanModelConfig:
@@ -731,8 +646,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         return reaction_targets
 
-    def update_degradations_add_component_states(reaction_targets: List[ReactionTarget],
-                                                 component_state_targets: List[ComponentStateTarget]) -> List[ReactionTarget]:
+    def update_degs_add_component_states(reaction_targets: List[ReactionTarget],
+                                         component_state_targets: List[ComponentStateTarget]) -> List[ReactionTarget]:
         result = deepcopy(reaction_targets)
         for reaction_target in result:
             for degraded_component in reaction_target.degraded_components:
@@ -741,7 +656,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         return result
 
-    def update_degradations_add_contingent_states(reaction_targets: List[ReactionTarget]) -> List[ReactionTarget]:
+    def update_degs_add_contingent_states(reaction_targets: List[ReactionTarget]) -> List[ReactionTarget]:
         def degraded_state_targets(component: Spec, soln: Dict[StateTarget, bool]) -> List[StateTarget]:
             # soln evaluates to False if solution is tautology.
             if not soln and ComponentStateTarget(component) in component_state_targets:
@@ -765,7 +680,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         return result
 
-    def update_degradations_add_interaction_state_partner(reaction_targets: List[ReactionTarget]) -> List[ReactionTarget]:
+    def update_degs_add_interaction_state_partner(reaction_targets: List[ReactionTarget]) -> List[ReactionTarget]:
         """
         Update degradation reactions for interaction states.
 
@@ -806,8 +721,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         return result
 
-    def update_syntheses_with_component_states(reaction_targets: List[ReactionTarget],
-                                               component_state_targets: List[ComponentStateTarget]) -> List[ReactionTarget]:
+    def update_syns_with_component_states(reaction_targets: List[ReactionTarget],
+                                          component_state_targets: List[ComponentStateTarget]) -> List[ReactionTarget]:
         """
         Update synthesis reaction with component states.
 
@@ -858,7 +773,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         for reaction_target in reaction_targets:
             components = (component_presence_factor[x] for x in reaction_target.components_lhs)
             component_factor = Intersection(*components)  # type: VennSet[StateTarget]
-            reaction_rules.append(UpdateRule(reaction_target, Intersection(component_factor, reaction_target.contingency_factor).to_simplified_set()))
+            reaction_rules.append(UpdateRule(reaction_target, Intersection(
+                component_factor, reaction_target.contingency_factor).to_simplified_set()))
 
     def calc_state_rules() -> None:
         """
@@ -947,7 +863,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 knockout_factor = Complement(Union(*(ValueSet(KnockoutTarget(component)) for component in state_rule.target.components)))
                 state_rule.factor = Intersection(knockout_factor, state_rule.factor)
 
-
     def update_state_rules_with_overexpressions(overexpression_strategy: OverexpressionStrategy) -> None:
         if overexpression_strategy == OverexpressionStrategy.no_overexpression:
             return
@@ -976,10 +891,10 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
     state_targets   += component_state_targets
 
     reaction_targets = calc_reaction_targets_with_dnf_contingencies()
-    reaction_targets = update_degradations_add_component_states(reaction_targets, component_state_targets)
-    reaction_targets = update_degradations_add_contingent_states(reaction_targets)
-    reaction_targets = update_degradations_add_interaction_state_partner(reaction_targets)
-    reaction_targets = update_syntheses_with_component_states(reaction_targets, component_state_targets)
+    reaction_targets = update_degs_add_component_states(reaction_targets, component_state_targets)
+    reaction_targets = update_degs_add_contingent_states(reaction_targets)
+    reaction_targets = update_degs_add_interaction_state_partner(reaction_targets)
+    reaction_targets = update_syns_with_component_states(reaction_targets, component_state_targets)
 
     knockout_targets       = calc_knockout_targets(knockout_strategy)
     overexpression_targets = calc_overexpression_targets(overexpression_strategy)
@@ -996,133 +911,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
     calc_knockout_rules()
     calc_overexpression_rules()
 
-    all_rules = reaction_rules + state_rules + knockout_rules + overexpression_rules
-
-    return BooleanModel(state_targets, reaction_targets, knockout_targets, overexpression_targets, all_rules,
+    return BooleanModel(state_targets + reaction_targets + knockout_targets + overexpression_targets,
+                        reaction_rules + state_rules + knockout_rules + overexpression_rules,
                         initial_conditions(reaction_targets, state_targets, knockout_targets, overexpression_targets))
-
-
-### SIMULATION STUFF ###
-
-
-def boolnet_from_boolean_model(boolean_model: BooleanModel) -> Tuple[str, Dict[str, str], Dict[str, bool]]:
-    """
-    Translates the boolean model into the BoolNet syntax.
-
-    Note:
-        BoolNet is an R package that provides tools for assembling, analyzing and visualizing Boolean networks.
-
-    Args:
-        boolean_model: The boolean model.
-
-    Returns:
-        1. The first return value is the boolean model in BooleNet syntax.
-        2. The second return value is an abbreviation, target mapping.
-        3. The third return value is a mapping of the initial condition.
-
-    """
-    def initialize_boolnet_names() -> None:
-        nonlocal boolnet_names
-        nonlocal reaction_index
-        nonlocal state_index
-        nonlocal knockout_index
-        nonlocal overexpression_index
-        for update_rule in boolean_model.update_rules:
-            target = update_rule.target
-            if target in boolnet_names.keys():
-                raise AssertionError
-            elif isinstance(target, ReactionTarget):
-                name = 'R{}'.format(reaction_index)
-                boolnet_names[target] = name
-                reaction_index += 1
-            elif isinstance(target, KnockoutTarget):
-                name = 'K{}'.format(knockout_index)
-                boolnet_names[target] = name
-                knockout_index += 1
-            elif isinstance(target, OverexpressionTarget):
-                name = 'O{}'.format(overexpression_index)
-                boolnet_names[target] = name
-                overexpression_index += 1
-            elif isinstance(target, StateTarget):
-                name = 'S{}'.format(state_index)
-                boolnet_names[target] = name
-                state_index += 1
-            else:
-                raise AssertionError
-
-    def str_from_factor(factor: VennSet) -> str:
-        """
-        Translates a factor into a string.
-
-        Note:
-            During this process the names of the targets are replaced by abbreviations. Reaction targets are replaced
-            by R{} and states are replaced by S{} where {} is a continuous numerating for state and reaction targets
-            respectively.
-
-        Args:
-            factor:
-
-        Returns:
-            The string of the factor.
-
-        Raises:
-            AssertionError: If the factor is not a valid VennSet object an error is raised.
-
-        """
-        if isinstance(factor, ValueSet):
-            return boolnet_names[factor.value]
-        elif isinstance(factor, Complement):
-            return '!({})'.format(str_from_factor(factor.expr))
-        elif isinstance(factor, Intersection):
-            return '({})'.format(' & '.join(str_from_factor(x) for x in factor.exprs))
-        elif isinstance(factor, Union):
-            return '({})'.format(' | '.join(str_from_factor(x) for x in factor.exprs))
-        elif isinstance(factor, EmptySet):
-            return '0'
-        elif isinstance(factor, UniversalSet):
-            return '1'
-        else:
-            raise AssertionError('Could not parse factor {}'.format(factor))
-
-    def str_from_update_rule(update_rule: UpdateRule) -> str:
-        """
-        Creates a string from an update rule.
-
-        Args:
-            update_rule: A target and its factor.
-
-        Returns:
-            The string of the update rule.
-
-        """
-        return '{0}, {1}'.format(boolnet_names[update_rule.target],
-                                 str_from_factor(update_rule.factor))
-
-    boolnet_names  = {}  # type: Dict[Target, str]
-
-    reaction_index       = 0
-    state_index          = 0
-    knockout_index       = 0
-    overexpression_index = 0
-
-    initialize_boolnet_names()
-
-    def sort_key(rule_str: str) -> Tuple[str, int]:
-        """
-        Function for sorting.
-
-        Args:
-            rule_str: A string representing and update rule of the boolean system.
-
-        Returns:
-            A tuple of string and integer.
-
-        """
-        target = rule_str.split(',')[0].strip()
-        return target[0], int(target[1:])
-
-    rule_strs = sorted([str_from_update_rule(x) for x in boolean_model.update_rules], key=sort_key)
-
-    return 'targets, factors\n' + '\n'.join(rule for rule in rule_strs) + '\n', \
-           {name: str(target) for target, name in boolnet_names.items()}, \
-           {boolnet_names[target]: value for target, value in boolean_model.initial_conditions.target_to_value.items()}
