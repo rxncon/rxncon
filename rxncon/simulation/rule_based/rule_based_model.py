@@ -59,6 +59,7 @@ class MolDef:
 
 class MolDefBuilder:
     def __init__(self, spec: Spec) -> None:
+        self.spec      = spec
         self.name      = str(spec.to_non_struct_spec())  # type: str
         self.site_defs = {}                              # type: Dict[str, List[str]]
 
@@ -328,28 +329,23 @@ class ComplexExprBuilder:
 
 
 STATE_TO_COMPLEX_BUILDER_FN = {
-    # Covalent modification state.
     ModificationState: [
-        lambda state, builder: builder.add_mol(state['$x']),
-        lambda state, builder: builder.set_mod(state['$x'], state['$y'])
+        lambda state, builder: builder.add_mol(state.spec),
+        lambda state, builder: builder.set_mod(state.spec, state.modifier)
     ],
-    # Interaction state.
     InteractionState: [
-        lambda state, builder: builder.add_mol(state['$x']),
-        lambda state, builder: builder.add_mol(state['$y']),
-        lambda state, builder: builder.set_bond(state['$x'], state['$y'])
+        lambda state, builder: builder.add_mol(state.first),
+        lambda state, builder: builder.add_mol(state.second),
+        lambda state, builder: builder.set_bond(state.first, state.second)
     ],
-    # Self-interaction state.
     SelfInteractionState: [
-        lambda state, builder: builder.add_mol(state['$x']),
-        lambda state, builder: builder.set_bond(state.specs[0], state.specs[1])
+        lambda state, builder: builder.add_mol(state.first),
+        lambda state, builder: builder.set_bond(state.first, state.second)
     ],
-    # Empty binding state.
     EmptyBindingState: [
-        lambda state, builder: builder.add_mol(state['$x']),
-        lambda state, builder: builder.set_half_bond(state['$x'], None)
+        lambda state, builder: builder.add_mol(state.spec),
+        lambda state, builder: builder.set_half_bond(state.spec, None)
     ],
-    # Input state.
     GlobalState: [
         lambda state, builder: logger.warning('{} : IGNORING INPUT STATE {}'.format(current_function_name(), str(state)))
     ]
@@ -357,24 +353,20 @@ STATE_TO_COMPLEX_BUILDER_FN = {
 
 
 STATE_TO_MOL_DEF_BUILDER_FN = {
-    # Covalent modification state.
     ModificationState: [
-        lambda state, builder: builder.add_site(state['$x']),
-        lambda state, builder: builder.add_mod(state['$x'], state['$y'])
+        lambda state, builder: builder.add_site(state.spec),
+        lambda state, builder: builder.add_mod(state.spec, state.modifier)
     ],
-    # Interaction state.
     InteractionState: [
-        lambda state, builder: builder.add_site(state['$x']) if builder.name == str(state['$x'].to_component_spec()) \
-                               else builder.add_site(state['$y']),
+        lambda state, builder: builder.add_site(state.first) if builder.spec == state.first.to_component_spec()
+        else builder.add_site(state.second),
     ],
-    # Self-interaction state.
     SelfInteractionState: [
-        lambda state, builder: builder.add_site(state.specs[0]),
-        lambda state, builder: builder.add_site(state.specs[1])
+        lambda state, builder: builder.add_site(state.first),
+        lambda state, builder: builder.add_site(state.second)
     ],
-    # Empty binding state.
     EmptyBindingState: [
-        lambda state, builder: builder.add_site(state['$x'])
+        lambda state, builder: builder.add_site(state.spec)
     ]
 }  # type: Dict[Type[State], List[Callable[[State, MolDefBuilder], None]]]
 

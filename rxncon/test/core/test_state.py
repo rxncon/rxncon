@@ -211,17 +211,6 @@ def test_ipi_sorting() -> None:
     assert state_from_str('A_[a]--[b]') < state_from_str('A_[x]--[y]')
 
 
-def test_ipi_get_item() -> None:
-    assert spec_from_str('A_[x]') == state_from_str('A_[x]--[y]')['$x']
-    assert spec_from_str('A_[y]') == state_from_str('A_[x]--[y]')['$y']
-
-    with pytest.raises(AssertionError):
-        assert spec_from_str('A_[y]') == state_from_str('A_[y]--[x]')['$x']
-
-    with pytest.raises(KeyError):
-        state_from_str('A_[y]--[x]')['$z']
-
-
 def test_ipi_is_mutually_exclusive_with() -> None:
     assert not state_from_str('A_[x]--[y]').is_mutually_exclusive_with(state_from_str('A_[x]--[y]'))
     assert state_from_str('A_[x]--[y]').is_mutually_exclusive_with(state_from_str('A_[x]--B_[y]'))
@@ -419,9 +408,6 @@ def test_global_state_properties() -> None:
 
 
 def test_global_state_get_item():
-    with pytest.raises(KeyError):
-        state_from_str('[BLA]')['$y']
-
     assert state_from_str('[BLA]') > state_from_str('X_[x]--0')
     assert state_from_str('[BLA]') > state_from_str('X_[x]--A_[y]')
     assert state_from_str('[BLA]') > state_from_str('X_[x]--B_[y]')

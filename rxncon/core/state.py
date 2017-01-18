@@ -60,19 +60,9 @@ def state_modifier_from_str(modifier_str: str) -> StateModifier:
 
 
 class State(ABC):
-    def __hash__(self) -> int:
-        return hash(str(self))
-
-    def __repr__(self) -> str:
-        return str(self)
-
-    def __str__(self) -> str:
-        return self.name
-
-    def __lt__(self, other: object) -> bool:
-        if not isinstance(other, State):
-            return NotImplemented
-        return str(self) < str(other)
+    @abstractproperty
+    def is_elemental(self) -> bool:
+        return False
 
     @abstractmethod
     def is_superset_of(self, other: 'State') -> bool:
@@ -90,11 +80,6 @@ class State(ABC):
     def is_global(self) -> bool:
         return False
 
-    @property
-    def is_elemental(self) -> bool:
-        return self.is_global or all(spec.has_resolution(elemental_resolution) for spec, elemental_resolution
-                                     in zip(self.specs, self._elemental_resolutions))
-
     @abstractmethod
     def is_mutually_exclusive_with(self, state: 'State') -> bool:
         return False
@@ -104,7 +89,7 @@ class State(ABC):
         return False
 
     @abstractproperty
-    def is_homodimer(self):
+    def is_homodimer(self) -> bool:
         return False
 
     @abstractproperty
@@ -137,12 +122,12 @@ class State(ABC):
 
 
 class InteractionState(State):
-    def __init__(self, first: Spec, second: Spec):
+    def __init__(self, first: Spec, second: Spec) -> None:
         self.first, self.second = sorted([first, second])  # type: Spec, Spec
         self._validate()
 
     @property
-    def name(self):
+    def name(self) -> str:
         return '{}--{}'.format(str(self.first), str(self.second))
 
     def __str__(self) -> str:
@@ -154,7 +139,7 @@ class InteractionState(State):
     def __hash__(self) -> int:
         return hash(str(self))
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, State):
             return NotImplemented
         else:
@@ -166,15 +151,7 @@ class InteractionState(State):
 
         return str(self) < str(other)
 
-    def __getitem__(self, item):
-        if item == '$x':
-            return self.first
-        elif item == '$y':
-            return self.second
-        else:
-            raise KeyError
-
-    def _validate(self):
+    def _validate(self) -> None:
         if self.first.resolution > LocusResolution.domain or self.second.resolution > LocusResolution.domain:
             raise SyntaxError('Resolution for InteractionState too high {} {}'.format(str(self.first), str(self.second)))
 
@@ -208,7 +185,7 @@ class InteractionState(State):
         return False
 
     @property
-    def is_homodimer(self):
+    def is_homodimer(self) -> bool:
         return self.first.to_component_spec().to_non_struct_spec() == self.second.to_component_spec().to_non_struct_spec()
 
     @property
@@ -233,10 +210,6 @@ class InteractionState(State):
 
     def to_non_structured(self) -> 'State':
         return InteractionState(self.first.to_non_struct_spec(), self.second.to_non_struct_spec())
-
-    @property
-    def is_structured(self) -> bool:
-        return self.first.is_structured and self.second.is_structured
 
     @property
     def components(self) -> List[Spec]:
@@ -272,22 +245,23 @@ class InteractionState(State):
 
     def to_structured_from_state(self, state: 'State') -> 'State':
         if self.is_homodimer and state.is_homodimer and state.is_structured:
+            assert isinstance(state, InteractionState)
             return InteractionState(self.first.with_struct_from_spec(state.first), self.second.with_struct_from_spec(state.second))
         else:
             for spec in state.specs:
-                self = self.to_structured_from_spec(spec)
+                structured = self.to_structured_from_spec(spec)
 
-            return self
+            return structured
 
 
 class EmptyBindingState(State):
-    def __init__(self, spec: Spec):
+    def __init__(self, spec: Spec) -> None:
         if spec.resolution > LocusResolution.domain:
             raise SyntaxError('Resolution for EmptyBindingState too high {}'.format(str(spec)))
         self.spec = spec
 
     @property
-    def name(self):
+    def name(self) -> str:
         return '{}--0'.format(str(self.spec))
 
     def __str__(self) -> str:
@@ -297,9 +271,9 @@ class EmptyBindingState(State):
         return self.name
 
     def __hash__(self) -> int:
-        return super().__hash__()
+        return hash(str(self))
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, State):
             return NotImplemented
         else:
@@ -310,12 +284,6 @@ class EmptyBindingState(State):
             return NotImplemented
 
         return str(self) < str(other)
-
-    def __getitem__(self, item):
-        if item == '$x':
-            return self.spec
-        else:
-            raise KeyError
 
     @property
     def specs(self) -> List[Spec]:
@@ -342,7 +310,7 @@ class EmptyBindingState(State):
         return True
 
     @property
-    def is_homodimer(self):
+    def is_homodimer(self) -> bool:
         return False
 
     @property
@@ -357,10 +325,6 @@ class EmptyBindingState(State):
 
     def to_non_structured(self) -> 'State':
         return EmptyBindingState(self.spec.to_non_struct_spec())
-
-    @property
-    def is_structured(self) -> bool:
-        return self.spec.is_structured
 
     @property
     def components(self) -> List[Spec]:
@@ -380,20 +344,18 @@ class EmptyBindingState(State):
 
     def to_structured_from_state(self, state: 'State') -> 'State':
         for spec in state.specs:
-            self = self.to_structured_from_spec(spec)
+            structured = self.to_structured_from_spec(spec)
 
-        return self
+        return structured
 
 
 class SelfInteractionState(State):
-    def __init__(self, first: Spec, second: Spec):
-
-
+    def __init__(self, first: Spec, second: Spec) -> None:
         self.first, self.second = sorted([first, second])  # type: Spec, Spec
         self._validate()
 
     @property
-    def name(self):
+    def name(self) -> str:
         return '{}--[{}]'.format(str(self.first), str(self.second.locus))
 
     def __str__(self) -> str:
@@ -403,9 +365,9 @@ class SelfInteractionState(State):
         return self.name
 
     def __hash__(self) -> int:
-        return super().__hash__()
+        return hash(str(self))
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, State):
             return NotImplemented
         else:
@@ -417,15 +379,7 @@ class SelfInteractionState(State):
 
         return str(self) < str(other)
 
-    def __getitem__(self, item):
-        if item == '$x':
-            return self.first
-        elif item == '$y':
-            return self.second
-        else:
-            raise KeyError
-
-    def _validate(self):
+    def _validate(self) -> None:
         assert self.first.to_component_spec() == self.second.to_component_spec()
         if self.first.resolution > LocusResolution.domain or self.second.resolution > LocusResolution.domain:
             raise SyntaxError('Resolution for SelfInteractionState too high {} {}'.format(str(self.first), str(self.second)))
@@ -458,7 +412,7 @@ class SelfInteractionState(State):
         return False
 
     @property
-    def is_homodimer(self):
+    def is_homodimer(self) -> bool:
         return False
 
     @property
@@ -482,10 +436,6 @@ class SelfInteractionState(State):
         return SelfInteractionState(self.first.to_non_struct_spec(), self.second.to_non_struct_spec())
 
     @property
-    def is_structured(self) -> bool:
-        return self.first.is_structured and self.second.is_structured
-
-    @property
     def components(self) -> List[Spec]:
         return [self.first.to_component_spec()]
 
@@ -505,17 +455,17 @@ class SelfInteractionState(State):
 
     def to_structured_from_state(self, state: 'State') -> 'State':
         for spec in state.specs:
-            self = self.to_structured_from_spec(spec)
+            structured = self.to_structured_from_spec(spec)
 
-        return self
+        return structured
 
 
 class ModificationState(State):
-    def __init__(self, spec: Spec, modifier: StateModifier):
+    def __init__(self, spec: Spec, modifier: StateModifier) -> None:
         self.spec, self.modifier = spec, modifier
 
     @property
-    def name(self):
+    def name(self) -> str:
         return '{}-{{{}}}'.format(str(self.spec), self.modifier.value)
 
     def __str__(self) -> str:
@@ -525,9 +475,9 @@ class ModificationState(State):
         return self.name
 
     def __hash__(self) -> int:
-        return super().__hash__()
+        return hash(str(self))
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, State):
             return NotImplemented
         else:
@@ -538,14 +488,6 @@ class ModificationState(State):
             return NotImplemented
 
         return str(self) < str(other)
-
-    def __getitem__(self, item):
-        if item == '$x':
-            return self.spec
-        elif item == '$y':
-            return self.modifier
-        else:
-            raise KeyError
 
     @property
     def specs(self) -> List[Spec]:
@@ -572,7 +514,7 @@ class ModificationState(State):
         return self.modifier == StateModifier.neutral
 
     @property
-    def is_homodimer(self):
+    def is_homodimer(self) -> bool:
         return False
 
     @property
@@ -587,10 +529,6 @@ class ModificationState(State):
 
     def to_non_structured(self) -> 'State':
         return ModificationState(self.spec.to_non_struct_spec(), self.modifier)
-
-    @property
-    def is_structured(self) -> bool:
-        return self.spec.is_structured
 
     @property
     def components(self) -> List[Spec]:
@@ -610,13 +548,13 @@ class ModificationState(State):
 
     def to_structured_from_state(self, state: 'State') -> 'State':
         for spec in state.specs:
-            self = self.to_structured_from_spec(spec)
+            structured = self.to_structured_from_spec(spec)
 
-        return self
+        return structured
 
 
 class GlobalState(State):
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = '[{}]'.format(name.strip('[]'))
 
     def __str__(self) -> str:
@@ -626,9 +564,9 @@ class GlobalState(State):
         return self.name
 
     def __hash__(self) -> int:
-        return super().__hash__()
+        return hash(str(self))
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, State):
             return NotImplemented
         else:
@@ -639,12 +577,6 @@ class GlobalState(State):
             return NotImplemented
 
         return str(self) < str(other)
-
-    def __getitem__(self, item):
-        if item == '$x':
-            return self.name.strip('[]')
-        else:
-            raise KeyError
 
     @property
     def specs(self) -> List[Spec]:
@@ -666,7 +598,7 @@ class GlobalState(State):
         return False
 
     @property
-    def is_homodimer(self):
+    def is_homodimer(self) -> bool:
         return False
 
     @property
@@ -702,7 +634,7 @@ class GlobalState(State):
 
 class FullyNeutralState(State):
     def __init__(self) -> None:
-        pass
+        self.name = 'FullyNeutralState'
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -773,7 +705,7 @@ class FullyNeutralState(State):
         raise AssertionError
 
     @property
-    def is_homodimer(self):
+    def is_homodimer(self) -> bool:
         raise AssertionError
 
 

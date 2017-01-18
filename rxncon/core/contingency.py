@@ -2,12 +2,14 @@ from enum import unique, Enum
 from copy import deepcopy
 from collections import defaultdict
 import logging
-from rxncon.util.utils import current_function_name
+from typing import Any, Callable, Set as TgSet, Dict
 
+from rxncon.util.utils import current_function_name
 from rxncon.core.effector import Effector, StructEquivalences, QualSpec, StateEffector, TrivialStructEquivalences, NotEffector, \
     AndEffector, OrEffector
 from rxncon.core.reaction import Reaction
-from rxncon.venntastic.sets import Set, ValueSet, Intersection, Complement, Union, UniversalSet
+from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Complement, Union, UniversalSet
+from rxncon.core.state import State
 
 
 logger = logging.getLogger(__name__)
@@ -83,8 +85,9 @@ class Contingency:
             sc._validate_structure_indices()
             return sc
 
-    def to_venn_set(self, k_plus_strict=False, k_minus_strict=False, structured=True, state_wrapper=lambda x: x) -> Set:
-        def parse_effector(eff: Effector) -> Set:
+    def to_venn_set(self, k_plus_strict: bool=False, k_minus_strict: bool=False, structured: bool=True,
+                    state_wrapper: Callable[[State], Any]=lambda x: x) -> VennSet[Any]:
+        def parse_effector(eff: Effector) -> VennSet:
             if isinstance(eff, StateEffector):
                 if structured:
                     return ValueSet(state_wrapper(eff.expr))
@@ -102,12 +105,12 @@ class Contingency:
         if k_plus_strict:
             positive = (ContingencyType.requirement, ContingencyType.positive)
         else:
-            positive = (ContingencyType.requirement,)
+            positive = (ContingencyType.requirement,)  # type: ignore
 
         if k_minus_strict:
             negative = (ContingencyType.inhibition, ContingencyType.negative)
         else:
-            negative = (ContingencyType.inhibition,)
+            negative = (ContingencyType.inhibition,)  # type: ignore
 
         if self.type in positive:
             return parse_effector(self.effector)
@@ -116,13 +119,13 @@ class Contingency:
         else:
             return UniversalSet()
 
-    def _validate_structure_indices(self):
+    def _validate_structure_indices(self) -> None:
         # Assert that every index is only used once.
         specs = [spec for state in self.effector.states for spec in state.specs]
-        index_to_specs = defaultdict(set)
+        index_to_specs = defaultdict(set)  # type: Dict[int, TgSet]
 
         for spec in specs:
-            assert spec.is_structured
+            assert spec.struct_index is not None
             index_to_specs[spec.struct_index].add(spec.to_component_spec())
 
         assert all(len(x) == 1 for _, x in index_to_specs.items())

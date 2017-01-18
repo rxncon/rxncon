@@ -152,7 +152,7 @@ class ReactionTarget(Target):
 
     """
     def __init__(self, reaction_parent: Reaction, contingency_variant: int=0,
-                 interaction_variant: int=0, contingency_factor: VennSet[StateTarget]=UniversalSet()) -> None:
+                 interaction_variant: int=0, contingency_factor: VennSet['StateTarget']=UniversalSet()) -> None:
         self.reaction_parent     = reaction_parent  # type: Reaction
         self.produced_targets    = [StateTarget(x) for x in reaction_parent.produced_states]     # type: List[StateTarget]
         self.consumed_targets    = [StateTarget(x) for x in reaction_parent.consumed_states]     # type: List[StateTarget]
