@@ -61,7 +61,19 @@ def state_modifier_from_str(modifier_str: str) -> StateModifier:
 
 
 class State(ABC):
-    def clone(self):
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, State):
+            return NotImplemented
+        else:
+            raise NotImplementedError
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, State):
+            return NotImplemented
+        else:
+            raise NotImplementedError
+
+    def clone(self) -> 'State':
         return deepcopy(self)
 
     @abstractproperty

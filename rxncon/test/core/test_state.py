@@ -300,7 +300,7 @@ def test_properties_fully_neutral() -> None:
         fully_neutral_state.is_homodimer
 
 
-def test_sort_fully_neutral():
+def test_sort_fully_neutral() -> None:
     assert state_from_str('0') < state_from_str('A_[x]--0')
     assert state_from_str('0') < state_from_str('A_[x]--A_[y]')
     assert state_from_str('0') < state_from_str('A_[x]--B_[y]')
@@ -355,7 +355,7 @@ def test_homodimer_update_specs() -> None:
     assert structured_homodimer == state_from_str('A@5_[x]--A@7_[y]')
 
 
-def test_homodimer_update_specs_flip():
+def test_homodimer_update_specs_flip() -> None:
     structured_homodimer = state_from_str('A@0_[x]--A@1_[y]')
 
     structured_homodimer.update_specs({
@@ -407,7 +407,7 @@ def test_global_state_properties() -> None:
     assert state.neutral_states == []
 
 
-def test_global_state_get_item():
+def test_global_ordering() -> None:
     assert state_from_str('[BLA]') > state_from_str('X_[x]--0')
     assert state_from_str('[BLA]') > state_from_str('X_[x]--A_[y]')
     assert state_from_str('[BLA]') > state_from_str('X_[x]--B_[y]')

@@ -13,12 +13,13 @@ from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet, DisjunctiveUnion
 from rxncon.util.utils import current_function_name
 
+
 logger = logging.getLogger(__name__)
 
 
-NEUTRAL_MOD = '0'
+NEUTRAL_MOD            = '0'
 INITIAL_MOLECULE_COUNT = 100
-SITE_NAME_REGEX = '^[a-zA-Z0-9]+$'
+SITE_NAME_REGEX        = '^[a-zA-Z0-9]+$'
 
 
 class MolDef:

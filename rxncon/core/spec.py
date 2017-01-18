@@ -72,7 +72,7 @@ class Spec(ABC):
         return self.has_resolution(LocusResolution.component)
 
     def with_name_suffix(self, suffix: str) -> 'Spec':
-        assert suffix not in SpecSuffix.__members__
+        assert suffix not in SpecSuffix.__members__  # type: ignore
         return type(self)(self.name + suffix, self.struct_index, self.locus)
 
     def with_struct_index(self, index: int) -> 'Spec':

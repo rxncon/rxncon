@@ -239,12 +239,12 @@ class Complement(UnarySet[T], Generic[T]):
 
 
 class NarySet(Set[T], Generic[T]):
-    def __new__(cls, *exprs: Set[T], **kwargs: Any) -> Set[T]:
+    def __new__(cls, *exprs: Set[T]) -> Set[T]:
         assert len(exprs) > 0
         if len(exprs) == 1:
             return deepcopy(exprs[0])
         else:
-            return super().__new__(cls, *exprs, **kwargs)
+            return super().__new__(cls, *exprs)  # type: ignore
 
     def __init__(self, *exprs: Set[T]) -> None:
         self.exprs = exprs
@@ -261,7 +261,7 @@ class Intersection(NarySet[T], Generic[T]):
         else:
             return NarySet.__new__(cls, *exprs)
 
-    def __deepcopy__(self, memodict):
+    def __deepcopy__(self, memodict: Dict) -> Set[T]:
         return Intersection(*(deepcopy(x) for x in self.exprs))
 
     def __eq__(self, other: object) -> bool:
@@ -292,7 +292,7 @@ class Union(NarySet[T], Generic[T]):
         else:
             return NarySet.__new__(cls, *exprs)
 
-    def __deepcopy__(self, memodict):
+    def __deepcopy__(self, memodict: Dict) -> Set[T]:
         return Union(*(deepcopy(x) for x in self.exprs))
 
     def __eq__(self, other: object) -> bool:
@@ -323,7 +323,7 @@ class DisjunctiveUnion(NarySet[T], Generic[T]):
         else:
             return super().__new__(cls, *exprs)
 
-    def __deepcopy__(self, memodict):
+    def __deepcopy__(self, memodict: Dict) -> Set[T]:
         return DisjunctiveUnion(*(deepcopy(x) for x in self.exprs))
 
     def __eq__(self, other: object) -> bool:
