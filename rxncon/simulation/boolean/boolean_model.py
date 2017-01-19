@@ -525,7 +525,8 @@ class OverexpressionStrategy(Enum):
 def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                               smoothing_strategy: SmoothingStrategy=SmoothingStrategy.no_smoothing,
                               knockout_strategy: KnockoutStrategy=KnockoutStrategy.no_knockout,
-                              overexpression_strategy: OverexpressionStrategy=OverexpressionStrategy.no_overexpression) -> BooleanModel:
+                              overexpression_strategy: OverexpressionStrategy=OverexpressionStrategy.no_overexpression,
+                              k_plus_strict: bool=True, k_minus_strict: bool=True) -> BooleanModel:
     """
     Constructs a boolean model from a rxncon system and a smoothing strategy.
 
@@ -613,7 +614,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         return component_to_factor, component_state_targets
 
-    def calc_reaction_targets_with_dnf_contingencies() -> List[ReactionTarget]:
+    def calc_reaction_targets_with_dnf_contingencies(k_plus_strict: bool, k_minus_strict: bool) -> List[ReactionTarget]:
         """
         Calculates contingency factors for reaction targets.
 
@@ -631,7 +632,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         reaction_targets = []
 
         for reaction in rxncon_sys.reactions:
-            factors = (x.to_venn_set(k_plus_strict=True, k_minus_strict=True, structured=False, state_wrapper=StateTarget)
+            factors = (x.to_venn_set(k_plus_strict=k_plus_strict, k_minus_strict=k_minus_strict, structured=False, state_wrapper=StateTarget)
                        for x in rxncon_sys.contingencies_for_reaction(reaction))
             cont = Intersection(*factors).to_simplified_set()  # type: VennSet[StateTarget]
             # The reaction is not a degradation reaction
@@ -890,7 +891,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
     state_targets    = [StateTarget(x) for x in rxncon_sys.states]  # type: List[StateTarget]
     state_targets   += component_state_targets
 
-    reaction_targets = calc_reaction_targets_with_dnf_contingencies()
+    reaction_targets = calc_reaction_targets_with_dnf_contingencies(k_plus_strict, k_minus_strict)
     reaction_targets = update_degs_add_component_states(reaction_targets, component_state_targets)
     reaction_targets = update_degs_add_contingent_states(reaction_targets)
     reaction_targets = update_degs_add_interaction_state_partner(reaction_targets)
