@@ -14,7 +14,7 @@ from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, \
 from rxncon.simulation.boolean.boolnet_from_boolean_model import boolnet_from_boolean_model
 
 colorama.init()
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 def boolnet_strs_from_rxncon(rxncon: RxnConSystem, smoothing_strategy: SmoothingStrategy, knockout_strategy: KnockoutStrategy,
@@ -25,7 +25,8 @@ def boolnet_strs_from_rxncon(rxncon: RxnConSystem, smoothing_strategy: Smoothing
         return k[0], int(k[1:])
 
     model_str, symbol_dict, initial_val_dict = \
-        boolnet_from_boolean_model(boolean_model_from_rxncon(rxncon, smoothing_strategy=smoothing_strategy, knockout_strategy=knockout_strategy,
+        boolnet_from_boolean_model(boolean_model_from_rxncon(rxncon, smoothing_strategy=smoothing_strategy,
+                                                             knockout_strategy=knockout_strategy,
                                                              overexpression_strategy=overexpression_strategy))
 
     symbol_str      = '\n'.join('{0}, {1}'.format(boolnet_sym, rxncon_sym) for boolnet_sym, rxncon_sym

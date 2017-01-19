@@ -168,7 +168,7 @@ def _dereference_boolean_contingency_effectors(self: Effector,
     if isinstance(self, _BooleanContingencyEffector):
         logger.debug('{} : {}'.format(current_function_name(), self.expr))
         logger.debug('{} : {}'.format(current_function_name(), effector_table))
-
+        logger.debug('{} : {}'.format(current_function_name(), self.equivs))
         name   = self.expr.name
         equivs = self.equivs
         self.__class__ = effector_table[self.expr.name].__class__

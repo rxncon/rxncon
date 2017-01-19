@@ -9,9 +9,9 @@ import click_log
 import colorama
 
 from rxncon.input.excel_book.excel_book import ExcelBook
-from rxncon.visualization import XGMML
-from rxncon.visualization import map_layout2xgmml
-from rxncon.visualization import rxngraph_from_rxncon_system
+from rxncon.visualization.graphML import XGMML
+from rxncon.visualization.graphML import map_layout2xgmml
+from rxncon.visualization.reaction_graph import rxngraph_from_rxncon_system
 
 logger = logging.Logger(__name__)
 

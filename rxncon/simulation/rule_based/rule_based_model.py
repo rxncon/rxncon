@@ -275,10 +275,11 @@ class Complex:
 
 
 class ComplexExprBuilder:
-    def __init__(self) -> None:
+    def __init__(self, reaction: Optional[Reaction]=None) -> None:
         self._mol_builders = {}  # type: Dict[Spec, MolBuilder]
         self._current_bond = 0
         self._bonds        = []  # type: List[Tuple[Spec, Spec]]
+        self.reaction      = reaction
 
     def build(self, only_reactants: bool=True) -> List[Complex]:
         complexes = []
@@ -293,8 +294,8 @@ class ComplexExprBuilder:
                 complexes.append(possible_complex)
                 LOGGER.debug('{} : Adding complex {}'.format(current_function_name(), possible_complex))
             else:
-                LOGGER.info('{} : POSSIBLE DISCONNECTED CONTINGENCY Not adding complex {}'
-                            .format(current_function_name(), possible_complex))
+                LOGGER.info('{} : DISCONNECTED CONTINGENCY Reaction {} / Not adding complex {}'
+                            .format(current_function_name(), self.reaction, possible_complex))
 
         return complexes
 
@@ -749,7 +750,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
                 raise AssertionError('Cannot satisfy contingencies {} simultaneously'.format(' & '.join(str(s) for s in cont_soln)))
 
             states = copy(states)
-            builder = ComplexExprBuilder()
+            builder = ComplexExprBuilder(reaction=reaction)
             struct_index = 0
             for term in terms:
                 struct_states = deepcopy(term.states)
