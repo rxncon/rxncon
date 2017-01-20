@@ -11,7 +11,7 @@ SPEC_REGEX_NON_MATCHING = r'(?:[A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\
 
 OUTPUT_REACTION_REGEX   = r'^\[[\w-]*\]$'
 
-BIDIRECTIONAL_VERBS = [
+BIDIRECTIONAL_REACTIONS = [
     'ppi', 'ipi', 'i', 'bind'
 ]
 

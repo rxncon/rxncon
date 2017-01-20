@@ -621,7 +621,7 @@ class RegulatoryGraph:
 
         for contingency in contingencies:
             _add_information_from_effector_to_graph(contingency.effector, edge_type_mapping[contingency.contingency_type],
-                                                    _target_name_from_reaction_or_effector(contingency.target))
+                                                    _target_name_from_reaction_or_effector(contingency.reaction))
 
     def _add_node(self, id: str, label: str, type: NodeType) -> None:
         """

@@ -12,7 +12,7 @@ from rxncon.core.reaction import reaction_from_str
 from rxncon.core.state import state_from_str, State
 from rxncon.util.utils import current_function_name
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 class ContingencyListEntry:
     def __init__(self, subj: Union[Reaction, BooleanContingencyName],
@@ -59,7 +59,7 @@ class BooleanContingencyNameWithEquivs(BooleanContingencyName):
 def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str: str) -> ContingencyListEntry:
     subject_str, verb_str, object_str = subject_str.strip(), verb_str.lower().strip(), object_str.strip()
 
-    logger.debug('{}: {} / {} / {}'.format(current_function_name(), subject_str, verb_str, object_str))
+    LOGGER.debug('{}: {} / {} / {}'.format(current_function_name(), subject_str, verb_str, object_str))
 
     subject = None  # type: Optional[Union[Reaction, BooleanContingencyName]]
     verb    = None  # type: Optional[Union[BooleanOperator, ContingencyType]]
@@ -100,7 +100,7 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
                 pass
 
         object = BooleanContingencyNameWithEquivs(name, equivs)
-        logger.debug('{} : Created {}'.format(current_function_name(), str(object)))
+        LOGGER.debug('{} : Created {}'.format(current_function_name(), str(object)))
     elif verb == BooleanOperator.op_eqv:
         strs = [x.strip() for x in object_str.split(',')]
         object = (qual_spec_from_str(strs[0]).with_prepended_namespace([subject.name]),
@@ -166,9 +166,9 @@ def _dereference_boolean_contingency_effectors(self: Effector,
                                                effector_table: Dict[str, Effector],
                                                equivalence_table: Dict[str, List[Tuple[QualSpec, QualSpec]]]) -> None:
     if isinstance(self, _BooleanContingencyEffector):
-        logger.debug('{} : {}'.format(current_function_name(), self.expr))
-        logger.debug('{} : {}'.format(current_function_name(), effector_table))
-        logger.debug('{} : {}'.format(current_function_name(), self.equivs))
+        LOGGER.debug('{} : {}'.format(current_function_name(), self.expr))
+        LOGGER.debug('{} : {}'.format(current_function_name(), effector_table))
+        LOGGER.debug('{} : {}'.format(current_function_name(), self.equivs))
         name   = self.expr.name
         equivs = self.equivs
         self.__class__ = effector_table[self.expr.name].__class__
@@ -176,10 +176,10 @@ def _dereference_boolean_contingency_effectors(self: Effector,
         self.name = name
         try:
             self.equivs.merge_with(equivs, [])
-            logger.debug('{} : Merged structure information.'.format(current_function_name()))
+            LOGGER.debug('{} : Merged structure information.'.format(current_function_name()))
         except AttributeError:
             self.equivs = equivs
-            logger.debug('{} : Initialized structure information.'.format(current_function_name()))
+            LOGGER.debug('{} : Initialized structure information.'.format(current_function_name()))
     elif isinstance(self, StateEffector):
         pass
     elif isinstance(self, NotEffector):

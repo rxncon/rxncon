@@ -65,16 +65,16 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
 
     def contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
         assert reaction in self.reactions
-        return [x for x in self.contingencies if x.target == reaction]
+        return [x for x in self.contingencies if x.reaction == reaction]
 
     def q_contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
         assert reaction in self.reactions
-        return [x for x in self.contingencies if x.target == reaction and x.contingency_type
+        return [x for x in self.contingencies if x.reaction == reaction and x.contingency_type
                 in [ContingencyType.positive, ContingencyType.negative]]
 
     def s_contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
         assert reaction in self.reactions
-        return [x for x in self.contingencies if x.target == reaction and x.contingency_type
+        return [x for x in self.contingencies if x.reaction == reaction and x.contingency_type
                 in [ContingencyType.requirement, ContingencyType.inhibition]]
 
     @property
@@ -241,7 +241,7 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
     def _missing_reactions(self) -> List[Reaction]:
         required_reactions = []
         for contingency in self.contingencies:
-            required_reactions.append(contingency.target)
+            required_reactions.append(contingency.reaction)
 
         return [reaction for reaction in required_reactions if reaction not in self.reactions]
 

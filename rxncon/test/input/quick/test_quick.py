@@ -33,7 +33,7 @@ def test_single_contingency() -> None:
     assert contingencies[0].contingency_type == ContingencyType.requirement
 
 
-def test_bidirectional_verb() -> None:
+def test_bidirectional_reactions() -> None:
     rxncon_sys = Quick('''A_[x]_ppi_B_[y]; ! A_[(x)]-{p}
                        C_p+_A_[(x)]''').rxncon_system
 

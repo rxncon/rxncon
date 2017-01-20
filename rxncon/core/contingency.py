@@ -26,19 +26,19 @@ class ContingencyType(Enum):
 
 
 class Contingency:
-    def __init__(self, target: Reaction, contingency_type: ContingencyType, effector: Effector) -> None:
-        self.target, self.contingency_type, self.effector = target, contingency_type, effector
+    def __init__(self, reaction: Reaction, contingency_type: ContingencyType, effector: Effector) -> None:
+        self.reaction, self.contingency_type, self.effector = reaction, contingency_type, effector
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Contingency):
             return NotImplemented
-        return self.target == other.target and self.contingency_type == other.contingency_type and self.effector == other.effector
+        return self.reaction == other.reaction and self.contingency_type == other.contingency_type and self.effector == other.effector
 
     def __repr__(self) -> str:
         return str(self)
 
     def __str__(self) -> str:
-        return 'Contingency({0}, {1}, {2}'.format(str(self.target), str(self.contingency_type), str(self.effector))
+        return 'Contingency({0}, {1}, {2}'.format(str(self.reaction), str(self.contingency_type), str(self.effector))
 
     def clone(self) -> 'Contingency':
         return deepcopy(self)
@@ -60,21 +60,21 @@ class Contingency:
             # For a non-structured StateEffector, assume the Specs appearing in the Effector
             # match those appearing in the Reaction.
             equivs = StructEquivalences()
-            struct_components = {spec.to_non_struct_spec(): spec for spec in self.target.components_lhs_structured}
+            struct_components = {spec.to_non_struct_spec(): spec for spec in self.reaction.components_lhs_structured}
             for spec in self.effector.expr.specs:
                 try:
                     equivs.add_equivalence(QualSpec([], struct_components[spec.to_component_spec()]),
-                                           QualSpec([str(self.target)], spec.to_component_spec()))
+                                           QualSpec([str(self.reaction)], spec.to_component_spec()))
                 except KeyError:
                     pass
 
-            return self.with_merged_struct_effector(equivs, None, [str(self.target)])
+            return self.with_merged_struct_effector(equivs, None, [str(self.reaction)])
         elif self.effector.is_structured:
             # A fully structured Boolean Effector needs to have its structure indices merged.
             return self.with_merged_struct_effector()
         else:
             # For a non-structured Boolean Effector, assume all Specs that could match, actually do match.
-            struct_components = {spec.to_non_struct_spec(): spec for spec in self.target.components_lhs_structured}
+            struct_components = {spec.to_non_struct_spec(): spec for spec in self.reaction.components_lhs_structured}
             equivs = TrivialStructEquivalences(struct_components)  # pylint: disable=redefined-variable-type
             return self.with_merged_struct_effector(equivs)
 

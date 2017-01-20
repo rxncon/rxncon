@@ -619,8 +619,8 @@ class QuantContingencyConfigs(Iterator[VennSet[State]]):  # pylint: disable=too-
         for contingency in self.q_contingencies:
             new_combis = []
             for combi in combis:
-                new_combis.append(combi + [Contingency(contingency.target, ContingencyType.inhibition, contingency.effector)])
-                combi.append(Contingency(contingency.target, ContingencyType.requirement, contingency.effector))
+                new_combis.append(combi + [Contingency(contingency.reaction, ContingencyType.inhibition, contingency.effector)])
+                combi.append(Contingency(contingency.reaction, ContingencyType.requirement, contingency.effector))
             combis.extend(new_combis)
 
         self.combi_sets = []  # type: List[VennSet[State]]
