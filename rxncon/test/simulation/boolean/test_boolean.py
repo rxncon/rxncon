@@ -2,11 +2,19 @@ from rxncon.core.reaction import reaction_from_str
 from rxncon.core.spec import spec_from_str
 from rxncon.core.state import state_from_str
 from rxncon.input.quick.quick import Quick
+from rxncon.input.excel_book.excel_book import ExcelBook
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, ReactionTarget, \
     StateTarget, ComponentStateTarget, SmoothingStrategy, Target
 from rxncon.simulation.boolean.boolnet_from_boolean_model import boolnet_from_boolean_model
 from rxncon.venntastic.sets import venn_from_str
 
+def test_homodimer_degradation():
+    #boolean_model = boolean_model_from_rxncon(ExcelBook('/home/thiemese/data/ownCloud/paper/geplante Paper/models/Yeast/pheromone.xls').rxncon_system)
+    boolean_model = boolean_model_from_rxncon(Quick("""UC132_deg_Ste5
+             Ste5_[Ste7]_ppi+_Ste7_[Ste5]
+             Ste4_[Ste5]_ppi+_Ste5_[Ste4]
+             Ste5_[Ste5]_ppi+_Ste5_[Ste5]
+             """).rxncon_system)
 
 def target_from_str(target_str: str) -> Target:
     """

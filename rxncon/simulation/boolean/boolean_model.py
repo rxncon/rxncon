@@ -706,7 +706,9 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
                 if interaction_target.is_homodimer:
                     assert len(empty_partners) == 0
-                    result.append(deepcopy(reaction_target))
+                    new_reaction = deepcopy(reaction_target)
+                    new_reaction.interaction_variant_index = index
+                    result.append(deepcopy(new_reaction))
                 else:
                     assert len(empty_partners) == 1
                     new_reaction = deepcopy(reaction_target)
