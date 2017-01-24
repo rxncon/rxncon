@@ -704,19 +704,17 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 empty_partners = [neutral_target for neutral_target in interaction_target.neutral_targets
                                   if not any(component in reaction_target.degraded_components for component in neutral_target.components)]
 
+                new_reaction = deepcopy(reaction_target)
+                new_reaction.interaction_variant_index = index
+
                 if interaction_target.is_homodimer:
                     assert len(empty_partners) == 0
-                    new_reaction = deepcopy(reaction_target)
-                    new_reaction.interaction_variant_index = index
-                    result.append(deepcopy(new_reaction))
                 else:
                     assert len(empty_partners) == 1
-                    new_reaction = deepcopy(reaction_target)
-                    new_reaction.interaction_variant_index = index
                     new_reaction.consumed_targets.append(interaction_target)
                     new_reaction.produced_targets.append(empty_partners[0])
-                    result.append(new_reaction)
 
+                result.append(new_reaction)
                 appended = True
 
             if not appended:
