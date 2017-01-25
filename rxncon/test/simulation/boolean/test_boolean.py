@@ -2,19 +2,11 @@ from rxncon.core.reaction import reaction_from_str
 from rxncon.core.spec import spec_from_str
 from rxncon.core.state import state_from_str
 from rxncon.input.quick.quick import Quick
-from rxncon.input.excel_book.excel_book import ExcelBook
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, ReactionTarget, \
     StateTarget, ComponentStateTarget, SmoothingStrategy, Target
 from rxncon.simulation.boolean.boolnet_from_boolean_model import boolnet_from_boolean_model
 from rxncon.venntastic.sets import venn_from_str
 
-def test_homodimer_degradation():
-    #boolean_model = boolean_model_from_rxncon(ExcelBook('/home/thiemese/data/ownCloud/paper/geplante Paper/models/Yeast/pheromone.xls').rxncon_system)
-    boolean_model = boolean_model_from_rxncon(Quick("""UC132_deg_Ste5
-             Ste5_[Ste7]_ppi+_Ste7_[Ste5]
-             Ste4_[Ste5]_ppi+_Ste5_[Ste4]
-             Ste5_[Ste5]_ppi+_Ste5_[Ste5]
-             """).rxncon_system)
 
 def target_from_str(target_str: str) -> Target:
     """
@@ -597,3 +589,30 @@ def test_boolnet_export() -> None:
     assert all(target in mapping.values() for target in list(boole_deg_model._reaction_targets.keys()) + list(boole_deg_model._state_targets.keys()))
     assert len(mapping) == len(init_values)
     assert all(init_values[key] == boole_deg_model.initial_conditions.target_to_value[target_from_str(value)] for key, value in mapping.items())
+
+
+def test_homodimer_degradation() -> None:
+    """
+    Testing if the degradation of homodimers.
+
+    Note:
+        The degradation of homodimers should not lead to the production of the partner, but to the complete degradation
+        of the complex.
+
+    Returns:
+        None
+
+    Raises:
+        Assertion error if the number of model_targets and initialised targets are different
+
+    """
+    boolean_model = boolean_model_from_rxncon(Quick("""UC132_deg_Ste5
+             Ste5_[Ste7]_ppi+_Ste7_[Ste5]
+             Ste4_[Ste5]_ppi+_Ste5_[Ste4]
+             Ste5_[Ste5]_ppi+_Ste5_[Ste5]
+             """).rxncon_system)
+
+    model_targets  = [rule.target for rule in boolean_model.update_rules]
+    config_targets = boolean_model.initial_conditions.target_to_value.keys()
+
+    assert set(model_targets) == set(config_targets) and len(model_targets) == len(config_targets)
