@@ -97,3 +97,16 @@ def test_inconsistent_system() -> None:
               A_ppi_B ; ! B_[(r1)]-{0}
               C_p+_B_[(r1)]
               D_p+_B_[(r2)]''').rxncon_system
+
+
+def test_output_reactions() -> None:
+    rxncon_sys = Quick("""A_p+_B_[(x)]
+                    [output]; ! B_[(x)]-{p}""").rxncon_system
+
+    contingencies = rxncon_sys.contingencies_for_reaction(reaction_from_str('[output]'))
+
+    assert len(contingencies) == 1
+    assert state_from_str('B@2_[(x)]-{p}') in contingencies[0].effector.states
+    assert contingencies[0].effector.name == 'B-{p}'
+
+    assert reaction_from_str('[output]') in rxncon_sys.reactions

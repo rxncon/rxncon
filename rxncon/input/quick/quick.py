@@ -5,7 +5,7 @@ from rxncon.input.shared.contingency_list import contingencies_from_contingency_
     contingency_list_entry_from_strs, ContingencyListEntry
 from rxncon.core.reaction import reaction_from_str
 from rxncon.core.rxncon_system import RxnConSystem
-from rxncon.core.reaction import Reaction
+from rxncon.core.reaction import Reaction, OutputReaction
 from rxncon.core.contingency import Contingency
 from rxncon.input.shared.reaction_preprocess import split_bidirectional_reaction_str
 
@@ -35,7 +35,7 @@ class Quick:
             reaction_string = line.split(';')[0].strip()
             contingency_strings = line.split(';')[1:]
             if reaction_string:
-                if not re.match(BOOL_REGEX, reaction_string) and not re.match(INPUT_REGEX, reaction_string):
+                if not re.match(BOOL_REGEX, reaction_string):# and not re.match(INPUT_REGEX, reaction_string):
                     self._add_reaction_from_string(reaction_string)
                 self._add_contingency_list_entries(contingency_strings, reaction_string)
 
@@ -58,6 +58,10 @@ class Quick:
 
     def _construct_contingencies(self) -> None:
         self._contingencies = contingencies_from_contingency_list_entries(self._contingency_list_entries)
+
+    def _construct_output_reactions(self) -> None:
+        self._reactions += [cle.subj for cle in self._cont_list_entries
+                            if isinstance(cle.subj, OutputReaction)]
 
     def _construct_rxncon_system(self) -> None:
         self._rxncon_system = RxnConSystem(self._reactions, self._contingencies)

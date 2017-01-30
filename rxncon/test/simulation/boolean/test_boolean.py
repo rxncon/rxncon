@@ -2,6 +2,7 @@ from rxncon.core.reaction import reaction_from_str
 from rxncon.core.spec import spec_from_str
 from rxncon.core.state import state_from_str
 from rxncon.input.quick.quick import Quick
+from rxncon.input.excel_book.excel_book import ExcelBook
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, ReactionTarget, \
     StateTarget, ComponentStateTarget, SmoothingStrategy, Target
 from rxncon.simulation.boolean.boolnet_from_boolean_model import boolnet_from_boolean_model

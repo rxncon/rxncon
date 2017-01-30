@@ -37,3 +37,10 @@ def test_output_reaction() -> None:
     assert rxn.produced_states == []
     assert rxn.synthesised_states == []
     assert rxn.degraded_states == []
+
+
+def test_equivalence_reaction_outputreaction() -> None:
+    assert not reaction_from_str('A_p+_B_[(x)]') == reaction_from_str('[output]')
+    assert not reaction_from_str('[output]') == reaction_from_str('A_p+_B_[(x)]')
+    assert reaction_from_str('[output]') == reaction_from_str('[output]')
+    assert reaction_from_str('A_p+_B_[(x)]') == reaction_from_str('A_p+_B_[(x)]')
