@@ -1,6 +1,7 @@
 import pytest
 
 from rxncon.input.quick.quick import Quick
+from rxncon.core.effector import StateEffector
 from rxncon.core.state import state_from_str
 from rxncon.core.reaction import reaction_from_str
 from collections import namedtuple
@@ -58,8 +59,6 @@ def test_translation() -> None:
     assert rxncon_sys.states_for_component_grouped(spec_from_str('C')) == {}
     assert rxncon_sys.states_for_component_grouped(spec_from_str('E')) == {}
 
-    print(list(rxncon_sys.states_for_component_grouped(spec_from_str('B')).values()))
-
     assert elems_eq(list(rxncon_sys.states_for_component_grouped(spec_from_str('B')).values()), [
         [state_from_str('B_[y]--0'), state_from_str('B_[y]--D_[x]')],
         [state_from_str('B_[(r1)]-{0}'), state_from_str('B_[(r1)]-{p}'), state_from_str('B_[(r1)]-{ub}')],
@@ -106,7 +105,5 @@ def test_output_reactions() -> None:
     contingencies = rxncon_sys.contingencies_for_reaction(reaction_from_str('[output]'))
 
     assert len(contingencies) == 1
-    assert state_from_str('B@2_[(x)]-{p}') in contingencies[0].effector.states
-    assert contingencies[0].effector.name == 'B-{p}'
-
-    assert reaction_from_str('[output]') in rxncon_sys.reactions
+    assert isinstance(contingencies[0].effector, StateEffector)
+    assert [state_from_str('B@2_[(x)]-{p}')] == contingencies[0].effector.states

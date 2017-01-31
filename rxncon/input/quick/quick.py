@@ -28,14 +28,13 @@ class Quick:
         return self._rxncon_system
 
     def _parse_str(self) -> None:
-        INPUT_REGEX = '^\[.+?\]$'
         BOOL_REGEX = '^\<.+?\>$'
 
         for line in self.quick_input:
             reaction_string = line.split(';')[0].strip()
             contingency_strings = line.split(';')[1:]
             if reaction_string:
-                if not re.match(BOOL_REGEX, reaction_string):# and not re.match(INPUT_REGEX, reaction_string):
+                if not re.match(BOOL_REGEX, reaction_string):
                     self._add_reaction_from_string(reaction_string)
                 self._add_contingency_list_entries(contingency_strings, reaction_string)
 
@@ -58,10 +57,6 @@ class Quick:
 
     def _construct_contingencies(self) -> None:
         self._contingencies = contingencies_from_contingency_list_entries(self._contingency_list_entries)
-
-    def _construct_output_reactions(self) -> None:
-        self._reactions += [cle.subj for cle in self._cont_list_entries
-                            if isinstance(cle.subj, OutputReaction)]
 
     def _construct_rxncon_system(self) -> None:
         self._rxncon_system = RxnConSystem(self._reactions, self._contingencies)
