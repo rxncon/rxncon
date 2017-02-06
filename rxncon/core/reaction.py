@@ -695,7 +695,7 @@ class OutputReaction(Reaction):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Reaction):
             return NotImplemented
-        return isinstance(other, OutputReaction) and self.name == other.reaction_class
+        return isinstance(other, OutputReaction) and self.name == other.name
 
     def __str__(self) -> str:
         return self.name

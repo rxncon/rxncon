@@ -1,6 +1,7 @@
 import pytest
 
 from rxncon.input.quick.quick import Quick
+from rxncon.core.effector import StateEffector
 from rxncon.core.state import state_from_str
 from rxncon.core.reaction import reaction_from_str
 from collections import namedtuple
@@ -58,8 +59,6 @@ def test_translation() -> None:
     assert rxncon_sys.states_for_component_grouped(spec_from_str('C')) == {}
     assert rxncon_sys.states_for_component_grouped(spec_from_str('E')) == {}
 
-    print(list(rxncon_sys.states_for_component_grouped(spec_from_str('B')).values()))
-
     assert elems_eq(list(rxncon_sys.states_for_component_grouped(spec_from_str('B')).values()), [
         [state_from_str('B_[y]--0'), state_from_str('B_[y]--D_[x]')],
         [state_from_str('B_[(r1)]-{0}'), state_from_str('B_[(r1)]-{p}'), state_from_str('B_[(r1)]-{ub}')],
@@ -97,3 +96,14 @@ def test_inconsistent_system() -> None:
               A_ppi_B ; ! B_[(r1)]-{0}
               C_p+_B_[(r1)]
               D_p+_B_[(r2)]''').rxncon_system
+
+
+def test_output_reactions() -> None:
+    rxncon_sys = Quick("""A_p+_B_[(x)]
+                    [output]; ! B_[(x)]-{p}""").rxncon_system
+
+    contingencies = rxncon_sys.contingencies_for_reaction(reaction_from_str('[output]'))
+
+    assert len(contingencies) == 1
+    assert isinstance(contingencies[0].effector, StateEffector)
+    assert [state_from_str('B@2_[(x)]-{p}')] == contingencies[0].effector.states
