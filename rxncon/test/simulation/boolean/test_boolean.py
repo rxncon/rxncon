@@ -30,15 +30,17 @@ def target_from_str(target_str: str) -> Target:
     try:
         if '#' in target_str:
             rxn_str, index_strs = target_str.split('#')
-
-            try:
-                contingency_variant_index, interaction_variant_index = index_strs.split('/')
-            except ValueError:
-                contingency_variant_index, interaction_variant_index = index_strs.split('/')[0], '0'
-
             target = ReactionTarget(reaction_from_str(rxn_str))
-            target.contingency_variant_index = int(contingency_variant_index)
-            target.interaction_variant_index = int(interaction_variant_index)
+            contingency_variant_index, interaction_variant_index = None, None
+
+            for variant_str in index_strs.split('/'):
+                if variant_str[0] == 'c':
+                    contingency_variant_index = int(variant_str[1:])
+                elif variant_str[0] == 'i':
+                    interaction_variant_index = int(variant_str[1:])
+
+            target.contingency_variant_index = contingency_variant_index
+            target.interaction_variant_index = interaction_variant_index
             return target
         else:
             return ReactionTarget(reaction_from_str(target_str))
@@ -314,14 +316,13 @@ def test_deg_with_boolean_OR() -> None:
 
     target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
 
-    # C_deg_A degrades of A_[(r1)]-{p}, C_deg_A#1 degrades A_[(r2)]-{p}
-    if target_to_factor[target_from_str('C_deg_A')].is_equivalent_to(venn_from_str('( {} & C & A_[(r1)]-{{p}} )'.format(A), target_from_str)):
-
+    # C_deg_A#c0 degrades A_[(r1)]-{p}, C_deg_A#c1 degrades A_[(r2)]-{p}
+    if target_to_factor[target_from_str('C_deg_A#c0')].is_equivalent_to(venn_from_str('( {} & C & A_[(r1)]-{{p}} )'.format(A), target_from_str)):
         expected_rules = {
-            'C_deg_A':      '( {} & C & A_[(r1)]-{{p}} )'.format(A),
-            'C_deg_A#1':    '( {} & C & A_[(r2)]-{{p}} )'.format(A),
-            'A_[(r1)]-{p}': '( {} & ~( C_deg_A ) & ( A_[(r1)]-{{p}} | ( B_p+_A_[(r1)] & A_[(r1)]-{{0}} )))'.format(A),
-            'A_[(r2)]-{p}': '( {} & ~( C_deg_A#1 ) & ( A_[(r2)]-{{p}} | ( D_p+_A_[(r2)] & A_[(r2)]-{{0}} )))'.format(A),
+            'C_deg_A#c0':   '( {} & C & A_[(r1)]-{{p}} )'.format(A),
+            'C_deg_A#c1':   '( {} & C & A_[(r2)]-{{p}} )'.format(A),
+            'A_[(r1)]-{p}': '( {} & ~( C_deg_A#c0 ) & ( A_[(r1)]-{{p}} | ( B_p+_A_[(r1)] & A_[(r1)]-{{0}} )))'.format(A),
+            'A_[(r2)]-{p}': '( {} & ~( C_deg_A#c1 ) & ( A_[(r2)]-{{p}} | ( D_p+_A_[(r2)] & A_[(r2)]-{{0}} )))'.format(A),
             'B': 'B',
             'C': 'C',
             'D': 'D'
@@ -329,14 +330,13 @@ def test_deg_with_boolean_OR() -> None:
 
         for target_str, factor_str in expected_rules.items():
             assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
-    # C_deg_A degrades of A_[(r2)]-{p}, C_deg_A#1 degrades A_[(r1)]-{p}
-    elif target_to_factor[target_from_str('C_deg_A')].is_equivalent_to(venn_from_str('( {} & C & A_[(r2)]-{{p}} )'.format(A), target_from_str)):
-
+    # C_deg_A#c0 degrades A_[(r2)]-{p}, C_deg_A#c1 degrades A_[(r1)]-{p}
+    elif target_to_factor[target_from_str('C_deg_A#c0')].is_equivalent_to(venn_from_str('( {} & C & A_[(r2)]-{{p}} )'.format(A), target_from_str)):
         expected_rules = {
-            'C_deg_A':      '( {} & C & A_[(r2)]-{{p}} )'.format(A),
-            'C_deg_A#1':    '( {} & C & A_[(r1)]-{{p}} )'.format(A),
-            'A_[(r1)]-{p}': '( {} & ~( C_deg_A#1 ) & ( A_[(r1)]-{{p}} | ( B_p+_A_[(r1)] & A_[(r1)]-{{0}} )))'.format(A),
-            'A_[(r2)]-{p}': '( {} & ~( C_deg_A ) & ( A_[(r2)]-{{p}} | ( D_p+_A_[(r2)] & A_[(r2)]-{{0}} )))'.format(A),
+            'C_deg_A#c0':   '( {} & C & A_[(r2)]-{{p}} )'.format(A),
+            'C_deg_A#c1':   '( {} & C & A_[(r1)]-{{p}} )'.format(A),
+            'A_[(r1)]-{p}': '( {} & ~( C_deg_A#c1 ) & ( A_[(r1)]-{{p}} | ( B_p+_A_[(r1)] & A_[(r1)]-{{0}} )))'.format(A),
+            'A_[(r2)]-{p}': '( {} & ~( C_deg_A#c0 ) & ( A_[(r2)]-{{p}} | ( D_p+_A_[(r2)] & A_[(r2)]-{{0}} )))'.format(A),
             'B': 'B',
             'C': 'C',
             'D': 'D'
@@ -460,7 +460,7 @@ def test_deg_with_interaction_as_inhibition() -> None:
                                                        A_[x]_ppi+_E_[w]
                                                        C_deg_A; x A_[x]--B_[y]""").rxncon_system)
 
-    for rxn in ['C_deg_A', 'C_deg_A#0/1']:
+    for rxn in ['C_deg_A#i0', 'C_deg_A#i1']:
         target = boolean_model.reaction_target_by_name(rxn)
         assert not target.synthesised_targets
         assert target_from_str('A_[x]--0') in target.degraded_targets
@@ -612,7 +612,3 @@ def test_homodimer_degradation() -> None:
              Ste5_[Ste5]_ppi+_Ste5_[Ste5]
              """).rxncon_system)
 
-    model_targets  = [rule.target for rule in boolean_model.update_rules]
-    config_targets = boolean_model.initial_conditions.target_to_value.keys()
-
-    assert set(model_targets) == set(config_targets) and len(model_targets) == len(config_targets)

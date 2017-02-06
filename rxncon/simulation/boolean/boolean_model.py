@@ -1,7 +1,7 @@
 from copy import deepcopy
 from enum import Enum
 from itertools import product
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 from abc import ABCMeta
 
 from rxncon.core.reaction import Reaction
@@ -127,8 +127,8 @@ class ReactionTarget(Target):  # pylint: disable=too-many-instance-attributes
         reaction_parent: A elemental reaction of the rxncon system.
 
     """
-    def __init__(self, reaction_parent: Reaction, contingency_variant: int=0,
-                 interaction_variant: int=0, contingency_factor: VennSet['StateTarget']=None) -> None:
+    def __init__(self, reaction_parent: Reaction, contingency_variant: Optional[int]=None,
+                 interaction_variant: Optional[int]=None, contingency_factor: VennSet['StateTarget']=None) -> None:
         self.reaction_parent     = reaction_parent  # type: Reaction
         self.produced_targets    = [StateTarget(x) for x in reaction_parent.produced_states]     # type: List[StateTarget]
         self.consumed_targets    = [StateTarget(x) for x in reaction_parent.consumed_states]     # type: List[StateTarget]
@@ -155,10 +155,12 @@ class ReactionTarget(Target):  # pylint: disable=too-many-instance-attributes
 
     def __str__(self) -> str:
         suffix = ''
-        if self.interaction_variant_index != 0:
-            suffix = '#{}/{}'.format(self.contingency_variant_index, self.interaction_variant_index)
-        elif self.contingency_variant_index != 0 and self.interaction_variant_index == 0:
-            suffix = '#{}'.format(self.contingency_variant_index)
+        if self.interaction_variant_index is not None and self.contingency_variant_index is not None:
+            suffix = '#c{}/i{}'.format(self.contingency_variant_index, self.interaction_variant_index)
+        elif self.contingency_variant_index is not None and self.interaction_variant_index is None:
+            suffix = '#c{}'.format(self.contingency_variant_index)
+        elif self.interaction_variant_index is not None and self.contingency_variant_index is None:
+            suffix = '#i{}'.format(self.interaction_variant_index)
 
         return str(self.reaction_parent) + suffix
 
@@ -635,8 +637,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             factors = (x.to_venn_set(k_plus_strict=k_plus_strict, k_minus_strict=k_minus_strict, structured=False, state_wrapper=StateTarget)
                        for x in rxncon_sys.contingencies_for_reaction(reaction))
             cont = Intersection(*factors).to_simplified_set()  # type: VennSet[StateTarget]
-            # The reaction is not a degradation reaction
-            if not reaction.degraded_components:
+            # The reaction is not a degradation reaction or the DNF has just one term.
+            if not reaction.degraded_components or len(cont.to_dnf_list()) == 1:
                 reaction_targets.append(ReactionTarget(reaction, contingency_factor=cont))
             # The reaction is a degradation reaction
             else:
@@ -700,20 +702,20 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
         for reaction_target in reaction_targets:
             appended = False
-            for index, interaction_target in enumerate(x for x in reaction_target.degraded_targets if x.is_interaction):
+            degraded_interaction_targets = [x for x in reaction_target.degraded_targets if x.is_interaction]
+            for index, interaction_target in enumerate(degraded_interaction_targets):
                 empty_partners = [neutral_target for neutral_target in interaction_target.neutral_targets
                                   if not any(component in reaction_target.degraded_components for component in neutral_target.components)]
 
-                new_reaction = deepcopy(reaction_target)
-                new_reaction.interaction_variant_index = index
-
                 if interaction_target.is_homodimer:
                     assert len(empty_partners) == 0
-                else:
-                    assert len(empty_partners) == 1
-                    new_reaction.consumed_targets.append(interaction_target)
-                    new_reaction.produced_targets.append(empty_partners[0])
+                    continue
 
+                assert len(empty_partners) == 1
+                new_reaction = deepcopy(reaction_target)
+                new_reaction.interaction_variant_index = index if len(degraded_interaction_targets) > 1 else None
+                new_reaction.consumed_targets.append(interaction_target)
+                new_reaction.produced_targets.append(empty_partners[0])
                 result.append(new_reaction)
                 appended = True
 
