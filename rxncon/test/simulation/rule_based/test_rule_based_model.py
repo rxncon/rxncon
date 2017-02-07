@@ -1,0 +1,408 @@
+import pytest
+from itertools import combinations
+
+from rxncon.input.quick.quick import Quick
+from rxncon.simulation.rule_based.rule_based_model import complex_from_str, rule_from_str, rule_based_model_from_rxncon, calc_state_paths, \
+    with_connectivity_constraints, initial_condition_from_str
+from rxncon.core.state import state_from_str
+from rxncon.venntastic.sets import ValueSet, Union, Intersection
+
+
+# Test the *_from_str functions.
+def test_complex_from_str_equivalent() -> None:
+    complex_classes = [
+        ['A()', 'A()'],
+        ['A(x!1).A(x!1)', 'A(x!2).A(x!2)'],
+        ['A(x!1).A(y!1)', 'A(y!3).A(x!3)'],
+        ['A(x!1,r~p).B(rr~0,y!1,cc!2).C(c!2)', 'B(rr~0,y!4,cc!1).A(x!4,r~p).C(c!1)']
+    ]
+
+    for complex_class in complex_classes:
+        for first_complex, second_complex in combinations(complex_class, 2):
+            assert complex_from_str(first_complex).is_equivalent_to(complex_from_str(second_complex))
+            assert complex_from_str(second_complex).is_equivalent_to(complex_from_str(first_complex))
+
+
+def test_complex_from_str_inequivalent() -> None:
+    complex_classes = [
+        ['A()', 'B()'],
+        ['A(x!1,r~p).B(rr~0,y!2,cc!1).C(c!2)', 'B(rr~0,y!4,cc!1).A(x!4,r~p).C(c!1)']
+    ]
+
+    for complex_class in complex_classes:
+        for first_complex, second_complex in combinations(complex_class, 2):
+            assert not complex_from_str(first_complex).is_equivalent_to(complex_from_str(second_complex))
+            assert not complex_from_str(second_complex).is_equivalent_to(complex_from_str(first_complex))
+
+
+def test_invalid_complexes() -> None:
+    # Two molecules, not connected by any bond.
+    with pytest.raises(AssertionError):
+        complex_from_str('A().B()')
+
+    # Single dangling bond.
+    with pytest.raises(AssertionError):
+        complex_from_str('A(x!1)')
+
+    # Two molecules with two dangling bonds.
+    with pytest.raises(AssertionError):
+        complex_from_str('A(x!1).B(y!2)')
+
+
+def test_rule_from_str_equivalent() -> None:
+    rule_classes = [
+        ['A(x) + B(y) -> A(x!1).B(y!1) k', 'B(y) + A(x) -> A(x!1).B(y!1) k', 'B(y) + A(x) -> B(y!4).A(x!4) k'],
+        ['A(x) + A(x,r~p) -> A(x!1,r~p).A(x!1) kk', 'A(x) + A(x,r~p) -> A(x!2).A(x!2,r~p) kk'],
+        ['C() + A(rR~0) -> C() + A(rR~p) k', 'A(rR~0) + C() -> A(rR~p) + C() k']
+    ]
+
+    for rule_class in rule_classes:
+        for first_rule, second_rule in combinations(rule_class, 2):
+            assert rule_from_str(first_rule).is_equivalent_to(rule_from_str(second_rule))
+            assert rule_from_str(second_rule).is_equivalent_to(rule_from_str(first_rule))
+
+
+def test_rule_from_str_inequivalent() -> None:
+    rule_classes = [
+        ['A(x) + A(y,r~p) -> A(x!1,r~p).A(y!1) kk', 'A(x) + A(y,r~p) -> A(y!1).A(x!1,r~p) kk']
+    ]
+
+    for rule_class in rule_classes:
+        for first_rule, second_rule in combinations(rule_class, 2):
+            assert rule_from_str(first_rule).is_equivalent_to(rule_from_str(second_rule))
+            assert rule_from_str(second_rule).is_equivalent_to(rule_from_str(first_rule))
+
+
+# Test some of the rule_based_model_from_rxncon parts.
+def test_calc_state_paths_simply_connected() -> None:
+    #  E
+    #  |
+    #  D   C
+    #   \ /
+    #    B
+    #    |
+    #    A
+    states = [state_from_str(x) for x in ('A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'B@2_[bbb]--D@4_[d]',
+                                          'D@4_[dd]--E@5_[e]', 'E@5_[(r)]-{p}', 'A@0_[(x)]-{p}', 'B@2_[(z)]-{p}')]
+
+    actual_state_to_paths = calc_state_paths(states)
+
+    expected_state_to_paths = {
+        'A@0_[(x)]-{p}':      [[]],
+        'A@0_[a]--B@2_[b]':   [[]],
+        'B@2_[(z)]-{p}':      [['A@0_[a]--B@2_[b]']],
+        'B@2_[bb]--C@3_[c]':  [['A@0_[a]--B@2_[b]']],
+        'B@2_[bbb]--D@4_[d]': [['A@0_[a]--B@2_[b]']],
+        'D@4_[dd]--E@5_[e]':  [['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]']],
+        'E@5_[(r)]-{p}':      [['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'D@4_[dd]--E@5_[e]']],
+    }  # type: Dict[str, List[List[str]]]
+
+    for state, paths in expected_state_to_paths.items():
+        assert len(actual_state_to_paths[state_from_str(state)]) == len(paths)
+        for path in paths:
+            assert [state_from_str(x) for x in path] in actual_state_to_paths[state_from_str(state)]
+
+
+def test_calc_state_paths_non_simply_connected() -> None:
+        #  D---C
+        #   \ /
+        #    B
+        #    |
+        #    A
+        states = [state_from_str(x) for x in ('A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'B@2_[bbb]--D@4_[d]',
+                                              'C@3_[cc]--D@4_[dd]', 'D@4_[(x)]-{p}', 'C@3_[(x)]-{p}',
+                                              'A@0_[(x)]-{p}', 'B@2_[(x)]-{p}')]
+
+        actual_state_to_paths = calc_state_paths(states)
+
+        expected_state_to_paths = {
+            'A@0_[(x)]-{p}': [[]],
+            'A@0_[a]--B@2_[b]': [
+                [],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bbb]--D@4_[d]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bb]--C@3_[c]']
+            ],
+            'B@2_[(x)]-{p}': [
+                ['A@0_[a]--B@2_[b]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bbb]--D@4_[d]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bb]--C@3_[c]']
+            ],
+            'B@2_[bb]--C@3_[c]': [
+                ['A@0_[a]--B@2_[b]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bbb]--D@4_[d]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]']
+            ],
+            'B@2_[bbb]--D@4_[d]': [
+                ['A@0_[a]--B@2_[b]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bb]--C@3_[c]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]']
+            ],
+            'C@3_[(x)]-{p}': [
+                ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]']
+            ],
+            'C@3_[cc]--D@4_[dd]': [
+                ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]']
+            ],
+            'D@4_[(x)]-{p}': [
+                ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]'],
+                ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]']
+            ]
+        }  # type: Dict[str, List[List[str]]]
+
+        for state, paths in expected_state_to_paths.items():
+            assert len(actual_state_to_paths[state_from_str(state)]) == len(paths)
+            for path in paths:
+                assert [state_from_str(x) for x in path] in actual_state_to_paths[state_from_str(state)]
+
+
+def test_with_connectivity_constraints() -> None:
+    first_states  = [ValueSet(state_from_str(x)) for x in ('A@0_[ac]--C@2_[ca]', 'C@2_[ce]--E@4_[ec]')]
+    second_states = [ValueSet(state_from_str(x)) for x in ('B@1_[bd]--D@3_[db]', 'D@3_[df]--F@5_[fd]')]
+
+    contingency = Union(Intersection(*first_states), Intersection(*second_states))
+
+    connected = with_connectivity_constraints(contingency)
+
+    print(connected)
+
+    print('Not connected:')
+    for soln in contingency.calc_solutions():
+        print(soln)
+
+    print()
+
+    print('Connected:')
+    for soln in connected.calc_solutions():
+        print(soln)
+
+
+# Test simple rxncon systems.
+def test_single_requirement_modification() -> None:
+    rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p}
+                                             A_[b]_ppi-_B_[a]
+                                             C_p+_A_[(r)]
+                                             D_p-_A_[(r)]""").rxncon_system)
+
+    expected_rules = [
+        'A(rR~p,bD) + B(aD) -> A(rR~p,bD!1).B(aD!1) k',
+        'A(bD!1).B(aD!1) -> A(bD) + B(aD) k',
+        'C() + A(rR~0) -> C() + A(rR~p) k',
+        'A(rR~p) + D() -> A(rR~0) + D() k'
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+    expected_ics = [
+        'A(bD,rR~0) NumA',
+        'B(aD) NumB',
+        'D() NumD',
+        'C() NumC'
+    ]
+
+    for actual_ic in rbm.initial_conditions:
+        assert any(initial_condition_from_str(ic).is_equivalent_to(actual_ic) for ic in expected_ics)
+
+
+def test_single_inhibition_modification() -> None:
+    rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; x A_[(r)]-{p}
+                                             E_[x]_ppi+_B_[a]
+                                             C_p+_A_[(r)]
+                                             D_ub+_A_[(r)]""").rxncon_system)
+
+    expected_rules = [
+        'A(rR~ub,bD) + B(aD) -> A(rR~ub,bD!1).B(aD!1) k',
+        'A(rR~0,bD) + B(aD) -> A(rR~0,bD!1).B(aD!1) k',
+        'B(aD) + E(xD) -> B(aD!1).E(xD!1) k',
+        'A(rR~0) + C() -> A(rR~p) + C() k',
+        'A(rR~0) + D() -> A(rR~ub) + D() k'
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+    expected_ics = [
+        'A(bD,rR~0) NumA',
+        'B(aD) NumB',
+        'D() NumD',
+        'C() NumC',
+        'E(xD) NumE'
+    ]
+
+    for actual_ic in rbm.initial_conditions:
+        assert any(initial_condition_from_str(ic).is_equivalent_to(actual_ic) for ic in expected_ics)
+
+
+def test_single_inhibition_interaction() -> None:
+    rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; x A_[(r)]-{p}
+                                             E_[x]_ppi+_B_[a]
+                                             C_p+_A_[(r)]
+                                             D_ub+_A_[(r)]""").rxncon_system)
+
+    expected_rules = [
+        'A(rR~ub,bD) + B(aD) -> A(rR~ub,bD!1).B(aD!1) k',
+        'A(rR~0,bD) + B(aD) -> A(rR~0,bD!1).B(aD!1) k',
+        'B(aD) + E(xD) -> B(aD!1).E(xD!1) k',
+        'A(rR~0) + C() -> A(rR~p) + C() k',
+        'A(rR~0) + D() -> A(rR~ub) + D() k'
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+    expected_ics = [
+        'A(bD,rR~0) NumA',
+        'B(aD) NumB',
+        'D() NumD',
+        'C() NumC',
+        'E(xD) NumE'
+    ]
+
+    for actual_ic in rbm.initial_conditions:
+        assert any(initial_condition_from_str(ic).is_equivalent_to(actual_ic) for ic in expected_ics)
+
+
+def test_boolean_requirement_interaction() -> None:
+    rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
+                                             C_ppi+_D
+                                             B_ppi+_E
+                                             B_ppi+_F
+                                             A_ppi+_B; ! <comp1>
+                                             <comp1>; OR <comp1C1>
+                                             <comp1>; OR <comp2C1>
+                                             <comp1C1>; AND A--C
+                                             <comp1C1>; AND C--D
+                                             <comp2C1>; AND B--F
+                                             <comp2C1>; AND B--E''').rxncon_system)
+
+    expected_rules = [
+        'A(CD) + C(AD) -> A(CD!1).C(AD!1) k',
+        'C(DD) + D(CD) -> C(DD!1).D(CD!1) k',
+        'B(ED) + E(BD) -> B(ED!1).E(BD!1) k',
+        'B(FD) + F(BD) -> B(FD!1).F(BD!1) k',
+        'A(BD,CD) + B(AD,ED!2,FD!1).E(BD!2).F(BD!1) -> A(BD!3,CD).B(AD!3,ED!2,FD!1).E(BD!2).F(BD!1) k',  # B--F, B--E, NOT A--C
+        'A(BD,CD!2).C(AD!2,DD) + B(AD,ED!3,FD!1).E(BD!3).F(BD!1) -> A(BD!4,CD!2).B(AD!4,ED!3,FD!1).C(AD!2,DD).E(BD!3).F(BD!1) k',  # B--F, B--E, A--C, NOT C--D
+        'A(BD,CD!1).C(AD!1,DD!2).D(CD!2) + B(AD) -> A(BD!3,CD!1).B(AD!3).C(AD!1,DD!2).D(CD!2) k',  # A--C, C--D
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        print(actual_rule)
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+
+def test_boolean_inhibition_interaction() -> None:
+    rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
+                                             C_ppi+_D
+                                             B_ppi+_E
+                                             B_ppi+_F
+                                             A_ppi+_B; x <comp1>
+                                             <comp1>; OR <comp1C1>
+                                             <comp1>; OR <comp2C1>
+                                             <comp1C1>; AND A--C
+                                             <comp1C1>; AND C--D
+                                             <comp2C1>; AND B--F
+                                             <comp2C1>; AND B--E''').rxncon_system)
+
+    expected_rules = [
+        'A(CD) + C(AD) -> A(CD!1).C(AD!1) k',
+        'C(DD) + D(CD) -> C(DD!1).D(CD!1) k',
+        'B(ED) + E(BD) -> B(ED!1).E(BD!1) k',
+        'B(FD) + F(BD) -> B(FD!1).F(BD!1) k',
+        'A(BD,CD) + B(AD,FD) -> A(BD!1,CD).B(AD!1,FD) k',
+        'A(BD,CD) + B(AD,ED,FD!1).F(BD!1) -> A(BD!2,CD).B(AD!2,ED,FD!1).F(BD!1) k',
+        'A(BD,CD!1).C(AD!1,DD) + B(AD,FD) -> A(BD!2,CD!1).B(AD!2,FD).C(AD!1,DD) k',
+        'A(BD,CD!1).C(AD!1,DD) + B(AD,ED,FD!2).F(BD!2) -> A(BD!3,CD!1).B(AD!3,ED,FD!2).C(AD!1,DD).F(BD!2) k',
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+
+def test_mutually_exclusive_bindings() -> None:
+    rbm = rule_based_model_from_rxncon(Quick('''C_[A]_ppi+_A_[x]
+                                             D_[A]_ppi+_A_[x]
+                                             B_p+_A; x C_[A]--A_[x]''').rxncon_system)
+
+    expected_rules = [
+        'A(xD) + C(AD) -> A(xD!1).C(AD!1) k',
+        'A(xD) + D(AD) -> A(xD!1).D(AD!1) k',
+        'A(BR~0,xD) + B() -> A(BR~p,xD) + B() k',
+        'A(BR~0,xD!1).D(AD!1) + B() -> A(BR~p,xD!1).D(AD!1) + B() k'
+    ]
+
+    # assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        print(actual_rule)
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+
+def test_kplus_kminus() -> None:
+    rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; k+ A_[(r1)]-{p}
+                                                A_[b]_ppi+_B_[a]; k- A_[(r2)]-{p}
+                                                C_p+_A_[(r1)]
+                                                D_p+_A_[(r2)]""").rxncon_system)
+
+    expected_rules = [
+        'A(r1R~p,r2R~p,bD) + B(aD) -> A(r1R~p,r2R~p,bD!1).B(aD!1) k',
+        'A(r1R~p,r2R~0,bD) + B(aD) -> A(r1R~p,r2R~0,bD!1).B(aD!1) k',
+        'A(r1R~0,r2R~p,bD) + B(aD) -> A(r1R~0,r2R~p,bD!1).B(aD!1) k',
+        'A(r1R~0,r2R~0,bD) + B(aD) -> A(r1R~0,r2R~0,bD!1).B(aD!1) k',
+        'A(r1R~0) + C() -> A(r1R~p) + C() k',
+        'A(r2R~0) + D() -> A(r2R~p) + D() k'
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+
+def test_self_regulation() -> None:
+    rxn_system = Quick("""Rlm1_[MADS]_bind+_Rlm1Gene
+                          PolII_trsc_Rlm1Gene
+                          Ribo_trsl_Rlm1mRNA""").rxncon_system
+
+    rbm = rule_based_model_from_rxncon(rxn_system)
+
+    expected_rules = [
+        'Rlm1(MADSD) + Rlm1Gene(Rlm1D) -> Rlm1(MADSD!1).Rlm1Gene(Rlm1D!1) k',
+        'PolII() + Rlm1Gene() -> PolII() + Rlm1Gene() + Rlm1mRNA() k',
+        'Ribo() + Rlm1mRNA() -> Ribo() + Rlm1(MADSD) + Rlm1mRNA() k'
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+
+def test_trslprocat() -> None:
+    rxn_system = Quick("""Ribo_trslprocat_Ssy5mRNA
+                          A_p+_Ssy5CAT
+                          B_deg_Ssy5PRO""").rxncon_system
+
+    rbm = rule_based_model_from_rxncon(rxn_system)
+
+    expected_rules = [
+        'Ribo() + Ssy5mRNA() -> Ribo() + Ssy5CAT(AR~0,CATPROD!1).Ssy5PRO(PROCATD!1) + Ssy5mRNA() k',
+        'A() + Ssy5CAT(AR~0) -> A() + Ssy5CAT(AR~p) k',
+        'B() + Ssy5PRO() -> B() k'
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)

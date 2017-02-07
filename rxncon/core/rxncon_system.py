@@ -1,0 +1,276 @@
+from typing import List, Dict, Tuple
+from itertools import product
+from collections import defaultdict
+import logging
+
+from rxncon.core.contingency import ContingencyType, Contingency
+from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector, StateEffector
+from rxncon.core.reaction import Reaction, ReactionTerm
+from rxncon.core.state import State, FullyNeutralState
+from rxncon.core.spec import Spec
+from rxncon.util.utils import current_function_name
+from rxncon.venntastic.sets import UniversalSet, Intersection, Set  # pylint: disable=unused-import
+
+
+LOGGER = logging.getLogger(__name__)
+
+
+class RxnConSystem:  # pylint: disable=too-many-instance-attributes
+    def __init__(self, reactions: List[Reaction], contingencies: List[Contingency]) -> None:
+        self.reactions     = reactions
+        self.contingencies = contingencies
+
+        self._components         = []  # type: List[Spec]
+        self._states             = []  # type: List[State]
+        self._produced_states    = []  # type: List[State]
+        self._consumed_states    = []  # type: List[State]
+        self._synthesised_states = []  # type: List[State]
+        self._global_states      = []  # type: List[State]
+
+        self._expand_fully_neutral_states()
+        self._calculate_produced_states()
+        self._calculate_consumed_states()
+        self._calculate_synthesised_states()
+        self._calculate_global_states()
+        self._calculate_states()
+
+        self._expand_non_elemental_states()
+        self._structure_contingencies()
+
+        self.validate()
+
+    def validate(self) -> None:
+        if not self.reactions:
+            raise AssertionError('No reactions, boring!')
+
+        missing_states = self._missing_states()
+        if missing_states:
+            raise AssertionError('State(s) {0} appear(s) in contingencies, but is not produced or consumed'
+                                 .format(', '.join(str(state) for state in missing_states)))
+
+        missing_reactions = self._missing_reactions()
+        if missing_reactions:
+            raise AssertionError('Reactions(s) {0} appear(s) in contingencies, but are not defined in reaction list'
+                                 .format(', '.join(str(reaction) for reaction in missing_reactions)))
+
+        unsatisfiable_contingencies = self._unsatisfiable_contingencies()
+        if unsatisfiable_contingencies:
+            reason_str = ', '.join('{} : {}'.format(rxn, reason) for rxn, reason in unsatisfiable_contingencies)
+            raise AssertionError('Unsatisfiable reaction contingencies: {}'.format(reason_str))
+
+    def components(self) -> List[Spec]:
+        if not self._components:
+            self._calculate_components()
+        return self._components
+
+    def contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
+        assert reaction in self.reactions
+        return [x for x in self.contingencies if x.reaction == reaction]
+
+    def q_contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
+        assert reaction in self.reactions
+        return [x for x in self.contingencies if x.reaction == reaction and x.contingency_type
+                in [ContingencyType.positive, ContingencyType.negative]]
+
+    def s_contingencies_for_reaction(self, reaction: Reaction) -> List[Contingency]:
+        assert reaction in self.reactions
+        return [x for x in self.contingencies if x.reaction == reaction and x.contingency_type
+                in [ContingencyType.requirement, ContingencyType.inhibition]]
+
+    @property
+    def states(self) -> List[State]:
+        if not self._states:
+            self._calculate_states()
+        return self._states
+
+    @property
+    def produced_states(self) -> List[State]:
+        if not self._produced_states:
+            self._calculate_produced_states()
+        return self._produced_states
+
+    @property
+    def consumed_states(self) -> List[State]:
+        if not self._consumed_states:
+            self._calculate_consumed_states()
+        return self._consumed_states
+
+    @property
+    def synthesised_states(self) -> List[State]:
+        if not self._synthesised_states:
+            self._calculate_synthesised_states()
+        return self._synthesised_states
+
+    @property
+    def global_states(self) -> List[State]:
+        if not self._global_states:
+            self._calculate_global_states()
+        return self._global_states
+
+    def states_for_component(self, component: Spec) -> List[State]:
+        assert component.is_component_spec
+        return [x for x in self.states if component.to_non_struct_spec() in x.components]
+
+    def states_for_component_grouped(self, component: Spec) -> Dict[Spec, List[State]]:
+        states = self.states_for_component(component)  # type: List[State]
+        grouped = defaultdict(list)                    # type: Dict[Spec, List[State]]
+
+        while states:
+            state = states.pop()
+
+            for spec in state.specs:
+                if spec.to_component_spec() != component:
+                    continue
+
+                grouped[spec].append(state)
+
+        return grouped
+
+    def complement_states(self, state: State) -> List[State]:
+        states = []  # type: List[State]
+        for component in state.components:
+            states += self.complement_states_for_component(component, state)
+
+        return states
+
+    def complement_states_for_component(self, component: Spec, state: State) -> List[State]:
+        if not state.is_structured:
+            for group in self.states_for_component_grouped(component).values():
+                if state in group:
+                    return [x for x in group if x != state]
+        else:
+            complements = self.complement_states_for_component(component.to_non_struct_spec(), state.to_non_structured())
+            return [x.to_structured_from_state(state) for x in complements]
+
+    def _calculate_components(self) -> None:
+        components = []  # type: List[Spec]
+        for reaction in self.reactions:
+            components += [spec.to_non_struct_spec() for spec in reaction.components_lhs] + \
+                          [spec.to_non_struct_spec() for spec in reaction.components_rhs]
+
+        self._components = list(set(components))
+
+    def _calculate_states(self) -> None:
+        self._states = list(set(self.produced_states + self.consumed_states + self.synthesised_states + self.global_states))
+
+    def _calculate_produced_states(self) -> None:
+        states = []  # type: List[State]
+        for reaction in self.reactions:
+            states += [state.to_non_structured() for state in reaction.produced_states]
+
+        self._produced_states = list(set(states))
+
+    def _calculate_consumed_states(self) -> None:
+        states = []  # type: List[State]
+        for reaction in self.reactions:
+            states += [state.to_non_structured() for state in reaction.consumed_states]
+
+        self._consumed_states = list(set(states))
+
+    def _calculate_synthesised_states(self) -> None:
+        states = []  # type: List[State]
+        for reaction in self.reactions:
+            states += [state.to_non_structured() for state in reaction.synthesised_states]
+
+        self._synthesised_states = list(set(states))
+
+    def _calculate_global_states(self) -> None:
+        states = []  # type: List[State]
+        for contingency in self.contingencies:
+            states += [state for state in contingency.effector.states if state.is_global]
+
+        self._global_states = list(set(states))
+
+    def _expand_fully_neutral_states(self) -> None:
+        for reaction in self.reactions:
+            self._expand_reaction_terms(reaction.terms_lhs)
+            self._expand_reaction_terms(reaction.terms_rhs)
+            reaction.invalidate_state_cache()
+
+    def _expand_reaction_terms(self, terms: List[ReactionTerm]) -> None:
+        for term in terms:
+            if FullyNeutralState() in term.states:
+                existing_states = [state for state in term.states if state != FullyNeutralState()]
+                new_states = [state for component in term.specs for state in self.states_for_component(component)
+                              if state.is_neutral and state != FullyNeutralState() and state not in existing_states and
+                              not any(state.is_mutually_exclusive_with(existing) for existing in existing_states)]
+
+                term.states = existing_states + new_states
+
+    def _expand_non_elemental_states(self) -> None:
+        def expanded_effector(effector: Effector) -> Effector:
+            if isinstance(effector, StateEffector):
+                if effector.expr.is_elemental:
+                    return effector
+                else:
+                    elemental_states = [state.to_structured_from_state(effector.expr)
+                                        for state in self.states if state.is_subset_of(effector.expr)]
+                    assert elemental_states, 'Could not find elemental states which are subset of the non-elemental ' \
+                                             'state {}'.format(effector.expr)
+                    assert all(state.is_elemental for state in elemental_states)
+
+                    LOGGER.info('{}: {} -> {}'.format(current_function_name(), str(effector.expr),
+                                                      ' | '.join(str(x) for x in elemental_states)))
+
+                    if len(elemental_states) == 1:
+                        return StateEffector(elemental_states[0])
+                    else:
+                        return OrEffector(*(StateEffector(x) for x in elemental_states), name=str(effector.expr))
+            elif isinstance(effector, AndEffector):
+                return AndEffector(*(expanded_effector(x) for x in effector.exprs), name=effector.name, equivs=effector.equivs)
+            elif isinstance(effector, OrEffector):
+                return OrEffector(*(expanded_effector(x) for x in effector.exprs), name=effector.name, equivs=effector.equivs)
+            elif isinstance(effector, NotEffector):
+                return NotEffector(expanded_effector(effector.expr), name=effector.name)
+            else:
+                raise AssertionError
+
+        for contingency in self.contingencies:
+            contingency.effector = expanded_effector(contingency.effector)
+
+    def _structure_contingencies(self) -> None:
+        self.contingencies = [c.to_structured() for c in self.contingencies]
+
+    def _missing_states(self) -> List[State]:
+        required_states = []  # type: List[State]
+        for contingency in self.contingencies:
+            required_states += [state.to_non_structured() for state in contingency.effector.states if not state.is_global]
+
+        return [state for state in required_states if state not in self.states]
+
+    def _missing_reactions(self) -> List[Reaction]:
+        required_reactions = []
+        for contingency in self.contingencies:
+            required_reactions.append(contingency.reaction)
+
+        return [reaction for reaction in required_reactions if reaction not in self.reactions]
+
+    def _unsatisfiable_contingencies(self) -> List[Tuple[Reaction, str]]:
+        unsatisfiable = []
+
+        for reaction in self.reactions:
+            contingencies = self.s_contingencies_for_reaction(reaction)
+
+            total_set = UniversalSet()  # type: Set[State]
+            for contingency in contingencies:
+                total_set = Intersection(total_set, contingency.to_venn_set())  # pylint: disable=redefined-variable-type
+
+            solutions = total_set.calc_solutions()
+            if len(solutions) == 0:
+                unsatisfiable.append((reaction, 'Zero consistent solutions found.'))
+
+            local_unsatisfiables = []
+            at_least_one_consistent_soln = False
+
+            for solution in solutions:
+                trues = [state for state, val in solution.items() if val]
+                if any(state.is_mutually_exclusive_with(other) for state, other in product(trues, trues)):
+                    state, other = next((state, other) for state, other in product(trues, trues) if state.is_mutually_exclusive_with(other))
+                    local_unsatisfiables.append((reaction, 'State {} mutually exclusive with {}.'.format(str(state), str(other))))
+                else:
+                    at_least_one_consistent_soln = True
+
+            if not at_least_one_consistent_soln:
+                unsatisfiable += local_unsatisfiables
+
+        return unsatisfiable

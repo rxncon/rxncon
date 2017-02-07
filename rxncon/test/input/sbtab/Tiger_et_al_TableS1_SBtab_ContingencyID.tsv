@@ -1,0 +1,315 @@
+!!SBtab TableType='ContingencyID' TableName='Contingency list'
+!ContingencyID	!Target	!Contingency	!Modifier	!PubMedIdentifiers	!Quality	!Comment
+ID1	Hog1_[KD]_P+_Rck2_[c(S519)]	!	Hog1_[(T174)]-{P}	10805732	in vitro kinase assay	Hog1 activation by constitutive active Pbs2 needed.
+ID2	Hog1_[KD]_P+_Rck2_[c(S519)]	!	Hog1_[(Y176)]-{P}	10805732	in vitro kinase assay	Hog1 activation by constitutive active Pbs2 needed.
+ID3	Hog1_[KD]_P+_Sic1_[(T173)]	!	Hog1_[(T174)]-{P}	15448699	in vitro kinase assay	Hog1 activation by constitutive active Pbs2 needed.
+ID4	Hog1_[KD]_P+_Sic1_[(T173)]	!	Hog1_[(Y176)]-{P}	15448699	in vitro kinase assay	Hog1 activation by constitutive active Pbs2 needed.
+ID5	Hog1_[KD]_P+_Sko1_[n(S108)]	!	Hog1_[(T174)]-{P}	11230135	in vitro kinase assay, site mutants	Hog1 activation by constitutive active Pbs2 needed.
+ID6	Hog1_[KD]_P+_Sko1_[n(S108)]	!	Hog1_[(Y176)]-{P}	11230135	in vitro kinase assay, site mutants	Hog1 activation by constitutive active Pbs2 needed.
+ID7	Hog1_[KD]_P+_Sko1_[n(S113)]	!	Hog1_[(T174)]-{P}	11230135	in vitro kinase assay, site mutants	Hog1 activation by constitutive active Pbs2 needed.
+ID8	Hog1_[KD]_P+_Sko1_[n(S113)]	!	Hog1_[(Y176)]-{P}	11230135	in vitro kinase assay, site mutants	Hog1 activation by constitutive active Pbs2 needed.
+ID9	Hog1_[KD]_P+_Sko1_[n(S126)]	!	Hog1_[(T174)]-{P}	11230135	in vitro kinase assay, site mutants	Hog1 activation by constitutive active Pbs2 needed.
+ID10	Hog1_[KD]_P+_Sko1_[n(S126)]	!	Hog1_[(Y176)]-{P}	11230135	in vitro kinase assay, site mutants	Hog1 activation by constitutive active Pbs2 needed.
+ID11	Hog1_[KD]_P+_Smp1_[(S348)]	!	Hog1_[(T174)]-{P}	12482976	in vitro kinase assay, site mutants	Hog1 activation by constitutive active Pbs2 needed.
+ID12	Hog1_[KD]_P+_Smp1_[(S348)]	!	Hog1_[(Y176)]-{P}	12482976	in vitro kinase assay, site mutants	Hog1 activation by constitutive active Pbs2 needed.
+ID13	Hog1_[KD]_P+_Smp1_[(S357)]	!	Hog1_[(T174)]-{P}	12482976	in vitro kinase assay, site mutants	Hog1 activation by constitutive active Pbs2 needed.
+ID14	Hog1_[KD]_P+_Smp1_[(S357)]	!	Hog1_[(Y176)]-{P}	12482976	in vitro kinase assay, site mutants	Hog1 activation by constitutive active Pbs2 needed.
+ID15	Hog1_[KD]_P+_Smp1_[(T365)]	!	Hog1_[(T174)]-{P}	12482976	in vitro kinase assay, site mutants	Hog1 activation by constitutive active Pbs2 needed.
+ID16	Hog1_[KD]_P+_Smp1_[(T365)]	!	Hog1_[(Y176)]-{P}	12482976	in vitro kinase assay, site mutants	Hog1 activation by constitutive active Pbs2 needed.
+ID17	Hog1_[KD]_P+_Smp1_[(S376)]	!	Hog1_[(T174)]-{P}	12482976	in vitro kinase assay, site mutants	Hog1 activation by constitutive active Pbs2 needed.
+ID18	Hog1_[KD]_P+_Smp1_[(S376)]	!	Hog1_[(Y176)]-{P}	12482976	in vitro kinase assay, site mutants	Hog1 activation by constitutive active Pbs2 needed.
+ID19	Hog1_[KD]_P+_Hot1_[(S30)]	!	Hog1_[(T174)]-{P}	12743037	in vitro kinase assay, collective mutation of all putative sites	Hog1 activation by constitutive active Pbs2 needed.
+ID20	Hog1_[KD]_P+_Hot1_[(S30)]	!	Hog1_[(Y176)]-{P}	12743037	in vitro kinase assay, collective mutation of all putative sites	Hog1 activation by constitutive active Pbs2 needed.
+ID21	Hog1_[KD]_P+_Hot1_[(S70)]	!	Hog1_[(T174)]-{P}	12743037	in vitro kinase assay, collective mutation of all putative sites	Hog1 activation by constitutive active Pbs2 needed.
+ID22	Hog1_[KD]_P+_Hot1_[(S70)]	!	Hog1_[(Y176)]-{P}	12743037	in vitro kinase assay, collective mutation of all putative sites	Hog1 activation by constitutive active Pbs2 needed.
+ID23	Hog1_[KD]_P+_Hot1_[(S153)]	!	Hog1_[(T174)]-{P}	12743037	in vitro kinase assay, collective mutation of all putative sites	Hog1 activation by constitutive active Pbs2 needed.
+ID24	Hog1_[KD]_P+_Hot1_[(S153)]	!	Hog1_[(Y176)]-{P}	12743037	in vitro kinase assay, collective mutation of all putative sites	Hog1 activation by constitutive active Pbs2 needed.
+ID25	Hog1_[KD]_P+_Hot1_[(S360)]	!	Hog1_[(T174)]-{P}	12743037	in vitro kinase assay, collective mutation of all putative sites	Hog1 activation by constitutive active Pbs2 needed.
+ID26	Hog1_[KD]_P+_Hot1_[(S360)]	!	Hog1_[(Y176)]-{P}	12743037	in vitro kinase assay, collective mutation of all putative sites	Hog1 activation by constitutive active Pbs2 needed.
+ID27	Hog1_[KD]_P+_Hot1_[(S410)]	!	Hog1_[(T174)]-{P}	12743037	in vitro kinase assay, collective mutation of all putative sites	Hog1 activation by constitutive active Pbs2 needed.
+ID28	Hog1_[KD]_P+_Hot1_[(S410)]	!	Hog1_[(Y176)]-{P}	12743037	in vitro kinase assay, collective mutation of all putative sites	Hog1 activation by constitutive active Pbs2 needed.
+ID29	Pbs2_[KD]_P+_Hog1_[(T174)]	K+	Hog1_[CD]--Pbs2_[HBD-1]	18212044	Hog1 Phosphorylation in vivo using binding mutants	
+ID30	Pbs2_[KD]_P+_Hog1_[(T174)]	K+	Hog1_[PBD-2]--Pbs2_[HBD-1]	18212044	Hog1 Phosphorylation in vivo using binding mutants	
+ID31	Pbs2_[KD]_P+_Hog1_[(T174)]	!	Pbs2_[AL(S514)]-{P}	7624781, 9032256	Genetic. Pbs2_[S514A,T518A] is inactive. Pbs2_[S514D,T518D] is hyperactive	
+ID32	Pbs2_[KD]_P+_Hog1_[(T174)]	!	Pbs2_[AL(T518)]-{P}	7624781, 9032256	Genetic. Pbs2_[S514A,T518A] is inactive. Pbs2_[S514D,T518D] is hyperactive	
+ID33	Pbs2_[KD]_P+_Hog1_[(Y176)]	K+	Hog1_[CD]--Pbs2_[HBD-1]	18212044	Hog1 Phosphorylation in vivo using binding mutants	
+ID34	Pbs2_[KD]_P+_Hog1_[(Y176)]	K+	Hog1_[PBD-2]--Pbs2_[HBD-1]	18212044	Hog1 Phosphorylation in vivo using binding mutants	
+ID35	Pbs2_[KD]_P+_Hog1_[(Y176)]	!	Pbs2_[AL(S514)]-{P}	7624781, 9032256	Genetic. Pbs2_[S514A,T518A] is inactive. Pbs2_[S514D,T518D] is hyperactive	
+ID36	Pbs2_[KD]_P+_Hog1_[(Y176)]	!	Pbs2_[AL(T518)]-{P}	7624781, 9032256	Genetic. Pbs2_[S514A,T518A] is inactive. Pbs2_[S514D,T518D] is hyperactive	
+ID37	Sln1_[HK]_P+_Sln1_[HK(H576)]	!	Sln1_[BD:Sln1]--Sln1_[BD:Sln1]	11985722	In vitro phosphorylation. sln1 mutants lacking a dimer interaction-coil-domain lacks in vitro auto-phosphorylation	
+ID38	Sln1_[HK]_P+_Sln1_[HK(H576)]	K+	[Turgor]	10198019	Autoradiogram of in vivo isolated Sln1	
+ID39	Ssk1_ppi_Ssk22	x	Ssk1_[RR(D544)]-{P}	8183345, 8808622, 9482735	Genetic. Ssk1_[D544]-{0} is the active form. Activation is linked to binding.	
+ID40	Ssk1_[RR]_ppi_Ssk2_[BD:Ssk1]	x	Ssk1_[RR(D544)]-{P}	8183345, 8808622, 9482735	Genetic. Ssk1_[D544]-{0} is the active form. Activation is linked to binding.	
+ID41	Ssk2_[KD]_P+_Pbs2_[AL(S514)]	!	Ssk2_[(T1460)]-{P}	9482735	in vitro kinase assay	ssk2_T1460A is inactive
+ID42	Ssk2_[KD]_P+_Pbs2_[AL(T518)]	!	Ssk2_[(T1460)]-{P}	9482735	in vitro kinase assay	ssk2_T1460A is inactive
+ID43	Ssk2_[KD]_AP_Ssk2_[(T1460)]	K+	<Ssk1Ssk2>	9482735, 18573873	in vitro kinase assay (9482735) shows Ssk1-Ssk2 interaction to stimulate Ssk2 auto-phosphorylation. Genetic evidence (18573873) shows that a non-ssk2-interacting allele of ssk1 acts dominant negative over WT Ssk1 (i.e. Indicating formation of a defunct Ssk1-hetero-dimer, implying that a normal dual Ssk2-binding Ssk1-homo-dimer is required for activation)	
+ID44	Ste11_[CBD]_ppi_Ste11_[KD]	K-	Ste11_[CBD(S302)]-{P}	10837245	CoIP.Phospho-mimic mutants does not bind. Genetic.Phospho-mimic mutants active.	
+ID45	Ste11_[CBD]_ppi_Ste11_[KD]	K-	Ste11_[CBD(S306)]-{P}	10837245	CoIP.Phospho-mimic mutants does not bind. Genetic.Phospho-mimic mutants active.	
+ID46	Ste11_[CBD]_ppi_Ste11_[KD]	K-	Ste11_[CBD(T307)]-{P}	10837245	CoIP.Phospho-mimic mutants does not bind. Genetic.Phospho-mimic mutants active.	
+ID47	Ste11_[KD]_P+_Pbs2_[AL(S514)]	x	Ste11_[CBD]--Ste11_[KD]	10837245	Genetic.Constitutive binding ste11 mutants inactive.	
+ID48	Ste11_[KD]_P+_Pbs2_[AL(T518)]	x	Ste11_[CBD]--Ste11_[KD]	10837245	Genetic.Constitutive binding ste11 mutants inactive.	
+ID49	Ste20_[KD]_P+_Ste11_[CBD(S302)]	K+	Ste20_[SerThr]-{P}	7608157	in vitro kinase assay. Autophosphorylated ste20 shows higher activity.	
+ID50	Ste20_[KD]_P+_Ste11_[CBD(S302)]	x	Ste20_[KD]--Ste20_[CRIB]	11940652	in vitro kinase assay. Ste20_[KD]-Ste20_[CRIB] interaction is autoinhibitory	
+ID51	Ste20_[KD]_P+_Ste11_[CBD(S306)]	K+	Ste20_[SerThr]-{P}	7608157	in vitro kinase assay. Autophosphorylated ste20 shows higher activity.	
+ID52	Ste20_[KD]_P+_Ste11_[CBD(S306)]	x	Ste20_[KD]--Ste20_[CRIB]	11940652	in vitro kinase assay. Ste20_[KD]-Ste20_[CRIB] interaction is autoinhibitory	
+ID53	Ste20_[KD]_P+_Ste11_[CBD(T307)]	K+	Ste20_[SerThr]-{P}	7608157	in vitro kinase assay. Autophosphorylated ste20 shows higher activity.	
+ID54	Ste20_[KD]_P+_Ste11_[CBD(T307)]	x	Ste20_[KD]--Ste20_[CRIB]	11940652	in vitro kinase assay. Ste20_[KD]-Ste20_[CRIB] interaction is autoinhibitory	
+ID55	Ypd1_[(H64)]_PT_Ssk1_[RR(D544)]	!	Ssk1_[RR]--Ypd1	18573873	Genetic. Loss of ssk1-Ypd1 binding activates Hog1.	
+ID56	Ssk2_[KD]_P+_Pbs2_[AL(S514)]	!	Pbs2_[RSD1]--Ssk2_[KD]	12853477	Genetic: Osmotolerance, Hog1 phosphorylation in binding affected mutants	
+ID57	Ssk2_[KD]_P+_Pbs2_[AL(T518)]	!	Pbs2_[RSD1]--Ssk2_[KD]	12853477	Genetic: Osmotolerance, Hog1 phosphorylation in binding affected mutants	
+ID58	Ssk22_[KD]_P+_Pbs2_[AL(S514)]	!	Pbs2_[RSD1]--Ssk22_[KD]	12853477	Genetic: Osmotolerance, Hog1 phosphorylation in binding affected mutants	
+ID59	Ssk22_[KD]_P+_Pbs2_[AL(T518)]	!	Pbs2_[RSD1]--Ssk22_[KD]	12853477	Genetic: Osmotolerance, Hog1 phosphorylation in binding affected mutants	
+ID60	Ste11_[KD]_P+_Pbs2_[AL(S514)]	!	Pbs2_[RSD2]--Ste11_[n]	12853477	Genetic: Osmotolerance, Hog1 phosphorylation in binding affected mutants	
+ID61	Ste11_[KD]_P+_Pbs2_[AL(T518)]	!	Pbs2_[RSD2]--Ste11_[n]	12853477	Genetic: Osmotolerance, Hog1 phosphorylation in binding affected mutants	
+ID62	Ste2_GEF_Gpa1_[GnP]	K+	MFalpha--Ste2_[Receptor]	2839507, 3022943, 3113739, 8702760, 9405353	Genetic. See comments.	The following evidence support Ste2 acting as a GEF for Gpa1 in an alpha-factor dependent manner. (A)The mating signal is dependent on alpha-factor binding Ste2 (2839507, 3022943). (B) Gpa1 is the G-alpha-protein acting downstream of Ste2 (3113739) and regulates its beta-gamma-binding through GTP/GDP-binding (8702760). (C) Chimeric fusion-proteins of Ste2 and Gpa1 functionally fully restores function in gpa1delta ste2delta cells, supplying both pheromone regulation and regulated beta-gamma dissociation (9405353).
+ID63	Sst2_[RGS]_GAP_Gpa1_[GnP]	K+	Gpa1_[BD:Rec]--Ste2_[CyT]	9537998	in vitro GTPase assay	
+ID64	Sst2_[RGS]_GAP_Gpa1_[GnP]	K+	Ste2_[CyT]--Sst2_[n/DEP]	9537998	Genetic. Increased signalling in binding mutant	
+ID65	Gpa1_ppi_Ste4_[BD:Gpa1]	x	Gpa1_[GnP]-{P}	8702760, 11394869, 19445518	Affinity purification, CoIP	
+ID66	Cdc24_[GEF]_GEF_Cdc42_[GnP]	K+	<Cdc24^{M}>	14988726	Genetic. Increased Cdc42-GTP in vivo with myristoylated-Cdc24 together with hyperactive Bud1-G12V. Hyperactive allele Cdc24-G644C only toxic when myristoylated.	
+ID67	Cdc42_[ED]_ppi_Ste20_[CRIB]	!	Cdc42_[GnP]-{P}	9003780	CoIP	
+ID68	Ste20_[KD]_ppi_Ste20_[CRIB]	x	Cdc42_[ED]--Ste20_[CRIB]	7651520, 11940652	In vitro kinase assay shows activation of Ste20 by Cdc42 (7651520). Genetic and biochemical evidence indicate the mechanism to be relief of autoinhibition in Ste20 (11940652)	
+ID69	Ste20_[KD]_P+_Ste11_[CBD(S302)]	!	<Ste11^{M}>	16543225	Genetic. Membrane tethered Ste11 stimulates Ste11 activity in a Ste20 dependent manner (Growth assays, cell morphology)	
+ID70	Ste20_[KD]_P+_Ste11_[CBD(S306)]	!	<Ste11^{M}>	16543225	Genetic. Membrane tethered Ste11 stimulates Ste11 activity in a Ste20 dependent manner (Growth assays, cell morphology)	
+ID71	Ste20_[KD]_P+_Ste11_[CBD(T307)]	!	<Ste11^{M}>	16543225	Genetic. Membrane tethered Ste11 stimulates Ste11 activity in a Ste20 dependent manner (Growth assays, cell morphology)	
+ID72	Cdc42_[ED]_ppi_Ste20_[CRIB]	K+	Ste20_[BR]--PIP2	17914055	Genetic. Membrane tethering of Ste20 needed for CRIB mediated (Cdc42) activation.	
+ID73	Ste11_[KD]_P+_Ste7_[AL(S359)]	x	Ste11_[CBD]--Ste11_[KD]	8159759	Indirect. Increased kinase activity of Ste11 lacking autoinhibitory interaction towards Ste7_T363. Kinase activity asumed to be the same for Serine.	
+ID74	Ste11_[KD]_P+_Ste7_[AL(T363)]	x	Ste11_[CBD]--Ste11_[KD]	8159759	In vitro kinase assay.Ste11 lacking autoinhibition phosphorylates Ste7_ [T363]	
+ID75	Ste7_[KD]_P+_Fus3_[(T180)]	!	Ste7_[AL(S359)]-{P}	8131746, 15456892	Genetic. Ste7_S359A mutant is not able to be activated. Ste7_S359E+S363E phosphomimic hyperactivates Ste7.	
+ID76	Ste7_[KD]_P+_Fus3_[(Y182)]	!	Ste7_[AL(S359)]-{P}	8131746, 15456892	Genetic. Ste7_S359A mutant is not able to be activated. Ste7_S359E+S363E phosphomimic hyperactivates Ste7.	
+ID77	Ste7_[KD]_P+_Fus3_[(T180)]	!	Ste7_[AL(T363)]-{P}	1628831, 8159759	In vitro kinase assay	
+ID78	Ste7_[KD]_P+_Fus3_[(Y182)]	!	Ste7_[AL(T363)]-{P}	1628831, 8159759	In vitro kinase assay	
+ID79	Ste7_[KD]_P+_Fus3_[(T180)]	!	Fus3--Ste5_[Unlock]	19303851	In vitro kinase assay, using binding mutants.	
+ID80	Ste7_[KD]_P+_Fus3_[(Y182)]	!	Fus3--Ste5_[Unlock]	19303851	In vitro kinase assay, using binding mutants.	
+ID81	Fus3_ppi_Ste5_[Unlock]	!	Ste5_[MEK]--Ste7	19303851	In vitro kinase assay, using binding mutants.	
+ID82	Fus3_ppi_Ste5_[Unlock]	!	Fus3_[CD]--Ste7_[BD:MAPK]	19303851	In vitro kinase assay, using binding mutants.	
+ID83	Sho1_[CyT]_ppi_Ste11_[BD:Sho1]	x	Ste5_[MEKK]--Ste11	20932477	Western blot. No activation of Hog1 seen when Ste11 is activated via pheromone. The same Ste11 can thus not be shared by Sho1 and Ste5.	
+ID84	Ste5_[MEKK]_ppi_Ste11	x	Sho1_[CyT]--Ste11_[BD:Sho1]	20932477	Western blot. No activation of Fus3 seen when Ste11 is activated via high osmolarity.  The same Ste11 can thus not be shared by Sho1 and Ste5	
+ID85	Msg5_[PD]_P-_Fus3_[(T180)]	K+	Fus3_[CD]--Msg5_[n]	16364919	in vitro phosphatase assay	
+ID86	Msg5_[PD]_P-_Fus3_[(Y182)]	K+	Fus3_[CD]--Msg5_[n]	16364919	in vitro phosphatase assay	
+ID87	Ste7_[KD]_P+_Kss1_[(T183)]	!	Ste7_[AL(S359)]-{P}	8131746, 15456892	Genetic. Ste7_S359A mutant is not able to be activated. Ste7_S359E+S363E phosphomimic hyperactivates Ste7.	
+ID88	Ste7_[KD]_P+_Kss1_[(Y185)]	!	Ste7_[AL(S359)]-{P}	8131746, 15456892	Genetic. Ste7_S359A mutant is not able to be activated. Ste7_S359E+S363E phosphomimic hyperactivates Ste7.	
+ID89	Ste7_[KD]_P+_Kss1_[(T183)]	!	Ste7_[AL(T363)]-{P}	1628831, 8668180	In vitro kinase assay	
+ID90	Ste7_[KD]_P+_Kss1_[(Y185)]	!	Ste7_[AL(T363)]-{P}	1628831, 8668180	In vitro kinase assay	
+ID91	Ste7_[KD]_P+_Kss1_[(T183)]	!	Kss1_[CD]--Ste7_[BD:MAPK]	16364919	In vitro kinase assay, using binding mutants.	
+ID92	Ste7_[KD]_P+_Kss1_[(Y185)]	!	Kss1_[CD]--Ste7_[BD:MAPK]	16364919	In vitro kinase assay, using binding mutants.	
+ID93	Ste11_[KD]_P+_Ste7_[AL(S359)]	!	<STE11-7>	9335587	Ste5 scaffold mutations. Ste11 needs to be in close proximity of Ste7 in order to activate Ste7.	
+ID94	Ste11_[KD]_P+_Ste7_[AL(T363)]	!	<STE11-7>	9335587	Ste5 scaffold mutations. Ste11 needs to be in close proximity of Ste7 in order to activate Ste7.	
+ID95	Fus3_[KD]_P+_Dig1	!	Fus3_[(T180)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID96	Fus3_[KD]_P+_Dig2	!	Fus3_[(T180)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID97	Fus3_[KD]_P+_Far1_[(T306)]	!	Fus3_[(T180)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID98	Fus3_[KD]_P+_Msg5	!	Fus3_[(T180)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID99	Fus3_[KD]_P+_Sst2_[(S539)]	!	Fus3_[(T180)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID100	Fus3_[KD]_P+_Ste12	!	Fus3_[(T180)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID101	Fus3_[KD]_P+_Ste5	!	Fus3_[(T180)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID102	Fus3_[KD]_P+_Ste7	!	Fus3_[(T180)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID103	Fus3_[KD]_P+_Tec1_[(T273)]	!	Fus3_[(T180)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID104	Fus3_[KD]_P+_Dig1	!	Fus3_[(Y182)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID105	Fus3_[KD]_P+_Dig2	!	Fus3_[(Y182)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID106	Fus3_[KD]_P+_Far1_[(T306)]	!	Fus3_[(Y182)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID107	Fus3_[KD]_P+_Msg5	!	Fus3_[(Y182)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID108	Fus3_[KD]_P+_Sst2_[(S539)]	!	Fus3_[(Y182)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID109	Fus3_[KD]_P+_Ste12	!	Fus3_[(Y182)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID110	Fus3_[KD]_P+_Ste5	!	Fus3_[(Y182)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID111	Fus3_[KD]_P+_Ste7	!	Fus3_[(Y182)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID112	Fus3_[KD]_P+_Tec1_[(T273)]	!	Fus3_[(Y182)]-{P}	1628831, 8384702	 Dual phosphorylation of Fus3 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID113	Kss1_[KD]_P+_Dig1	!	Kss1_[(T183)]-{P}	1628831, 8668180	 Dual phosphorylation of Kss1 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID114	Kss1_[KD]_P+_Dig2	!	Kss1_[(T183)]-{P}	1628831, 8668180	 Dual phosphorylation of Kss1 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID115	Kss1_[KD]_P+_Ste12	!	Kss1_[(T183)]-{P}	1628831, 8668180	 Dual phosphorylation of Kss1 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID116	Kss1_[KD]_P+_Ste7	!	Kss1_[(T183)]-{P}	1628831, 8668180	 Dual phosphorylation of Kss1 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID117	Kss1_[KD]_P+_Sst2_[(S539)]	!	Kss1_[(T183)]-{P}	1628831, 8668180	 Dual phosphorylation of Kss1 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID118	Kss1_[KD]_P+_Ste5	!	Kss1_[(T183)]-{P}	1628831, 8668180	 Dual phosphorylation of Kss1 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID119	Kss1_[KD]_P+_Dig1	!	Kss1_[(Y185)]-{P}	1628831, 8668180	 Dual phosphorylation of Kss1 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID120	Kss1_[KD]_P+_Dig2	!	Kss1_[(Y185)]-{P}	1628831, 8668180	 Dual phosphorylation of Kss1 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID121	Kss1_[KD]_P+_Ste12	!	Kss1_[(Y185)]-{P}	1628831, 8668180	 Dual phosphorylation of Kss1 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID122	Kss1_[KD]_P+_Ste7	!	Kss1_[(Y185)]-{P}	1628831, 8668180	 Dual phosphorylation of Kss1 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID123	Kss1_[KD]_P+_Sst2_[(S539)]	!	Kss1_[(Y185)]-{P}	1628831, 8668180	 Dual phosphorylation of Kss1 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID124	Kss1_[KD]_P+_Ste5	!	Kss1_[(Y185)]-{P}	1628831, 8668180	 Dual phosphorylation of Kss1 in the activation loop has been shown to be required for kinase actvity. Shown by invitro kinase assay, although not for this particular reaction.	
+ID125	Dig1_ppi_Ste12_[c]	K-	Dig1-{P}	9094309, 11525741, 16782869	Genetic. Dig1 is phosphorylated by activated MAPK, which coincides with released inhibiton of Ste12 by Dig1.	
+ID126	Dig2_ppi_Ste12_[n/DBD]	K-	Dig2-{P}	9094309, 11525741, 16782869	Genetic. Dig2 is phosphorylated by activated MAPK, which coincides with released inhibiton of Ste12 by Dig2.	
+ID127	Ptp3_[PD]_P-_Fus3_[(Y182)]	K+	Fus3_[CD]--Ptp3_[CH2]	10557209	Genetic. Binding mutant shows increased Fus3 phosphorylation	
+ID128	Rom2_[DH]_GEF_Rho1_[GnP]	K+	Rom2_[n]--Slg1_[CyT]	11113201, 10330137	Genetic. Decreased GTP incorporation into Rho1 in vitro, using extracts from slg1-delta strains, and even less in slg1-delta+mid2-delta strains. slg1-delta strains indicates signalling via Rho1 activation in vivo.	
+ID129	Rom2_[DH]_GEF_Rho1_[GnP]	K+	Rom2--Wsc2	9391108	Genetic. Epistasis experiments indicate Wsc2 to signal through Pkc1, and acting upstream of Rho1.	
+ID130	Rom2_[DH]_GEF_Rho1_[GnP]	K+	Mtl1--Rom2	15637049	Genetic. Mtl1 is shown to act upstream of Pkc1, and is likely to be a cell surface receptor signalling  through Rom2.	
+ID131	Rom2_[DH]_GEF_Rho1_[GnP]	K+	Mid2_[CyT]--Rom2	11113201, 10330137, 10348843	Genetic. Decreased GTP incorporation into Rho1 in vitro, using extracts from mid2-delta strains, and even less in slg1-delta+mid2-delta strains. mid2-delta strains indicates signalling via Rho1 activation in vivo.	
+ID132	Pkh1_[KD]_P+_Pkc1_[AL(T983)]	K+	Pkh1--PHS	11726514	In vitro kinase assay	
+ID133	Pkh2_[KD]_P+_Pkc1_[AL(T983)]	K+	Pkh2--PHS	11726514	In vitro kinase assay	
+ID134	Pkc1_[C1]_ppi_Rho1_[ED]	!	Rho1_[GnP]-{P}	8621575	CoIP	
+ID135	Pkc1_[KD]_P+_Bck1_[(S939)]	K+	Pkc1_[C1]--Rho1_[ED]	8621575	In vitro kinase assay	
+ID136	Pkc1_[KD]_P+_Bck1_[(S939)]	K+	Pkc1--PS	8621575	In vitro kinase assay	
+ID137	Pkc1_[KD]_P+_Bck1_[(S939)]	K+	Pkc1_[AL(T983)]-{P}	10567559	Genetic. Pkc1_T983A mutant does not complement pkc1-ts allele.  pkh1 pkh2 defective cells shows diminished heat-shock induced Pkc1 activation. 	
+ID138	Bck1_[KD]_P+_Mkk1_[(S377)]	K+	Bck1--Mkk1	8386320, 7565726, 10625705	Epistasis experiments indicate Mkk1 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Hyperactive allele Mkk1-386 in (7565726). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID139	Bck1_[KD]_P+_Mkk1_[(T381)]	K+	Bck1--Mkk1	8386320, 7565726, 10625705	Epistasis experiments indicate Mkk1 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Hyperactive allele Mkk1-386 in (7565726). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID140	Bck1_[KD]_P+_Mkk2_[(S370)]	K+	Bck1--Mkk2	8386320, 10625705	Epistasis experiments indicate Mkk2 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID141	Bck1_[KD]_P+_Mkk2_[(T374)]	K+	Bck1--Mkk2	8386320, 10625705	Epistasis experiments indicate Mkk2 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID142	Mkk1_[KD]_P+_Slt2_[(T190)]	!	Mkk1_[(S377)]-{P}	8386320, 10625705	Epistasis experiments indicate Mkk1 acting between Bck1 and Slt2. Heat stress tolerance in mutants(8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID143	Mkk1_[KD]_P+_Slt2_[(Y192)]	!	Mkk1_[(S377)]-{P}	8386320, 10625705	Epistasis experiments indicate Mkk1 acting between Bck1 and Slt2. Heat stress tolerance in mutants(8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID144	Mkk2_[KD]_P+_Slt2_[(T190)]	!	Mkk2_[(S370)]-{P}	8386320, 10625705	Epistasis experiments indicate Mkk2 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID145	Mkk2_[KD]_P+_Slt2_[(Y192)]	!	Mkk2_[(S370)]-{P}	8386320, 10625705	Epistasis experiments indicate Mkk2 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID146	Mkk1_[KD]_P+_Slt2_[(T190)]	!	Mkk1_[(T381)]-{P}	8386320, 10625705	Epistasis experiments indicate Mkk1 acting between Bck1 and Slt2. Heat stress tolerance in mutants(8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID147	Mkk1_[KD]_P+_Slt2_[(Y192)]	!	Mkk1_[(T381)]-{P}	8386320, 10625705	Epistasis experiments indicate Mkk1 acting between Bck1 and Slt2. Heat stress tolerance in mutants(8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID148	Mkk2_[KD]_P+_Slt2_[(T190)]	!	Mkk2_[(T374)]-{P}	8386320, 10625705	Epistasis experiments indicate Mkk2 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID149	Mkk2_[KD]_P+_Slt2_[(Y192)]	!	Mkk2_[(T374)]-{P}	8386320, 10625705	Epistasis experiments indicate Mkk2 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID150	Mkk1_[KD]_P+_Slt2_[(T190)]	!	Mkk1_[n]--Slt2_[n]	8386320, 10625705	Epistasis experiments indicate Mkk1 acting between Bck1 and Slt2. Heat stress tolerance in mutants(8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID151	Mkk1_[KD]_P+_Slt2_[(Y192)]	!	Mkk1_[n]--Slt2_[n]	8386320, 10625705	Epistasis experiments indicate Mkk1 acting between Bck1 and Slt2. Heat stress tolerance in mutants(8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID152	Mkk2_[KD]_P+_Slt2_[(T190)]	!	Mkk2_[n]--Slt2_[n]	8386320, 10625705	Epistasis experiments indicate Mkk2 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID153	Mkk2_[KD]_P+_Slt2_[(Y192)]	!	Mkk2_[n]--Slt2_[n]	8386320, 10625705	Epistasis experiments indicate Mkk2 acting between Bck1 and Slt2. Heat stress tolerance in mutants (8386320). Phosphorylation of Slt2 during stress or hyperactive Bck1 and  Pck1 alleles (10625705)	
+ID154	Msg5_[PD]_P-_Slt2_[(T190)]	!	Msg5_[n]--Slt2_[n]	14703512	in vitro dephosphorylation	
+ID155	Msg5_[PD]_P-_Slt2_[(Y192)]	!	Msg5_[n]--Slt2_[n]	14703512	in vitro dephosphorylation	
+ID156	Sdp1_[PD]_P-_Slt2_[(T190)]	!	Sdp1--Slt2	11923319	In vitro dephosphorylation	
+ID157	Sdp1_[PD]_P-_Slt2_[(Y192)]	!	Sdp1--Slt2	11923319	In vitro dephosphorylation	
+ID158	Slt2_[KD]_P+_Msg5	!	Slt2_[(T190)]-{P}	14703512, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID159	Slt2_[KD]_P+_Rom2	!	Slt2_[(T190)]-{P}	19564916, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID160	Slt2_[KD]_P+_Rlm1_[c(S427)]	!	Slt2_[(T190)]-{P}	9111331, 12410835, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID161	Slt2_[KD]_P+_Rlm1_[c(T439)]	!	Slt2_[(T190)]-{P}	9111331, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID162	Slt2_[KD]_P+_Swi4	!	Slt2_[(T190)]-{P}	9065400, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID163	Slt2_[KD]_P+_Swi6_[(S238)]	!	Slt2_[(T190)]-{P}	9065400, 20219973, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID164	Slt2_[KD]_P+_Sir3_[(S275)]	!	Slt2_[(T190)]-{P}	12504006, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID165	Slt2_[KD]_P+_Sir3_[(S282)]	!	Slt2_[(T190)]-{P}	12504006, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID166	Slt2_[KD]_P+_Sir3_[(S289)]	!	Slt2_[(T190)]-{P}	12504006, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID167	Slt2_[KD]_P+_Sir3_[(S295)]	!	Slt2_[(T190)]-{P}	12504006, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID168	Slt2_[KD]_P+_Msg5	!	Slt2_[(Y192)]-{P}	14703512, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID169	Slt2_[KD]_P+_Rom2	!	Slt2_[(Y192)]-{P}	19564916, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID170	Slt2_[KD]_P+_Rlm1_[c(S427)]	!	Slt2_[(Y192)]-{P}	9111331, 12410835, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID171	Slt2_[KD]_P+_Rlm1_[c(T439)]	!	Slt2_[(Y192)]-{P}	9111331, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID172	Slt2_[KD]_P+_Swi4	!	Slt2_[(Y192)]-{P}	9065400, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID173	Slt2_[KD]_P+_Swi6_[(S238)]	!	Slt2_[(Y192)]-{P}	9065400, 20219973, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID174	Slt2_[KD]_P+_Sir3_[(S275)]	!	Slt2_[(Y192)]-{P}	12504006, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID175	Slt2_[KD]_P+_Sir3_[(S282)]	!	Slt2_[(Y192)]-{P}	12504006, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID176	Slt2_[KD]_P+_Sir3_[(S289)]	!	Slt2_[(Y192)]-{P}	12504006, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID177	Slt2_[KD]_P+_Sir3_[(S295)]	!	Slt2_[(Y192)]-{P}	12504006, 7628692	Reaction shown using in vitro kinase assay. Allthough not showb for this particular reaction, dependency on Slt2 activation-loop phosphorylation for Slt2 kinase activity is shown in 7628692.	
+ID178	Ptp2_[PD]_P-_Hog1_[(Y176)]	K+	Hog1_[CD]--Ptp2	18212044, 10817757	Genetic. Prolonged in vivo phosphorylation with Hog1_[CD] binding mutants.	
+ID179	Ptp3_[PD]_P-_Hog1_[(Y176)]	K+	Hog1_[CD]--Ptp3	10817757	Genetic. Prolonged in vivo phosphorylation with Hog1_[CD] binding mutants.	
+ID180	Ste3_GEF_Gpa1_[GnP]	K+	MFa--Ste3_[Receptor]	2839507, 3022943, 3113739, 8702760, 9405353	Genetic. See comments.	Ste3 can functionally replace Ste2 in mating signalling but will instead react on a-factor instead of alpha-factor (3022943), thus supplying pheromone regulated GEF-activity in the same manner as is assigned for Ste2 based on (A)The mating signal is dependent on alpha-factor binding Ste2 (2839507, 3022943). (B) Gpa1 is the G-alpha-protein acting downstream of Ste2 (3113739) and regulates its beta-gamma-binding through GTP/GDP-binding (8702760). (C) Chimeric fusion-proteins of Ste2 and Gpa1 functionally fully restores function in gpa1delta ste2delta cells, supplying both pheromone regulation and regulated beta-gamma dissociation (9405353).
+ID181	Ste11_[KD]_P+_Pbs2_[AL(S514)]	!	Sho1_[CyT]--Ste11_[BD:Sho1]	16778768	Genetic. Sho1-Ste11 interaction needed for Sho1-dependent HOG-pathway activation. Constitutively Sho1-bound hyperactive-Ste11 activates pathway.	
+ID182	Ste11_[KD]_P+_Pbs2_[AL(T518)]	!	Sho1_[CyT]--Ste11_[BD:Sho1]	16778768	Genetic. Sho1-Ste11 interaction needed for Sho1-dependent HOG-pathway acativation. Constitutively Sho1-bound hyperactive-Ste11 activates pathway.	
+ID183	Ste11_[KD]_P+_Pbs2_[AL(S514)]	!	Pbs2_[RSD2/PR]--Sho1_[CyT/SH3]	7624781, 14668868	Genetic. Sho1-Pbs2 interaction needed for Sho1-dependent HOG-pathway acativation.	
+ID184	Ste11_[KD]_P+_Pbs2_[AL(T518)]	!	Pbs2_[RSD2/PR]--Sho1_[CyT/SH3]	7624781, 14668868	Genetic. Sho1-Pbs2 interaction needed for Sho1-dependent HOG-pathway acativation.	
+ID185	Far1_[n/RING-H2]_ppi_Ste4	x	Gpa1--Ste4_[BD:Gpa1]	7490290, 9822386, 	Genetic. The binding of Far1 to Ste4 is necessary to recruit polarization in the correct direction for normal chemotropic shmoo formation. Since the pheromone receptor and its G-protein complex is the sensor of the direction, the interaction of Far1 and Ste4 recruiting polarization must be regulated via the G-protein i.e. the beta-gamma subunit dissociation.	
+ID186	Ste4_[BD:Ste5]_ppi_Ste5_[n/RING-H2]	x	Gpa1--Ste4_[BD:Gpa1]	9501067	Genetic. Ste5 is coprecipitated with Ste4 only after pheromone stimulation (which induce Gpa1-Ste4 dissociation).	
+ID187	Ste4_ppi_Ste20_[c]	x	Gpa1--Ste4_[BD:Gpa1]	9428767	Genetic. Ste4 is coprecipitated with Ste20 only after pheromone stimulation (which induce Gpa1-Ste4 dissociation).	
+ID188	Cdc24_ppi_Ste4	x	Gpa1--Ste4_[BD:Gpa1]	9428768, 10087263	Genetic. The binding of Cdc24 to Ste4 is necessary to recruit polarization in the correct direction for normal chemotropic shmoo formation. Since the pheromone receptor and its G-protein complex is the sensor of the direction, the interaction of Cdc24 and Ste4 recruiting polarization must be regulated via the G-protein i.e. the beta-gamma subunit dissociation. The contribution by Far1 to this interaction is unclear.	
+ID189	Ssk22_[KD]_P+_Pbs2_[AL(S514)]	!	Ssk1--Ssk22	8183345, 7624781, 9482735, 18573873	Genetic. Presumed to be indirect effect. Activation of Ssk22 kinase activity is linked to Ssk22-Ssk1 interaction. The intermediate steps are presumed to be the same as for Ssk2.	Genetic. Deletion of ssk1 blocks the sln1 branch completely, which requires deletion of both Ssk2 and ssk22. Presumed to be indirect via relief of autoinhibition.
+ID190	Ssk22_[KD]_P+_Pbs2_[AL(T518)]	!	Ssk1--Ssk22	8183345, 7624781, 9482735, 18573873	Genetic. Presumed to be indirect effect. Activation of Ssk22 kinase activity is linked to Ssk22-Ssk1 interaction. The intermediate steps are presumed to be the same as for Ssk2.	Genetic. Deletion of ssk1 blocks the sln1 branch completely, which requires deletion of both Ssk2 and ssk22. Presumed to be indirect via relief of autoinhibition.
+ID191	Ptc1_[PD]_P-_Hog1_[(T174)]	K+	<Pbs2-Nbp2-Ptc1>	14685261	Genetic. Loss of interaction increase in vivo Hog1 phosphorylation.	
+ID192	Rck2_AP_Rck2_[Ser]	K+	Rck2_[c(S519)]-{P}	10805732	in vitro kinase assay	
+ID193	Sho1_[CyT]_ppi_Ste11_[BD:Sho1]	!	<Ste11^{M/50}>	16778768 	Genetic. Forced tethering of hyperactive Ste11 to the membrane via membrane anchoraged Ste50 increases HOG-pathway siganlling (both basal and induced). The effect was comparable to Sho1 mutants with increased Ste50-Ste11 binding.	
+ID194	Ste20_[KD]_P+_Ste11_[CBD(S302)]	K+	<FIL-signal>	8001818	Genetic. Deletion mutants demonstrates that the filamentation signal propagates via Ste20 and Ste11 into a MAPK pathway (Ste7, Kss1 and Ste12).	
+ID195	Ste20_[KD]_P+_Ste11_[CBD(S306)]	K+	<FIL-signal>	8001818	Genetic. Deletion mutants demonstrates that the filamentation signal propagates via Ste20 and Ste11 into a MAPK pathway (Ste7, Kss1 and Ste12).	
+ID196	Ste20_[KD]_P+_Ste11_[CBD(T307)]	K+	<FIL-signal>	8001818	Genetic. Deletion mutants demonstrates that the filamentation signal propagates via Ste20 and Ste11 into a MAPK pathway (Ste7, Kss1 and Ste12).	
+ID197	Dig1_ppi_Ste12_[c]	K+	Dig2--Ste12_[n/DBD]	16782869	Reconstituted complex	
+ID198	Dig1_ppi_Ste12_[c]	K+	Kss1--Ste12	9744865, 9860980	Genetic. Presence of unphosphorylated Kss1 (which  can bind Ste12) is needed for efficient Dig1 mediated repression of Ste12 transcriptional activation.	
+ID199	Dig1_ppi_Ste12_[c]	K+	Fus3--Ste12	11054817, 9860980	Genetic. Presence of unphosphorylated Kss1 or Fus3 is needed for repression of basal signal fromboth WT and hyperactivation mutants of Ste12. Fus3 seems to be less important than Kss1.	
+ID200	Dig2_ppi_Ste12_[n/DBD]	K+	Dig1--Ste12_[c]	16782869	Reconstituted complex	
+ID201	Ste12_[n/DB]_ppi_Tec1	x	Dig2--Ste12_[n/DBD]	16782869	Reconstituted complex. Dig2 and Tec1 compete for the same binding site in Ste12.	Dig2 and Tec1 compete for the same binding site in Ste12. Tec1 will outcompete Dig2.
+ID202	Dig2_ppi_Ste12_[n/DBD]	x	Ste12_[n/DB]--Tec1	16782869	Reconstituted complex. Dig2 and Tec1 compete for the same binding site in Ste12	Dig2 and Tec1 compete for the same binding site in Ste12. Tec1 will outcompete Dig2.
+ID203	Kss1_ppi_Ste12	K-	Kss1_[(T183)]-{P}	9744865	CoIP	
+ID204	Kss1_ppi_Ste12	K-	Kss1_[(Y185)]-{P}	9744865	CoIP	
+ID205	Fus3_ppi_Ste12	K-	Fus3_[(T180)]-{P}	9094309 	CoIP. Fus3 does not coprecipitate Ste12 in lysates from cells activated with pheromone.	
+ID206	Fus3_ppi_Ste12	K-	Fus3_[(Y182)]-{P}	9094309 	CoIP. Fus3 does not coprecipitate Ste12 in lysates from cells activated with pheromone.	
+ID207	Fus3_ppi_Ste12	K+	Dig1--Ste12_[c]	9094309 	CoIP. Fus3 does not coprecipitate Ste12 in lysates from dig1delta cells.	
+ID208	[PRE-transcription]	x	Dig1--Ste12_[c]	8918885, 9094309	Genetic. Strong increase of basal signalling in dig1-delta+dig2-delta cells. Decreased induction in cells overexpressing Dig1.	
+ID209	[PRE-transcription]	x	Dig2--Ste12_[n/DBD]	8918885, 9094309	Genetic. Strong increase of basal signalling in dig1-delta+dig2-delta cells.	
+ID210	[PRE-transcription]	!	Ste12_[n/HTH]--PRE	1903837	Genetic. Ste12 binding PRE motif is necessary for PRE-driven transcription.	
+ID211	[TCS-Tec1-transcription]	!	Tec1_[n/TEA]--TCS	20118212	Genetic. Block of transcription when TCS-Tec1 interaction is blocked.	
+ID212	[TCS-Tec1-Ste12-transcription]	!	Tec1_[n/TEA]--TCS	9036858	Genetic. Competitor analysis, block of transcription when TCS-Tec1 interaction is blocked.	
+ID213	[TCS-Tec1-Ste12-transcription]	x	Dig1--Ste12_[c]	16782869	Genetic. Strong increase of basal signalling in dig1-delta cells.	
+ID214	SCF_Ub+_Tec1	!	Cdc4_[WD40]--Tec1_[CPD]	15620356, 19897738	Genetic. Pheromone induced Tec1 ubiquitination and degradation dependent on Cdc4-Tec1 binding and on  Cdc34.	
+ID215	[SKO-transcription]	x	<SKO/R>	9858577, 10825197	Genetic. Tethering of Sko1 to promoters is transcriptionally repressing in a Cyc8-Tup1 dependent manner.	
+ID216	Sko1_[n]_ppi_Tup1	K-	Sko1_[n(S108)]-{P}	11230135	CoIP	
+ID217	Sko1_[n]_ppi_Tup1	K-	Sko1_[n(S113)]-{P}	11230135	CoIP	
+ID218	Sko1_[n]_ppi_Tup1	K-	Sko1_[n(S126)]-{P}	11230135	CoIP	
+ID219	Slt2_[DB]_ppi_Swi4_[c]	!	Slt2_[(T190)]-{P}	18268013	CoIP. Loss of binding to Swi4 in double mutant  Slt2-T190A+Y192F. 	Only the Y192 seems to be needed for FKS2 promoter activation in the pseudokinase paralog Mlp1.
+ID220	Slt2_[DB]_ppi_Swi4_[c]	!	Slt2_[(Y192)]-{P}	18268013	CoIP. Loss of binding to Swi4 in double mutant  Slt2-T190A+Y192F. 	Only the Y192 seems to be needed for FKS2 promoter activation in the pseudokinase paralog Mlp1.
+ID221	[SBF(FKS2)-transcription]	!	Swi4--SCBFKS2	18268013	Genetic. Loss of reporter transcription when using mutated SCB-site.	
+ID222	[SBF(FKS2)-transcription]	!	Slt2_[DB]--Swi4_[c]	18268013, 19805511	Genetic. Slt2-Swi4 interaction needed for transcription(FKS2-reporter) and DNA-binding (ChIP).	
+ID223	[SBF(FKS2)-transcription]	!	Swi4_[c]--Swi6_[c]	18268013	Genetic. Swi6 needed for transcriptional activation.	
+ID224	[SBF(FKS2)-transcription]	K-	Swi6_[(S238)]-{P}	20219973	Indirect effect due to localization. Phosphorylation of the S238 within the Swi6 nuclear localization signal sequence NLS2 is shown to decrease nuclear localization of Swi6 and to decrease FKS2 transcription.	
+ID225	Swi4_BIND_SCBFKS2	!	Slt2_[DB]--Swi4_[c]	18268013	ChIP. Slt2 needed for Swi4-DNA[SCB/FKS2] interaction. Slt2 mutants unable to bind Swi4 do not display Swi4-DNA[SCB/FKS2] interaction.	
+ID226	[SBF(G1)-transcription]	!	Swi4--SCBG1	2649246, 1936990	Genetic. Swi4 dependence on transcription from SCB containing reporter.	
+ID227	Swi4_BIND_SCBG1	x	Slt2_[DB]--Swi4_[c]	18268013, 10490612, 8598209	Genetic. See comments.	Using mixed cell populations (all cell cycle phases included), a CLN2-lacZ reporter (SCB(G1) regulated) does not increase expression during heat-shock stress, whereas a FKS2-lacZ reporter (SCB(FKS2) regulated) does. This indicates the heat-shock induced Swi4-Slt2 complex does not induce expression of SCB(G1) regulated genes (PMID 18268013). Crude cell extracts from mixed cell populations (containing cell from all cell-cycle phases, including S-phase with polarised growth, under which Slt2 is phosphorylated PMID 8598209) do not display proteins bindning to a SCB(G1)-DNA-probe when taken from swi6delta cells, indicating that the Swi4-Slt2-complex do not bind the SCB(G1)-DNA. (PMID 10490612 gel retardation assay).
+ID228	Swi4_[n]_ipi_Swi4_[c]	x	Swi4_[c]--Swi6_[c]	10490612	CoIP and gel retardation analysis. Swi6 is binding the Swi4 autoinhibitory c-terminal. Swi4 mutant lacking the C-terminal  can bind DNA[SCB] constituitively and independently of Swi6.	
+ID229	Swi4_BIND_SCBG1	x	Swi4_[n]--Swi4_[c]	10490612	Gel retardation analysis. Constituitive binding in swi4_[c] mutant lacking autoinibitory domain. In trans inhibition of mutant constitutive binding by separate addition of autoinhibitory fragment.	
+ID230	Swi4_[n]_ipi_Swi4_[c]	x	Slt2_[DB]--Swi4_[c]	19805511	Binding of Slt2 to the autoinhibitory Swi4 c-terminal is needed for Swi4 DNA-binding and transcriptional activation. The Slt2-Swi4 binding is therefore presumed to release a possible Swi4-Swi4 autoinhibition.	
+ID231	Swi4_BIND_SCBFKS2	x	Swi4_[n]--Swi4_[c]	18268013, 10490612	ChIP. Swi4 does not bind [SCB/FKS2] on its own (i.e in Slt2-delta strain). Swi4-Swi4 autoinhibition has been shown for [SCB/G1] binding (10490612)	
+ID232	[HOT-transcription]	!	Hot1--Hot1Site	10722658	Genetic. Diminished transcription in hot1 deleted cells.	
+ID233	[HOT-transcription]	!	Hog1_[n]--Hot1_[m]	11336700, 12743037	Genetic. Hog1 and Hot1 are interdependent for promoter binding and recruitment of Pol-II.	
+ID234	[RLM-transcription]	!	Rlm1--Rlm1Site	9121433	Genetic. No transcription at Rlm1-regulated site with mutated non-Rlm1 binding sequence.	
+ID235	[SMP-transcription]	!	Smp1--Smp1Site	12482976	Genetic. Diminished transcription from STL1-promoter in smp1-delta cells.	
+ID236	[SMP-transcription]	K+	Smp1_[(S348)]-{P}	12482976	Genetic. Phosphorylation site in Smp1 needed for transcriptional activation of STL1-reporter.	
+ID237	[SMP-transcription]	K+	Smp1_[(S357)]-{P}	12482976	Genetic. Phosphorylation site in Smp1 needed for transcriptional activation of STL1-reporter.	
+ID238	[SMP-transcription]	K+	Smp1_[(T365)]-{P}	12482976	Genetic. Phosphorylation site in Smp1 needed for transcriptional activation of STL1-reporter.	
+ID239	[SMP-transcription]	K+	Smp1_[(S376)]-{P}	12482976	Genetic. Phosphorylation site in Smp1 needed for transcriptional activation of STL1-reporter.	
+ID240	Bck1_[KD]_P+_Mkk1_[(S377)]	x	Bck1_[n]--Bck1_[n]	1729597	Genetic. Indications of autoinhibitory regulation in Bck1-region N-terminal from kinase domain. Cluster of pkc1-delta supressor mutants found close to residues phosphorylated by PKC (presumed to be activating), T1119P, I1120K/T, G1146V, A1174P.	
+ID241	Bck1_[KD]_P+_Mkk1_[(T381)]	x	Bck1_[n]--Bck1_[n]	1729597	Genetic. Indications of autoinhibitory regulation in Bck1-region N-terminal from kinase domain. Cluster of pkc1-delta supressor mutants found close to residues phosphorylated by PKC (presumed to be activating), T1119P, I1120K/T, G1146V, A1174P.	
+ID242	Bck1_[KD]_P+_Mkk2_[(S370)]	x	Bck1_[n]--Bck1_[n]	1729597	Genetic. Indications of autoinhibitory regulation in Bck1-region N-terminal from kinase domain. Cluster of pkc1-delta supressor mutants found close to residues phosphorylated by PKC (presumed to be activating), T1119P, I1120K/T, G1146V, A1174P.	
+ID243	Bck1_[KD]_P+_Mkk2_[(T374)]	x	Bck1_[n]--Bck1_[n]	1729597	Genetic. Indications of autoinhibitory regulation in Bck1-region N-terminal from kinase domain. Cluster of pkc1-delta supressor mutants found close to residues phosphorylated by PKC (presumed to be activating), T1119P, I1120K/T, G1146V, A1174P.	
+ID244	Bck1_[n]_ppi_Bck1_[n]	K-	Bck1_[(S939)]-{P}	1729597	Genetic. Indications of autoinhibitory regulation in Bck1-region N-terminal from kinase domain. Cluster of pkc1-delta supressor mutants found close to residue phosphorylated by PKC (presumed to be activating), T1119P, I1120K/T, G1146V, A1174P.	In addition to the Bck1_S939 site, T1119 and S1134 has been suggested to be phosphorylation regulated by Pkc1 based on PKC-recognition site sequence and phosphoprotein analysis (data not shown) PMID 7874200. Hyperactivating mutants has been found for T1119P, I1120K/T, G1146V, A1174P (PMID 1729597) further supporting this to be a regulated domain.
+ID245	MFa_ppi_Ste3_[Receptor]	!	MFa	N/A		Reactants always required for reactions. Only included for display purposes, as they are external simuli (inputs).
+ID246	MFalpha_ppi_Ste2_[Receptor]	!	MFalpha	N/A		Reactants always required for reactions. Only included for display purposes, as they are external simuli (inputs).
+ID247	Cdc4_[WD40]_ppi_Tec1_[CPD]	!	Tec1_[(T276)]-{P}	19897738	Fluorescence anisotropy using Tec1-peptides. Genetic. Non-phosphorable Tec1-mutants are resistant to degradation.	
+ID248	Cdc4_[WD40]_ppi_Tec1_[CPD]	!	Tec1_[(T273)]-{P}	15620356, 19897738	Reconstituted complex. Fluorescence anisotropy using Tec1-peptides. Genetic. Non-phosphorable Tec1-mutants are resistant to degradation.	
+ID249	[TCS-Tec1-Ste12-transcription]	!	Ste12_[n/DB]--Tec1	16782869	Genetic. Preventing interaction between Ste12 and Tec1 blocks transcription.	
+ID250	Fus3_[KD]_P+_Tec1_[(T276)]	!	Fus3_[(T180)]-{P}	1628831, 8384702	In vitro kinase assay, WT and residue mutant. Neded of Fus3 activation.	
+ID251	Fus3_[KD]_P+_Tec1_[(T276)]	!	Fus3_[(Y182)]-{P}	1628831, 8384702	In vitro kinase assay, WT and residue mutant. Neded of Fus3 activation.	
+ID252	SCF_Ub+_Tec1	!	Cdc4--SCF	15620356, 19897738	Genetic. Pheromone induced Tec1 ubiquitination and degradation dependent on Cdc4, Cdc34.	
+ID253	[TCS-PRE-(FRE)-transcription]	!	Ste12_[n/HTH]--PRE	9036858	Genetic. Functional elements of both TCS and PRE are needed for  normal expression.	
+ID254	[TCS-PRE-(FRE)-transcription]	!	Tec1_[n/TEA]--TCS	9036858	Genetic. Functional elements of both TCS and PRE are needed for  normal expression.	
+ID255	[TCS-PRE-(FRE)-transcription]	x	Dig1--Ste12_[c]	16782869	Genetic. Strong increase of basal signalling in dig1-delta cells.	
+ID256	Hog1_[n]_ppi_Hot1_[m]	!	Hog1_[(T174)]-{P}	11336700, 12743037	Genetic. Interaction and recruitment to Hot1-regulated promoters dependent on Pbs2 mediated activation of Hog1. Required for nuclear localisaiton of Hog1, which, in turn, is required for interaction with Hot1 on the DNA	
+ID257	Hog1_[n]_ppi_Hot1_[m]	!	Hog1_[(Y176)]-{P}	11336700, 12743037	Genetic. Interaction and recruitment to Hot1-regulated promoters dependent on Pbs2 mediated activation of Hog1. Required for nuclear localisaiton of Hog1, which, in turn, is required for interaction with Hot1 on the DNA	
+ID258	Slt2_[DB]_ppi_Swi4_[c]	0	Swi4_[c]--Swi6_[c]	11533240	Reconstituted complex. Slt2-Swi4-Swi6 exists in a ternary complex.	
+ID259	#REF!	0	Slt2_[DB]--Swi4_[c]	11533240	Reconstituted complex. Slt2-Swi4-Swi6 exists in a ternary complex.	
+ID260	Yps1_CUT_Msb2_[HMH/CD]	K+	[NutrientDeprivation]	18591427	Genetic. Western blot of secreted Msb2 shows truncation in a Yps1 dependent manner. Nutrient-regulation is indirect via upregulation of Yps1 expression during Nutrient-depravation.	Nutrient-regulation is indirect via upregulation of Yps1 expression during Nutrient-depravation.
+ID261	Msb2_[CyT]_ppi_Sho1_[CyT]	K+	Msb2_[HMH/CD]-{Truncated}	18591427, 17627274	Genetic. Msb2 truncated in its extracellular Ser/Thr-rich domain (including Mucin domain) is hyperactivating both the HOG and Filamentation pathways in a Sho1 dependent manner.	
+ID262	Hkr1_[TMD]_ppi_Sho1_[TMD]	K-	[Turgor]	17627274	Genetic. Hyperosmolarity activates Sho1 in a Hkr1 dependent manner. Hkr1-Sho1 protein-protein interaction needed for activation.	Unclear if turgor prevents binding or only change it. However, interaction is needed to transduce the response to hyperosmotic stress. Ecto-domains important for signal transduction.
+ID263	Msb2_[TMD]_ppi_Sho1_[TMD]	K-	[Turgor]	17627274	Genetic. Hyperosmolarity activates Sho1 in a Msb2 dependent manner. Msb2-Sho1 protein-protein interaction needed for activation.	Unclear if turgor prevents binding or only change it. However, interaction is needed to transduce the response to hyperosmotic stress. Ecto-domains important for signal transduction.
+ID264	Msb2_[CyT]_ppi_Sho1_[CyT]	K-	[Turgor]	17627274	Genetic. Hyperosmolarity activates Sho1 in a Msb2 dependent manner. Msb2-Sho1 protein-protein interaction needed for activation.	Unclear if turgor prevents binding or only change it. However, interaction is needed to transduce the response to hyperosmotic stress. Ecto-domains important for signal transduction.
+ID265	Sho1_[CyT]_ppi_Ste11_[BD:Sho1]	K+	Hkr1_[TMD]--Sho1_[TMD]	17627274, 16778768	Genetic. Hyperosmolarity activates Sho1 in a Hkr1 dependent manner. Hkr1-Sho1 protein-protein interaction needed for activation (ref 17627274). CoIP. Hyperactive mutants of Sho1 binds stronger to Ste11 (ref 16778768).	Unclear if turgor prevents binding or only change it. However, interaction is needed to transduce the response to hyperosmotic stress. Ecto-domains important for signal transduction.
+ID266	Sho1_[CyT]_ppi_Ste11_[BD:Sho1]	K+	Msb2_[TMD]--Sho1_[TMD]	17627274, 16778768	Genetic. Hyperosmolarity activates Sho1 in a Msb2 dependent manner. Msb2-Sho1 protein-protein interaction needed for activation (ref 17627274). CoIP. Hyperactive mutants of Sho1 binds stronger to Ste11 (ref 16778768).	Unclear if turgor prevents binding or only change it. However, interaction is needed to transduce the response to hyperosmotic stress. Ecto-domains important for signal transduction.
+ID267	Sho1_[CyT]_ppi_Ste11_[BD:Sho1]	K+	Msb2_[CyT]--Sho1_[CyT]	17627274, 16778768	Genetic. Hyperosmolarity activates Sho1 in a Msb2 dependent manner. Msb2-Sho1 protein-protein interaction needed for activation (ref 17627274). CoIP. Hyperactive mutants of Sho1 binds stronger to Ste11 (ref 16778768).	Unclear if turgor prevents binding or only change it. However, interaction is needed to transduce the response to hyperosmotic stress. Ecto-domains important for signal transduction.
+ID268	Pbs2_[RSD2/PR]_ppi_Sho1_[CyT/SH3]	K+	Hkr1_[TMD]--Sho1_[TMD]	17627274, 10980703	Genetic: Hyperosmolarity activates Sho1 in a Hkr1 dependent manner. Hkr1-Sho1 protein-protein interaction needed for activation (ref 17627274). Fluorescence microscopy: Pbs2-GFP is localized to polarized membrane areas (same as Sho1) during hyper-osmotic stress (turgor loss) in a Pbs2_[RSD2/PR]_ppi_Sho1_[CyT/SH3] dependent manner (ref 10980703).	Unclear if turgor prevents binding or only change it. However, interaction is needed to transduce the response to hyperosmotic stress. Ecto-domains important for signal transduction.
+ID269	Pbs2_[RSD2/PR]_ppi_Sho1_[CyT/SH3]	K+	Msb2_[TMD]--Sho1_[TMD]	17627274, 10980703	Genetic: Hyperosmolarity activates Sho1 in a Msb2 dependent manner. Msb2-Sho1 protein-protein interaction needed for activation (ref 17627274). Fluorescence microscopy: Pbs2-GFP is localized to polarized membrane areas (same as Sho1) during hyper-osmotic stress (turgor loss) in a Pbs2_[RSD2/PR]_ppi_Sho1_[CyT/SH3] dependent manner (ref 10980703).	Unclear if turgor prevents binding or only change it. However, interaction is needed to transduce the response to hyperosmotic stress. Ecto-domains important for signal transduction.
+ID270	Pbs2_[RSD2/PR]_ppi_Sho1_[CyT/SH3]	K+	Msb2_[CyT]--Sho1_[CyT]	17627274, 10980703	Genetic: Hyperosmolarity activates Sho1 in a Msb2 dependent manner. Msb2-Sho1 protein-protein interaction needed for activation (ref 17627274). Fluorescence microscopy: Pbs2-GFP is localized to polarized membrane areas (same as Sho1) during hyper-osmotic stress (turgor loss) in a Pbs2_[RSD2/PR]_ppi_Sho1_[CyT/SH3] dependent manner (ref 10980703).	Unclear if turgor prevents binding or only change it. However, interaction is needed to transduce the response to hyperosmotic stress. Ecto-domains important for signal transduction.
+ID271	[RLM-transcription]	K+	Rlm1_[c(S427)]-{P}	12410835	Genetic. S427A residue mutant shows impaired transcriptional acticity. 	Rlm1 S427A and T439A mutations are additive. The regulatory mechanism is independent from the Rlm1-DNA binding.
+ID272	[RLM-transcription]	K+	Rlm1_[c(T439)]-{P}	12410835	Genetic. T439A residue mutant shows impaired transcriptional acticity. 	Rlm1 S427A and T439A mutations are additive. The regulatory mechanism is independent from the Rlm1-DNA binding.
+ID273	Cdc42_ppi_Ste50_[RA]	0	Cdc42_[GnP]-{P}	16428446	Affinity purification. Ste50 binds both Cdc42-GDP and Cdc42-GTP.	
+ID274	Hog1_[PBD-2]_ppi_Pbs2_[HBD-1]	K+	Hog1_[CD]--Pbs2_[HBD-1]	18212044	CoIP. Detailed mutational study shows that binding-mutations in the Hog1_[CD] domain, severily impairs the Hog1_[PBD-2]-Pbs2_[HBD-1] binding. Further,  deletion of the Hog1_[CD] domain displays normal Hog1_[PBD-2]-Pbs2_[HBD-1] binding, indicating that the Hog1_[PBD-2] domain might be in a "locked" conformation unless Pbs2 binds to the Hog1_[CD] domain.	
+ID275	Hog1_[CD]_ppi_Ptp2	K+	Hog1_[(Y176)]-{P}	18212044	CoIP. Phosphatase-impaired ptp2 mutant bindsstronger to Hog1_Y176-p.	
+ID276	Fus3_[n]_ppi_Gpa1_[n]	K+	Gpa1_[GnP]-{P}	12029138	CoIP. GTP-bound Gpa1 increases binding.	
+ID277	Fus3_[n]_ppi_Gpa1_[n]	K+	Fus3_[(T180)]-{P}	12029138	CoIP. activated Fus3 increases binding. Phosphatase treatment of Fus3 decreases binding.	
+ID278	Fus3_[n]_ppi_Gpa1_[n]	K+	Fus3_[(Y182)]-{P}	12029138	CoIP. activated Fus3 increases binding. Phosphatase treatment of Fus3 decreases binding.	
+ID279	Fus3_[CD]_ppi_Ptp3_[CH2]	0	Fus3_[(Y182)]-{P}	10557209	CoIP. Binding is not affected by Y182F mutation or pheromone treatment.	
+ID280	Ste5_[BD:Ste5]_ppi_Ste5_[BD:Ste5]	!	Ste4_[BD:Ste5]--Ste5_[n/RING-H2]	9311911	Genetic. Artificial dimerisation domain (GST) restores mating in RING-H2 mutants which cannot bind Ste4 (or mate)	
+ID281	Far1_[n/RING-H2]_ppi_Ste4	0	Cdc24--Ste4	10087263	Ternary Far1-Cdc24-Ste4 comlex shown using reconstituted complexes.	
+ID282	Cdc24_ppi_Ste4	0	Far1_[n/RING-H2]--Ste4	10087263	Ternary Far1-Cdc24-Ste4 comlex shown using reconstituted complexes.	
+ID283	<Ste11^{M/5}>	AND	Ste5_[MEKK]--Ste11	N/A	N/A	N/A
+ID284	<Ste11^{M/5}>	AND	<Ste5^{M}>	N/A	N/A	N/A
+ID285	<Ste5^{M}>	AND	Ste4_[BD:Ste5]--Ste5_[n/RING-H2]	N/A	N/A	N/A
+ID286	<Ste5^{M}>	AND	Ste4--Ste18	N/A	N/A	N/A
+ID287	<Cdc24^{M}>	OR	<Cdc24^{M/4}>	N/A	N/A	N/A
+ID288	<Cdc24^{M}>	OR	<Cdc24^{M/F}>	N/A	N/A	N/A
+ID289	<Cdc24^{M}>	OR	[START]	N/A	N/A	N/A
+ID290	<Cdc24^{M/4}>	OR	Cdc24--Ste4	N/A	N/A	N/A
+ID291	<Cdc24^{M/4}>	OR	Ste4--Ste18	N/A	N/A	N/A
+ID292	<Cdc24^{M/F}>	AND	Cdc24--Far1_[c]	N/A	N/A	N/A
+ID293	<Cdc24^{M/F}>	AND	<Far1^{M}>	N/A	N/A	N/A
+ID294	<Pbs2-Nbp2-Ptc1>	AND	Nbp2_[SH3]--Pbs2_[SIM2]	N/A	N/A	N/A
+ID295	<Pbs2-Nbp2-Ptc1>	AND	Nbp2_[n]--Ptc1	N/A	N/A	N/A
+ID296	<Far1^{M}>	AND	Far1_[n/RING-H2]--Ste4	N/A	N/A	N/A
+ID297	<Far1^{M}>	AND	Ste4--Ste18	N/A	N/A	N/A
+ID298	<Ste11^{M}>	OR	Sho1_[CyT]--Ste11_[BD:Sho1]	N/A	N/A	N/A
+ID299	<Ste11^{M}>	OR	<Ste11^{M/5}>	N/A	N/A	N/A
+ID300	<Ste11^{M/50}>	AND	Opy2_[BD:Ste50]--Ste50_[RA]	N/A	N/A	N/A
+ID301	<Ste11^{M/50}>	AND	Ste11_[SAM]--Ste50_[SAM]	N/A	N/A	N/A
+ID302	<FIL-signal>	AND	Cdc42--Msb2_[CyT]	N/A	N/A	N/A
+ID303	<FIL-signal>	AND	Msb2_[CyT]--Sho1_[CyT]	N/A	N/A	N/A
+ID304	<SKO/R>	AND	Sko1_[bZIP]--CRE	N/A	N/A	N/A
+ID305	<SKO/R>	AND	Sko1_[n]--Tup1	N/A	N/A	N/A
+ID306	<SKO/R>	AND	Cyc8_[TPR1-3]--Tup1_[n]	N/A	N/A	N/A
+ID307	<Ste7-5-5-11>	AND	Ste5_[MEKK]--Ste11	N/A	N/A	N/A
+ID308	<Ste7-5-5-11>	AND	Ste5_[MEK]--Ste7	N/A	N/A	N/A
+ID309	<Ste7-5-5-11>	AND	Ste5_[BD:Ste5]--Ste5_[BD:Ste5]	N/A	N/A	N/A
+ID310	<STE11-7>	OR	Ste7--Ste11	N/A	N/A	N/A
+ID311	<STE11-7>	OR	<Ste7-5-5-11>	N/A	N/A	N/A
+ID312	<Ssk1Ssk2>	AND	Ssk1_[BD:Ssk1]--Ssk1_[BD:Ssk1]	N/A	N/A	N/A
+ID313	<Ssk1Ssk2>	AND	Ssk1_[RR]--Ssk2_[BD:Ssk1]	N/A	N/A	N/A

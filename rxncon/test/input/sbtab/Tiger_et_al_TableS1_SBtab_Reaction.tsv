@@ -1,0 +1,54 @@
+!!SBtab TableType='Reaction' TableName='Reaction definitions'																	
+!Reaction	!Category:Type	!Category	!SubclassID	!Subclass	!ModifierOrBoundary	!ReactionType:ID	!ReactionType	!Reaction:Name	!Reversibility	!Directionality	!SourceState:Component	!SourceState:Modification	!ProductState:Component	!ProductState:Modification	!coSubstrates	coProducts	!Comment
+P+	1	Covalent Modification	1.1	(De)Phosphorylation	P	1.1.1	P+	phosphorylation	irreversible	unidirectional	N/A	N/A	ComponentB	-{P}	ATP	ADP	
+P-	1	Covalent Modification	1.1	(De)Phosphorylation	P	1.1.2	P-	dephosphorylation	irreversible	unidirectional	ComponentB	-{P}	N/A	N/A	N/A	Pi	
+AP	1	Covalent Modification	1.1	(De)Phosphorylation	P	1.1.3	AP	Autophosphorylation	irreversible	unidirectional	N/A	N/A	ComponentB	-{P}	ATP	ADP	
+PT	1	Covalent Modification	1.1	(De)Phosphorylation	P	1.1.4	PT	Phosphotransfer	irreversible	bidirectional	ComponentA	-{P}	ComponentB	-{P}	N/A	N/A	
+GEF	1	Covalent Modification	1.2	GTP/GDP hydrolysis/exchange	P	1.2.1	GEF	Guanine Nucleotide Exchange	irreversible	unidirectional	N/A	N/A	ComponentB	-{P}	GTP	GDP	*G-proteins are assumed to bind GDP in their "basic" state. Exchange to GTP is denoted with the additional -{Pi}, which constitute the difference between the nucleotides.
+GAP	1	Covalent Modification	1.2	GTP/GDP hydrolysis/exchange	P	1.2.2	GAP	GTPase Activation	irreversible	unidirectional	ComponentB	-{P}	N/A	N/A	N/A	Pi	*G-proteins are assumed to bind GDP in their "basic" state. Exchange to GTP is denoted with the additional -{Pi}, which constitute the difference between the nucleotides.
+Ub+	1	Covalent Modification	1.3	(De)Ubiquitination	Ub	1.3.1	Ub+	Ubiquitination	irreversible	unidirectional	N/A	N/A	ComponentB	-{Ub}	Ubiquitin, ATP	ADP, Pi	
+CUT	1	Covalent Modification	1.4	Proteolytic processing	Truncated	1.4	CUT	Proteolytic cleavage	irreversible	unidirectional	N/A	N/A	ComponentB	-{Truncated}	N/A	N/A	
+%																	
+ppi	2	Association	2.1	ppi	N/A	2.1.1	ppi	protein-protein interaction	reversible	nondirectional	N/A	N/A	ComponentA	--ComponentB	N/A	N/A	
+ipi	2	Association	2.1	ipi		2.1.2	ipi	intra-protein interaction	reversible	nondirectional	N/A	N/A	ComponentA	--ComponentB	N/A	N/A	*Self interaction
+i	2	Association	2.2	i	N/A	2.2	i	interaction (non-proteins)	reversible	nondirectional	N/A	N/A	ComponentA	--ComponentB	N/A	N/A	
+BIND	2	Association	2.3	BIND	N/A	2.3	BIND	Binding to DNA	reversible	nondirectional	N/A	N/A	ComponentA	--ComponentB	N/A	N/A	
+%																	
+TRSC	3	Synthesis/Degradation	3.1	TRSC	N/A	3.1	TRSC	Transcription	irreversible	unidirectional	N/A	N/A	ComponentB-mRNA	N/A	NTP	?	
+TRSL	3	Synthesis/Degradation	3.2	TRSL	N/A	3.2	TRSL	Translation	irreversible	unidirectional	N/A	N/A	ComponentB	N/A	AA, ATP	?	
+DEG	3	Synthesis/Degradation	3.3	DEG	N/A	3.3	DEG	Degradation	irreversible	unidirectional	ComponentB	N/A	N/A	N/A	?	?	
+%																	
+NIMP	4	Relocalisation	4.1	Protein Translocation	Cytoplasm, Nucleus	4.1.1	NIMP	Nuclear import	irreversible	unidirectional	ComponentB	-{Cytoplasm}	ComponentB	-{Nucleus}	N/A	N/A	
+NEXP	4	Relocalisation	4.1	Protein Translocation	Nucleus, Cytoplasm	4.1.2	NEXP	Nuclear export	irreversible	unidirectional	ComponentB	-{Nucleus}	ComponentB	-{Cytoplasm}	N/A	N/A	
+TrnsComCom	4	Relocalisation	4.2	Active transport	CompartmentA, CompartmentB		TrnsComCom		irreversible	unidirectional	ComponentB	-{CompartmentA}	ComponentB	-{CompartmentB}	?	?	Template active transport
+TrnsCytExt	4	Relocalisation	4.2	Active transport	Cytoplasm, Extracellular	4.2.1	TrnsCytExt	Plasma membrane Cyt-˃Ext ATPase pump	irreversible	unidirectional	ComponentB	-{Cytoplasm}	ComponentB	-{Extracellular}	ATP	ADP, Pi	
+TrnsCytVac	4	Relocalisation	4.2	Active transport	Cytoplasm, Vacuole	4.2.2	TrnsCytVac	Vacuolar Cyt-˃Vac ATPase pump	irreversible	unidirectional	ComponentB	-{Cytoplasm}	ComponentB	-{Vacuole}	ATP	ADP, Pi	
+SymComCom	4	Relocalisation	4.3	Symport	CompartmentA, CompartmentB		SymComCom		reversible	unidirectional	ComponentB, ComponentB	-{CompartmentA}, -{CompartmentA}	ComponentB, ComponentB	-{CompartmentB}, -{CompartmentB}	N/A	N/A	Template symport
+SymExtCyt	4	Relocalisation	4.3	Symport	Extracellular, Cytoplasm	4.3.1	SymExtCyt	Plasma membrane symporter	reversible	unidirectional	ComponentB, ComponentB	-{Extracellular}, -{Extracellular}	ComponentB, ComponentB	-{Cytoplasm}, -{Cytoplasm}	N/A	N/A	
+SymCytVac	4	Relocalisation	4.3	Symport	Cytoplasm, Vacuole	4.3.2	SymCytVac	Vacuolar membrane symporter	reversible	unidirectional	ComponentB, ComponentB	-{Cytoplasm}, -{Cytoplasm}	ComponentB, ComponentB	-{Vacuole}, -{Vacuole}	N/A	N/A	
+SymCytMit	4	Relocalisation	4.3	Symport	Cytoplasm, Mitochondria	4.3.3	SymCytMit	Mitochondrial membrane symporter	reversible	unidirectional	ComponentB, ComponentB	-{Cytoplasm}, -{Cytoplasm}	ComponentB, ComponentB	-{Mitochondria}, -{Mitochondria}	N/A	N/A	
+SymCytEnd	4	Relocalisation	4.3	Symport	Cytoplasm, Endosome	4.3.4	SymCytEnd	Endosomal membrane symporter	reversible	unidirectional	ComponentB, ComponentB	-{Cytoplasm}, -{Cytoplasm}	ComponentB, ComponentB	-{Endosome}, -{Endosome}	N/A	N/A	
+APComCom	4	Relocalisation	4.4	Antiport	CompartmentA, CompartmentB		APComCom		reversible	unidirectional	ComponentB, ComponentB	-{CompartmentA}, -{CompartmentB}	ComponentB, ComponentB	-{CompartmentB}, -{CompartmentA}	N/A	N/A	Template antiport
+APExtCyt	4	Relocalisation	4.4	Antiport	Extracellular, Cytoplasm	4.4.1	APExtCyt	Plasma membrane antiporter	reversible	unidirectional	ComponentB, ComponentB	-{Extracellular}, -{Cytoplasm}	ComponentB, ComponentB	-{Cytoplasm}, -{Extracellular}	N/A	N/A	
+APCytVac	4	Relocalisation	4.4	Antiport	Cytoplasm, Vacuole	4.4.2	APCytVac	Vacuolar membrane antiporter	reversible	unidirectional	ComponentB, ComponentB	-{Cytoplasm}, -{Vacuole}	ComponentB, ComponentB	-{Vacuole}, -{Cytoplasm}	N/A	N/A	
+APCytMit	4	Relocalisation	4.4	Antiport	Cytoplasm, Mitochondria	4.4.3	APCytMit	Mitochondrial membrane antiporter	reversible	unidirectional	ComponentB, ComponentB	-{Cytoplasm}, -{Mitochondria}	ComponentB, ComponentB	-{Mitochondria}, -{Cytoplasm}	N/A	N/A	
+APCytEnd	4	Relocalisation	4.4	Antiport	Cytoplasm, Endosome	4.4.4	APCytEnd	Endosomal membrane antiporter	reversible	unidirectional	ComponentB, ComponentB	-{Cytoplasm}, -{Endosome}	ComponentB, ComponentB	-{Endosome}, -{Cytoplasm}	N/A	N/A	
+FDComCom	4	Relocalisation	4.5	Facilitated diffusion	CompartmentA, CompartmentB		FDComCom		reversible	unidirectional	ComponentB	-{CompartmentA}	ComponentB	-{CompartmentB}	N/A	N/A	Template facilitated diffusion
+FDExtCyt	4	Relocalisation	4.5	Facilitated diffusion	Extracellular, Cytoplasm	4.5.1	FDExtCyt	Plasma membrane channel	reversible	unidirectional	ComponentB	-{Extracellular}	ComponentB	-{Cytoplasm}	N/A	N/A	
+FDCytVac	4	Relocalisation	4.5	Facilitated diffusion	Cytoplasm, Vacuole	4.5.2	FDCytVac	Vacuolar membrane channel	reversible	unidirectional	ComponentB	-{Cytoplasm}	ComponentB	-{Vacuole}	N/A	N/A	
+FDCytMit	4	Relocalisation	4.5	Facilitated diffusion	Cytoplasm, Mitochondria	4.5.3	FDCytMit	Mitochondrial membrane channel	reversible	unidirectional	ComponentB	-{Cytoplasm}	ComponentB	-{Mitochondria}	N/A	N/A	
+FDCytEnd	4	Relocalisation	4.5	Facilitated diffusion	Cytoplasm, Endosome	4.5.4	FDCytEnd	Endosomal membrane channel	reversible	unidirectional	ComponentB	-{Cytoplasm}	ComponentB	-{Endosome}	N/A	N/A	
+%																	
+M	5	Metabolic conversion	?	?	N/A	5	M	?	?	unidirectional	Substrates[List]	N/A	Products[List]	N/A	?	?	
+Mrev	5	Metabolic conversion	5.1	Reversible	N/A	5.1	Mrev	Reversible	revereible	unidirectional	Substrates[List]	N/A	Products[List]	N/A	?	?	
+Mirrev	5	Metabolic conversion	5.2	Irreversible	N/A	5.2	Mirrev	Irreversible	irreversible	unidirectional	Substrates[List]	N/A	Products[List]	N/A	?	?	
+%																	
+%																	
+%																	
+%																	
+%Genetic evidence only (g_) or mapped from review paper (r_):																	
+g_ppi	2	Association	2.1	ppi	N/A	2.1.1	ppi	protein-protein interaction	reversible	nondirectional	N/A	N/A	ComponentA	--ComponentB	N/A	N/A	
+g_P+	1	Covalent Modification	1.1	(De)Phosphorylation	P	1.1.1	P+	phosphorylation	irreversible	unidirectional	N/A	N/A	ComponentB	-{P}	ATP	ADP	
+g_P-	1	Covalent Modification	1.1	(De)Phosphorylation	P	1.1.2	P-	dephosphorylation	irreversible	unidirectional	ComponentB	-{P}	N/A	N/A	N/A	Pi	
+g_CUT	1	Covalent Modification	1.4	Proteolytic processing	Truncated	1.4	CUT	Proteolytic cleavage	irreversible	unidirectional	N/A	N/A	ComponentB	-{Truncated}	N/A	N/A	
+g_GEF	1	Covalent Modification	1.2	GTP/GDP hydrolysis/exchange	P	1.2.1	GEF	Guanine Nucleotide Exchange	irreversible	unidirectional	N/A	N/A	ComponentB	-{P}	GTP	GDP	*G-proteins are assumed to bind GDP in their "basic" state. Exchange to GTP is denoted with the additional -{Pi}, which constitute the difference between the nucleotides.
