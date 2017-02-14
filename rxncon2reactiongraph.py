@@ -144,9 +144,9 @@ def setup_logging_colors():
 
 
 if __name__ == '__main__':
-    #try:
+    try:
         setup_logging_colors()
         run()
-    #except Exception as e:
-    #    print('ERROR: {}\n{}\nPlease re-run this command with the \'-v DEBUG\' option.'.format(type(e), e))
+    except Exception as e:
+       print('ERROR: {}\n{}\nPlease re-run this command with the \'-v DEBUG\' option.'.format(type(e), e))
 
