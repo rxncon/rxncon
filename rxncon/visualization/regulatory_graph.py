@@ -7,7 +7,6 @@ from rxncon.venntastic.sets import Union as VennUnion, Complement, ValueSet, Set
 from rxncon.core.contingency import ContingencyType
 from rxncon.core.state import State
 from rxncon.core.spec import Spec
-
 from rxncon.core.rxncon_system import RxnConSystem, Reaction, ReactionTerm, Contingency
 from rxncon.core.effector import StateEffector, AndEffector, NotEffector, OrEffector, Effector
 
