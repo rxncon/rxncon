@@ -4,7 +4,7 @@ from itertools import product
 from typing import List, Dict, Tuple, Optional
 from abc import ABCMeta
 
-from rxncon.core.reaction import Reaction
+from rxncon.core.reaction import Reaction, OutputReaction
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.spec import Spec
 from rxncon.core.state import State, InteractionState
@@ -251,6 +251,16 @@ class ReactionTarget(Target):  # pylint: disable=too-many-instance-attributes
         assert spec.is_component_spec
         return spec in self.synthesised_components
 
+    def is_output(self) -> bool:
+        """
+        Checks if the ReactionTarget is an OUTPUT
+
+        Returns:
+            bool
+
+        """
+        return isinstance(self.reaction_parent, OutputReaction)
+
 
 class StateTarget(Target):
     """
@@ -325,6 +335,16 @@ class StateTarget(Target):
 
         """
         return reaction_target.degrades(self)
+
+    def is_input(self) -> bool:
+        """
+        Checks if the StateTarget is an INPUT
+
+        Returns:
+            bool
+
+        """
+        return self.state_parent.is_global
 
     @property
     def components(self) -> List[Spec]:
@@ -888,6 +908,34 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         for overexpression_target in overexpression_targets:
             overexpression_rules.append(UpdateRule(overexpression_target, ValueSet(overexpression_target)))
 
+    def update_input_output_rules() -> None:
+        """
+        Updating the input update rule by a output update rule if both target names are matching.
+
+        Mutates:
+            reaction_targets: List of reaction targets
+            reaction_rules: List of update rules of reaction targets
+            state_rules: List of update rules of state targets
+
+        Returns:
+            None
+
+        """
+        def remove_output_reaction_rules_and_reaction_targets():
+            for rule_to_delete in to_delete:
+                reaction_targets.remove(rule_to_delete.target)
+                reaction_rules.remove(rule_to_delete)
+
+        to_delete = []  # type: List[UpdateRule]
+        for reaction_rule in reaction_rules:
+            for state_rule in state_rules:
+                if reaction_rule.target.is_output and state_rule.target.is_input and \
+                                str(reaction_rule.target) == str(state_rule.target):
+                    state_rule.factor = reaction_rule.factor
+                    to_delete.append(reaction_rule)
+
+        remove_output_reaction_rules_and_reaction_targets()
+
     component_presence_factor, component_state_targets = calc_component_presence_factors()
 
     state_targets    = [StateTarget(x) for x in rxncon_sys.states]  # type: List[StateTarget]
@@ -913,6 +961,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
     update_state_rules_with_overexpressions(overexpression_strategy)
     calc_knockout_rules()
     calc_overexpression_rules()
+    update_input_output_rules()
 
     return BooleanModel(state_targets + reaction_targets + knockout_targets + overexpression_targets,
                         reaction_rules + state_rules + knockout_rules + overexpression_rules,
