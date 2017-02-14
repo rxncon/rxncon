@@ -908,8 +908,20 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         for overexpression_target in overexpression_targets:
             overexpression_rules.append(UpdateRule(overexpression_target, ValueSet(overexpression_target)))
 
-    def calc_input_output_rules() -> None:
-        def removing_output_reaction_rules_and_reaction_targets():
+    def update_input_output_rules() -> None:
+        """
+        Updating the input update rule by a output update rule if both target names are matching.
+
+        Mutates:
+            reaction_targets: List of reaction targets
+            reaction_rules: List of update rules of reaction targets
+            state_rules: List of update rules of state targets
+
+        Returns:
+            None
+
+        """
+        def remove_output_reaction_rules_and_reaction_targets():
             for rule_to_delete in to_delete:
                 reaction_targets.remove(rule_to_delete.target)
                 reaction_rules.remove(rule_to_delete)
@@ -922,9 +934,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                     state_rule.factor = reaction_rule.factor
                     to_delete.append(reaction_rule)
 
-        removing_output_reaction_rules_and_reaction_targets()
-
-
+        remove_output_reaction_rules_and_reaction_targets()
 
     component_presence_factor, component_state_targets = calc_component_presence_factors()
 
@@ -951,7 +961,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
     update_state_rules_with_overexpressions(overexpression_strategy)
     calc_knockout_rules()
     calc_overexpression_rules()
-    calc_input_output_rules()
+    update_input_output_rules()
 
     return BooleanModel(state_targets + reaction_targets + knockout_targets + overexpression_targets,
                         reaction_rules + state_rules + knockout_rules + overexpression_rules,
