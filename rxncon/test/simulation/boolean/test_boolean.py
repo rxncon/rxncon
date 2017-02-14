@@ -613,3 +613,162 @@ def test_homodimer_degradation() -> None:
              Ste5_[Ste5]_ppi+_Ste5_[Ste5]
              """).rxncon_system)
 
+
+def test_input() -> None:
+    boolean_model = boolean_model_from_rxncon(Quick("""A_p+_B_[(a)]; ! [global]
+                                                        """).rxncon_system)
+
+    # Component expressions.
+    A = 'A'
+    B = '( B_[(a)]-{0} | B_[(a)]-{p} )'
+
+    expected_rules = {
+        'A_p+_B_[(a)]': '{0} & {1} & [global]'.format(A, B),
+        '[global]'    : '[global]'
+    }
+
+    for update_rule in boolean_model.update_rules:
+        if update_rule.target == target_from_str('A_p+_B_[(a)]'):
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+        elif update_rule.target == target_from_str('[global]'):
+            assert isinstance(update_rule.target, StateTarget)
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+
+
+def test_output() -> None:
+    """
+    Testing if output reactions without defining input states
+
+    Returns:
+        None
+
+    Raises:
+        Assertion error if the update rules are not as expected.
+
+    """
+    boolean_model = boolean_model_from_rxncon(Quick("""A_p+_B_[(a)]
+                                                        [global]; ! B_[(a)]-{p}""").rxncon_system)
+    # Component expressions.
+    A = 'A'
+    B = '( B_[(a)]-{0} | B_[(a)]-{p} )'
+
+    expected_rules = {
+        'A_p+_B_[(a)]': '{0} & {1}'.format(A, B),
+        '[global]'    : 'B_[(a)]-{p}'
+    }
+
+    for update_rule in boolean_model.update_rules:
+        if update_rule.target == target_from_str('A_p+_B_[(a)]'):
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+        elif update_rule.target == target_from_str('[global]'):
+            assert isinstance(update_rule.target, ReactionTarget)
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+
+
+def test_relation_input_output() -> None:
+    """
+    Testing if output reactions with matching input states
+
+    Returns:
+        None
+
+    Raises:
+        Assertion error if the update rules are not as expected.
+
+    """
+    boolean_model = boolean_model_from_rxncon(Quick("""A_p+_B_[(a)]; ! [global]
+                                                        [global]; ! B_[(a)]-{p}""").rxncon_system)
+
+    # Component expressions.
+    A = 'A'
+    B = '( B_[(a)]-{0} | B_[(a)]-{p} )'
+
+    expected_rules = {
+        'A_p+_B_[(a)]': '{0} & {1} & [global]'.format(A, B),
+        '[global]'    : 'B_[(a)]-{p}'
+    }
+
+    for update_rule in boolean_model.update_rules:
+        if update_rule.target == target_from_str('A_p+_B_[(a)]'):
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+        elif update_rule.target == target_from_str('[global]'):
+            assert isinstance(update_rule.target, StateTarget)
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+
+
+def test_multiple_matching_input_one_output() -> None:
+    """
+    Testing if output reactions with multiple matching input states
+
+    Returns:
+        None
+
+    Raises:
+        Assertion error if the update rules are not as expected.
+
+    """
+    boolean_model = boolean_model_from_rxncon(Quick("""A_p+_B_[(a)]; ! [global]
+                                                        A_p+_B_[(a1)]; ! [global]
+                                                        [global]; ! B_[(a)]-{p}""").rxncon_system)
+    # Component expressions.
+    A = 'A'
+    B = '( B_[(a)]-{0} | B_[(a)]-{p} ) & ( B_[(a1)]-{0} | B_[(a1)]-{p} )'
+
+    expected_rules = {
+        'A_p+_B_[(a)]': '{0} & {1} & [global]'.format(A, B),
+        'A_p+_B_[(a1)]': '{0} & {1} & [global]'.format(A, B),
+        '[global]'    : 'B_[(a)]-{p}'
+    }
+
+    assert [update_rule.target for update_rule in boolean_model.update_rules].count(target_from_str('[global]')) == 1
+
+    for update_rule in boolean_model.update_rules:
+        if update_rule.target == target_from_str('A_p+_B_[(a)]'):
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+        elif update_rule.target == target_from_str('A_p+_B_[(a1)]'):
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+        elif update_rule.target == target_from_str('[global]'):
+            assert isinstance(update_rule.target, StateTarget)
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+
+
+def test_matching_non_matching_input_one_output() -> None:
+    """
+    Testing if output reactions with one matching and one non matching input states
+
+    Returns:
+        None
+
+    Raises:
+        Assertion error if the update rules are not as expected.
+
+    """
+    boolean_model = boolean_model_from_rxncon(Quick("""A_p+_B_[(a)]; ! [global]
+                                                        A_p+_B_[(a1)]; ! [global_diff]
+                                                        [global]; ! B_[(a)]-{p}""").rxncon_system)
+
+    # Component expressions.
+    A = 'A'
+    B = '( B_[(a)]-{0} | B_[(a)]-{p} ) & ( B_[(a1)]-{0} | B_[(a1)]-{p} )'
+
+    expected_rules = {
+        'A_p+_B_[(a)]'  : '{0} & {1} & [global]'.format(A, B),
+        'A_p+_B_[(a1)]' : '{0} & {1} & [global_diff]'.format(A, B),
+        '[global]'      : 'B_[(a)]-{p}',
+        '[global_diff]' : '[global_diff]'
+    }
+
+    assert [update_rule.target for update_rule in boolean_model.update_rules].count(target_from_str('[global]')) == 1
+
+    for update_rule in boolean_model.update_rules:
+        if update_rule.target == target_from_str('A_p+_B_[(a)]'):
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+        elif update_rule.target == target_from_str('A_p+_B_[(a1)]'):
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+        elif update_rule.target == target_from_str('[global]'):
+            assert isinstance(update_rule.target, StateTarget)
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+        elif update_rule.target == target_from_str('[global_diff]'):
+            assert isinstance(update_rule.target, StateTarget)
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+
