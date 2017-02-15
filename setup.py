@@ -47,6 +47,9 @@ def install_precompiled_windows_pyeda():
             pyeda_str += '32.whl'
         elif system_version == '64bit':
             pyeda_str += '_amd64.whl'
+        else:
+            raise OSError('System version {} not known.'.format(system_version))
+
 
         print('PyEDA filename: {}'.format(pyeda_str))
         source_path = 'http://rumo.biologie.hu-berlin.de/rxncon_downloads/'
