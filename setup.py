@@ -57,6 +57,7 @@ def install_precompiled_windows_pyeda():
             print('No pre-compiled PyEDA version for your system configuration '
                   'Windows architecture: {0} Python version: {1} available.'
                   .format(system_version, ".".join((str(major), str(minor), str(micro)))))
+            exit(1)
 
 
 if not (version_info.major == 3 and version_info.minor >= 5):
