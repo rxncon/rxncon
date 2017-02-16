@@ -778,7 +778,6 @@ def test_degradation_boolean_NOT_OR() -> None:
     Raises:
         AssertionError: If generated graph differs from expected graph.
 
-
     """
     test_case = RegulatoryGraphTestCase('''A_[x]_ppi+_B_[a]
                                 A_[c]_ppi+_C_[a]
@@ -858,6 +857,186 @@ def test_degradation_boolean_double_negation() -> None:
                               ('NOT', 'comp', EdgeInteractionType.OR),
                               ('A_[(c)]-{p}', 'NOT', EdgeInteractionType.NOT),
                               ('comp', 'D_deg_A', EdgeInteractionType.inhibited)])
+
+    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+
+
+def test_degradation_homodimer() -> None:
+    """
+    Testing degradation of a homodimer
+
+    Note:
+        The homodimer should be degraded completely without any production. Only one Boolean complex, producing B_[a]--0,
+        should be created.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = RegulatoryGraphTestCase('''A_[a1]_ppi+_A_[a2]
+                                           A_[b]_ppi+_B_[a]
+                                           C_deg_A''',
+                                        ['A_[a1]_ppi+_A_[a2]', 'A_[b]_ppi+_B_[a]', 'C_deg_A'],
+                                        ['A_[a1]--A_[a2]', 'A_[a1]--0', 'A_[a2]--0', 'A_[b]--B_[a]', 'B_[a]--0', 'A_[b]--0'],
+                                        [('C_deg_A_ON_A_[b]--B_[a]', " ", 'boolean')],
+                                        [
+                                            ('A_[a1]_ppi+_A_[a2]', 'A_[a1]--A_[a2]', EdgeInteractionType.produce),
+                                            ('A_[a1]_ppi+_A_[a2]', 'A_[a1]--0', EdgeInteractionType.consume),
+                                            ('A_[a1]_ppi+_A_[a2]', 'A_[a2]--0', EdgeInteractionType.consume),
+                                            ('A_[a1]--0', 'A_[a1]_ppi+_A_[a2]', EdgeInteractionType.source_state),
+                                            ('A_[a2]--0', 'A_[a1]_ppi+_A_[a2]', EdgeInteractionType.source_state),
+                                            ('A_[b]_ppi+_B_[a]', 'A_[b]--B_[a]', EdgeInteractionType.produce),
+                                            ('A_[b]_ppi+_B_[a]', 'B_[a]--0', EdgeInteractionType.consume),
+                                            ('A_[b]_ppi+_B_[a]', 'A_[b]--0', EdgeInteractionType.consume),
+                                            ('B_[a]--0', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.source_state),
+                                            ('A_[b]--0', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.source_state),
+
+                                            ('C_deg_A', 'A_[b]--B_[a]', EdgeInteractionType.degrade),
+                                            ('C_deg_A', 'A_[b]--0', EdgeInteractionType.degrade),
+                                            ('C_deg_A', 'A_[a1]--0', EdgeInteractionType.degrade),
+                                            ('C_deg_A', 'A_[a2]--0', EdgeInteractionType.degrade),
+                                            ('C_deg_A', 'A_[a1]--A_[a2]', EdgeInteractionType.degrade),
+
+                                            ('C_deg_A', 'C_deg_A_ON_A_[b]--B_[a]', EdgeInteractionType.AND),
+                                            ('A_[b]--B_[a]', 'C_deg_A_ON_A_[b]--B_[a]', EdgeInteractionType.AND),
+                                            ('C_deg_A_ON_A_[b]--B_[a]', 'B_[a]--0', EdgeInteractionType.produce)])
+    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+
+
+def test_degradation_required_homodimer() -> None:
+    """
+    Testing degradation of homodimer
+
+    Note:
+        The homodimer should be degraded completely without any production. Only B_[a]--0 should be produced by
+        the degradation.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = RegulatoryGraphTestCase('''A_[a1]_ppi+_A_[a2]
+                                           A_[b]_ppi+_B_[a]
+                                           C_deg_A; ! A@0_[a1]--A@1_[a2]''',
+                                        ['A_[a1]_ppi+_A_[a2]', 'A_[b]_ppi+_B_[a]', 'C_deg_A'],
+                                        ['A_[a1]--A_[a2]', 'A_[a1]--0', 'A_[a2]--0', 'A_[b]--B_[a]', 'B_[a]--0', 'A_[b]--0'],
+                                        [('C_deg_A_ON_A_[b]--B_[a]', " ", 'boolean')],
+                                        [
+                                            ('A_[a1]_ppi+_A_[a2]', 'A_[a1]--A_[a2]', EdgeInteractionType.produce),
+                                            ('A_[a1]--A_[a2]', 'C_deg_A', EdgeInteractionType.required),
+                                            ('A_[a1]_ppi+_A_[a2]', 'A_[a1]--0', EdgeInteractionType.consume),
+                                            ('A_[a1]_ppi+_A_[a2]', 'A_[a2]--0', EdgeInteractionType.consume),
+                                            ('A_[a1]--0', 'A_[a1]_ppi+_A_[a2]', EdgeInteractionType.source_state),
+                                            ('A_[a2]--0', 'A_[a1]_ppi+_A_[a2]', EdgeInteractionType.source_state),
+                                            ('A_[b]_ppi+_B_[a]', 'A_[b]--B_[a]', EdgeInteractionType.produce),
+                                            ('A_[b]_ppi+_B_[a]', 'B_[a]--0', EdgeInteractionType.consume),
+                                            ('A_[b]_ppi+_B_[a]', 'A_[b]--0', EdgeInteractionType.consume),
+                                            ('B_[a]--0', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.source_state),
+                                            ('A_[b]--0', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.source_state),
+
+                                            ('C_deg_A', 'A_[b]--B_[a]', EdgeInteractionType.maybe_degraded),
+                                            ('C_deg_A', 'A_[b]--0', EdgeInteractionType.maybe_degraded),
+                                            ('C_deg_A', 'A_[a1]--A_[a2]', EdgeInteractionType.degrade),
+
+                                            ('C_deg_A', 'C_deg_A_ON_A_[b]--B_[a]', EdgeInteractionType.AND),
+                                            ('A_[b]--B_[a]', 'C_deg_A_ON_A_[b]--B_[a]', EdgeInteractionType.AND),
+                                            ('C_deg_A_ON_A_[b]--B_[a]', 'B_[a]--0', EdgeInteractionType.produce)])
+    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+
+
+def test_degradation_maybe_homodimer() -> None:
+    """
+    Testing degradation of homodimer
+
+    Note:
+        The homodimer should maybe degraded completely without any production. B_[a]--0 should be produced by the
+        degradation.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = RegulatoryGraphTestCase('''A_[a1]_ppi+_A_[a2]
+                                           A_[b]_ppi+_B_[a]
+                                           C_deg_A; ! A_[b]--B_[a]''',
+                                            ['A_[a1]_ppi+_A_[a2]', 'A_[b]_ppi+_B_[a]', 'C_deg_A'],
+                                            ['A_[a1]--A_[a2]', 'A_[a1]--0', 'A_[a2]--0', 'A_[b]--B_[a]', 'B_[a]--0', 'A_[b]--0'],
+                                            [('C_deg_A_ON_A_[b]--B_[a]', " ", 'boolean')],
+                                            [
+                                                ('A_[a1]_ppi+_A_[a2]', 'A_[a1]--A_[a2]', EdgeInteractionType.produce),
+
+                                                ('A_[a1]_ppi+_A_[a2]', 'A_[a1]--0', EdgeInteractionType.consume),
+                                                ('A_[a1]_ppi+_A_[a2]', 'A_[a2]--0', EdgeInteractionType.consume),
+                                                ('A_[a1]--0', 'A_[a1]_ppi+_A_[a2]', EdgeInteractionType.source_state),
+                                                ('A_[a2]--0', 'A_[a1]_ppi+_A_[a2]', EdgeInteractionType.source_state),
+                                                ('A_[b]_ppi+_B_[a]', 'A_[b]--B_[a]', EdgeInteractionType.produce),
+                                                ('A_[b]_ppi+_B_[a]', 'B_[a]--0', EdgeInteractionType.consume),
+                                                ('A_[b]_ppi+_B_[a]', 'A_[b]--0', EdgeInteractionType.consume),
+                                                ('B_[a]--0', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.source_state),
+                                                ('A_[b]--0', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.source_state),
+
+                                                ('C_deg_A', 'A_[b]--B_[a]', EdgeInteractionType.degrade),
+                                                ('C_deg_A', 'A_[a1]--0', EdgeInteractionType.maybe_degraded),
+                                                ('C_deg_A', 'A_[a2]--0', EdgeInteractionType.maybe_degraded),
+                                                ('C_deg_A', 'A_[a1]--A_[a2]', EdgeInteractionType.maybe_degraded),
+
+                                                ('A_[b]--B_[a]', 'C_deg_A', EdgeInteractionType.required),
+
+                                                ('C_deg_A', 'C_deg_A_ON_A_[b]--B_[a]', EdgeInteractionType.AND),
+                                                ('A_[b]--B_[a]', 'C_deg_A_ON_A_[b]--B_[a]', EdgeInteractionType.AND),
+                                                ('C_deg_A_ON_A_[b]--B_[a]', 'B_[a]--0', EdgeInteractionType.produce)])
+
+    assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
+
+
+def test_degradation_homodimer_inhibited_heterodimer() -> None:
+    """
+    Testing possible degradation of homodimer if the degradation is inhibited by a heterodimer.
+
+    Note:
+        The homodimer should maybe degraded completely without any production.
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If generated graph differs from expected graph.
+
+    """
+    test_case = RegulatoryGraphTestCase('''A_[a1]_ppi+_A_[a2]
+                                           A_[b]_ppi+_B_[a]
+                                           C_deg_A; x A_[b]--B_[a]''',
+                                            ['A_[a1]_ppi+_A_[a2]', 'A_[b]_ppi+_B_[a]', 'C_deg_A'],
+                                            ['A_[a1]--A_[a2]', 'A_[a1]--0', 'A_[a2]--0', 'A_[b]--B_[a]', 'B_[a]--0', 'A_[b]--0'],
+                                            [],
+                                            [
+                                                ('A_[a1]_ppi+_A_[a2]', 'A_[a1]--A_[a2]', EdgeInteractionType.produce),
+
+                                                ('A_[a1]_ppi+_A_[a2]', 'A_[a1]--0', EdgeInteractionType.consume),
+                                                ('A_[a1]_ppi+_A_[a2]', 'A_[a2]--0', EdgeInteractionType.consume),
+                                                ('A_[a1]--0', 'A_[a1]_ppi+_A_[a2]', EdgeInteractionType.source_state),
+                                                ('A_[a2]--0', 'A_[a1]_ppi+_A_[a2]', EdgeInteractionType.source_state),
+                                                ('A_[b]_ppi+_B_[a]', 'A_[b]--B_[a]', EdgeInteractionType.produce),
+                                                ('A_[b]_ppi+_B_[a]', 'B_[a]--0', EdgeInteractionType.consume),
+                                                ('A_[b]_ppi+_B_[a]', 'A_[b]--0', EdgeInteractionType.consume),
+                                                ('B_[a]--0', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.source_state),
+                                                ('A_[b]--0', 'A_[b]_ppi+_B_[a]', EdgeInteractionType.source_state),
+
+                                                ('C_deg_A', 'A_[b]--0', EdgeInteractionType.degrade),
+                                                ('C_deg_A', 'A_[a1]--0', EdgeInteractionType.maybe_degraded),
+                                                ('C_deg_A', 'A_[a2]--0', EdgeInteractionType.maybe_degraded),
+                                                ('C_deg_A', 'A_[a1]--A_[a2]', EdgeInteractionType.maybe_degraded),
+
+                                                ('A_[b]--B_[a]', 'C_deg_A', EdgeInteractionType.inhibited)])
 
     assert _is_graph_test_case_correct(_create_regulatory_graph(test_case.quick_string), test_case)
 
@@ -1053,3 +1232,5 @@ def _create_regulatory_graph(quick_string: str) -> DiGraph:
     actual_system = qui.Quick(quick_string)
     reg_system = RegulatoryGraph(actual_system.rxncon_system)
     return reg_system.to_graph()
+
+

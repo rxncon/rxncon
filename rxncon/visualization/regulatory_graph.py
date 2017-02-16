@@ -242,18 +242,21 @@ class RegulatoryGraph:
                 None
 
             """
+
             self._add_edge(source=str(reaction), target=str(state), interaction=edge_type)
-            boolean_node_id = '{0}_ON_{1}'.format(str(reaction), str(state))
-            self._add_node(id=boolean_node_id, label=' ', type=NodeType.boolean)
 
-            self._add_edge(source=str(reaction), target=boolean_node_id, interaction=EdgeInteractionType.AND)
-            self._add_edge(source=str(state), target=boolean_node_id, interaction=EdgeInteractionType.AND)
+            if not state.is_homodimer:
+                boolean_node_id = '{0}_ON_{1}'.format(str(reaction), str(state))
+                self._add_node(id=boolean_node_id, label=' ', type=NodeType.boolean)
 
-            produced_neutral_states = [neutral_state for neutral_state in state.neutral_states
-                                       if not any(component in reaction.degraded_components
-                                                  for component in neutral_state.components)]
-            for neutral_state in produced_neutral_states:
-                self._add_edge(source=boolean_node_id, target=str(neutral_state), interaction=EdgeInteractionType.produce)
+                self._add_edge(source=str(reaction), target=boolean_node_id, interaction=EdgeInteractionType.AND)
+                self._add_edge(source=str(state), target=boolean_node_id, interaction=EdgeInteractionType.AND)
+
+                produced_neutral_states = [neutral_state for neutral_state in state.neutral_states
+                                           if not any(component in reaction.degraded_components
+                                                      for component in neutral_state.components)]
+                for neutral_state in produced_neutral_states:
+                    self._add_edge(source=boolean_node_id, target=str(neutral_state), interaction=EdgeInteractionType.produce)
 
         def _update_no_contingency_case() -> None:
             """
