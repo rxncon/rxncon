@@ -27,17 +27,9 @@ def install_precompiled_windows_pyeda():
     try:
         import pyeda
     except ImportError:
-        reply = input('This installer will install a binary version of the PyEDA package\nsince you run on Windows.'
-                      ' Please confirm by typing \'yes\':\n')
-
-        if reply != 'yes':
-            exit(1)
-
         system_version = architecture()[0]
         major, minor, micro, releaselevel, serial = version_info
 
-        print('System Version: {}'.format(system_version))
-        print('Python Version: {0}.{1}.{2}'.format(major, minor, micro))
         if not (minor == 5 or minor ==  6):
             raise OSError('rxncon requires Python 3.5 or 3.6, exiting now...')
 
@@ -50,26 +42,24 @@ def install_precompiled_windows_pyeda():
         else:
             raise OSError('System version {} not known.'.format(system_version))
 
-
-        print('PyEDA filename: {}'.format(pyeda_str))
         source_path = 'http://rumo.biologie.hu-berlin.de/rxncon_downloads/'
         try:
             urlopen(source_path + pyeda_str, context=ssl_context())
             pip_main(['install', source_path + pyeda_str])
         except URLError:
-            print('No pre-compiled PyEDA version for your system configuration '
-                  'Windows architecture: {0} Python version: {1} available.'
-                  .format(system_version, ".".join((str(major), str(minor), str(micro)))))
             exit(1)
 
 
 if not (version_info.major == 3 and version_info.minor >= 5):
     exit('The rxncon framework requires Python version 3.5 or higher. Please upgrade.')
 
+
 windows = platform().split('-')[0] == 'Windows'
+
 
 if windows:
     install_precompiled_windows_pyeda()
+
 
 setup(
     name='rxncon',
@@ -83,12 +73,11 @@ setup(
         'rxncon2reactiongraph.py',
         'rxncon2regulatorygraph.py'
     ],
-    version='2.0b4',
+    version='2.0b6',
     description='The reaction-contingency framework for cellular signalling processes.',
     author='The rxncon group @ Humboldt University Berlin',
     author_email='jesper.romers@hu-berlin.de',
     url='https://github.com/rxncon/rxncon',
-    download_url='https://github.com/rxncon/rxncon/tarball/2.0b4',
     license='LGPL',
     keywords=['sysbio', 'signalling', 'systems biology'],
     classifiers=[],
@@ -102,7 +91,5 @@ setup(
         'colorama',
         'xlrd',
         'networkx',
-
     ]
 )
-

@@ -5,7 +5,7 @@ from networkx import DiGraph
 
 from rxncon.venntastic.sets import Union as VennUnion, Complement, ValueSet, Set as VennSet, Intersection
 from rxncon.core.contingency import ContingencyType
-from rxncon.core.state import State
+from rxncon.core.state import State, InteractionState
 from rxncon.core.spec import Spec
 from rxncon.core.rxncon_system import RxnConSystem, Reaction, ReactionTerm, Contingency
 from rxncon.core.effector import StateEffector, AndEffector, NotEffector, OrEffector, Effector
@@ -225,7 +225,7 @@ class RegulatoryGraph:
             else:
                 raise AssertionError
 
-        def _add_interaction_state_for_degradation(state: State, reaction: Reaction, edge_type: EdgeInteractionType = EdgeInteractionType.degrade) ->None:
+        def _add_interaction_state_for_degradation(state: State, reaction: Reaction, edge_type: EdgeInteractionType) ->None:
             """
             Adds interaction state for degradation.
 
@@ -235,13 +235,16 @@ class RegulatoryGraph:
 
             Args:
                 state: interaction state
-                reaction: reaction ID of the degradation reaction.
-                edge_type: type of the edge.
+                reaction: reaction of the degradation reaction.
+                edge_type: type of the edge. This can be DEGRADED or MAYBE_DEGRADED
 
             Returns:
                 None
 
             """
+            assert isinstance(state, InteractionState)
+            assert reaction.degraded_components
+            assert edge_type in (EdgeInteractionType.degrade, EdgeInteractionType.maybe_degraded)
 
             self._add_edge(source=str(reaction), target=str(state), interaction=edge_type)
 
@@ -273,8 +276,8 @@ class RegulatoryGraph:
             degraded_states = [x for degraded_component in reaction.degraded_components
                                for x in self.rxncon_system.states_for_component(degraded_component)]
             for state in degraded_states:
-                if len(state.components) > 1:
-                    _add_interaction_state_for_degradation(state, reaction)
+                if isinstance(state, InteractionState):
+                    _add_interaction_state_for_degradation(state, reaction, EdgeInteractionType.degrade)
                 else:
                     self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.degrade)
 
@@ -302,7 +305,7 @@ class RegulatoryGraph:
 
             for state in degraded_states:
                 if not any(positive_state for positive_state in positive_states if state.is_mutually_exclusive_with(positive_state)):
-                    if len(state.components) > 1:
+                    if isinstance(state, InteractionState):
                         _add_interaction_state_for_degradation(state, reaction, EdgeInteractionType.maybe_degraded)
                     else:
                         self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.maybe_degraded)
@@ -351,8 +354,8 @@ class RegulatoryGraph:
 
             for degraded_component in reaction.degraded_components:
                 if degraded_component in state.components:
-                    if len(state.components) > 1:
-                        _add_interaction_state_for_degradation(state, reaction)
+                    if isinstance(state, InteractionState):
+                        _add_interaction_state_for_degradation(state, reaction, EdgeInteractionType.degrade)
                     else:
                         self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.degrade)
 
