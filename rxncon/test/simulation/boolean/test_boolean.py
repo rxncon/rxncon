@@ -824,7 +824,7 @@ def test_matching_non_matching_input_one_output() -> None:
     assert rules_found == 4
 
 
-def test_input_negation_one_output():
+def test_degradation_inhibited_by_input_one_output():
     rxncon_sys = Quick("""APC_Ub+_Ndd1
                         [Ndd1UB]; ! Ndd1-{ub}
                         Decay_DEG_Ndd1mRNA; x [Ndd1UB]""").rxncon_system
@@ -851,7 +851,7 @@ def test_input_negation_one_output():
     assert rules_found == 2
 
 
-def test_input_negation_no_output():
+def test_degradation_inhibited_by_input_no_output():
     rxncon_sys = Quick("""Decay_DEG_Ndd1mRNA; x [Ndd1UB]""").rxncon_system
     boolean_model = boolean_model_from_rxncon(rxncon_sys)
 
@@ -876,7 +876,7 @@ def test_input_negation_no_output():
     assert rules_found == 2
 
 
-def test_input_required_one_output():
+def test_degradation_input_required_one_output():
     rxncon_sys = Quick("""APC_Ub+_Ndd1
                         [Ndd1UB]; ! Ndd1-{ub}
                         Decay_DEG_Ndd1mRNA; ! [Ndd1UB]""").rxncon_system
