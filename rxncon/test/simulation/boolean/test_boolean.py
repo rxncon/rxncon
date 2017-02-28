@@ -823,3 +823,13 @@ def test_matching_non_matching_input_one_output() -> None:
             rules_found += 1
     assert rules_found == 4
 
+
+def test_input_negation():
+    rxncon_sys = Quick("""APC_Ub+_Ndd1
+                        PolII_TRSC_Ndd1Gene
+                        Ribo_TRSL_Ndd1mRNA
+                        Proteasome_DEG_Ndd1; ! Ndd1-{ub}
+                        [Ndd1UB]; ! Ndd1-{ub}
+                        Decay_DEG_Ndd1mRNA;	x [Ndd1UB]""").rxncon_system
+    boolean_model = boolean_model_from_rxncon(rxncon_sys)
+    boolean_model
