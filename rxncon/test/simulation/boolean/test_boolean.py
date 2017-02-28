@@ -824,12 +824,53 @@ def test_matching_non_matching_input_one_output() -> None:
     assert rules_found == 4
 
 
-def test_input_negation():
+def test_input_negation_one_output():
     rxncon_sys = Quick("""APC_Ub+_Ndd1
-                        PolII_TRSC_Ndd1Gene
-                        Ribo_TRSL_Ndd1mRNA
-                        Proteasome_DEG_Ndd1; ! Ndd1-{ub}
                         [Ndd1UB]; ! Ndd1-{ub}
-                        Decay_DEG_Ndd1mRNA;	x [Ndd1UB]""").rxncon_system
+                        Decay_DEG_Ndd1mRNA; x [Ndd1UB]""").rxncon_system
     boolean_model = boolean_model_from_rxncon(rxncon_sys)
-    boolean_model
+
+    # Component expressions.
+    Ndd1mRNA = 'Ndd1mRNA'
+    Decay = 'Decay'
+
+    expected_rules = {
+        'Decay_deg_Ndd1mRNA'  : '{0} & {1} & ~( [Ndd1UB] )'.format(Ndd1mRNA, Decay),
+        '[Ndd1UB]'      : 'Ndd1_[(APC)]-{ub}',
+    }
+    rules_found = 0
+
+    for update_rule in boolean_model.update_rules:
+        if str(update_rule.target) == 'Decay_deg_Ndd1mRNA':
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            rules_found += 1
+        elif str(update_rule.target) == '[Ndd1UB]':
+            assert isinstance(update_rule.target, StateTarget)
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            rules_found += 1
+    assert rules_found == 2
+
+
+def test_input_negation_no_output():
+    rxncon_sys = Quick("""Decay_DEG_Ndd1mRNA; x [Ndd1UB]""").rxncon_system
+    boolean_model = boolean_model_from_rxncon(rxncon_sys)
+
+    # Component expressions.
+    Ndd1mRNA = 'Ndd1mRNA'
+    Decay = 'Decay'
+
+    expected_rules = {
+        'Decay_deg_Ndd1mRNA'  : '{0} & {1} & ~( [Ndd1UB] )'.format(Ndd1mRNA, Decay),
+        '[Ndd1UB]'      : '[Ndd1UB]',
+    }
+    rules_found = 0
+
+    for update_rule in boolean_model.update_rules:
+        if str(update_rule.target) == 'Decay_deg_Ndd1mRNA':
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            rules_found += 1
+        elif str(update_rule.target) == '[Ndd1UB]':
+            assert isinstance(update_rule.target, StateTarget)
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            rules_found += 1
+    assert rules_found == 2
