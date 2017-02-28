@@ -404,8 +404,6 @@ class StateTarget(Target):
         return self.state_parent.is_mutually_exclusive_with(other.state_parent)
 
     def complementary_state_targets(self, rxnconsys: RxnConSystem, component: Spec) -> List['StateTarget']:
-        print("component", component)
-        print("state: ", self.state_parent)
         others = rxnconsys.complement_states_for_component(component, self.state_parent)
         return [StateTarget(x) for x in others]
 
@@ -689,7 +687,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             elif not soln:
                 return [StateTarget(x) for x in rxncon_sys.states_for_component(component)]
             else:
-                trues  = [target for target, val in soln.items() if val]
+                trues  = [target for target, val in soln.items() if val and not target.is_input()]
                 falses = [target for target, val in soln.items() if not val and not target.is_input()]
                 for target in falses:
                     trues += target.complementary_state_targets(rxncon_sys, component)
