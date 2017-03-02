@@ -103,6 +103,30 @@ def test_simple_namespace() -> None:
     assert state_from_str('A@1_[ad]--D@4_[da]') in effector.states
 
 
+def test_new_simple_namespace() -> None:
+    cles = [
+        cle_from_str('<C0>', 'AND', 'B@1_[(r)]-{p}'),
+        cle_from_str('<C0>', 'AND', 'A@0_[ab]--B@1_[ba]'),
+        cle_from_str('<C1>', 'AND', 'A@1_[ac]--C@2_[ca]'),
+        cle_from_str('<C1>', 'AND', 'A@1_[ad]--D@3_[da]'),
+        cle_from_str('<C>', 'AND', '<C0>#A@1=A@0'),
+        cle_from_str('<C>', 'AND', '<C1>#<C0>.A@0=A@1'),
+        cle_from_str('<C>', 'AND', 'X@0_[xa]--A@1_[ax]'),
+        cle_from_str('X_p+_A_[(r)]', '!', '<C>#A@1=A@1#X@0=X@0'),
+    ]
+
+    contingencies = contingencies_from_contingency_list_entries(cles)
+
+    effector = contingencies[0].to_structured().effector
+
+    # Note: the precise numbering is not important, but currently is reproducible.
+    assert state_from_str('X@0_[xa]--A@1_[ax]') in effector.states
+    assert state_from_str('B@2_[(r)]-{p}') in effector.states
+    assert state_from_str('A@1_[ab]--B@2_[ba]') in effector.states
+    assert state_from_str('A@1_[ac]--C@3_[ca]') in effector.states
+    assert state_from_str('A@1_[ad]--D@4_[da]') in effector.states
+
+
 def test_insulin_homodimer() -> None:
     cles = [
         cle_from_str('IR_ap+_IR_[JM(Y972)]', '!', '<IRstar>#0,<IR-Ins>.IR@0'),
@@ -129,3 +153,95 @@ def test_insulin_homodimer() -> None:
     assert state_from_str('IR@0_[lig]--insulin@3_[IR]') in states
     assert state_from_str('IR@2_[lig]--insulin@4_[IR]') in states
 
+
+def test_new_insulin_homodimer() -> None:
+    cles = [
+        cle_from_str('IR_ap+_IR_[JM(Y972)]', '!', '<IRstar>#IR@0=<IR-Ins>.IR@0'), ##IR@1=<IR-Ins>.IR@1
+        cle_from_str('<IRstar>', 'AND', '<IR-phos>'),
+        cle_from_str('<IRstar>', 'AND', '<IR-Ins>#<IR-phos>.IR@0=IR@0'),
+
+        cle_from_str('<IR-phos>', 'AND', 'IR@0_[TK(Y1158)]-{P}'),
+        cle_from_str('<IR-phos>', 'AND', 'IR@0_[TK(Y1162)]-{P}'),
+        cle_from_str('<IR-phos>', 'AND', 'IR@0_[TK(Y1163)]-{P}'),
+
+        cle_from_str('<IR-Ins>', 'AND', 'IR@0_[IRBD]--IR@1_[IRBD]'),
+        cle_from_str('<IR-Ins>', 'AND', '<IR01-Ins>#IR@0=IR@0'),##IR@1=IR@1
+
+        cle_from_str('<IR01-Ins>', 'OR', 'IR@0_[lig]--insulin@2_[IR]'),
+        cle_from_str('<IR01-Ins>', 'OR', 'IR@1_[lig]--insulin@3_[IR]'),
+    ]
+
+    states = contingencies_from_contingency_list_entries(cles)[0].to_structured().effector.states
+
+    assert state_from_str('IR@0_[TK(Y1158)]-{p}') in states
+    assert state_from_str('IR@0_[TK(Y1162)]-{p}') in states
+    assert state_from_str('IR@0_[TK(Y1163)]-{p}') in states
+    assert state_from_str('IR@0_[IRBD]--IR@2_[IRBD]') in states
+    assert state_from_str('IR@0_[lig]--insulin@3_[IR]') in states
+    assert state_from_str('IR@2_[lig]--insulin@4_[IR]') in states
+
+
+def test_new_test():
+    cles = [
+        cle_from_str('A_ap+_A_[(a)]', '!', '<bool>#A@0=<bool2>.<bool3>.A@0'), ##IR@1=<IR-Ins>.IR@1
+        cle_from_str('<bool>', 'AND', '<bool1>'),
+        cle_from_str('<bool>', 'AND', '<bool2>#<bool1>.A@0=A@0'),
+
+        cle_from_str('<bool1>', 'AND', 'A@0_[TK(Y1158)]-{P}'),
+        cle_from_str('<bool1>', 'AND', 'A@0_[TK(Y1162)]-{P}'),
+
+        cle_from_str('<bool2>', 'OR', 'A@0_[IRBD]--B@1_[IRBD]'),
+        cle_from_str('<bool2>', 'OR', '<bool3>#A@0=A@0'),
+
+        cle_from_str('<bool3>', 'OR', 'A@0_[IRBD1]--A@1_[IRBD]'),
+        cle_from_str('<bool3>', 'OR', 'A@0_[lig]--D@2_[IR]'),
+
+    ]
+    states = contingencies_from_contingency_list_entries(cles)[0].to_structured().effector.states
+
+    assert state_from_str('IR@0_[TK(Y1158)]-{p}') in states
+
+def test_new2_test():
+    cles = [
+        cle_from_str('A_ap+_A_[(Y972)]', '!', '<bool>#A@0=<A-Ins>.A@0'), ##A@1=<A-Ins>.A@1
+        cle_from_str('<bool>', 'AND', '<bool1>'),
+        cle_from_str('<bool>', 'AND', '<bool2>#<bool1>.A@0=A@0'),
+
+        cle_from_str('<bool1>', 'AND', 'A@0_[TK(Y1158)]-{P}'),
+        cle_from_str('<bool1>', 'AND', 'A@0_[TK(Y1162)]-{P}'),
+        cle_from_str('<bool1>', 'AND', 'A@0_[TK(Y1163)]-{P}'),
+
+        cle_from_str('<bool2>', 'AND', 'A@0_[ABD]--A@1_[ABD]'),
+        cle_from_str('<bool2>', 'AND', '<bool3>#A@0=A@0'),##A@1=A@1
+
+        cle_from_str('<bool3>', 'OR', 'A@0_[lig]--insulin@2_[A]'),
+        cle_from_str('<bool3>', 'OR', 'A@1_[lig]--insulin@3_[A]'),
+    ]
+
+    states = contingencies_from_contingency_list_entries(cles)[0].to_structured().effector.states
+
+    assert state_from_str('IR@0_[TK(Y1158)]-{p}') in states
+
+def test_contingency_list_entry_from_strs():
+    cles = [
+        cle_from_str('A_p+_B_[(a)]', '!', '<bool>#A@0=<bool1>.A@1#B@1=<bool2>.<bool3>.B@3#E@2=<bool1>.E@3'),
+        cle_from_str('<bool>', 'OR', '<bool1>#<bool2>.<bool3>.A@2=A@1'),
+        cle_from_str('<bool>', 'OR', '<bool2>#<bool1>.B@2=<bool3>.B@3'),
+        cle_from_str('<bool1>', 'AND', 'A@1_[ab1]--B@2_[ba1]'),
+        cle_from_str('<bool1>', 'AND', 'B@2_[be1]--E@3_[eb1]'),
+        cle_from_str('<bool2>', 'AND', '<bool3>#<bool4>.A@2=A@2'),
+        cle_from_str('<bool2>', 'AND', '<bool4>'),
+        cle_from_str('<bool3>', 'OR', 'A@2_[ab2]--B@3_[ba2]'),
+        cle_from_str('<bool3>', 'OR', 'A@2_[ae2]--E@3_[ea2]'),
+        cle_from_str('<bool4>', 'OR', 'A@2_[(a1)]-{p}'),
+        cle_from_str('<bool4>', 'OR', 'A@2_[(a2)]-{ub}'),
+    ]
+
+    states = contingencies_from_contingency_list_entries(cles)[0].to_structured().effector.states
+
+    assert state_from_str('A@0_[ab1]--B@1_[ba1]') in states
+    assert state_from_str('B@1_[be1]--E@2_[eb1]') in states
+    assert state_from_str('A@0_[ab2]--B@1_[ba2]') in states
+    assert state_from_str('A@0_[ae2]--E@3_[ea2]') in states
+    assert state_from_str('A@0_[(a1)]-{p}') in states
+    assert state_from_str('A@0_[(a2)]-{ub}') in states

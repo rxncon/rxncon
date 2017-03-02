@@ -84,27 +84,28 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
         # verb   : Contingency type / Boolean operator,
         # object : Boolean contingency.
         object = BooleanContingencyName(object_str)
-    elif re.match(BOOLEAN_CONTINGENCY_REGEX, object_str.split('#')[0]) and isinstance(subject, Reaction):
+    elif re.match(BOOLEAN_CONTINGENCY_REGEX, object_str.split('#')[0]):
         # subject: Reaction,
         # verb   : Contingency type,
         # object : Boolean contingency + '#' + reactant equivs.
         name = object_str.split('#')[0]
-        equivs_strs = [s.split(',') for s in object_str.split('#')[1:]]
-        equivs_dict = {int(i): qual_spec_from_str(qual_spec_str).with_prepended_namespace([name])
-                       for i, qual_spec_str in equivs_strs}
+        equivs_strs = [s.split('=') for s in object_str.split('#')[1:]]
+
         equivs = StructEquivalences()
         if isinstance(subject, Reaction):
+            equivs_dict = {int(lhs_qual_spec_str.split('@')[-1]): qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name])
+                           for lhs_qual_spec_str, rhs_qual_spec_str in equivs_strs}
             for index, spec in enumerate(subject.components_lhs):
                 try:
                     equivs.add_equivalence(QualSpec([], spec.with_struct_index(index)), equivs_dict[index])
                 except KeyError:
                     pass
-        elif re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
+
+        elif '#' in object_str and re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
              for target_qual_spec_str, source_qual_spec_str in equivs_strs:
-                target_qual_spec = qual_spec_from_str(target_qual_spec_str).with_prepended_namespace([subject.name])
-                source_qual_spec_str = "{0}.{1}".format(namespace, source_qual_spec_str)
-                source_qual_spec = qual_spec_from_str(source_qual_spec_str).with_prepended_namespace([subject.name])
-                equivs.add_equivalence(target_qual_spec, source_qual_spec)
+                lhs_qual_spec = qual_spec_from_str(target_qual_spec_str)
+                rhs_qual_spec = qual_spec_from_str(source_qual_spec_str).with_prepended_namespace([subject_str])
+                equivs.add_equivalence(lhs_qual_spec, rhs_qual_spec)
 
         object = BooleanContingencyNameWithEquivs(name, equivs)
         LOGGER.debug('{} : Created {}'.format(current_function_name(), str(object)))
