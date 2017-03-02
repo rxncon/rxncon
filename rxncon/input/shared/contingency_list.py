@@ -11,6 +11,7 @@ from rxncon.core.reaction import Reaction
 from rxncon.core.reaction import reaction_from_str
 from rxncon.core.state import state_from_str, State
 from rxncon.util.utils import current_function_name
+from rxncon.core.spec import spec_from_str
 
 LOGGER = logging.getLogger(__name__)
 
@@ -100,11 +101,17 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
                     equivs.add_equivalence(QualSpec([], spec.with_struct_index(index)), equivs_dict[index])
                 except KeyError:
                     pass
+            for lhs_qual_spec_str, rhs_qual_spec_str in equivs_strs:
+                if spec_from_str(lhs_qual_spec_str).to_component_spec().to_non_struct_spec() not in subject.components_lhs \
+                        or spec_from_str(lhs_qual_spec_str).struct_index > 1:
+                    equivs.add_equivalence(QualSpec([], spec_from_str(lhs_qual_spec_str)), qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name]))
+
 
         elif '#' in object_str and re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
              for target_qual_spec_str, source_qual_spec_str in equivs_strs:
-                lhs_qual_spec = qual_spec_from_str(target_qual_spec_str)
-                rhs_qual_spec = qual_spec_from_str(source_qual_spec_str).with_prepended_namespace([name])
+                lhs_qual_spec = qual_spec_from_str(target_qual_spec_str).with_prepended_namespace([subject_str])
+                source_qual_spec_str = '{0}.{1}'.format(name, source_qual_spec_str)
+                rhs_qual_spec = qual_spec_from_str(source_qual_spec_str).with_prepended_namespace([subject_str])
                 equivs.add_equivalence(lhs_qual_spec, rhs_qual_spec)
 
         object = BooleanContingencyNameWithEquivs(name, equivs)
