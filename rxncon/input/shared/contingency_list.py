@@ -93,18 +93,21 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
         equivs_dict = {int(i): qual_spec_from_str(qual_spec_str).with_prepended_namespace([name])
                        for i, qual_spec_str in equivs_strs}
         equivs = StructEquivalences()
-        for index, spec in enumerate(subject.components_lhs):
-            try:
-                equivs.add_equivalence(QualSpec([], spec.with_struct_index(index)), equivs_dict[index])
-            except KeyError:
-                pass
+        if isinstance(subject, Reaction):
+            for index, spec in enumerate(subject.components_lhs):
+                try:
+                    equivs.add_equivalence(QualSpec([], spec.with_struct_index(index)), equivs_dict[index])
+                except KeyError:
+                    pass
+        elif re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
+             for target_qual_spec_str, source_qual_spec_str in equivs_strs:
+                target_qual_spec = qual_spec_from_str(target_qual_spec_str).with_prepended_namespace([subject.name])
+                source_qual_spec_str = "{0}.{1}".format(namespace, source_qual_spec_str)
+                source_qual_spec = qual_spec_from_str(source_qual_spec_str).with_prepended_namespace([subject.name])
+                equivs.add_equivalence(target_qual_spec, source_qual_spec)
 
         object = BooleanContingencyNameWithEquivs(name, equivs)
         LOGGER.debug('{} : Created {}'.format(current_function_name(), str(object)))
-    elif verb == BooleanOperator.op_eqv:
-        strs = [x.strip() for x in object_str.split(',')]
-        object = (qual_spec_from_str(strs[0]).with_prepended_namespace([subject.name]),
-                  qual_spec_from_str(strs[1]).with_prepended_namespace([subject.name]))
     else:
         object = state_from_str(object_str)
 
