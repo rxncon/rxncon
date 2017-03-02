@@ -40,7 +40,7 @@ class ContingencyListEntry:
 
     @property
     def is_boolean_equivalence_entry(self) -> bool:
-        return self.verb == BooleanOperator(BooleanOperator.op_eqv)
+        return isinstance(self.obj, BooleanContingencyNameWithEquivs) and isinstance(self.subj, BooleanContingencyName)
 
     @property
     def is_reaction_entry(self) -> bool:
@@ -104,7 +104,7 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
         elif '#' in object_str and re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
              for target_qual_spec_str, source_qual_spec_str in equivs_strs:
                 lhs_qual_spec = qual_spec_from_str(target_qual_spec_str)
-                rhs_qual_spec = qual_spec_from_str(source_qual_spec_str).with_prepended_namespace([subject_str])
+                rhs_qual_spec = qual_spec_from_str(source_qual_spec_str).with_prepended_namespace([name])
                 equivs.add_equivalence(lhs_qual_spec, rhs_qual_spec)
 
         object = BooleanContingencyNameWithEquivs(name, equivs)
@@ -127,6 +127,7 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
     reaction_entries = [x for x in entries if x.is_reaction_entry]
 
     effectors        = _create_boolean_contingency_to_effector(boolean_entries)
+    #equivalences     = _create_boolean_contingency_to_equivalences(equiv_entries)
     equivalences     = _create_boolean_contingency_to_equivalences(equiv_entries)
 
     while reaction_entries:
@@ -267,8 +268,8 @@ def _create_boolean_contingency_to_equivalences(equivalence_contingencies: List[
 
     for contingency in equivalence_contingencies:
         assert isinstance(contingency.subj, BooleanContingencyName)
-        assert isinstance(contingency.obj, tuple)
-        lookup_table[contingency.subj.name].append(contingency.obj)
+        assert isinstance(contingency.obj, BooleanContingencyNameWithEquivs)
+        lookup_table[contingency.subj.name].extend(contingency.obj.equivs.eq_classes)
 
     return lookup_table
 

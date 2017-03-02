@@ -106,11 +106,11 @@ def test_simple_namespace() -> None:
 def test_new_simple_namespace() -> None:
     cles = [
         cle_from_str('<C0>', 'AND', 'B@1_[(r)]-{p}'),
-        cle_from_str('<C0>', 'AND', 'A@0_[ab]--B@1_[ba]'),
-        cle_from_str('<C1>', 'AND', 'A@1_[ac]--C@2_[ca]'),
-        cle_from_str('<C1>', 'AND', 'A@1_[ad]--D@3_[da]'),
-        cle_from_str('<C>', 'AND', '<C0>#A@1=A@0'),
-        cle_from_str('<C>', 'AND', '<C1>#<C0>.A@0=A@1'),
+        cle_from_str('<C0>', 'AND', 'A@3_[ab]--B@1_[ba]'),
+        cle_from_str('<C1>', 'AND', 'A@2_[ac]--C@4_[ca]'),
+        cle_from_str('<C1>', 'AND', 'A@2_[ad]--D@5_[da]'),
+        cle_from_str('<C>', 'AND', '<C0>#A@1=A@3'),
+        cle_from_str('<C>', 'AND', '<C1>#<C0>.A@3=A@2'),
         cle_from_str('<C>', 'AND', 'X@0_[xa]--A@1_[ax]'),
         cle_from_str('X_p+_A_[(r)]', '!', '<C>#A@1=A@1#X@0=X@0'),
     ]
@@ -156,7 +156,7 @@ def test_insulin_homodimer() -> None:
 
 def test_new_insulin_homodimer() -> None:
     cles = [
-        cle_from_str('IR_ap+_IR_[JM(Y972)]', '!', '<IRstar>#IR@0=<IR-Ins>.IR@0'), ##IR@1=<IR-Ins>.IR@1
+        cle_from_str('IR_ap+_IR_[JM(Y972)]', '!', '<IRstar>#IR@0=<IR-Ins>.IR@0'), #IR@1=<IR-Ins>.IR@#1
         cle_from_str('<IRstar>', 'AND', '<IR-phos>'),
         cle_from_str('<IRstar>', 'AND', '<IR-Ins>#<IR-phos>.IR@0=IR@0'),
 
@@ -181,50 +181,9 @@ def test_new_insulin_homodimer() -> None:
     assert state_from_str('IR@2_[lig]--insulin@4_[IR]') in states
 
 
-def test_new_test():
-    cles = [
-        cle_from_str('A_ap+_A_[(a)]', '!', '<bool>#A@0=<bool2>.<bool3>.A@0'), ##IR@1=<IR-Ins>.IR@1
-        cle_from_str('<bool>', 'AND', '<bool1>'),
-        cle_from_str('<bool>', 'AND', '<bool2>#<bool1>.A@0=A@0'),
-
-        cle_from_str('<bool1>', 'AND', 'A@0_[TK(Y1158)]-{P}'),
-        cle_from_str('<bool1>', 'AND', 'A@0_[TK(Y1162)]-{P}'),
-
-        cle_from_str('<bool2>', 'OR', 'A@0_[IRBD]--B@1_[IRBD]'),
-        cle_from_str('<bool2>', 'OR', '<bool3>#A@0=A@0'),
-
-        cle_from_str('<bool3>', 'OR', 'A@0_[IRBD1]--A@1_[IRBD]'),
-        cle_from_str('<bool3>', 'OR', 'A@0_[lig]--D@2_[IR]'),
-
-    ]
-    states = contingencies_from_contingency_list_entries(cles)[0].to_structured().effector.states
-
-    assert state_from_str('IR@0_[TK(Y1158)]-{p}') in states
-
-def test_new2_test():
-    cles = [
-        cle_from_str('A_ap+_A_[(Y972)]', '!', '<bool>#A@0=<A-Ins>.A@0'), ##A@1=<A-Ins>.A@1
-        cle_from_str('<bool>', 'AND', '<bool1>'),
-        cle_from_str('<bool>', 'AND', '<bool2>#<bool1>.A@0=A@0'),
-
-        cle_from_str('<bool1>', 'AND', 'A@0_[TK(Y1158)]-{P}'),
-        cle_from_str('<bool1>', 'AND', 'A@0_[TK(Y1162)]-{P}'),
-        cle_from_str('<bool1>', 'AND', 'A@0_[TK(Y1163)]-{P}'),
-
-        cle_from_str('<bool2>', 'AND', 'A@0_[ABD]--A@1_[ABD]'),
-        cle_from_str('<bool2>', 'AND', '<bool3>#A@0=A@0'),##A@1=A@1
-
-        cle_from_str('<bool3>', 'OR', 'A@0_[lig]--insulin@2_[A]'),
-        cle_from_str('<bool3>', 'OR', 'A@1_[lig]--insulin@3_[A]'),
-    ]
-
-    states = contingencies_from_contingency_list_entries(cles)[0].to_structured().effector.states
-
-    assert state_from_str('IR@0_[TK(Y1158)]-{p}') in states
-
 def test_contingency_list_entry_from_strs():
     cles = [
-        cle_from_str('A_p+_B_[(a)]', '!', '<bool>#A@0=<bool1>.A@1#B@1=<bool2>.<bool3>.B@3#E@2=<bool1>.E@3'),
+        cle_from_str('A_p+_B_[(a)]', '!', '<bool>#A@0=<bool1>.A@1#B@1=<bool2>.<bool3>.B@3'),
         cle_from_str('<bool>', 'OR', '<bool1>#<bool2>.<bool3>.A@2=A@1'),
         cle_from_str('<bool>', 'OR', '<bool2>#<bool1>.B@2=<bool3>.B@3'),
         cle_from_str('<bool1>', 'AND', 'A@1_[ab1]--B@2_[ba1]'),
