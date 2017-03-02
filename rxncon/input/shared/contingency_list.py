@@ -102,6 +102,8 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
                 except KeyError:
                     pass
             for lhs_qual_spec_str, rhs_qual_spec_str in equivs_strs:
+                # if we have only a single component on the lhs but a homodimer in the contingencies we can specify
+                # its index if the index is > 1
                 if spec_from_str(lhs_qual_spec_str).to_component_spec().to_non_struct_spec() not in subject.components_lhs \
                         or spec_from_str(lhs_qual_spec_str).struct_index > 1:
                     equivs.add_equivalence(QualSpec([], spec_from_str(lhs_qual_spec_str)), qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name]))
