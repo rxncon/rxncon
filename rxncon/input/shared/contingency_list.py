@@ -66,7 +66,8 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
     verb    = None  # type: Optional[Union[BooleanOperator, ContingencyType]]
     object  = None  # type: Optional[Union[State, BooleanContingencyName, Tuple[QualSpec, QualSpec]]]
 
-
+    # JCR: please make sure that all the comments here ("subject:" etc)
+    #      are still correct after your update to the code.
     if re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
         # subject: Boolean contingency,
         # verb   : Boolean operator,
@@ -86,7 +87,7 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
         # object : Boolean contingency.
         object = BooleanContingencyName(object_str)
     elif re.match(BOOLEAN_CONTINGENCY_REGEX, object_str.split('#')[0]):
-        # subject: Reaction,
+        # subject: Reaction,    JCR: fix this comment
         # verb   : Contingency type,
         # object : Boolean contingency + '#' + reactant equivs.
         name = object_str.split('#')[0]
@@ -94,6 +95,8 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
 
         equivs = StructEquivalences()
         if isinstance(subject, Reaction):
+            # JCR: make this into a separate function, something like
+            #      equivs = add_reactant_equivs(equivs, ...)
             equivs_dict = {int(lhs_qual_spec_str.split('@')[-1]): qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name])
                            for lhs_qual_spec_str, rhs_qual_spec_str in equivs_strs}
             for index, spec in enumerate(subject.components_lhs):
@@ -101,6 +104,8 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
                     equivs.add_equivalence(QualSpec([], spec.with_struct_index(index)), equivs_dict[index])
                 except KeyError:
                     pass
+
+            # JCR: this code needs to be clearer, I also do not understand the comment.
             for lhs_qual_spec_str, rhs_qual_spec_str in equivs_strs:
                 # if we have only a single component on the lhs but a homodimer in the contingencies we can specify
                 # its index if the index is > 1
@@ -108,9 +113,12 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
                         or spec_from_str(lhs_qual_spec_str).struct_index > 1:
                     equivs.add_equivalence(QualSpec([], spec_from_str(lhs_qual_spec_str)), qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name]))
 
-
         elif '#' in object_str and re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
-             for target_qual_spec_str, source_qual_spec_str in equivs_strs:
+            # JCR: also make this into a separate function. I don't like how you first convert to a string and
+            #      then back again. The QualSpec class has a method for exactly what you're doing. Also the
+            #      intermediate "lhs_..." and "source_..." variables make it unnecessarily confusing. You can do
+            #      this without, I think.
+            for target_qual_spec_str, source_qual_spec_str in equivs_strs:
                 lhs_qual_spec = qual_spec_from_str(target_qual_spec_str).with_prepended_namespace([subject_str])
                 source_qual_spec_str = '{0}.{1}'.format(name, source_qual_spec_str)
                 rhs_qual_spec = qual_spec_from_str(source_qual_spec_str).with_prepended_namespace([subject_str])
@@ -136,6 +144,7 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
     reaction_entries = [x for x in entries if x.is_reaction_entry]
 
     effectors        = _create_boolean_contingency_to_effector(boolean_entries)
+    # JCR: remove dead code.
     #equivalences     = _create_boolean_contingency_to_equivalences(equiv_entries)
     equivalences     = _create_boolean_contingency_to_equivalences(equiv_entries)
 
