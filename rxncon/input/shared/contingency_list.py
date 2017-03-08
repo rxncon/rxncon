@@ -136,7 +136,6 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
     reaction_entries = [x for x in entries if x.is_reaction_entry]
 
     effectors        = _create_boolean_contingency_to_effector(boolean_entries)
-    #equivalences     = _create_boolean_contingency_to_equivalences(equiv_entries)
     equivalences     = _create_boolean_contingency_to_equivalences(equiv_entries)
 
     while reaction_entries:
