@@ -126,8 +126,7 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
     verb    = None  # type: Optional[Union[BooleanOperator, ContingencyType]]
     object  = None  # type: Optional[Union[State, BooleanContingencyName, Tuple[QualSpec, QualSpec]]]
 
-    # JCR: please make sure that all the comments here ("subject:" etc)
-    #      are still correct after your update to the code.
+
     if re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
         # subject: Boolean contingency,
         # verb   : Boolean operator,
@@ -149,7 +148,7 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
     elif re.match(BOOLEAN_CONTINGENCY_REGEX, object_str.split('#')[0]):
         # subject: Reaction / Boolean contingency
         # verb   : Contingency type / Boolean operator
-        # object : Boolean contingency + '#' + reactant equivs.
+        # object : Boolean contingency + '#' + reactant equivs / Boolean equivs.
         name = object_str.split('#')[0]
         equivs_strs = [s.split('=') for s in object_str.split('#')[1:]]
 
