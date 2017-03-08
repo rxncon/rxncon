@@ -58,6 +58,66 @@ class BooleanContingencyNameWithEquivs(BooleanContingencyName):
 
 
 def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str: str) -> ContingencyListEntry:
+    def _add_reactant_equivs(equivs_strs):
+
+        equivs_dict = {int(lhs_qual_spec_str.split('@')[-1]): qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name])
+                           for lhs_qual_spec_str, rhs_qual_spec_str in equivs_strs}
+        for index, spec in enumerate(subject.components_lhs):
+            try:
+                equivs.add_equivalence(QualSpec([], spec.with_struct_index(index)), equivs_dict[index])
+            except KeyError:
+                pass
+        return equivs
+
+    def _add_specification_equivs(equivs, equivs_strs):
+        """
+        Adding equivalence information of specification which are no reactants.
+
+        Note:
+            Structural information for molecules which are not reactants can be given on the same level as the
+            structural information for reactants. e.g. A_ppi_B; ! <bool>#A@0=A@1#C@2=C@3
+
+        Args:
+            equivs: structured equivalence
+            equivs_strs: information about additional structured equivalence
+
+        Returns:
+            equivalence information
+
+        """
+        for lhs_qual_spec_str, rhs_qual_spec_str in equivs_strs:
+            # if the left hand qual specification is not a reactant or the index implies that it is not mentioned as
+            # reactant (index > 1)
+            if spec_from_str(lhs_qual_spec_str).to_component_spec().to_non_struct_spec() not in subject.components_lhs \
+                    or spec_from_str(lhs_qual_spec_str).struct_index > 1:
+                equivs.add_equivalence(QualSpec([], spec_from_str(lhs_qual_spec_str)),
+                                       qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name]))
+        return equivs
+
+    def _add_boolean_equivs(equivs_strs):
+        """
+        Adding boolean equivalences.
+
+        Args:
+            equivs_strs: list of strings of equivalences
+
+        Returns:
+            equivalences
+
+        """
+        def _get_namespace(name, qual_spec):
+            namespaces = [namespace for namespace in qual_spec.split('.')[:-1]]
+            namespaces = [name] + namespaces
+            return namespaces
+
+        for target_qual_spec_str, source_qual_spec_str in equivs_strs:
+                lhs_qual_spec = qual_spec_from_str(target_qual_spec_str).with_prepended_namespace([subject_str])
+                specification = source_qual_spec_str.split('.')[-1]
+                namespaces = _get_namespace(name, source_qual_spec_str)
+                rhs_qual_spec = QualSpec(namespaces, spec_from_str(specification)).with_prepended_namespace([subject_str])
+                equivs.add_equivalence(lhs_qual_spec, rhs_qual_spec)
+        return equivs
+
     subject_str, verb_str, object_str = subject_str.strip(), verb_str.lower().strip(), object_str.strip()
 
     LOGGER.debug('{}: {} / {} / {}'.format(current_function_name(), subject_str, verb_str, object_str))
@@ -66,7 +126,8 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
     verb    = None  # type: Optional[Union[BooleanOperator, ContingencyType]]
     object  = None  # type: Optional[Union[State, BooleanContingencyName, Tuple[QualSpec, QualSpec]]]
 
-
+    # JCR: please make sure that all the comments here ("subject:" etc)
+    #      are still correct after your update to the code.
     if re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
         # subject: Boolean contingency,
         # verb   : Boolean operator,
@@ -80,41 +141,25 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str
         subject = reaction_from_str(subject_str)
         verb = ContingencyType(verb_str)
 
-    if re.match(BOOLEAN_CONTINGENCY_REGEX, object_str) and not isinstance(subject, Reaction):
+    if re.match(BOOLEAN_CONTINGENCY_REGEX, object_str) and not isinstance(subject, Reaction) and '#' not in object_str:
         # subject: Boolean contingency,
         # verb   : Contingency type / Boolean operator,
         # object : Boolean contingency.
         object = BooleanContingencyName(object_str)
     elif re.match(BOOLEAN_CONTINGENCY_REGEX, object_str.split('#')[0]):
-        # subject: Reaction,
-        # verb   : Contingency type,
+        # subject: Reaction / Boolean contingency
+        # verb   : Contingency type / Boolean operator
         # object : Boolean contingency + '#' + reactant equivs.
         name = object_str.split('#')[0]
         equivs_strs = [s.split('=') for s in object_str.split('#')[1:]]
 
         equivs = StructEquivalences()
         if isinstance(subject, Reaction):
-            equivs_dict = {int(lhs_qual_spec_str.split('@')[-1]): qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name])
-                           for lhs_qual_spec_str, rhs_qual_spec_str in equivs_strs}
-            for index, spec in enumerate(subject.components_lhs):
-                try:
-                    equivs.add_equivalence(QualSpec([], spec.with_struct_index(index)), equivs_dict[index])
-                except KeyError:
-                    pass
-            for lhs_qual_spec_str, rhs_qual_spec_str in equivs_strs:
-                # if we have only a single component on the lhs but a homodimer in the contingencies we can specify
-                # its index if the index is > 1
-                if spec_from_str(lhs_qual_spec_str).to_component_spec().to_non_struct_spec() not in subject.components_lhs \
-                        or spec_from_str(lhs_qual_spec_str).struct_index > 1:
-                    equivs.add_equivalence(QualSpec([], spec_from_str(lhs_qual_spec_str)), qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name]))
-
+            equivs = _add_reactant_equivs(equivs_strs)
+            equivs = _add_specification_equivs(equivs, equivs_strs)
 
         elif '#' in object_str and re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
-             for target_qual_spec_str, source_qual_spec_str in equivs_strs:
-                lhs_qual_spec = qual_spec_from_str(target_qual_spec_str).with_prepended_namespace([subject_str])
-                source_qual_spec_str = '{0}.{1}'.format(name, source_qual_spec_str)
-                rhs_qual_spec = qual_spec_from_str(source_qual_spec_str).with_prepended_namespace([subject_str])
-                equivs.add_equivalence(lhs_qual_spec, rhs_qual_spec)
+            equivs = _add_boolean_equivs(equivs_strs)
 
         object = BooleanContingencyNameWithEquivs(name, equivs)
         LOGGER.debug('{} : Created {}'.format(current_function_name(), str(object)))
