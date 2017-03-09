@@ -2,7 +2,6 @@ from rxncon.core.reaction import reaction_from_str
 from rxncon.core.spec import spec_from_str
 from rxncon.core.state import state_from_str
 from rxncon.input.quick.quick import Quick
-from rxncon.input.excel_book.excel_book import ExcelBook
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, ReactionTarget, \
     StateTarget, ComponentStateTarget, SmoothingStrategy, Target
 from rxncon.simulation.boolean.boolnet_from_boolean_model import boolnet_from_boolean_model
@@ -665,6 +664,7 @@ def test_single_input_not_output() -> None:
 
     assert rules_found == 2
 
+
 def test_no_input_single_output() -> None:
     """
     Testing if output reactions without defined input states.
@@ -824,7 +824,7 @@ def test_matching_non_matching_input_one_output() -> None:
     assert rules_found == 4
 
 
-def test_degradation_inhibited_by_input_one_output():
+def test_degradation_inhibited_by_input_one_output() -> None:
     rxncon_sys = Quick("""APC_Ub+_Ndd1
                         [Ndd1UB]; ! Ndd1-{ub}
                         Decay_DEG_Ndd1mRNA; x [Ndd1UB]""").rxncon_system
@@ -851,7 +851,7 @@ def test_degradation_inhibited_by_input_one_output():
     assert rules_found == 2
 
 
-def test_degradation_inhibited_by_input_no_output():
+def test_degradation_inhibited_by_input_no_output() -> None:
     rxncon_sys = Quick("""Decay_DEG_Ndd1mRNA; x [Ndd1UB]""").rxncon_system
     boolean_model = boolean_model_from_rxncon(rxncon_sys)
 
@@ -861,6 +861,7 @@ def test_degradation_inhibited_by_input_no_output():
 
     expected_rules = {
         'Decay_deg_Ndd1mRNA'  : '{0} & {1} & ~( [Ndd1UB] )'.format(Ndd1mRNA, Decay),
+        'Ndd1mRNA'            : '{0} & ~( Decay_deg_Ndd1mRNA )'.format(Ndd1mRNA),
         '[Ndd1UB]'      : '[Ndd1UB]',
     }
     rules_found = 0
@@ -869,14 +870,17 @@ def test_degradation_inhibited_by_input_no_output():
         if str(update_rule.target) == 'Decay_deg_Ndd1mRNA':
             assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
             rules_found += 1
+        elif str(update_rule.target) == 'Ndd1mRNA':
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            rules_found += 1
         elif str(update_rule.target) == '[Ndd1UB]':
             assert isinstance(update_rule.target, StateTarget)
             assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
             rules_found += 1
-    assert rules_found == 2
+    assert rules_found == 3
 
 
-def test_degradation_input_required_one_output():
+def test_degradation_input_required_one_output() -> None:
     rxncon_sys = Quick("""APC_Ub+_Ndd1
                         [Ndd1UB]; ! Ndd1-{ub}
                         Decay_DEG_Ndd1mRNA; ! [Ndd1UB]""").rxncon_system
@@ -888,6 +892,7 @@ def test_degradation_input_required_one_output():
 
     expected_rules = {
         'Decay_deg_Ndd1mRNA'  : '{0} & {1} & [Ndd1UB]'.format(Ndd1mRNA, Decay),
+        'Ndd1mRNA'            : '{0} & ~( Decay_deg_Ndd1mRNA )'.format(Ndd1mRNA),
         '[Ndd1UB]'      : 'Ndd1_[(APC)]-{ub}',
     }
     rules_found = 0
@@ -896,14 +901,17 @@ def test_degradation_input_required_one_output():
         if str(update_rule.target) == 'Decay_deg_Ndd1mRNA':
             assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
             rules_found += 1
+        elif str(update_rule.target) == 'Ndd1mRNA':
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            rules_found += 1
         elif str(update_rule.target) == '[Ndd1UB]':
             assert isinstance(update_rule.target, StateTarget)
             assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
             rules_found += 1
-    assert rules_found == 2
+    assert rules_found == 3
 
 
-def test_degradation_input_required_no_output():
+def test_degradation_input_required_no_output() -> None:
     rxncon_sys = Quick("""Decay_DEG_Ndd1mRNA; ! [Ndd1UB]""").rxncon_system
     boolean_model = boolean_model_from_rxncon(rxncon_sys)
 
@@ -919,6 +927,91 @@ def test_degradation_input_required_no_output():
 
     for update_rule in boolean_model.update_rules:
         if str(update_rule.target) == 'Decay_deg_Ndd1mRNA':
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            rules_found += 1
+        elif str(update_rule.target) == '[Ndd1UB]':
+            assert isinstance(update_rule.target, StateTarget)
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            rules_found += 1
+    assert rules_found == 2
+
+
+def test_degradation_boolean_OR_required_input_state() -> None:
+
+    rxncon_sys = Quick("""APC_Ub+_Ndd1
+                        Decay_DEG_Ndd1; ! <bool>
+                        <bool>; OR [Ndd1UB]
+                        <bool>; OR Ndd1-{ub}""").rxncon_system
+    boolean_model = boolean_model_from_rxncon(rxncon_sys)
+
+    # Component expressions.
+    Ndd1 = '( Ndd1_[(APC)]-{0} | Ndd1_[(APC)]-{ub} )'
+    Decay = 'Decay'
+
+
+    target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
+
+    # C_deg_A#c0 degrades A_[(r1)]-{p}, C_deg_A#c1 degrades A_[(r2)]-{p}
+    if target_to_factor[target_from_str('Decay_deg_Ndd1#c0')].is_equivalent_to(venn_from_str('( {0} & {1} & [Ndd1UB] )'.format(Decay, Ndd1), target_from_str)):
+        expected_rules = {
+            'Decay_deg_Ndd1#c0'  : '{0} & {1} & [Ndd1UB]'.format(Ndd1, Decay),
+            'Decay_deg_Ndd1#c1'  : '{0} & {1} & Ndd1_[(APC)]-{{ub}}'.format(Ndd1, Decay),
+            'Ndd1_[(APC)]-{0}' :    'Ndd1_[(APC)]-{{0}} & ~( Ndd1_[(APC)]-{{0}} & APC_Ub+_Ndd1 ) & {0} & ~( Decay_deg_Ndd1#c0 )'.format(Ndd1),
+            'Ndd1_[(APC)]-{ub}' :   '( Ndd1_[(APC)]-{{0}} & APC_Ub+_Ndd1 ) & ~( Decay_deg_Ndd1#c0 | Decay_deg_Ndd1#c1 ) & {0} | Ndd1_[(APC)]-{{ub}} & {0} & ~( Decay_deg_Ndd1#c0 | Decay_deg_Ndd1#c1 )'.format(Ndd1),
+            '[Ndd1UB]'      : '[Ndd1UB]',
+        }
+
+    elif target_to_factor[target_from_str('Decay_deg_Ndd1#c1')].is_equivalent_to(venn_from_str('( {0} & {1} & [Ndd1UB] )'.format(Decay, Ndd1), target_from_str)):
+        expected_rules = {
+            'Decay_deg_Ndd1#c1'  : '{0} & {1} & [Ndd1UB]'.format(Ndd1, Decay),
+            'Decay_deg_Ndd1#c0'  : '{0} & {1} & Ndd1_[(APC)]-{{ub}}'.format(Ndd1, Decay),
+            'Ndd1_[(APC)]-{0}' :    'Ndd1_[(APC)]-{{0}} & ~( Ndd1_[(APC)]-{{0}} & APC_Ub+_Ndd1 ) & {0} & ~( Decay_deg_Ndd1#c0 )'.format(Ndd1),
+            'Ndd1_[(APC)]-{ub}' :   '( Ndd1_[(APC)]-{{0}} & APC_Ub+_Ndd1 ) & ~( Decay_deg_Ndd1#c0 | Decay_deg_Ndd1#c1 ) & {0} | Ndd1_[(APC)]-{{ub}} & {0} & ~( Decay_deg_Ndd1#c0 | Decay_deg_Ndd1#c1 )'.format(Ndd1),
+            '[Ndd1UB]'      : '[Ndd1UB]',
+        }
+
+    else:
+        raise AssertionError
+
+    rules_found = 0
+    for update_rule in boolean_model.update_rules:
+        if str(update_rule.target) == 'Decay_deg_Ndd1#c0':
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            rules_found += 1
+        elif str(update_rule.target) == 'Decay_deg_Ndd1#c1':
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            rules_found += 1
+        elif str(update_rule.target) == 'Ndd1_[(APC)]-{0}':
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            rules_found += 1
+        elif str(update_rule.target) == '[Ndd1UB]':
+            assert isinstance(update_rule.target, StateTarget)
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            rules_found += 1
+    assert rules_found == 4
+
+
+def test_degradation_boolean_AND_required_input_state() -> None:
+    rxncon_sys = Quick("""APC_Ub+_Ndd1
+                        Decay_DEG_Ndd1; ! <bool>
+                        <bool>; AND [Ndd1UB]
+                        <bool>; AND Ndd1-{ub}""").rxncon_system
+    boolean_model = boolean_model_from_rxncon(rxncon_sys)
+
+    # Component expressions.
+    Ndd1 = '( Ndd1_[(APC)]-{0} | Ndd1_[(APC)]-{ub} )'
+    Decay = 'Decay'
+
+    expected_rules = {
+            'Decay_deg_Ndd1'  : '{0} & {1} & Ndd1_[(APC)]-{{ub}} & [Ndd1UB]'.format(Ndd1, Decay),
+            'Ndd1_[(APC)]-{0}' :    'Ndd1_[(APC)]-{{0}} & ~( Ndd1_[(APC)]-{{0}} & APC_Ub+_Ndd1 )'.format(Ndd1),
+            'Ndd1_[(APC)]-{ub}' :   '( Ndd1_[(APC)]-{{0}} & APC_Ub+_Ndd1 ) & ~( Decay_deg_Ndd1 ) & {0} | Ndd1_[(APC)]-{{ub}} & {0} & ~( Decay_deg_Ndd1 )'.format(Ndd1),
+            '[Ndd1UB]'      : '[Ndd1UB]',
+        }
+    rules_found = 0
+
+    for update_rule in boolean_model.update_rules:
+        if str(update_rule.target) == 'Decay_deg_Ndd1':
             assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
             rules_found += 1
         elif str(update_rule.target) == '[Ndd1UB]':
