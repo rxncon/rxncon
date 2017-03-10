@@ -40,6 +40,7 @@ class EdgeInteractionType(Enum):
     NOT            = 'NOT'
     source_state   = 'ss'
     input_state    = 'is'
+    mutually_exclusive = 'mutually_exclusive'
 
 edge_type_mapping = {ContingencyType.requirement: EdgeInteractionType.required,
                      ContingencyType.inhibition: EdgeInteractionType.inhibited,
@@ -159,6 +160,12 @@ class RegulatoryGraph:
                         for state in reaction.consumed_states:
                             if len(state.components) == 1 and state.components[0] == component and state.is_neutral:
                                 self._add_edge(source=str(component), target=str(reaction), interaction=EdgeInteractionType.input_state)
+                                complements = self.rxncon_system.complement_states(state)
+                                if len(complements) > 1 :
+                                    for state in complements:
+                                        if state not in reaction.produced_states:
+                                            self._add_edge(source=str(state), target=str(reaction),
+                                                       interaction=EdgeInteractionType.mutually_exclusive)
 
         components_by_reactions = []  # type: List[Spec]
         components_without_states = calc_components_without_states()
