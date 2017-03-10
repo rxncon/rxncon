@@ -10,6 +10,9 @@ RegulatoryGraphTestCase = namedtuple('RegulatoryGraphTestCase',
                                      ['quick_string', 'reaction_node_strings', 'state_node_strings',
                                       'boolean_state_node_tuple', 'edge_tuples'])
 
+def test_new_graph_output() -> None:
+    pass
+
 
 def test_simple_system() -> None:
     """

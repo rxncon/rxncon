@@ -68,11 +68,11 @@ class RegulatoryGraph:
         """
 
         for reaction in self.rxncon_system.reactions:
-            if not reaction.degraded_components:
-                self.add_reaction_information_to_graph(reaction)
-                self.add_contingency_information_to_graph(self.rxncon_system.contingencies_for_reaction(reaction))
-            else:
-                self.add_degradation_reaction_information_to_graph(reaction, self.rxncon_system.contingencies_for_reaction(reaction))
+            # if not reaction.degraded_components:
+            self.add_reaction_information_to_graph(reaction)
+            self.add_contingency_information_to_graph(self.rxncon_system.contingencies_for_reaction(reaction))
+            # else:
+            #     self.add_degradation_reaction_information_to_graph(reaction, self.rxncon_system.contingencies_for_reaction(reaction))
         self.add_synthesised_or_degraded_components()
         return self.regulatory_graph
 
@@ -112,10 +112,10 @@ class RegulatoryGraph:
             """
             nonlocal components_by_reactions
             for synthesised_component in reaction.synthesised_components:
-                if synthesised_component in components_without_states:
-                    self._add_node(id=str(synthesised_component), label=str(synthesised_component), type=NodeType.component)
-                    self._add_edge(source=str(reaction), target=str(synthesised_component), interaction=EdgeInteractionType.synthesis)
-                    components_by_reactions.append(synthesised_component)
+                # if synthesised_component in components_without_states:
+                self._add_node(id=str(synthesised_component), label=str(synthesised_component), type=NodeType.component)
+                self._add_edge(source=str(reaction), target=str(synthesised_component), interaction=EdgeInteractionType.synthesis)
+                components_by_reactions.append(synthesised_component)
 
         def get_degraded_components_and_reactions() -> None:
             """
@@ -132,10 +132,10 @@ class RegulatoryGraph:
             """
             nonlocal components_by_reactions
             for degraded_component in reaction.degraded_components:
-                if degraded_component in components_without_states:
-                    self._add_node(id=str(degraded_component), label=str(degraded_component), type=NodeType.component)
-                    self._add_edge(source=str(reaction), target=str(degraded_component), interaction=EdgeInteractionType.degrade)
-                    components_by_reactions.append(degraded_component)
+                # if degraded_component in components_without_states:
+                self._add_node(id=str(degraded_component), label=str(degraded_component), type=NodeType.component)
+                self._add_edge(source=str(reaction), target=str(degraded_component), interaction=EdgeInteractionType.degrade)
+                components_by_reactions.append(degraded_component)
 
         def connect_components_and_reactions() -> None:
             """
@@ -509,14 +509,24 @@ class RegulatoryGraph:
 
             """
             for reactant_post in reaction.terms_rhs:
-                if reaction.synthesised_states:
-                    _add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.synthesis)
-                else:
+                # if reaction.synthesised_states:
+                #     _add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.synthesis)
+                # else:
+                neutral_state_found = None #ugly but fast adaption
+                for state in reaction.synthesised_states:
+                    if state.is_neutral:
+                        neutral_state_found = True
+                if not neutral_state_found:  # no neutral state gets produced by the reaction
                     _add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.produce)
 
             for reactant_pre in reaction.terms_lhs:
-                _add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
-                _add_reaction_source_state_edges_to_graph(reaction, reactant_pre)
+                neutral_state_found = None  # ugly but fast adaption
+                for state in reaction.synthesised_states:
+                    if state.is_neutral:
+                        neutral_state_found = True
+                if not neutral_state_found:
+                    _add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
+                    _add_reaction_source_state_edges_to_graph(reaction, reactant_pre)
 
         self._add_node(id=str(reaction), type=NodeType.reaction, label=str(reaction))
         _add_reactant_states()
