@@ -3,6 +3,9 @@ from collections import namedtuple
 from networkx import DiGraph
 
 import rxncon.input.quick.quick as qui
+
+import rxncon.visualization.graphML as graphML
+
 from rxncon.visualization.regulatory_graph import RegulatoryGraph, NodeType, EdgeInteractionType
 
 
@@ -10,7 +13,20 @@ RegulatoryGraphTestCase = namedtuple('RegulatoryGraphTestCase',
                                      ['quick_string', 'reaction_node_strings', 'state_node_strings',
                                       'boolean_state_node_tuple', 'edge_tuples'])
 
+
 def test_new_graph_output() -> None:
+    quick_input = """A_syn_T
+    B_deg_T
+    C_p+_T_[(r)]
+    D_p-_T_[(r)]"""
+
+    rxncon_sys = qui.Quick(quick_input)
+    reg_graph = RegulatoryGraph(rxncon_system=rxncon_sys.rxncon_system).to_graph()
+
+    xgmml_reg_graph = graphML.XGMML(reg_graph, "regulatory_graph")
+    graph_file1 = xgmml_reg_graph.to_file("/home/mathias/tbp/species_reaction_graph_test_outputs/species_reaction_graph_6.xgmml")
+    print("Wrote regulatory graph.")
+
     pass
 
 

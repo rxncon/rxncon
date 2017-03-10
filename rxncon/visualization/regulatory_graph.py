@@ -156,7 +156,9 @@ class RegulatoryGraph:
                     if component in reaction.components_lhs and not component in reaction.components_rhs:
                         self._add_edge(source=str(component), target=str(reaction), interaction=EdgeInteractionType.source_state)
                     elif component in reaction.components_lhs:
-                        self._add_edge(source=str(component), target=str(reaction), interaction=EdgeInteractionType.input_state)
+                        for state in reaction.consumed_states:
+                            if len(state.components) == 1 and state.components[0] == component and state.is_neutral:
+                                self._add_edge(source=str(component), target=str(reaction), interaction=EdgeInteractionType.input_state)
 
         components_by_reactions = []  # type: List[Spec]
         components_without_states = calc_components_without_states()
@@ -509,22 +511,16 @@ class RegulatoryGraph:
 
             """
             for reactant_post in reaction.terms_rhs:
-                # if reaction.synthesised_states:
-                #     _add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.synthesis)
-                # else:
-                neutral_state_found = None #ugly but fast adaption
-                for state in reaction.synthesised_states:
-                    if state.is_neutral:
-                        neutral_state_found = True
-                if not neutral_state_found:  # no neutral state gets produced by the reaction
-                    _add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.produce)
+                if reaction.synthesised_states:
+                    if reactant_post.states and not reactant_post.states[0].is_neutral:
+                        _add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.synthesis)
+                else:
+
+                    if reactant_post.states and not reactant_post.states[0].is_neutral:
+                        _add_reaction_reactant_to_graph(reaction, reactant_post, EdgeInteractionType.produce)
 
             for reactant_pre in reaction.terms_lhs:
-                neutral_state_found = None  # ugly but fast adaption
-                for state in reaction.synthesised_states:
-                    if state.is_neutral:
-                        neutral_state_found = True
-                if not neutral_state_found:
+                if reactant_pre.states and not reactant_pre.states[0].is_neutral:
                     _add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
                     _add_reaction_source_state_edges_to_graph(reaction, reactant_pre)
 
