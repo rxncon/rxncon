@@ -560,6 +560,15 @@ class RegulatoryGraph:
             else:
                 raise AssertionError
 
+        def check_state_list_for_neutrals(states):
+
+            output = []
+            for state in states:
+                assert(isinstance(state, State))
+                if state.is_neutral:
+                    output.append(state)
+            return output
+
         def _add_information_from_effector_to_graph(effector: Effector, edge_type: EdgeInteractionType, target_name: str) -> None:
             """
             Adds the effector information of the contingency to the graph.
@@ -605,8 +614,27 @@ class RegulatoryGraph:
 
             if isinstance(effector, StateEffector):
                 name = str(effector.expr.to_non_structured())
+                neutrals_in_cont = check_state_list_for_neutrals(effector.states)
+
                 if re.match("^\[[/w]*\]?", name):
                     add_node_and_edge(name, NodeType.input, edge_type, target_name)
+
+                elif neutrals_in_cont:
+                    add_node_and_edge('<'+name+'>', NodeType.boolean, edge_type, target_name)
+                    # check if single
+
+                    complementary_states = self.rxncon_system.complement_states(effector.expr)
+                    if len(complementary_states) > 1:
+                        add_node_and_edge('not <' + name + '>', NodeType.boolean, edge_type=EdgeInteractionType.NOT,
+                                          target_name='<' + name + '>')
+                        for state in complementary_states:
+                            add_node_and_edge(name=str(state.to_non_structured()), node_type=NodeType.state,
+                                              edge_type= EdgeInteractionType.OR, target_name='not <'+name+'>')
+                    else:
+                        add_node_and_edge(name=str(complementary_states[0].to_non_structured()), node_type=NodeType.state,
+                                          edge_type=EdgeInteractionType.NOT, target_name='<' + name + '>')
+
+
                 else:
                     add_node_and_edge(name, NodeType.state, edge_type, target_name)
             elif isinstance(effector, NotEffector):
