@@ -25,18 +25,18 @@ def test_new_graph_output() -> None:
     # [out]; x T_[(r)]-{P}
     # <bool>; OR T_[(r)]-{0}; OR [in1]; OR [in2]"""
 
-    # quick_input = """A_syn_T
-    # B_deg_T
-    # C_p+_T_[(r)]
-    # D_p-_T_[(r)]
-    # E_ub+_T_[(r)]
-    # F_ub-_T_[(r)]"""
+    quick_input = """A_syn_T
+    B_deg_T
+    C_p+_T_[(r)]; ! C_[(r)]-{ub}
+    D_p-_T_[(r)]
+    E_ub+_C_[(r)]
+    F_ub-_T_[(r)]"""
 
-    # rxncon_sys = qui.Quick(quick_input)
+    rxncon_sys = qui.Quick(quick_input)
 
     # rxncon_sys = excel.ExcelBook("/home/mathias/Dropbox/TBP/bio_data/systems/Ulrike/CircadianClock.xls")
     # rxncon_sys = excel.ExcelBook("/home/mathias/Dropbox/TBP/bio_data/systems/new_jesp/Hog1_acyclic.xls")
-    rxncon_sys = excel.ExcelBook("/home/mathias/Dropbox/TBP/bio_data/systems/excel_book/pheromone.xls")
+    # rxncon_sys = excel.ExcelBook("/home/mathias/Dropbox/TBP/bio_data/systems/excel_book/pheromone.xls")
 
     reg_graph = RegulatoryGraph(rxncon_system=rxncon_sys.rxncon_system).to_graph()
 
