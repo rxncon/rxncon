@@ -24,7 +24,7 @@ class ReactionTerm:  # pylint:disable=too-few-public-methods
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ReactionTerm):
             return NotImplemented
-        return self.states == other.states
+        return self.specs == other.specs and self.states == other.states
 
     def __str__(self) -> str:
         return 'ReactionTerm<{0}:{1}>'.format(','.join(str(spec) for spec in self.specs), ','.join(str(x) for x in self.states))
@@ -684,6 +684,24 @@ class Reaction:  # pylint: disable=too-many-instance-attributes
     @property
     def synthesised_components(self) -> List[Spec]:
         return [component for component in self.components_rhs if component not in self.components_lhs]
+
+    @property
+    def modifier_components(self) -> List[Spec]:
+        res = []
+        for term in self.terms_lhs:
+            if term in self.terms_rhs:
+                res += term.specs
+
+        return res
+
+    @property
+    def modifier_states(self) -> List[State]:
+        res = []
+        for term in self.terms_lhs:
+            if term in self.terms_rhs:
+                res += term.states
+
+        return res
 
 
 class OutputReaction(Reaction):
