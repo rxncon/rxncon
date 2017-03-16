@@ -16,21 +16,23 @@ RegulatoryGraphTestCase = namedtuple('RegulatoryGraphTestCase',
 
 
 def test_new_graph_output() -> None:
-    # quick_input = """A_syn_T; ! <bool>
-    # B_deg_T
-    # C_p+_T_[(r)]
-    # D_p-_T_[(r)]
-    # E_ub+_T_[(r)]
-    # [out]; ! T_[(r)]-{0}
-    # [out]; x T_[(r)]-{P}
-    # <bool>; OR T_[(r)]-{0}; OR [in1]; OR [in2]"""
-
-    quick_input = """A_syn_T
+    quick_input = """A_syn_T; ! <bool>
     B_deg_T
-    C_p+_T_[(r)]; ! C_[(r)]-{ub}
+    C_p+_T_[(r)]
     D_p-_T_[(r)]
-    E_ub+_C_[(r)]
-    F_ub-_T_[(r)]"""
+    E_ub+_T_[(r)]
+    F_ppi_T; ! T_[(r)]-{P}
+    G_deg_C
+    [out]; ! T_[(r)]-{0}
+    [out]; x T_[(r)]-{P}
+    <bool>; OR T_[(r)]-{0}; OR [in1]; OR [in2]"""
+
+    # quick_input = """A_syn_T
+    # B_deg_T
+    # C_p+_T_[(r)]; ! C_[(r)]-{ub}
+    # D_p-_T_[(r)]
+    # E_ub+_C_[(r)]
+    # F_ub-_T_[(r)]"""
 
     rxncon_sys = qui.Quick(quick_input)
 
@@ -41,7 +43,7 @@ def test_new_graph_output() -> None:
     reg_graph = RegulatoryGraph(rxncon_system=rxncon_sys.rxncon_system).to_graph()
 
     xgmml_reg_graph = graphML.XGMML(reg_graph, "regulatory_graph")
-    graph_file1 = xgmml_reg_graph.to_file("/home/mathias/tbp/species_reaction_graph_test_outputs/species_reaction_graph_insulin.xgmml")
+    graph_file1 = xgmml_reg_graph.to_file("/home/mathias/tbp/species_reaction_graph_test_outputs/species_reaction_graph_basti_test10.xgmml")
     print("Wrote regulatory graph.")
 
     pass

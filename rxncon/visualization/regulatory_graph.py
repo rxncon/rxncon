@@ -41,6 +41,7 @@ class EdgeInteractionType(Enum):
     source_state   = 'ss'
     input_state    = 'is'
     mutually_exclusive = 'mutually_exclusive'
+    modify = "modifiy"
 
 edge_type_mapping = {ContingencyType.requirement: EdgeInteractionType.required,
                      ContingencyType.inhibition: EdgeInteractionType.inhibited,
@@ -88,6 +89,8 @@ class RegulatoryGraph:
             None
 
         """
+
+        ######## Start no use in regulatory graph
         def calc_components_without_states() -> List[Spec]:
             """
             Calculating the components without states:
@@ -98,6 +101,7 @@ class RegulatoryGraph:
             """
             return [comp for comp in self.rxncon_system.components() if not self.rxncon_system.states_for_component(comp)]
 
+        ######## END no use in regulatory graph
         def add_synthesised_components_and_reactions() -> None:
             """
             Adding components to the graph, which do not belong to at least one state but gets synthesised.
@@ -138,22 +142,41 @@ class RegulatoryGraph:
                 self._add_edge(source=str(reaction), target=str(degraded_component), interaction=EdgeInteractionType.degrade)
                 components_by_reactions.append(degraded_component)
 
-        def get_component_for_neutral_states():
+        def component_in_conts(comp, reaction):
+
+            cont = Intersection(*(x.to_venn_set() for x
+                                in self.rxncon_system.contingencies_for_reaction(reaction)))
+
+            for state in cont.values:
+                if comp in state.to_non_structured().components:
+                    return True
+            return False
+
+        def get_component_for_neutral_states(reaction):
             nonlocal components_by_reactions
-            for reaction in self.rxncon_system.reactions:
-                for state in reaction.consumed_states:
-                    # if len(state.components) == 1 and state.components[0] == component and state.is_neutral:
-                    if state.is_neutral and state.components[0] in components_by_reactions:
-                        assert len(state.components) == 1
+            for state in reaction.consumed_states:
+                # if len(state.components) == 1 and state.components[0] == component and state.is_neutral:
+                if state.is_neutral and state.components[0] in components_by_reactions:
+                    assert len(state.components) == 1
+                    if not component_in_conts(state.components[0], reaction):
                         self._add_edge(source=str(state.components[0]), target=str(reaction),
-                                       interaction=EdgeInteractionType.input_state)
-                        # mutually exclusivity test:
-                        complements = self.rxncon_system.complement_states(state)
-                        if len(complements) > 1:
-                            for state in complements:
-                                if state not in reaction.produced_states:
-                                    self._add_edge(source=str(state), target=str(reaction),
-                                                   interaction=EdgeInteractionType.mutually_exclusive)
+                                   interaction=EdgeInteractionType.input_state)
+                    # mutually exclusivity test:
+                    complements = self.rxncon_system.complement_states(state)
+                    if len(complements) > 1:
+                        for state in complements:
+                            if state not in reaction.produced_states:
+                                self._add_edge(source=str(state), target=str(reaction),
+                                               interaction=EdgeInteractionType.mutually_exclusive)
+
+        def _add_modifier_components(reaction):
+            modifiers = reaction.modifier_components
+            for mod in modifiers:
+                if mod in components_by_reactions:
+                    self._add_node(id=str(mod), type=NodeType.component, label=str(mod))
+                    self._add_edge(source=str(mod), target=str(reaction), interaction=EdgeInteractionType.modify)
+
+
 
 
         def connect_components_and_reactions() -> None:
@@ -174,32 +197,10 @@ class RegulatoryGraph:
                 for reaction in self.rxncon_system.reactions:
                     if component in reaction.components_lhs and not component in reaction.components_rhs:
                         self._add_edge(source=str(component), target=str(reaction), interaction=EdgeInteractionType.source_state)
-                    elif component in reaction.components_lhs:
-                        self._add_edge(source=str(component), target=str(reaction),
-                                       interaction=EdgeInteractionType.input_state)
-                        #for state in reaction.consumed_states:
-                            # if len(state.components) == 1 and state.components[0] == component and state.is_neutral:
-                        #     if state.is_neutral and component in state.components:
-                        #         self._add_edge(source=str(component), target=str(reaction), interaction=EdgeInteractionType.input_state)
-                        #         #mutually exclusivity test:
-                        #         complements = self.rxncon_system.complement_states(state)
-                        #         if len(complements) > 1 :
-                        #             for state in complements:
-                        #                 if state not in reaction.produced_states:
-                        #                     self._add_edge(source=str(state), target=str(reaction),
-                        #                                interaction=EdgeInteractionType.mutually_exclusive)
-                        # # for state in reaction
-                        # if component in reaction.consumed_states :
-                        #
-                        # pass
-            #
-            # for component in components_by_reactions:
-            #     for reaction in self.rxncon_system.reactions:
-            #         if component in reaction.components_lhs and not component in reaction.components_rhs:
-            #             self._add_edge(source=str(component), target=str(reaction),
-            #                    interaction=EdgeInteractionType.source_state)
-            #         elif component in reaction.components_lhs:
-            #             self._add_edge(source=str(component), target=str(reaction), interaction=EdgeInteractionType.input_state)
+                    elif component in reaction.components_lhs :
+                        if any(state.is_neutral and component in state.components and not component_in_conts(component, reaction) for state in reaction.consumed_states):
+                            self._add_edge(source=str(component), target=str(reaction),
+                                           interaction=EdgeInteractionType.input_state)
 
         components_by_reactions = []  # type: List[Spec]
         components_without_states = calc_components_without_states()
@@ -207,9 +208,12 @@ class RegulatoryGraph:
         for reaction in self.rxncon_system.reactions:
             add_synthesised_components_and_reactions()
             get_degraded_components_and_reactions()
-        get_component_for_neutral_states()
+        for reaction in self.rxncon_system.reactions:
+            get_component_for_neutral_states(reaction)
+            _add_modifier_components(reaction)
         connect_components_and_reactions()
 
+######## Start no use in regulatory graph
     def add_degradation_reaction_information_to_graph(self, reaction: Reaction, contingencies: List[Contingency]) -> None:
         """
         Adding degradation information to the graph.
@@ -480,7 +484,7 @@ class RegulatoryGraph:
         # Second case: reaction with a trivial contingency should degrade all states for the degraded component.
         else:
             _update_no_contingency_case()
-
+####################   END no use in regulatory graph ##############
     def add_reaction_information_to_graph(self, reaction: Reaction) -> None:
         """
         Adds reaction information to the graph.
@@ -565,8 +569,11 @@ class RegulatoryGraph:
                     _add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
                     _add_reaction_source_state_edges_to_graph(reaction, reactant_pre)
 
+
         self._add_node(id=str(reaction), type=NodeType.reaction, label=str(reaction))
         _add_reactant_states()
+
+
 
     def add_contingency_information_to_graph(self, contingencies: List[Contingency]) -> None:
         """
