@@ -1,3 +1,4 @@
+import pytest
 from rxncon.input.shared.contingency_list import contingency_list_entry_from_strs as cle_from_str, contingencies_from_contingency_list_entries
 from rxncon.venntastic.sets import venn_from_str, Set as VennSet, ValueSet, Intersection, Union, Complement
 from rxncon.core.state import state_from_str, State
@@ -152,3 +153,19 @@ def test_contingency_list_entry_from_strs():
     assert state_from_str('A@0_[ae2]--E@2_[ea2]') in states
     assert state_from_str('A@0_[(a1)]-{p}') in states
     assert state_from_str('A@0_[(a2)]-{ub}') in states
+
+
+def test_single_structured_state_wrong_indexing() -> None:
+    cles = [
+        cle_from_str('A_p+_B_[(r)]', '!', 'B@0--A@1'),
+    ]
+    with pytest.raises(AssertionError):
+        contingencies_from_contingency_list_entries(cles)[0].to_structured().effector.states
+
+
+def test_single_structured_state_spec_not_in_reaction() -> None:
+    cles = [
+        cle_from_str('A_p+_B_[(r)]', '!', 'C@0-{p}'),
+    ]
+    with pytest.raises(AssertionError):
+        contingencies_from_contingency_list_entries(cles)[0].to_structured().effector.states

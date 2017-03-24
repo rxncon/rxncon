@@ -55,6 +55,7 @@ class Contingency:
 
         if isinstance(self.effector, StateEffector) and self.effector.is_structured:
             # A fully structured StateEffector is fine.
+            assert any(component in self.reaction.components_lhs_structured for component in self.effector.states[0].components), "Structured of state: {0} does not match structured reaction : {1} (structured components: {2})".format(str(self.effector), str(self.reaction), str(self.reaction.components_lhs_structured))
             return self
         elif isinstance(self.effector, StateEffector) and not self.effector.is_structured:
             # For a non-structured StateEffector, assume the Specs appearing in the Effector
