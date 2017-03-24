@@ -728,10 +728,18 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                                   if not any(component in reaction_target.degraded_components for component in neutral_target.components)]
 
                 if interaction_target.is_homodimer:
-                    assert len(empty_partners) == 0
+                    assert len(empty_partners) == 0, 'update_degs_add_interaction_state_partner::homodimer error.'
                     continue
 
-                assert len(empty_partners) == 1
+                if len(empty_partners) != 1:
+                    raise AssertionError('update_degs_add_interaction_state_partner::empty partners != 1 error\n'
+                                         'The full list of degraded targets is {}\n'
+                                         'The current reaction target is {}\n'
+                                         'The current interaction target is {}\n'
+                                         'The current empty partners that have been deduced are: {}\n'
+                                         .format(', '.join(str(x) for x in degraded_interaction_targets),
+                                                 str(reaction_target), str(interaction_target),
+                                                 ', '.join(str(x) for x in empty_partners)))
                 new_reaction = deepcopy(reaction_target)
                 new_reaction.interaction_variant_index = index if len(degraded_interaction_targets) > 1 else None
                 new_reaction.consumed_targets.append(interaction_target)
@@ -860,7 +868,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                         smoothed_prod_facs.append(smooth_source)
                     prod_facs.append(Intersection(ValueSet(reaction_target), *smoothed_prod_facs))
                 else:
-                    raise AssertionError
+                    raise AssertionError('Unknown smoothing strategy!')
 
             for reaction_target in (target for target in reaction_targets if target.consumes(state_target)):
                 cons_facs.append(Complement(reaction_with_sources(reaction_target)))

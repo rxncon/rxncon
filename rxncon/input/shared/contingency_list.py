@@ -57,7 +57,10 @@ class BooleanContingencyNameWithEquivs(BooleanContingencyName):
         return 'BooleanContingencyNameWithEquivs<{} :: {}>'.format(self.name, self.equivs)
 
 
-def contingency_list_entry_from_strs(subject_str: str, verb_str: str, object_str: str) -> ContingencyListEntry:
+def contingency_list_entry_from_strs(subject_str: str, verb_str: Union[str, float], object_str: str) -> ContingencyListEntry:
+    # The excel parser returns a value of 0, which is used to denote a neutral contingency as a float object.
+    if isinstance(verb_str, float):
+        verb_str = str(int(verb_str))
     def _add_reactant_equivs(equivs_strs):
 
         equivs_dict = {int(lhs_qual_spec_str.split('@')[-1]): qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name])
