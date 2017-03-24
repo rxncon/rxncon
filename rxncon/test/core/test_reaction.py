@@ -44,3 +44,9 @@ def test_equality_output_reaction() -> None:
     assert not reaction_from_str('[output]') == reaction_from_str('A_p+_B_[(x)]')
     assert reaction_from_str('[output]') == reaction_from_str('[output]')
     assert not reaction_from_str('[output]') == reaction_from_str('[output2]')
+
+
+def test_modifier() -> None:
+    rxn = reaction_from_str('A_trsl_BmRNA')
+    assert rxn.modifier_components == [spec_from_str('A'), spec_from_str('BmRNA')]
+    assert rxn.modifier_states == []
