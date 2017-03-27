@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from sys import version_info, exit
 
 
-if not (version_info.major == 3 and version_info.minor > 5):
+if not (version_info.major == 3 and version_info.minor >= 5):
     exit('The rxncon framework requires Python version 3.5 or higher. Please upgrade.')
 
 
