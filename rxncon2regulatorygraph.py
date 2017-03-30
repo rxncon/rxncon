@@ -9,7 +9,7 @@ import click_log
 import colorama
 
 from rxncon.input.excel_book.excel_book import ExcelBook
-from rxncon.visualization.regulatory_graph import RegulatoryGraph
+from rxncon.visualization.regulatory_graph import ReactionSpeciesGraph
 from rxncon.visualization.graphML import XGMML
 from rxncon.visualization.graphML import map_layout2xgmml
 
@@ -80,7 +80,7 @@ def write_xgmml(excel_filename: str, output=None, layout_template_file=None):
           .format(len(rxncon_system.reactions), len(rxncon_system.contingencies)))
 
     print('Generating regulatory graph output...')
-    reg_system = RegulatoryGraph(rxncon_system)
+    reg_system = ReactionSpeciesGraph(rxncon_system)
     graph = reg_system.to_graph()
 
     if layout_template_file:

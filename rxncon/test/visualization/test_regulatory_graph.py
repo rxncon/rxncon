@@ -7,7 +7,7 @@ import rxncon.input.excel_book.excel_book as excel
 
 import rxncon.visualization.graphML as graphML
 
-from rxncon.visualization.regulatory_graph import RegulatoryGraph, NodeType, EdgeInteractionType
+from rxncon.visualization.regulatory_graph import ReactionSpeciesGraph, NodeType, EdgeInteractionType
 
 
 RegulatoryGraphTestCase = namedtuple('RegulatoryGraphTestCase',
@@ -15,38 +15,38 @@ RegulatoryGraphTestCase = namedtuple('RegulatoryGraphTestCase',
                                       'boolean_state_node_tuple', 'edge_tuples'])
 
 
-def test_new_graph_output() -> None:
-    quick_input = """A_syn_T; ! <bool>
-    B_deg_T
-    C_p+_T_[(r)]
-    D_p-_T_[(r)]
-    E_ub+_T_[(r)]
-    F_ppi_T; ! T_[(r)]-{P}
-    G_deg_C
-    [out]; ! T_[(r)]-{0}
-    [out]; x T_[(r)]-{P}
-    <bool>; OR T_[(r)]-{0}; OR [in1]; OR [in2]"""
-
-    # quick_input = """A_syn_T
-    # B_deg_T
-    # C_p+_T_[(r)]; ! C_[(r)]-{ub}
-    # D_p-_T_[(r)]
-    # E_ub+_C_[(r)]
-    # F_ub-_T_[(r)]"""
-
-    rxncon_sys = qui.Quick(quick_input)
-
-    # rxncon_sys = excel.ExcelBook("/home/mathias/Dropbox/TBP/bio_data/systems/Ulrike/CircadianClock.xls")
-    # rxncon_sys = excel.ExcelBook("/home/mathias/Dropbox/TBP/bio_data/systems/new_jesp/Hog1_acyclic.xls")
-    # rxncon_sys = excel.ExcelBook("/home/mathias/Dropbox/TBP/bio_data/systems/excel_book/pheromone.xls")
-
-    reg_graph = RegulatoryGraph(rxncon_system=rxncon_sys.rxncon_system).to_graph()
-
-    xgmml_reg_graph = graphML.XGMML(reg_graph, "regulatory_graph")
-    graph_file1 = xgmml_reg_graph.to_file("/home/mathias/tbp/species_reaction_graph_test_outputs/species_reaction_graph_basti_test10.xgmml")
-    print("Wrote regulatory graph.")
-
-    pass
+# def test_new_graph_output() -> None:
+#     quick_input = """A_syn_T; ! <bool>
+#     B_deg_T
+#     C_p+_T_[(r)]
+#     D_p-_T_[(r)]
+#     E_ub+_T_[(r)]
+#     F_ppi_T; ! T_[(r)]-{P}
+#     G_deg_C
+#     [out]; ! T_[(r)]-{0}
+#     [out]; x T_[(r)]-{P}
+#     <bool>; OR T_[(r)]-{0}; OR [in1]; OR [in2]"""
+#
+#     # quick_input = """A_syn_T
+#     # B_deg_T
+#     # C_p+_T_[(r)]; ! C_[(r)]-{ub}
+#     # D_p-_T_[(r)]
+#     # E_ub+_C_[(r)]
+#     # F_ub-_T_[(r)]"""
+#
+#     rxncon_sys = qui.Quick(quick_input)
+#
+#     # rxncon_sys = excel.ExcelBook("/home/mathias/Dropbox/TBP/bio_data/systems/Ulrike/CircadianClock.xls")
+#     # rxncon_sys = excel.ExcelBook("/home/mathias/Dropbox/TBP/bio_data/systems/new_jesp/Hog1_acyclic.xls")
+#     # rxncon_sys = excel.ExcelBook("/home/mathias/Dropbox/TBP/bio_data/systems/excel_book/pheromone.xls")
+#
+#     reg_graph = ReactionSpeciesGraph(rxncon_system=rxncon_sys.rxncon_system).to_graph()
+#
+#     xgmml_reg_graph = graphML.XGMML(reg_graph, "regulatory_graph")
+#     graph_file1 = xgmml_reg_graph.to_file("/home/mathias/tbp/species_reaction_graph_test_outputs/species_reaction_graph_basti_test10.xgmml")
+#     print("Wrote regulatory graph.")
+#
+#     pass
 
 
 def test_simple_system() -> None:
@@ -1268,7 +1268,7 @@ def _create_regulatory_graph(quick_string: str) -> DiGraph:
 
     """
     actual_system = qui.Quick(quick_string)
-    reg_system = RegulatoryGraph(actual_system.rxncon_system)
+    reg_system = ReactionSpeciesGraph(actual_system.rxncon_system)
     return reg_system.to_graph()
 
 
