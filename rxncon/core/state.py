@@ -34,20 +34,26 @@ class StateModifier(Enum):
     cytosol   = 'cytosol'  # @note: hack for localisation.
     nucleus   = 'nucleus'  # @note: hack for localisation.
     out       = 'out'      # @note: hack for SPS
-    sat 	  = 'sat'
-    dup 	  = 'dup'
-    spb 	  = 'spb'
     sep 	  = 'sep'
     lic 	  = 'lic'
-    repinit	  = 'repinit'
-    rep 	  = 'rep'
-    seg 	  = 'seg'
+    repinit	  = 'replicating'
+    rep 	  = 'replicated'
+    seg 	  = 'segregated'
     pol 	  = 'pol'
     bud	  	  = 'bud'
     iso 	  = 'iso'
     cyt 	  = 'cyt'
     myr       = 'myr'
-    ac        = 'ac'  # pylint: disable=invalid-name
+    ac        = 'ac'
+    daughter  = 'daughter'
+    kt	      = 'tension'
+    emerged   = 'emerged'
+    growth    = 'growth'
+    satellite = 'sat'
+    duplicated = 'dup'
+    bipolar   = 'bipolar'
+    separated = 'separated'
+    SPB       = 'spb'
 
 
 def state_modifier_from_str(modifier_str: str) -> StateModifier:

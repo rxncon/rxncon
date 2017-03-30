@@ -32,6 +32,8 @@ class EdgeInteractionType(Enum):
     degrade        = 'degrade'
     maybe_degraded = 'maybe_degraded'
     required       = '!'
+    no_effect      = '0'
+    unknown_effect = '?'
     inhibited      = "x"
     positive       = 'k+'
     negative       = 'k-'
@@ -46,7 +48,9 @@ class EdgeInteractionType(Enum):
 edge_type_mapping = {ContingencyType.requirement: EdgeInteractionType.required,
                      ContingencyType.inhibition: EdgeInteractionType.inhibited,
                      ContingencyType.positive: EdgeInteractionType.positive,
-                     ContingencyType.negative: EdgeInteractionType.negative}
+                     ContingencyType.negative: EdgeInteractionType.negative,
+                     ContingencyType.no_effect: EdgeInteractionType.no_effect,
+                     ContingencyType.unknown: EdgeInteractionType.unknown_effect}
 
 
 class RegulatoryGraph:
