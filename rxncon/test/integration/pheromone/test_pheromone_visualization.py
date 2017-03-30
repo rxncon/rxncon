@@ -3,7 +3,7 @@ from xml.dom import minidom
 
 from rxncon.input.excel_book.excel_book import ExcelBook
 from rxncon.visualization.graphML import XGMML, map_layout2xgmml, _get_labels_and_coordinates_dict
-from rxncon.visualization.regulatory_graph import RegulatoryGraph
+from rxncon.visualization.regulatory_graph import ReactionSpeciesGraph
 
 
 PHEROMONE_XLS   = os.path.join(os.path.dirname(__file__), 'pheromone.xls')
@@ -23,7 +23,7 @@ def test_regulatory_graph_layout_remains() -> None:
     """
 
     book = ExcelBook(PHEROMONE_XLS)
-    reg_graph = RegulatoryGraph(book.rxncon_system)
+    reg_graph = ReactionSpeciesGraph(book.rxncon_system)
     gml_system = XGMML(reg_graph.to_graph(), "pheromone_layout")
     mapped_layout = map_layout2xgmml(gml_system.to_string(), PHEROMONE_XGMML)
     xmldoc_no_layout = minidom.parseString(mapped_layout)
