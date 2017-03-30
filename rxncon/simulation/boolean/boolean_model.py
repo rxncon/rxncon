@@ -680,17 +680,22 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         return result
 
     def update_degs_add_contingent_states(reaction_targets: List[ReactionTarget]) -> List[ReactionTarget]:
+        def get_elemental_states_by_component(component):
+            return [StateTarget(x) for x in rxncon_sys.states_for_component(component)]
         def degraded_state_targets(component: Spec, soln: Dict[StateTarget, bool]) -> List[StateTarget]:
             # soln evaluates to False if solution is tautology.
             if not soln and ComponentStateTarget(component) in component_state_targets:
                 return [ComponentStateTarget(component)]
             elif not soln:
-                return [StateTarget(x) for x in rxncon_sys.states_for_component(component)]
+                return get_elemental_states_by_component(component)
             else:
                 trues  = [target for target, val in soln.items() if val and not target.is_input()]
                 falses = [target for target, val in soln.items() if not val and not target.is_input()]
                 for target in falses:
                     trues += target.complementary_state_targets(rxncon_sys, component)
+                #if only input states in the solution
+                if not trues:
+                    return get_elemental_states_by_component(component)
                 return trues
 
         result = deepcopy(reaction_targets)
