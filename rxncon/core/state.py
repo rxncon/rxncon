@@ -24,36 +24,62 @@ GLOBAL_STATE_REGEX           = r'^\[{}\]$'.format(STR_REGEX)
 MODIFICATION_STATE_REGEX     = r'^' + SPEC_REGEX + r'-{' + STR_REGEX + r'}$'
 
 
-@unique
-class StateModifier(Enum):
-    neutral   = '0'
-    phosphor  = 'p'
-    ubiquitin = 'ub'
-    gtp       = 'gtp'
-    truncated = 'truncated'
-    cytosol   = 'cytosol'  # @note: hack for localisation.
-    nucleus   = 'nucleus'  # @note: hack for localisation.
-    out       = 'out'      # @note: hack for SPS
-    sep 	  = 'sep'
-    lic 	  = 'lic'
-    repinit	  = 'replicating'
-    rep 	  = 'replicated'
-    seg 	  = 'segregated'
-    pol 	  = 'pol'
-    bud	  	  = 'bud'
-    iso 	  = 'iso'
-    cyt 	  = 'cyt'
-    myr       = 'myr'
-    ac        = 'ac'
-    daughter  = 'daughter'
-    kt	      = 'tension'
-    emerged   = 'emerged'
-    growth    = 'growth'
-    satellite = 'sat'
-    duplicated = 'dup'
-    bipolar   = 'bipolar'
-    separated = 'separated'
-    SPB       = 'spb'
+StateModifier = None
+
+
+DEFAULT_STATE_MODIFIERS = {
+    'neutral': '0',
+    'phosphor': 'p',
+    'ubiquitin': 'ub',
+    'GTP': 'GTP'
+}
+
+
+def initialize_state_modifiers(additional_modifiers: Dict[str, str]=None) -> None:
+    if not additional_modifiers:
+        additional_modifiers = {}
+
+    global StateModifier
+    modifiers = {
+        **{k.lower(): v.lower() for k, v in DEFAULT_STATE_MODIFIERS.items()},
+        **{k.lower(): v.lower() for k, v in additional_modifiers.items()}
+    }
+
+    StateModifier = Enum('StateModifier', modifiers)
+
+
+initialize_state_modifiers()
+
+# @unique
+# class StateModifier(Enum):
+#     neutral   = '0'
+#     phosphor  = 'p'
+#     ubiquitin = 'ub'
+#     gtp       = 'gtp'
+#     truncated = 'truncated'
+#     cytosol   = 'cytosol'  # @note: hack for localisation.
+#     nucleus   = 'nucleus'  # @note: hack for localisation.
+#     out       = 'out'      # @note: hack for SPS
+#     sep 	  = 'sep'
+#     lic 	  = 'lic'
+#     repinit	  = 'replicating'
+#     rep 	  = 'replicated'
+#     seg 	  = 'segregated'
+#     pol 	  = 'pol'
+#     bud	  	  = 'bud'
+#     iso 	  = 'iso'
+#     cyt 	  = 'cyt'
+#     myr       = 'myr'
+#     ac        = 'ac'
+#     daughter  = 'daughter'
+#     kt	      = 'tension'
+#     emerged   = 'emerged'
+#     growth    = 'growth'
+#     satellite = 'sat'
+#     duplicated = 'dup'
+#     bipolar   = 'bipolar'
+#     separated = 'separated'
+#     SPB       = 'spb'
 
 
 def state_modifier_from_str(modifier_str: str) -> StateModifier:
