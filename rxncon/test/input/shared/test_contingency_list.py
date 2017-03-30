@@ -145,7 +145,8 @@ def test_contingency_list_entry_from_strs():
         cle_from_str('<bool4>', 'OR', 'A@2_[(a2)]-{ub}'),
     ]
 
-    states = contingencies_from_contingency_list_entries(cles)[0].to_structured().effector.states
+    effector = contingencies_from_contingency_list_entries(cles)[0].to_structured().effector
+    states = effector.states
 
     assert state_from_str('A@0_[ab1]--B@1_[ba1]') in states
     assert state_from_str('B@1_[be1]--E@3_[eb1]') in states
