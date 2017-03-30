@@ -1,4 +1,4 @@
-from rxncon.core.state import state_from_str, FullyNeutralState, GlobalState, EmptyBindingState
+from rxncon.core.state import state_from_str, FullyNeutralState, GlobalState, EmptyBindingState, initialize_state_modifiers
 from rxncon.core.spec import spec_from_str
 from rxncon.util.utils import elems_eq
 import pytest
@@ -414,3 +414,20 @@ def test_global_ordering() -> None:
     assert state_from_str('[BLA]') > state_from_str('X_[(x)]-{p}')
     assert state_from_str('[BLA]') > state_from_str('X_[(x)]-{0}')
     assert state_from_str('[BLA]') < state_from_str('[OUT]')
+
+###                       ###
+#   Test dynamical states   #
+###                       ###
+
+def test_dynamical_modification_state() -> None:
+    with pytest.raises(ValueError):
+        state_from_str('A_[(r)]-{bla}')
+
+    initialize_state_modifiers({'bla': 'bla'})
+
+    assert str(state_from_str('A_[(r)]-{bla}')) == 'A_[(r)]-{bla}'
+
+    initialize_state_modifiers()
+
+    with pytest.raises(ValueError):
+        state_from_str('A_[(r)]-{bla}')
