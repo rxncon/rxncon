@@ -9,7 +9,7 @@ import click_log
 import colorama
 
 from rxncon.input.excel_book.excel_book import ExcelBook
-from rxncon.visualization.regulatory_graph import RegulatoryGraph
+from rxncon.visualization.regulatory_graph import ReactionSpeciesGraph
 from rxncon.visualization.graphML import XGMML
 from rxncon.visualization.graphML import map_layout2xgmml
 
@@ -79,20 +79,20 @@ def write_xgmml(excel_filename: str, output=None, layout_template_file=None):
     print('Constructed rxncon system: [{} reactions], [{} contingencies]'
           .format(len(rxncon_system.reactions), len(rxncon_system.contingencies)))
 
-    print('Generating regulatory graph output...')
-    reg_system = RegulatoryGraph(rxncon_system)
+    print('Generating reaction species graph output...')
+    reg_system = ReactionSpeciesGraph(rxncon_system)
     graph = reg_system.to_graph()
 
     if layout_template_file:
         print('Writing layout information from [{0}] to graph file [{1}] ...'.format(layout_template_file, graph_filename))
         gml_system = XGMML(graph, "{}".format(output))
         graph = map_layout2xgmml(gml_system.to_string(), layout_template_file)
-        print('Writing regulatory graph file [{}] ...'.format(graph_filename))
+        print('Writing reaction species graph file [{}] ...'.format(graph_filename))
 
         with open(graph_filename, "w") as graph_handle:
             graph_handle.write(graph)
     else:
-        print('Writing regulatory graph file [{}] ...'.format(graph_filename))
+        print('Writing reaction species graph file [{}] ...'.format(graph_filename))
         gml_system = XGMML(graph, "{}".format(output))
         gml_system.to_file(graph_filename)
 
