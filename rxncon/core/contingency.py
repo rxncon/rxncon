@@ -46,7 +46,8 @@ class Contingency:
     def with_merged_struct_effector(self, equivs: Optional[StructEquivalences]=None, counter: Optional[StructCounter]=None,
                                     namespace: Optional[List[str]]=None) -> 'Contingency':
         structured = self.clone()
-        structured.effector = structured.effector.to_merged_struct_effector(equivs, counter, namespace)
+        equivs, counter = structured.effector.collect_global_equivs(equivs, counter, namespace)
+        structured.effector = structured.effector.to_global_struct_effector(equivs, counter, namespace)
         structured.validate_struct_indices()
         return structured
 
