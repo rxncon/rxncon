@@ -46,7 +46,8 @@ class Contingency:
     def with_merged_struct_effector(self, equivs: Optional[StructEquivalences]=None, counter: Optional[StructCounter]=None,
                                     namespace: Optional[List[str]]=None) -> 'Contingency':
         structured = self.clone()
-        structured.effector = structured.effector.to_merged_struct_effector(equivs, counter, namespace)
+        equivs, counter = structured.effector.collect_global_equivs(equivs, counter, namespace)
+        structured.effector = structured.effector.to_global_struct_effector(equivs, counter, namespace)
         structured.validate_struct_indices()
         return structured
 
@@ -55,6 +56,8 @@ class Contingency:
 
         if isinstance(self.effector, StateEffector) and self.effector.is_structured:
             # A fully structured StateEffector is fine.
+            if not self.effector.states[0].is_global:
+                assert any(component in self.reaction.components_lhs_structured for component in self.effector.states[0].components), "Structured of state: {0} does not match structured reaction : {1} (structured components: {2})".format(str(self.effector), str(self.reaction), str(self.reaction.components_lhs_structured))
             return self
         elif isinstance(self.effector, StateEffector) and not self.effector.is_structured:
             # For a non-structured StateEffector, assume the Specs appearing in the Effector

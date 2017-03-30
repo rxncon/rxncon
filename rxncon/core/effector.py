@@ -200,9 +200,14 @@ class Effector(metaclass=ABCMeta):
     def is_structured(self) -> bool:
         raise NotImplementedError
 
-    def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
-                                  counter: StructCounter=None,
-                                  cur_namespace: List[str]=None) -> 'Effector':
+    def collect_global_equivs(self, glob_equivs: StructEquivalences=None,
+                              counter: StructCounter=None,
+                              cur_namespace: List[str]=None) -> Tuple[StructEquivalences, StructCounter]:
+        raise NotImplementedError
+
+    def to_global_struct_effector(self, glob_equivs: StructEquivalences=None,
+                              counter: StructCounter=None,
+                              cur_namespace: List[str]=None) -> 'Effector':
         raise NotImplementedError
 
     @staticmethod
@@ -244,9 +249,15 @@ class StateEffector(Effector):
     def is_structured(self) -> bool:
         return self.expr.is_structured
 
-    def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
-                                  counter: StructCounter=None,
-                                  cur_namespace: List[str]=None) -> Effector:
+    def collect_global_equivs(self, glob_equivs: StructEquivalences=None,
+                              counter: StructCounter=None,
+                              cur_namespace: List[str]=None) -> Tuple[StructEquivalences, StructCounter]:
+        glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
+        return glob_equivs, counter
+
+    def to_global_struct_effector(self, glob_equivs: StructEquivalences=None,
+                              counter: StructCounter=None,
+                              cur_namespace: List[str]=None):
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         state = deepcopy(self.expr)
         updates = {}
@@ -307,11 +318,17 @@ class NotEffector(Effector):
     def is_structured(self) -> bool:
         return self.expr.is_structured
 
-    def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
-                                  counter: StructCounter=None,
-                                  cur_namespace: List[str]=None) -> Effector:
+    def collect_global_equivs(self, glob_equivs: StructEquivalences=None,
+                              counter: StructCounter=None,
+                              cur_namespace: List[str]=None) -> Tuple[StructEquivalences, StructCounter]:
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
-        return NotEffector(self.expr.to_merged_struct_effector(glob_equivs, counter, cur_namespace), name=self.name)
+        return self.expr.collect_global_equivs(glob_equivs, counter, cur_namespace + [self.name])
+
+    def to_global_struct_effector(self, glob_equivs: StructEquivalences=None,
+                              counter: StructCounter=None,
+                              cur_namespace: List[str]=None) -> Effector:
+        glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
+        return NotEffector(self.expr.to_global_struct_effector(glob_equivs, counter, cur_namespace + [self.name]), name=self.name)
 
 
 class NaryEffector(Effector):
@@ -336,18 +353,26 @@ class NaryEffector(Effector):
     def is_structured(self) -> bool:
         return all(x.is_structured for x in self.exprs)
 
-    def to_merged_struct_effector(self, glob_equivs: StructEquivalences=None,
-                                  counter: StructCounter=None,
-                                  cur_namespace: List[str]=None) -> Effector:
+    def collect_global_equivs(self, glob_equivs: StructEquivalences=None,
+                              counter: StructCounter=None,
+                              cur_namespace: List[str]=None) -> Tuple[StructEquivalences, StructCounter]:
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         glob_equivs.merge_with(self.equivs, cur_namespace)
 
         if not self.name:
             raise AssertionError('Cannot merge nameless NaryEffectors.')
 
-        return type(self)(*(x.to_merged_struct_effector(
-            glob_equivs, counter, cur_namespace + [self.name]) for x in self.exprs), name=self.name)
+        for expr in self.exprs:
+            glob_equivs, counter = expr.collect_global_equivs(glob_equivs, counter, cur_namespace + [self.name])
 
+        return glob_equivs, counter
+
+    def to_global_struct_effector(self, glob_equivs: StructEquivalences=None,
+                              counter: StructCounter=None,
+                              cur_namespace: List[str]=None) -> Effector:
+        glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
+        return type(self)(*(x.to_global_struct_effector(
+            glob_equivs, counter, cur_namespace + [self.name]) for x in self.exprs), name=self.name)
 
 class AndEffector(NaryEffector):
     def __str__(self) -> str:
