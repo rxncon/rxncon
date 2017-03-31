@@ -135,7 +135,7 @@ def validate_quantitative_contingency_strategy(ctx, param, value):
 
 
 @click.command()
-@click.option('--smoothing', default='no_smoothing',
+@click.option('--smoothing', default='smooth_production_sources',
               help='Smoothing strategy. Default: no_smoothing. Choices: {}'.format(', '.join(valid_smoothing_strategies)),
               callback=validate_smoothing_strategy)
 @click.option('--knockout', default='no_knockout',
