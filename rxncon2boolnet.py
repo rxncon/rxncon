@@ -92,7 +92,7 @@ def write_boolnet(excel_filename: str, smoothing_strategy: SmoothingStrategy, kn
     with open(boolnet_symbol_filename, mode='w') as f:
         f.write(symbol_str)
 
-    print('Writing BoolBet initial value file [{}] ...'.format(boolnet_initial_val_filename))
+    print('Writing BoolNet initial value file [{}] ...'.format(boolnet_initial_val_filename))
     with open(boolnet_initial_val_filename, mode='w') as f:
         f.write(initial_val_str)
 
