@@ -10,10 +10,10 @@ def test_simple_system() -> None:
 
     expected_bngl = '''begin model
 begin parameters
-NumA		100
-NumB		100
-NumC		100
-NumD		100
+NumA		1000
+NumB		1000
+NumC		1000
+NumD		1000
 k		1.0
 end parameters
 
