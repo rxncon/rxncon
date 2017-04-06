@@ -6,6 +6,8 @@ from rxncon.simulation.rule_based.rule_based_model import complex_from_str, rule
     with_connectivity_constraints, initial_condition_from_str
 from rxncon.core.state import state_from_str
 from rxncon.venntastic.sets import ValueSet, Union, Intersection
+import rxncon.core.reaction as reaction
+from rxncon.core.spec import Spec, LocusResolution, MRNASpec
 
 
 # Test the *_from_str functions.
@@ -390,6 +392,19 @@ def test_self_regulation() -> None:
 
 
 def test_trslprocat() -> None:
+    procatdef = reaction.ReactionDef(
+        'pro-cat-translation',
+        '$x_trslprocat_$y',
+        {
+            '$x': (Spec, LocusResolution.component),
+            '$y': (MRNASpec, LocusResolution.component)
+        },
+        '$x%# + $y%# -> $x%# + $y%# + $y.to_protein_component_spec().with_name_suffix(\'PRO\')%!$y.to_protein_component_spec().with_name_suffix(\'CAT\')%#'  # pylint: disable=line-too-long
+        '$y.to_protein_component_spec().with_name_suffix(\'PRO\').with_domain(\'PROCAT\')%--$y.to_protein_component_spec().with_name_suffix(\'CAT\').with_domain(\'CATPRO\')%!0'
+    )
+
+    reaction.REACTION_DEFS = reaction.DEFAULT_REACTION_DEFS + [procatdef]
+
     rxn_system = Quick("""Ribo_trslprocat_Ssy5mRNA
                           A_p+_Ssy5CAT
                           B_deg_Ssy5PRO""").rxncon_system
@@ -406,3 +421,5 @@ def test_trslprocat() -> None:
 
     for actual_rule in rbm.rules:
         assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+
+    reaction.REACTION_DEFS = reaction.DEFAULT_REACTION_DEFS
