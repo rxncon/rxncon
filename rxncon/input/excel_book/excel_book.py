@@ -7,7 +7,7 @@ from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.input.shared.contingency_list import contingencies_from_contingency_list_entries, \
     contingency_list_entry_from_strs, ContingencyListEntry
 from rxncon.input.shared.reaction_preprocess import split_bidirectional_reaction_str
-from rxncon.core.reaction import Reaction, reaction_from_str, OutputReaction
+from rxncon.core.reaction import Reaction, reaction_from_str, OutputReaction, initialize_reaction_defs
 from rxncon.core.state import initialize_state_modifiers
 from rxncon.core.contingency import Contingency
 from rxncon.util.utils import current_function_name
@@ -15,7 +15,7 @@ from rxncon.util.utils import current_function_name
 NOT_APPLICABLE = 'N/A'
 
 SHEET_COMPONENT_LIST          = 'ComponentList'
-SHEET_REACTION_DEFINITION     = 'ReactionDefinition'
+SHEET_REACTION_TYPE_LIST      = 'ReactionTypeDefinition'
 SHEET_REACTION_LIST           = 'ReactionList'
 SHEET_CONTINGENCY_LIST        = 'ContingencyList'
 SHEET_MODIFICATION_TYPE_LIST  = 'ModificationTypeDefinition'
@@ -34,6 +34,16 @@ CONTINGENCY_LIST_COLUMN_MODIFIER = '!Modifier'
 MODIFICATION_TYPE_LIST_COLUMN_TYPE  = '!UID:ModificationType'
 MODIFICATION_TYPE_LIST_COLUMN_LABEL = '!UID:ModificationLabel'
 
+RXN_DEF_LIST_COLUMN_REACTION           = '!UID:Reaction'
+RXN_DEF_LIST_COLUMN_REACTION_KEY       = '!UID:ReactionKey'
+RXN_DEF_LIST_COLUMN_BIDIRECTIONAL_VERB = '!BidirectionalVerb'
+RXN_DEF_LIST_COLUMN_MOLTYPE_X          = '!MolTypeX'
+RXN_DEF_LIST_COLUMN_RESOLUTION_X       = '!ResolutionX'
+RXN_DEF_LIST_COLUMN_MOLTYPE_Y          = '!MolTypeY'
+RXN_DEF_LIST_COLUMN_RESOLUTION_Y       = '!ResolutionY'
+RXN_DEF_LIST_COLUMN_RULE               = '!SkeletonRule'
+
+
 logger = logging.getLogger(__name__)
 
 class ExcelBook:
@@ -51,11 +61,20 @@ class ExcelBook:
         self._column_contingency_target   = None  # type: Optional[int]
         self._column_contingency_type     = None  # type: Optional[int]
         self._column_contingency_modifier = None  # type: Optional[int]
+        self._column_rxn_def_reaction     = None
+        self._column_rxn_def_reaction_key = None
+        self._column_rxn_def_bi_verb      = None
+        self._column_rxn_def_moltype_x    = None
+        self._column_rxn_def_resolution_x = None
+        self._column_rxn_def_moltype_y    = None
+        self._column_rxn_def_resolution_y = None
+        self._column_rule                 = None
 
         self._open_file()
         self._validate_book()
         self._determine_column_numbers()
         self._initialize_modification_types()
+        self._initialize_reaction_defs()
         self._load_reaction_list()
         self._load_contingency_list_entries()
         self._construct_output_reactions()
@@ -109,6 +128,29 @@ class ExcelBook:
         except xlrd.XLRDError:
             pass
 
+        try:
+            sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_TYPE_LIST)
+            row   = list(sheet.get_rows())[HEADER_ROW]
+            for num, header in enumerate(row):
+                if header.value == RXN_DEF_LIST_COLUMN_REACTION:
+                    self._column_rxn_def_reaction = num
+                elif header.value == RXN_DEF_LIST_COLUMN_REACTION_KEY:
+                    self._column_rxn_def_reaction_key = num
+                elif header.value == RXN_DEF_LIST_COLUMN_BIDIRECTIONAL_VERB:
+                    self._column_rxn_def_bi_verb = num
+                elif header.value == RXN_DEF_LIST_COLUMN_MOLTYPE_X:
+                    self._column_rxn_def_moltype_x = num
+                elif header.value == RXN_DEF_LIST_COLUMN_RESOLUTION_X:
+                    self._column_rxn_def_resolution_x = num
+                elif header.value == RXN_DEF_LIST_COLUMN_MOLTYPE_Y:
+                    self._column_rxn_def_moltype_y = num
+                elif header.value == RXN_DEF_LIST_COLUMN_RESOLUTION_Y:
+                    self._column_rxn_def_resolution_y = num
+                elif header.value == RXN_DEF_LIST_COLUMN_RULE:
+                    self._column_rule = num
+        except xlrd.XLRDError:
+            pass
+
     def _initialize_modification_types(self) -> None:
         if self._column_modification_type is None or self._column_modification_label is None:
             return
@@ -134,6 +176,29 @@ class ExcelBook:
             modifiers[k] = v
 
         initialize_state_modifiers(modifiers)
+
+    def _initialize_reaction_defs(self) -> None:
+        if self._column_rxn_def_reaction is None:
+            return
+
+        sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_TYPE_LIST)
+        rxn_def_rows = [row for row in sheet.get_rows()][DATA_ROW:]
+
+        rxn_defs = []
+
+        for row in rxn_def_rows:
+            rxn_defs.append({
+                RXN_DEF_LIST_COLUMN_REACTION: row[self._column_rxn_def_reaction].value,
+                RXN_DEF_LIST_COLUMN_REACTION_KEY: row[self._column_rxn_def_reaction_key].value,
+                RXN_DEF_LIST_COLUMN_BIDIRECTIONAL_VERB: row[self._column_rxn_def_bi_verb].value,
+                RXN_DEF_LIST_COLUMN_MOLTYPE_X: row[self._column_rxn_def_moltype_x].value,
+                RXN_DEF_LIST_COLUMN_RESOLUTION_X: row[self._column_rxn_def_resolution_x].value,
+                RXN_DEF_LIST_COLUMN_MOLTYPE_Y: row[self._column_rxn_def_moltype_y].value,
+                RXN_DEF_LIST_COLUMN_RESOLUTION_Y: row[self._column_rxn_def_resolution_y].value,
+                RXN_DEF_LIST_COLUMN_RULE: row[self._column_rule].value
+            })
+
+        initialize_reaction_defs(rxn_defs)
 
     def _load_reaction_list(self) -> None:
         sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_LIST)
