@@ -155,7 +155,10 @@ class ReactionDef:
         return regex
 
 
-REACTION_DEFS = [
+REACTION_DEFS = []
+
+
+DEFAULT_REACTION_DEFS = [
     ReactionDef(
         'phosphorylation',
         '$x_p+_$y',
@@ -292,7 +295,7 @@ REACTION_DEFS = [
         '$x%#$x%--[$y.locus%] -> $x%#$x%--0!$y%--0'
     ),
     ReactionDef(
-        'gene-protein-interaction',
+        'protein-gene-interaction',
         '$x_bind+_$y',
         {
             '$x': (ProteinSpec, LocusResolution.domain),
@@ -301,7 +304,7 @@ REACTION_DEFS = [
         '$x%#$x%--0 + $y%#$y%--0 -> $x%!$y%#$x%--$y%'
     ),
     ReactionDef(
-        'gene-protein-dissociation',
+        'protein-gene-dissociation',
         '$x_bind-_$y',
         {
             '$x': (ProteinSpec, LocusResolution.domain),
@@ -328,22 +331,13 @@ REACTION_DEFS = [
         '$x%# -> $x%# + $y%#0'
     ),
     ReactionDef(
-        'auto-GuanineNucleotideExchange',
-        '$x_agex_$y',
+        'truncation',
+        '$x_CUT_$y',
         {
             '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
+            '$y': (Spec, LocusResolution.residue)
         },
-        '$y%#$y%-{0} -> $y%#$y%-{GTP}'
-    ),
-    ReactionDef(
-        'auto-GTPHydrolysis',
-        '$x_aghy_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$y%#$y%-{GTP} -> $y%#$y%-{0}'
+        '$x%# + $y%#$y%-{0} -> $x%# + $y%#$y%-{truncated}'
     ),
     ReactionDef(
         'GTPase-activation',
@@ -363,273 +357,326 @@ REACTION_DEFS = [
         },
         '$x%# + $y%#$y%-{0} -> $x%# + $y%#$y%-{GTP}'
     ),
-    ReactionDef(
-        'nuclear-export',
-        '$x_nexp_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.component)
-        },
-        '$x%# + $y%#$y%_[(loc)]-{nucleus} -> $x%# + $y%#$y%_[(loc)]-{0}'
-    ),
-    ReactionDef(
-        'nuclear-import',
-        '$x_nimp_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.component)
-        },
-        '$x%# + $y%#$y%_[(loc)]-{0} -> $x%# + $y%#$y%_[(loc)]-{nucleus}'
-    ),
-    ReactionDef(
-        'flip-out',
-        '$x_FlipOut_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.component)
-        },
-        '$y%#$y%_[(direction)]-{0} -> $y%#$y%_[(direction)]-{out}'
-    ),
-    ReactionDef(
-        'flip-in',
-        '$x_FlipIn_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.component)
-        },
-        '$y%#$y%_[(direction)]-{out} -> $y%#$y%_[(direction)]-{0}'
-    ),
-    ReactionDef(
-        'facilitated-uptake-extracellular-cytoplasmic',
-        '$x_FDExtCyt_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (Spec, LocusResolution.component)
-        },
-        '$x%# + $y%#$y%_[(loc)]-{0} -> $x%# + $y%#$y%_[(loc)]-{cytosol}'
-    ),
-    ReactionDef(
-        'facilitated-uptake-cytoplasmic-extracellular',
-        '$x_FDCytExt_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (Spec, LocusResolution.component)
-        },
-        '$x%# + $y%#$y%_[(loc)]-{cytosol} -> $x%# + $y%#$y%_[(loc)]-{0}'
-    ),
-    ReactionDef(
-        'truncation',
-        '$x_CUT_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (Spec, LocusResolution.residue)
-        },
-        '$x%# + $y%#$y%-{0} -> $x%# + $y%#$y%-{truncated}'
-    ),
+    # ReactionDef(
+    #     'auto-GuanineNucleotideExchange',
+    #     '$x_agex_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$y%#$y%-{0} -> $y%#$y%-{GTP}'
+    # ),
+    # ReactionDef(
+    #     'auto-GTPHydrolysis',
+    #     '$x_aghy_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$y%#$y%-{GTP} -> $y%#$y%-{0}'
+    # ),
+    # ReactionDef(
+    #     'nuclear-export',
+    #     '$x_nexp_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.component)
+    #     },
+    #     '$x%# + $y%#$y%_[(loc)]-{nucleus} -> $x%# + $y%#$y%_[(loc)]-{0}'
+    # ),
+    # ReactionDef(
+    #     'nuclear-import',
+    #     '$x_nimp_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.component)
+    #     },
+    #     '$x%# + $y%#$y%_[(loc)]-{0} -> $x%# + $y%#$y%_[(loc)]-{nucleus}'
+    # ),
+    # ReactionDef(
+    #     'flip-out',
+    #     '$x_FlipOut_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.component)
+    #     },
+    #     '$y%#$y%_[(direction)]-{0} -> $y%#$y%_[(direction)]-{out}'
+    # ),
+    # ReactionDef(
+    #     'flip-in',
+    #     '$x_FlipIn_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.component)
+    #     },
+    #     '$y%#$y%_[(direction)]-{out} -> $y%#$y%_[(direction)]-{0}'
+    # ),
+    # ReactionDef(
+    #     'facilitated-uptake-extracellular-cytoplasmic',
+    #     '$x_FDExtCyt_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (Spec, LocusResolution.component)
+    #     },
+    #     '$x%# + $y%#$y%_[(loc)]-{0} -> $x%# + $y%#$y%_[(loc)]-{cytosol}'
+    # ),
+    # ReactionDef(
+    #     'facilitated-uptake-cytoplasmic-extracellular',
+    #     '$x_FDCytExt_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (Spec, LocusResolution.component)
+    #     },
+    #     '$x%# + $y%#$y%_[(loc)]-{cytosol} -> $x%# + $y%#$y%_[(loc)]-{0}'
+    # ),
+    # ReactionDef(
+    #     'satellite',
+    #     '$x_SAT_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$y%#$y%-{0} -> $y%#$y%-{SAT}'
+    # ),
+    #
+    # ReactionDef(
+    #     'DuplicationPlaque',
+    #     '$x_DUP_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$y%#$y%-{SAT} -> $y%#$y%-{DUP}'
+    # ),
+    # ReactionDef(
+    #     'SPBDuplication',
+    #     '$x_SPB_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$y%#$y%-{DUP} -> $y%#$y%-{SPB}'
+    # ),
+    # ReactionDef(
+    #     'SPBSeparation',
+    #     '$x_SEP_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$y%#$y%-{SPB} -> $y%#$y%-{separated}'
+    # ),
+    #
+    # ReactionDef(
+    #     'SPBBipolar',
+    #     '$x_BIP_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$y%#$y%-{separated} -> $y%#$y%-{bipolar}'
+    # ),
+    #
+    # ReactionDef(
+    #     'SPBposition',
+    #     '$x_POS_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$y%#$y%-{0} -> $y%#$y%-{daughter}'
+    # ),
+    # ReactionDef(
+    #     'DNAlicensing',
+    #     '$x_LIC_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$y%#$y%-{0} -> $y%#$y%-{LIC}'
+    # ),
 
-    ReactionDef(
-        'satellite',
-        '$x_SAT_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$y%#$y%-{0} -> $y%#$y%-{SAT}'
-    ),
-
-    ReactionDef(
-        'DuplicationPlaque',
-        '$x_DUP_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$y%#$y%-{SAT} -> $y%#$y%-{DUP}'
-    ),
-    ReactionDef(
-        'SPBDuplication',
-        '$x_SPB_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$y%#$y%-{DUP} -> $y%#$y%-{SPB}'
-    ),
-    ReactionDef(
-        'SPBSeparation',
-        '$x_SEP_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$y%#$y%-{SPB} -> $y%#$y%-{separated}'
-    ),
-
-    ReactionDef(
-        'SPBBipolar',
-        '$x_BIP_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$y%#$y%-{separated} -> $y%#$y%-{bipolar}'
-    ),
-
-    ReactionDef(
-        'SPBposition',
-        '$x_POS_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$y%#$y%-{0} -> $y%#$y%-{daughter}'
-    ),
-    ReactionDef(
-        'DNAlicensing',
-        '$x_LIC_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$y%#$y%-{0} -> $y%#$y%-{LIC}'
-    ),
-
-    ReactionDef(
-        'DNAreplicationinit',
-        '$x_RepInit_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$y%#$y%-{LIC} -> $y%#$y%-{replicating}'
-    ),
-    ReactionDef(
-        'DNAreplication',
-        '$x_RepFinish_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$y%#$y%-{replicating} -> $y%#$y%-{replicated}'
-    ),
-
-    ReactionDef(
-        'DNAKTTension',
-        '$x_KT_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$y%#$y%-{replicated} -> $y%#$y%-{tension}'
-    ),
-
-    ReactionDef(
-        'DNAsegregation',
-        '$x_SEG_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-
-        '$y%#$y%-{tension} -> $y%#$y%-{segregated}'
-    ),
-    ReactionDef(
-        'CYTpolarisation',
-        '$x_POL_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$y%#$y%-{0} -> $y%#$y%-{POL}'
-    ),
-    ReactionDef(
-        'CYTisotropic',
-        '$x_ISO_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$y%#$y%-{POL} -> $y%#$y%-{ISO}'
-    ),
-    ReactionDef(
-        'CYTbudemergence',
-        '$x_EM_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-
-        '$y%#$y%-{0} -> $y%#$y%-{emerged}'
-    ),
-
-    ReactionDef(
-        'CYTbudgrowth',
-        '$x_GROWTH_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-
-        '$y%#$y%-{emerged} -> $y%#$y%-{growth}'
-    ),
-    ReactionDef(
-        'CYTokinesis',
-        '$y_CYT_$x',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.component)
-        },
-        '$x%#$x%_[(bud)]-{growth} + $x%#$x%_[(SPB)]-{bipolar} + $x%#$x%_[(SPBpos)]-{daughter} + $x%#$x%_[(cytoplasm)]-{ISO} + $x%#$x%_[(DNA)]-{segregated} -> $x%#$x%_[(SPBpos)]-{0} + $x%#$x%_[(cytoplasm)]-{0} + $x%#$x%_[(DNA)]-{0} + $x%#$x%_[(SPB)]-{0} + $x%#$x%_[(bud)]-{0}'
-    ),
-
-    ReactionDef(
-        'acetylation',
-        '$x_Ac+_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$x%# + $y%#$y%-{0} -> $x%# + $y%#$y%-{Ac}'
-    ),
-    ReactionDef(
-        'Myristoylation',
-        '$x_Myr+_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$x%# + $y%#$y%-{0} -> $x%# + $y%#$y%-{Myr}'
-    ),
-    ReactionDef(
-        'deacetylation',
-        '$x_Ac-_$y',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$x%# + $y%#$y%-{Ac} -> $x%# + $y%#$y%-{0}'
-    ),
-    ReactionDef(
-        'demyrstoylation',
-        '$x%_Myr-_$y%',
-        {
-            '$x': (ProteinSpec, LocusResolution.component),
-            '$y': (ProteinSpec, LocusResolution.residue)
-        },
-        '$x%# + $y%#$y%-{Myr} -> $x%# + $y%#$y%-{0}'
-    ),
-    ReactionDef(
-        'pro-cat-translation',
-        '$x_trslprocat_$y',
-        {
-            '$x': (Spec, LocusResolution.component),
-            '$y': (MRNASpec, LocusResolution.component)
-        },
-        '$x%# + $y%# -> $x%# + $y%# + $y.to_protein_component_spec().with_name_suffix(\'PRO\')%!$y.to_protein_component_spec().with_name_suffix(\'CAT\')%#'  # pylint: disable=line-too-long
-        '$y.to_protein_component_spec().with_name_suffix(\'PRO\').with_domain(\'PROCAT\')%--$y.to_protein_component_spec().with_name_suffix(\'CAT\').with_domain(\'CATPRO\')%!0'
-        # pylint: disable=line-too-long
-    )
+    # ReactionDef(
+    #     'DNAreplicationinit',
+    #     '$x_RepInit_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$y%#$y%-{LIC} -> $y%#$y%-{replicating}'
+    # ),
+    # ReactionDef(
+    #     'DNAreplication',
+    #     '$x_RepFinish_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$y%#$y%-{replicating} -> $y%#$y%-{replicated}'
+    # ),
+    #
+    # ReactionDef(
+    #     'DNAKTTension',
+    #     '$x_KT_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$y%#$y%-{replicated} -> $y%#$y%-{tension}'
+    # ),
+    #
+    # ReactionDef(
+    #     'DNAsegregation',
+    #     '$x_SEG_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #
+    #     '$y%#$y%-{tension} -> $y%#$y%-{segregated}'
+    # ),
+    # ReactionDef(
+    #     'CYTpolarisation',
+    #     '$x_POL_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$y%#$y%-{0} -> $y%#$y%-{POL}'
+    # ),
+    # ReactionDef(
+    #     'CYTisotropic',
+    #     '$x_ISO_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$y%#$y%-{POL} -> $y%#$y%-{ISO}'
+    # ),
+    # ReactionDef(
+    #     'CYTbudemergence',
+    #     '$x_EM_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #
+    #     '$y%#$y%-{0} -> $y%#$y%-{emerged}'
+    # ),
+    #
+    # ReactionDef(
+    #     'CYTbudgrowth',
+    #     '$x_GROWTH_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #
+    #     '$y%#$y%-{emerged} -> $y%#$y%-{growth}'
+    # ),
+    # ReactionDef(
+    #     'CYTokinesis',
+    #     '$y_CYT_$x',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.component)
+    #     },
+    #     '$x%#$x%_[(bud)]-{growth} + $x%#$x%_[(SPB)]-{bipolar} + $x%#$x%_[(SPBpos)]-{daughter} + $x%#$x%_[(cytoplasm)]-{ISO} + $x%#$x%_[(DNA)]-{segregated} -> $x%#$x%_[(SPBpos)]-{0} + $x%#$x%_[(cytoplasm)]-{0} + $x%#$x%_[(DNA)]-{0} + $x%#$x%_[(SPB)]-{0} + $x%#$x%_[(bud)]-{0}'
+    # ),
+    #
+    # ReactionDef(
+    #     'acetylation',
+    #     '$x_Ac+_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$x%# + $y%#$y%-{0} -> $x%# + $y%#$y%-{Ac}'
+    # ),
+    # ReactionDef(
+    #     'Myristoylation',
+    #     '$x_Myr+_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$x%# + $y%#$y%-{0} -> $x%# + $y%#$y%-{Myr}'
+    # ),
+    # ReactionDef(
+    #     'deacetylation',
+    #     '$x_Ac-_$y',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$x%# + $y%#$y%-{Ac} -> $x%# + $y%#$y%-{0}'
+    # ),
+    # ReactionDef(
+    #     'demyrstoylation',
+    #     '$x%_Myr-_$y%',
+    #     {
+    #         '$x': (ProteinSpec, LocusResolution.component),
+    #         '$y': (ProteinSpec, LocusResolution.residue)
+    #     },
+    #     '$x%# + $y%#$y%-{Myr} -> $x%# + $y%#$y%-{0}'
+    # ),
+    # ReactionDef(
+    #     'pro-cat-translation',
+    #     '$x_trslprocat_$y',
+    #     {
+    #         '$x': (Spec, LocusResolution.component),
+    #         '$y': (MRNASpec, LocusResolution.component)
+    #     },
+    #     '$x%# + $y%# -> $x%# + $y%# + $y.to_protein_component_spec().with_name_suffix(\'PRO\')%!$y.to_protein_component_spec().with_name_suffix(\'CAT\')%#'  # pylint: disable=line-too-long
+    #     '$y.to_protein_component_spec().with_name_suffix(\'PRO\').with_domain(\'PROCAT\')%--$y.to_protein_component_spec().with_name_suffix(\'CAT\').with_domain(\'CATPRO\')%!0'
+    #     # pylint: disable=line-too-long
+    # )
 ]
+
+
+def initialize_reaction_defs(additional_defs: List[Dict[str, str]]=None) -> None:
+    global REACTION_DEFS
+    global DEFAULT_REACTION_DEFS
+    global BIDIRECTIONAL_REACTIONS
+
+    if not additional_defs:
+        additional_defs = []
+
+    type_str_to_spec = {
+        'Any': Spec,
+        'Protein': ProteinSpec,
+        'Gene': GeneSpec,
+        'mRNA': MRNASpec,
+    }
+
+    res_str_to_spec = {
+        'component': LocusResolution.component,
+        'domain': LocusResolution.domain,
+        'residue': LocusResolution.residue
+    }
+
+    parsed_defs = []
+
+    for additional_def in additional_defs:
+        rxn_def = ReactionDef(
+            additional_def['!UID:Reaction'],
+            '$x_{}_$y'.format(additional_def['!UID:ReactionKey']),
+            {
+                '$x': (type_str_to_spec[additional_def['!MolTypeX']], res_str_to_spec[additional_def['!ResolutionX']]),
+                '$y': (type_str_to_spec[additional_def['!MolTypeY']], res_str_to_spec[additional_def['!ResolutionY']])
+            },
+            additional_def['!SkeletonRule']
+        )
+
+        if additional_def['!BidirectionalVerb'] == 'yes':
+            BIDIRECTIONAL_REACTIONS.append(additional_def['!UID:ReactionKey'])
+
+        parsed_defs.append(rxn_def)
+
+    REACTION_DEFS = DEFAULT_REACTION_DEFS + parsed_defs
+
+
+initialize_reaction_defs()
 
 
 class Reaction:  # pylint: disable=too-many-instance-attributes

@@ -31,7 +31,8 @@ DEFAULT_STATE_MODIFIERS = {
     'neutral': '0',
     'phosphor': 'p',
     'ubiquitin': 'ub',
-    'GTP': 'GTP'
+    'GTP': 'GTP',
+    'truncated': 'truncated'
 }
 
 

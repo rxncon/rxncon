@@ -1,6 +1,8 @@
-from rxncon.core.reaction import reaction_from_str, ReactionTerm
+import pytest
+from rxncon.core.reaction import reaction_from_str, ReactionTerm, initialize_reaction_defs
 from rxncon.core.state import state_from_str
 from rxncon.core.spec import spec_from_str
+
 
 def test_simple_reaction() -> None:
     rxn = reaction_from_str('A_p+_B_[(r)]')
@@ -50,3 +52,30 @@ def test_modifier() -> None:
     rxn = reaction_from_str('A_trsl_BmRNA')
     assert rxn.modifier_components == [spec_from_str('A'), spec_from_str('BmRNA')]
     assert rxn.modifier_states == []
+
+
+def test_dynamical_reactions() -> None:
+    with pytest.raises(SyntaxError):
+        rxn = reaction_from_str('A_agex_A_[(r)]')
+
+    initialize_reaction_defs([
+        {
+            '!UID:Reaction': 'auto-GuanineNucleotideExchange',
+            '!UID:ReactionKey': 'agex',
+            '!BidirectionalVerb': 'no',
+            '!MolTypeX': 'Protein',
+            '!ResolutionX': 'component',
+            '!MolTypeY': 'Protein',
+            '!ResolutionY': 'residue',
+            '!SkeletonRule': '$y%#$y%-{0} -> $y%#$y%-{GTP}'
+        }
+    ])
+
+    rxn = reaction_from_str('A_agex_A_[(r)]')
+    assert rxn.produced_states == [state_from_str('A_[(r)]-{gtp}')]
+    assert rxn.consumed_states == [state_from_str('A_[(r)]-{0}')]
+
+    initialize_reaction_defs()
+
+    with pytest.raises(SyntaxError):
+        rxn = reaction_from_str('A_agex_A_[(r)]')
