@@ -255,7 +255,7 @@ class ReactionSpeciesGraph:
 
             if not state.is_homodimer:
                 boolean_node_id = '{0}_ON_{1}'.format(str(reaction), str(state))
-                self._add_node(id=boolean_node_id, label=' ', type=NodeType.boolean)
+                self._add_node(id=boolean_node_id, label=' ', type=NodeType.AND)
 
                 self._add_edge(source=str(reaction), target=boolean_node_id, interaction=EdgeInteractionType.AND)
                 self._add_edge(source=str(state), target=boolean_node_id, interaction=EdgeInteractionType.AND)
@@ -1035,12 +1035,12 @@ class RegulatoryGraph:
                     add_node_and_edge(name, NodeType.input, edge_type, target_name)
 
                 elif neutrals_in_cont:
-                    add_node_and_edge('<'+name+'>', NodeType.boolean, edge_type, target_name)
+                    add_node_and_edge('<'+name+'>', NodeType.NOT, edge_type, target_name)
                     # check if single
 
                     complementary_states = self.rxncon_system.complement_states(effector.expr)
                     if len(complementary_states) > 1:
-                        add_node_and_edge('not <' + name + '>', NodeType.boolean, edge_type=EdgeInteractionType.NOT,
+                        add_node_and_edge('not <' + name + '>', NodeType.NOT, edge_type=EdgeInteractionType.NOT,
                                           target_name='<' + name + '>')
                         for state in complementary_states:
                             add_node_and_edge(name=str(state.to_non_structured()), node_type=NodeType.state,
