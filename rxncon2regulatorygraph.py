@@ -62,9 +62,12 @@ def write_xgmml(excel_filename: str, output=None, layout_template_file=None):
         output = os.path.splitext(os.path.basename(excel_filename))[0]
 
     base_path = os.path.dirname(excel_filename)
-
+    suffix = '_reg'
     if not output.endswith('.xgmml'):
-        output =  '{0}.xgmml'.format(output)
+        output =  '{0}{1}.xgmml'.format(output,suffix)
+    else:
+        base_name = output.split('.xgmml')[0]
+        output = "{0}{1}.{2}".format(base_name,suffix,'xgmml')
 
     graph_filename = os.path.join(base_path, '{0}'.format(output))
 

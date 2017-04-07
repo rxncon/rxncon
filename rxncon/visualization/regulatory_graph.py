@@ -6,6 +6,7 @@ from networkx import DiGraph
 from rxncon.venntastic.sets import Union as VennUnion, Complement, ValueSet, Set as VennSet, Intersection
 from rxncon.core.contingency import ContingencyType
 from rxncon.core.state import State, InteractionState
+from rxncon.core.reaction import OutputReaction
 from rxncon.core.spec import Spec
 from rxncon.core.rxncon_system import RxnConSystem, Reaction, ReactionTerm, Contingency
 from rxncon.core.effector import StateEffector, AndEffector, NotEffector, OrEffector, Effector
@@ -255,7 +256,7 @@ class ReactionSpeciesGraph:
 
             if not state.is_homodimer:
                 boolean_node_id = '{0}_ON_{1}'.format(str(reaction), str(state))
-                self._add_node(id=boolean_node_id, label=' ', type=NodeType.boolean)
+                self._add_node(id=boolean_node_id, label=' ', type=NodeType.AND)
 
                 self._add_edge(source=str(reaction), target=boolean_node_id, interaction=EdgeInteractionType.AND)
                 self._add_edge(source=str(state), target=boolean_node_id, interaction=EdgeInteractionType.AND)
@@ -522,9 +523,13 @@ class ReactionSpeciesGraph:
             for reactant_pre in reaction.terms_lhs:
                 _add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
                 _add_reaction_source_state_edges_to_graph(reaction, reactant_pre)
+        if isinstance(reaction, OutputReaction):
+            self._add_node(id=str(reaction), type=NodeType.output, label=str(reaction))
+        else:
+            self._add_node(id=str(reaction), type=NodeType.reaction, label=str(reaction))
+            _add_reactant_states()
 
-        self._add_node(id=str(reaction), type=NodeType.reaction, label=str(reaction))
-        _add_reactant_states()
+
 
     def add_contingency_information_to_graph(self, contingencies: List[Contingency]) -> None:
         """
@@ -936,9 +941,11 @@ class RegulatoryGraph:
                     _add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
                     _add_reaction_source_state_edges_to_graph(reaction, reactant_pre)
 
-
-        self._add_node(id=str(reaction), type=NodeType.reaction, label=str(reaction))
-        _add_reactant_states()
+        if isinstance(reaction, OutputReaction):
+            self._add_node(id=str(reaction), type=NodeType.output, label=str(reaction))
+        else:
+            self._add_node(id=str(reaction), type=NodeType.reaction, label=str(reaction))
+            _add_reactant_states()
 
 
 
@@ -1035,12 +1042,12 @@ class RegulatoryGraph:
                     add_node_and_edge(name, NodeType.input, edge_type, target_name)
 
                 elif neutrals_in_cont:
-                    add_node_and_edge('<'+name+'>', NodeType.boolean, edge_type, target_name)
+                    add_node_and_edge('<'+name+'>', NodeType.NOT, edge_type, target_name)
                     # check if single
 
                     complementary_states = self.rxncon_system.complement_states(effector.expr)
                     if len(complementary_states) > 1:
-                        add_node_and_edge('not <' + name + '>', NodeType.boolean, edge_type=EdgeInteractionType.NOT,
+                        add_node_and_edge('not <' + name + '>', NodeType.NOT, edge_type=EdgeInteractionType.NOT,
                                           target_name='<' + name + '>')
                         for state in complementary_states:
                             add_node_and_edge(name=str(state.to_non_structured()), node_type=NodeType.state,
