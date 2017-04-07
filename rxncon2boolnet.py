@@ -1,64 +1,21 @@
 #!/usr/bin/python3
 
-from typing import Tuple, Optional
-import os, sys
-import click
 import logging
+import os
+import sys
+
+import click
 import click_log
 import colorama
-from enum import Enum
+from typing import Optional
 
-from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.input.excel_book.excel_book import ExcelBook
-from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, \
-    SmoothingStrategy, KnockoutStrategy, OverexpressionStrategy
-from rxncon.simulation.boolean.boolnet_from_boolean_model import boolnet_from_boolean_model
-
+from rxncon.simulation.boolean.boolean_model import SmoothingStrategy, KnockoutStrategy, OverexpressionStrategy
+from rxncon.simulation.boolean.boolnet_from_boolean_model import QuantitativeContingencyStrategy, \
+    boolnet_strs_from_rxncon
 
 colorama.init()
 LOGGER = logging.getLogger(__name__)
-
-
-class QuantitativeContingencyStrategy(Enum):
-    strict = 'strict'
-    ignore = 'ignore'
-
-
-def boolnet_strs_from_rxncon(rxncon: RxnConSystem, smoothing_strategy: SmoothingStrategy, knockout_strategy: KnockoutStrategy,
-                             overexpression_strategy: OverexpressionStrategy, k_plus_strategy: QuantitativeContingencyStrategy,
-                             k_minus_strategy: QuantitativeContingencyStrategy) \
-        -> Tuple[str, str, str]:
-    def sort_key(key_val_pair):
-        k, v = key_val_pair
-        return k[0], int(k[1:])
-
-    if k_plus_strategy == QuantitativeContingencyStrategy.strict:
-        k_plus_strict = True
-    elif k_plus_strategy == QuantitativeContingencyStrategy.ignore:
-        k_plus_strict = False
-    else:
-        raise AssertionError
-
-    if k_minus_strategy == QuantitativeContingencyStrategy.strict:
-        k_minus_strict = True
-    elif k_minus_strategy == QuantitativeContingencyStrategy.ignore:
-        k_minus_strict = False
-    else:
-        raise AssertionError
-
-    model_str, symbol_dict, initial_val_dict = \
-        boolnet_from_boolean_model(boolean_model_from_rxncon(rxncon, smoothing_strategy=smoothing_strategy,
-                                                             knockout_strategy=knockout_strategy,
-                                                             overexpression_strategy=overexpression_strategy,
-                                                             k_plus_strict=k_plus_strict, k_minus_strict=k_minus_strict))
-
-    symbol_str      = '\n'.join('{0}, {1}'.format(boolnet_sym, rxncon_sym) for boolnet_sym, rxncon_sym
-                                in sorted(symbol_dict.items(), key=sort_key)) + '\n'
-
-    initial_val_str = '\n'.join('{0}, {1: <5}  , #  {2}'.format(boolnet_sym, initial_val, symbol_dict[boolnet_sym])
-                                for boolnet_sym, initial_val in sorted(initial_val_dict.items(), key=sort_key)) + '\n'
-
-    return model_str, symbol_str, initial_val_str
 
 
 def write_boolnet(excel_filename: str, smoothing_strategy: SmoothingStrategy, knockout_strategy: KnockoutStrategy,
