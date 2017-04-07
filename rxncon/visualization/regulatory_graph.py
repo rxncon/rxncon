@@ -6,6 +6,7 @@ from networkx import DiGraph
 from rxncon.venntastic.sets import Union as VennUnion, Complement, ValueSet, Set as VennSet, Intersection
 from rxncon.core.contingency import ContingencyType
 from rxncon.core.state import State, InteractionState
+from rxncon.core.reaction import OutputReaction
 from rxncon.core.spec import Spec
 from rxncon.core.rxncon_system import RxnConSystem, Reaction, ReactionTerm, Contingency
 from rxncon.core.effector import StateEffector, AndEffector, NotEffector, OrEffector, Effector
@@ -522,9 +523,13 @@ class ReactionSpeciesGraph:
             for reactant_pre in reaction.terms_lhs:
                 _add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
                 _add_reaction_source_state_edges_to_graph(reaction, reactant_pre)
+        if isinstance(reaction, OutputReaction):
+            self._add_node(id=str(reaction), type=NodeType.output, label=str(reaction))
+        else:
+            self._add_node(id=str(reaction), type=NodeType.reaction, label=str(reaction))
+            _add_reactant_states()
 
-        self._add_node(id=str(reaction), type=NodeType.reaction, label=str(reaction))
-        _add_reactant_states()
+
 
     def add_contingency_information_to_graph(self, contingencies: List[Contingency]) -> None:
         """
@@ -936,9 +941,11 @@ class RegulatoryGraph:
                     _add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
                     _add_reaction_source_state_edges_to_graph(reaction, reactant_pre)
 
-
-        self._add_node(id=str(reaction), type=NodeType.reaction, label=str(reaction))
-        _add_reactant_states()
+        if isinstance(reaction, OutputReaction):
+            self._add_node(id=str(reaction), type=NodeType.output, label=str(reaction))
+        else:
+            self._add_node(id=str(reaction), type=NodeType.reaction, label=str(reaction))
+            _add_reactant_states()
 
 
 
