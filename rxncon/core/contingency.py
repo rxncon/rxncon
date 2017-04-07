@@ -7,7 +7,7 @@ from typing import Any, Callable, Set as TgSet, Dict, List, Optional  # pylint: 
 from rxncon.util.utils import current_function_name
 from rxncon.core.effector import Effector, StructEquivalences, QualSpec, StateEffector, TrivialStructEquivalences, NotEffector, \
     AndEffector, OrEffector, StructCounter
-from rxncon.core.reaction import Reaction
+from rxncon.core.reaction import Reaction, OutputReaction
 from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Complement, Union, UniversalSet
 from rxncon.core.state import State
 
@@ -56,7 +56,7 @@ class Contingency:
 
         if isinstance(self.effector, StateEffector) and self.effector.is_structured:
             # A fully structured StateEffector is fine.
-            if not self.effector.states[0].is_global:
+            if not self.effector.states[0].is_global and not isinstance(self.reaction, OutputReaction):
                 assert any(component in self.reaction.components_lhs_structured for component in self.effector.states[0].components), \
                     "Non-overlapping contingency: {0} does not match structured reaction : {1} (structured components: {2})"\
                     .format(str(self.effector), str(self.reaction), str(self.reaction.components_lhs_structured))
