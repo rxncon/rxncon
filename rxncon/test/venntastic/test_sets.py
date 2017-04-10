@@ -75,6 +75,34 @@ def test_deepcopy(sets: List[Set]) -> None:
         assert x.is_equivalent_to(deepcopy(x))
 
 
+def test_eval_boolean_func_OR() -> None:
+    f = venn_from_str('1 | 2', int)
+    assert f.eval_boolean_func({1: True, 2: True}) is True
+    assert f.eval_boolean_func({1: True, 2: False}) is True
+    assert f.eval_boolean_func({1: False, 2: True}) is True
+    assert f.eval_boolean_func({1: False, 2: False}) is False
+
+    with pytest.raises(AssertionError):
+        f.eval_boolean_func({1: True})
+
+    with pytest.raises(AssertionError):
+        f.eval_boolean_func({1: True, 3: False})
+
+
+def test_eval_boolean_func_AND() -> None:
+    f = venn_from_str('1 & 2', int)
+    assert f.eval_boolean_func({1: True, 2: True}) is True
+    assert f.eval_boolean_func({1: True, 2: False}) is False
+    assert f.eval_boolean_func({1: False, 2: True}) is False
+    assert f.eval_boolean_func({1: False, 2: False}) is False
+
+    with pytest.raises(AssertionError):
+        f.eval_boolean_func({1: True})
+
+    with pytest.raises(AssertionError):
+        f.eval_boolean_func({1: True, 3: False})
+
+
 def test_list_form() -> None:
     assert venn_from_str('1', int).to_dnf_list() == [venn_from_str('1', int)]
 

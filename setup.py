@@ -30,9 +30,6 @@ def install_precompiled_windows_pyeda():
         system_version = architecture()[0]
         major, minor, micro, releaselevel, serial = version_info
 
-        if not (minor == 5 or minor ==  6):
-            raise OSError('rxncon requires Python 3.5 or 3.6, exiting now...')
-
         pyeda_str = 'pyeda-0.28.0-cp{0}{1}-cp{0}{1}m-win'.format(major, minor)
 
         if system_version == "32bit":
@@ -71,9 +68,10 @@ setup(
         'rxncon2bngl.py',
         'rxncon2boolnet.py',
         'rxncon2reactiongraph.py',
-        'rxncon2regulatorygraph.py'
+        'rxncon2regulatorygraph.py',
+        'rxncon2srgraph.py'
     ],
-    version='2.0b6',
+    version='2.0b7',
     description='The reaction-contingency framework for cellular signalling processes.',
     author='The rxncon group @ Humboldt University Berlin',
     author_email='jesper.romers@hu-berlin.de',

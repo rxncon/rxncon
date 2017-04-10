@@ -29,6 +29,20 @@ class Set(Generic[T]):
 
         return venn_solns
 
+    def eval_boolean_func(self, vars: Dict[T, bool]) -> bool:
+        val_to_sym = self._make_val_to_sym_dict()
+        try:
+            evaluated = self._to_pyeda_expr(val_to_sym).restrict({expr(sym): vars[val] for val, sym in val_to_sym.items()})
+        except KeyError as e:
+            raise AssertionError('eval_boolean_func missing variable {}'.format(e.args[0]))
+
+        if evaluated.is_one():
+            return True
+        elif evaluated.is_zero():
+            return False
+        else:
+            raise AssertionError
+
     def to_simplified_set(self) -> 'Set[T]':
         val_to_sym = self._make_val_to_sym_dict()
         sym_to_val = {sym: val for val, sym in val_to_sym.items()}
