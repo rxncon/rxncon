@@ -1,56 +1,9 @@
-from rxncon.core.reaction import reaction_from_str
-from rxncon.core.spec import spec_from_str
-from rxncon.core.state import state_from_str
 from rxncon.input.quick.quick import Quick
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, ReactionTarget, \
-    StateTarget, ComponentStateTarget, SmoothingStrategy, Target
+    StateTarget, SmoothingStrategy
 from rxncon.simulation.boolean.boolnet_from_boolean_model import boolnet_from_boolean_model
+from rxncon.test.simulation.boolean.utils import target_from_str
 from rxncon.venntastic.sets import venn_from_str
-
-
-def target_from_str(target_str: str) -> Target:
-    """
-    Generates a target from string input.
-
-    Args:
-        target_str: The string representation of a StateTarget, ReactionTarget or ComponentStateTarget.
-
-    Returns:
-        A Target object e.g. StateTarget, ReactionTarget or ComponentStateTarget
-
-    Raises:
-        SyntaxError: If the string does not correspond to a predefined Target object an error is raised.
-
-    """
-    try:
-        return StateTarget(state_from_str(target_str))
-    except SyntaxError:
-        pass
-
-    try:
-        if '#' in target_str:
-            rxn_str, index_strs = target_str.split('#')
-            target = ReactionTarget(reaction_from_str(rxn_str))
-            contingency_variant_index, interaction_variant_index = None, None
-
-            for variant_str in index_strs.split('/'):
-                if variant_str[0] == 'c':
-                    contingency_variant_index = int(variant_str[1:])
-                elif variant_str[0] == 'i':
-                    interaction_variant_index = int(variant_str[1:])
-
-            target.contingency_variant_index = contingency_variant_index
-            target.interaction_variant_index = interaction_variant_index
-            return target
-        else:
-            return ReactionTarget(reaction_from_str(target_str))
-    except SyntaxError:
-        pass
-
-    try:
-        return ComponentStateTarget(spec_from_str(target_str))
-    except SyntaxError:
-        raise SyntaxError('Could not parse target str {}'.format(target_str))
 
 
 def test_simple_system() -> None:
@@ -96,7 +49,8 @@ def test_simple_system() -> None:
     assert len(boolean_model.update_rules) == len(expected_rules)
 
     for update_rule in boolean_model.update_rules:
-        assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+        assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                 target_from_str))
 
 
 def test_simple_system_with_input_state() -> None:
@@ -140,7 +94,8 @@ def test_simple_system_with_input_state() -> None:
     assert len(boolean_model.update_rules) == len(expected_rules)
 
     for update_rule in boolean_model.update_rules:
-        assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+        assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                 target_from_str))
 
 
 def test_trsl_trsc_deg() -> None:
@@ -180,7 +135,8 @@ def test_trsl_trsc_deg() -> None:
     assert len(boolean_model.update_rules) == len(expected_rules)
 
     for update_rule in boolean_model.update_rules:
-        assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+        assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                 target_from_str))
 
 
 def test_deg_without_contingency() -> None:
@@ -224,7 +180,8 @@ def test_deg_without_contingency() -> None:
     assert len(boolean_model.update_rules) == len(expected_rules)
 
     for update_rule in boolean_model.update_rules:
-        assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+        assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                 target_from_str))
 
 
 def test_deg_with_requirement() -> None:
@@ -254,7 +211,8 @@ def test_deg_with_requirement() -> None:
     assert len(boolean_model.update_rules) == len(expected_rules)
 
     for update_rule in boolean_model.update_rules:
-        assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+        assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                 target_from_str))
 
 
 def test_deg_with_contingency_on_subject() -> None:
@@ -317,7 +275,8 @@ def test_deg_with_boolean_OR() -> None:
     target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
 
     # C_deg_A#c0 degrades A_[(r1)]-{p}, C_deg_A#c1 degrades A_[(r2)]-{p}
-    if target_to_factor[target_from_str('C_deg_A#c0')].is_equivalent_to(venn_from_str('( {} & C & A_[(r1)]-{{p}} )'.format(A), target_from_str)):
+    if target_to_factor[target_from_str('C_deg_A#c0')].is_equivalent_to(venn_from_str('( {} & C & A_[(r1)]-{{p}} )'.format(A),
+                                                                                      target_from_str)):
         expected_rules = {
             'C_deg_A#c0':   '( {} & C & A_[(r1)]-{{p}} )'.format(A),
             'C_deg_A#c1':   '( {} & C & A_[(r2)]-{{p}} )'.format(A),
@@ -329,9 +288,11 @@ def test_deg_with_boolean_OR() -> None:
         }
 
         for target_str, factor_str in expected_rules.items():
-            assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
+            assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str,
+                                                                                                target_from_str))
     # C_deg_A#c0 degrades A_[(r2)]-{p}, C_deg_A#c1 degrades A_[(r1)]-{p}
-    elif target_to_factor[target_from_str('C_deg_A#c0')].is_equivalent_to(venn_from_str('( {} & C & A_[(r2)]-{{p}} )'.format(A), target_from_str)):
+    elif target_to_factor[target_from_str('C_deg_A#c0')].is_equivalent_to(venn_from_str('( {} & C & A_[(r2)]-{{p}} )'.format(A),
+                                                                                        target_from_str)):
         expected_rules = {
             'C_deg_A#c0':   '( {} & C & A_[(r2)]-{{p}} )'.format(A),
             'C_deg_A#c1':   '( {} & C & A_[(r1)]-{{p}} )'.format(A),
@@ -343,7 +304,8 @@ def test_deg_with_boolean_OR() -> None:
         }
 
         for target_str, factor_str in expected_rules.items():
-            assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
+            assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str,
+                                                                                                target_from_str))
     else:
         raise AssertionError
 
@@ -379,7 +341,8 @@ def test_deg_with_boolean_AND() -> None:
     }
 
     for target_str, factor_str in expected_rules.items():
-        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
+        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str,
+                                                                                            target_from_str))
 
 
 def test_deg_with_boolean_NOT() -> None:
@@ -407,7 +370,8 @@ def test_deg_with_boolean_NOT() -> None:
     }
 
     for target_str, factor_str in expected_rules.items():
-        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
+        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str,
+                                                                                            target_from_str))
 
 
 def test_deg_with_interaction() -> None:
@@ -440,7 +404,8 @@ def test_deg_with_interaction() -> None:
     }
 
     for target_str, factor_str in expected_rules.items():
-        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
+        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str,
+                                                                                            target_from_str))
 
 
 def test_deg_with_interaction_as_requirement() -> None:
@@ -569,7 +534,8 @@ def test_deg_of_component_without_states() -> None:
         'C':       'C'
     }
     for target_str, factor_str in expected_rules.items():
-        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str, target_from_str))
+        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str,
+                                                                                            target_from_str))
 
 
 def test_boolnet_export() -> None:
@@ -655,11 +621,13 @@ def test_single_input_not_output() -> None:
 
     for update_rule in boolean_model.update_rules:
         if str(update_rule.target) == 'A_p+_B_[(a)]':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == '[global]':
             assert isinstance(update_rule.target, StateTarget)
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
 
     assert rules_found == 2
@@ -690,11 +658,13 @@ def test_no_input_single_output() -> None:
     rules_found = 0
     for update_rule in boolean_model.update_rules:
         if str(update_rule.target) == 'A_p+_B_[(a)]':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == '[global]':
             assert isinstance(update_rule.target, ReactionTarget)
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
 
     assert rules_found == 2
@@ -726,11 +696,13 @@ def test_matching_input_output() -> None:
     rules_found = 0
     for update_rule in boolean_model.update_rules:
         if str(update_rule.target) == 'A_p+_B_[(a)]':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == '[global]':
             assert isinstance(update_rule.target, StateTarget)
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
 
     assert rules_found == 2
@@ -765,14 +737,17 @@ def test_multiple_matching_input_one_output() -> None:
     rules_found = 0
     for update_rule in boolean_model.update_rules:
         if str(update_rule.target) == 'A_p+_B_[(a)]':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == 'A_p+_B_[(a1)]':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == '[global]':
             assert isinstance(update_rule.target, StateTarget)
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
 
     assert rules_found == 3
@@ -808,18 +783,22 @@ def test_matching_non_matching_input_one_output() -> None:
 
     for update_rule in boolean_model.update_rules:
         if str(update_rule.target) == 'A_p+_B_[(a)]':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == 'A_p+_B_[(a1)]':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == '[global]':
             assert isinstance(update_rule.target, StateTarget)
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == '[global_diff]':
             assert isinstance(update_rule.target, StateTarget)
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
     assert rules_found == 4
 
@@ -842,11 +821,13 @@ def test_degradation_inhibited_by_input_one_output() -> None:
 
     for update_rule in boolean_model.update_rules:
         if str(update_rule.target) == 'Decay_deg_Ndd1mRNA':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == '[Ndd1UB]':
             assert isinstance(update_rule.target, StateTarget)
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
     assert rules_found == 2
 
@@ -868,14 +849,17 @@ def test_degradation_inhibited_by_input_no_output() -> None:
 
     for update_rule in boolean_model.update_rules:
         if str(update_rule.target) == 'Decay_deg_Ndd1mRNA':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == 'Ndd1mRNA':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == '[Ndd1UB]':
             assert isinstance(update_rule.target, StateTarget)
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
     assert rules_found == 3
 
@@ -899,14 +883,17 @@ def test_degradation_input_required_one_output() -> None:
 
     for update_rule in boolean_model.update_rules:
         if str(update_rule.target) == 'Decay_deg_Ndd1mRNA':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == 'Ndd1mRNA':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == '[Ndd1UB]':
             assert isinstance(update_rule.target, StateTarget)
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
     assert rules_found == 3
 
@@ -927,11 +914,13 @@ def test_degradation_input_required_no_output() -> None:
 
     for update_rule in boolean_model.update_rules:
         if str(update_rule.target) == 'Decay_deg_Ndd1mRNA':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == '[Ndd1UB]':
             assert isinstance(update_rule.target, StateTarget)
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
     assert rules_found == 2
 
@@ -952,7 +941,8 @@ def test_degradation_boolean_OR_required_input_state() -> None:
     target_to_factor = {rule.target: rule.factor for rule in boolean_model.update_rules}
 
     # C_deg_A#c0 degrades A_[(r1)]-{p}, C_deg_A#c1 degrades A_[(r2)]-{p}
-    if target_to_factor[target_from_str('Decay_deg_Ndd1#c0')].is_equivalent_to(venn_from_str('( {0} & {1} & [Ndd1UB] )'.format(Decay, Ndd1), target_from_str)):
+    if target_to_factor[target_from_str('Decay_deg_Ndd1#c0')].is_equivalent_to(venn_from_str('( {0} & {1} & [Ndd1UB] )'.format(Decay, Ndd1),
+                                                                                             target_from_str)):
         expected_rules = {
             'Decay_deg_Ndd1#c0'  : '{0} & {1} & [Ndd1UB]'.format(Ndd1, Decay),
             'Decay_deg_Ndd1#c1'  : '{0} & {1} & Ndd1_[(APC)]-{{ub}}'.format(Ndd1, Decay),
@@ -961,7 +951,8 @@ def test_degradation_boolean_OR_required_input_state() -> None:
             '[Ndd1UB]'      : '[Ndd1UB]',
         }
 
-    elif target_to_factor[target_from_str('Decay_deg_Ndd1#c1')].is_equivalent_to(venn_from_str('( {0} & {1} & [Ndd1UB] )'.format(Decay, Ndd1), target_from_str)):
+    elif target_to_factor[target_from_str('Decay_deg_Ndd1#c1')].is_equivalent_to(venn_from_str('( {0} & {1} & [Ndd1UB] )'.format(Decay, Ndd1),
+                                                                                               target_from_str)):
         expected_rules = {
             'Decay_deg_Ndd1#c1'  : '{0} & {1} & [Ndd1UB]'.format(Ndd1, Decay),
             'Decay_deg_Ndd1#c0'  : '{0} & {1} & Ndd1_[(APC)]-{{ub}}'.format(Ndd1, Decay),
@@ -976,17 +967,21 @@ def test_degradation_boolean_OR_required_input_state() -> None:
     rules_found = 0
     for update_rule in boolean_model.update_rules:
         if str(update_rule.target) == 'Decay_deg_Ndd1#c0':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == 'Decay_deg_Ndd1#c1':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == 'Ndd1_[(APC)]-{0}':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == '[Ndd1UB]':
             assert isinstance(update_rule.target, StateTarget)
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
     assert rules_found == 4
 
@@ -1012,10 +1007,12 @@ def test_degradation_boolean_AND_required_input_state() -> None:
 
     for update_rule in boolean_model.update_rules:
         if str(update_rule.target) == 'Decay_deg_Ndd1':
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
         elif str(update_rule.target) == '[Ndd1UB]':
             assert isinstance(update_rule.target, StateTarget)
-            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)], target_from_str))
+            assert update_rule.factor.is_equivalent_to(venn_from_str(expected_rules[str(update_rule.target)],
+                                                                     target_from_str))
             rules_found += 1
     assert rules_found == 2

@@ -1,6 +1,6 @@
 from rxncon.input.quick.quick import Quick
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon
-from rxncon.test.simulation.boolean.test_boolean import target_from_str
+from rxncon.test.simulation.boolean.utils import target_from_str
 from rxncon.venntastic.sets import venn_from_str
 
 

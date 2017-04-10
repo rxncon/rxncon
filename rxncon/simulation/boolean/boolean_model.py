@@ -11,8 +11,11 @@ from rxncon.core.state import State, InteractionState
 from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union, Complement, UniversalSet
 
 
+MAX_STEADY_STATE_ITERS = 20
+
+
 class BooleanModel:
-    def __init__(self, targets: List['Target'], update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelConfig') -> None:
+    def __init__(self, targets: List['Target'], update_rules: List['UpdateRule'], initial_conditions: 'BooleanModelState') -> None:
         self.update_rules            = sorted(update_rules)
         self.initial_conditions      = initial_conditions
         self._state_targets          = {str(x): x for x in targets if isinstance(x, StateTarget)}
@@ -22,8 +25,17 @@ class BooleanModel:
         self._validate_update_rules()
         self._validate_initial_conditions()
 
+        self.current_state = None
+
     def set_initial_condition(self, target: 'Target', value: bool) -> None:
         self.initial_conditions.set_target(target, value)
+
+    def update_rule_by_target(self, target: 'Target') -> 'UpdateRule':
+        for rule in self.update_rules:
+            if rule.target == target:
+                return rule
+
+        raise KeyError
 
     def state_target_by_name(self, name: str) -> 'StateTarget':
         return self._state_targets[name]
@@ -36,6 +48,29 @@ class BooleanModel:
 
     def overexpression_target_by_name(self, name: str) -> 'OverexpressionTarget':
         return self._overexpression_targets[name]
+
+    def step(self) -> None:
+        if not self.current_state:
+            self.current_state = deepcopy(self.initial_conditions)
+        else:
+            new_state = dict()
+            for rule in self.update_rules:
+                new_state[rule.target] = rule.factor.eval_boolean_func(self.current_state.target_to_value)
+
+            self.current_state = BooleanModelState(new_state)
+
+    def calc_steady_state(self) -> 'BooleanModelState':
+        iters = 0
+
+        while iters < MAX_STEADY_STATE_ITERS:
+            prev = deepcopy(self.current_state)
+            self.step()
+            if prev == self.current_state:
+                return prev
+
+            iters += 1
+
+        raise AssertionError('Could not find steady state.')
 
     def _validate_update_rules(self) -> None:
         """
@@ -63,9 +98,9 @@ class BooleanModel:
         self.initial_conditions.validate_by_model(self)
 
 
-class BooleanModelConfig:
+class BooleanModelState:
     """
-    Configuration of the boolean model
+    State of the boolean model
 
     Args:
         target_to_value: Mapping of state and reaction targets to specific boolean values.
@@ -73,6 +108,21 @@ class BooleanModelConfig:
     """
     def __init__(self, target_to_value: Dict['Target', bool]) -> None:
         self.target_to_value = target_to_value
+
+    def __eq__(self, other):
+        if not isinstance(other, BooleanModelState):
+            return NotImplemented
+        else:
+            return self.target_to_value == other.target_to_value
+
+    def __getitem__(self, item):
+        return self.target_to_value[item]
+
+    def __str__(self):
+        return str(self.target_to_value)
+
+    def __repr__(self):
+        return str(self)
 
     def set_target(self, target: 'Target', value: bool) -> None:
         """
@@ -562,7 +612,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
     """
     def initial_conditions(reaction_targets: List[ReactionTarget], state_targets: List[StateTarget],
                            knockout_targets: List[KnockoutTarget], overexpression_targets: List[OverexpressionTarget])\
-            -> BooleanModelConfig:
+            -> BooleanModelState:
         """
         Calculates default initial conditions of the boolean model.
 
@@ -597,7 +647,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         for overexpression_target in overexpression_targets:
             conds[overexpression_target] = False
 
-        return BooleanModelConfig(conds)
+        return BooleanModelState(conds)
 
     def calc_component_presence_factors() -> Tuple[Dict[Spec, VennSet[StateTarget]], List[ComponentStateTarget]]:
         """
