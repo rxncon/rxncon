@@ -41,3 +41,217 @@ def test_mod_no_reactions():
     assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
     assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True})
     assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+
+
+def test_mod_pplus():
+    motif = {
+        'X_syn_A': False,
+        'Y_p+_A_[(r)]': True,
+        'Z_p-_A_[(r)]': False,
+        'W_deg_A': False
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+
+
+def test_mod_pminus():
+    motif = {
+        'X_syn_A': False,
+        'Y_p+_A_[(r)]': False,
+        'Z_p-_A_[(r)]': True,
+        'W_deg_A': False
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+
+
+def test_mod_pplus_pminus():
+    motif = {
+        'X_syn_A': False,
+        'Y_p+_A_[(r)]': True,
+        'Z_p-_A_[(r)]': True,
+        'W_deg_A': False
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+
+
+def test_mod_deg():
+    motif = {
+        'X_syn_A': False,
+        'Y_p+_A_[(r)]': False,
+        'Z_p-_A_[(r)]': False,
+        'W_deg_A': True
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+
+
+def test_mod_deg_pplus():
+    motif = {
+        'X_syn_A': False,
+        'Y_p+_A_[(r)]': True,
+        'Z_p-_A_[(r)]': False,
+        'W_deg_A': True
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+
+
+def test_mod_deg_pminus():
+    motif = {
+        'X_syn_A': False,
+        'Y_p+_A_[(r)]': False,
+        'Z_p-_A_[(r)]': True,
+        'W_deg_A': True
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+
+
+def test_mod_deg_pplus_pminus():
+    motif = {
+        'X_syn_A': False,
+        'Y_p+_A_[(r)]': True,
+        'Z_p-_A_[(r)]': True,
+        'W_deg_A': True
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
+
+
+#######
+
+
+def test_mod_syn():
+    motif = {
+        'X_syn_A': True,
+        'Y_p+_A_[(r)]': False,
+        'Z_p-_A_[(r)]': False,
+        'W_deg_A': False
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+
+
+def test_mod_syn_pplus():
+    motif = {
+        'X_syn_A': True,
+        'Y_p+_A_[(r)]': True,
+        'Z_p-_A_[(r)]': False,
+        'W_deg_A': False
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+
+
+def test_mod_syn_pminus():
+    motif = {
+        'X_syn_A': True,
+        'Y_p+_A_[(r)]': False,
+        'Z_p-_A_[(r)]': True,
+        'W_deg_A': False
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+
+
+def test_mod_syn_pplus_pminus():
+    motif = {
+        'X_syn_A': True,
+        'Y_p+_A_[(r)]': True,
+        'Z_p-_A_[(r)]': True,
+        'W_deg_A': False
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+
+
+def test_mod_syn_deg():
+    motif = {
+        'X_syn_A': True,
+        'Y_p+_A_[(r)]': False,
+        'Z_p-_A_[(r)]': False,
+        'W_deg_A': True
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+
+
+def test_mod_syn_deg_pplus():
+    motif = {
+        'X_syn_A': True,
+        'Y_p+_A_[(r)]': True,
+        'Z_p-_A_[(r)]': False,
+        'W_deg_A': True
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+
+
+def test_mod_syn_deg_pminus():
+    motif = {
+        'X_syn_A': True,
+        'Y_p+_A_[(r)]': False,
+        'Z_p-_A_[(r)]': True,
+        'W_deg_A': True
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
+
+
+def test_mod_syn_deg_pplus_pminus():
+    motif = {
+        'X_syn_A': True,
+        'Y_p+_A_[(r)]': True,
+        'Z_p-_A_[(r)]': True,
+        'W_deg_A': True
+    }
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+
