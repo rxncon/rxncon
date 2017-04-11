@@ -53,7 +53,7 @@ edge_type_mapping = {ContingencyType.requirement: EdgeInteractionType.required,
                      ContingencyType.no_effect: EdgeInteractionType.no_effect,
                      ContingencyType.unknown: EdgeInteractionType.unknown_effect}
 
-class ReactionSpeciesGraph:
+class SpeciesReactionGraph:
     """
     Definition of the regulatory Graph.
 

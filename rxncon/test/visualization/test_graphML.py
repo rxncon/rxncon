@@ -8,7 +8,7 @@ from networkx import DiGraph
 
 from rxncon.input.quick.quick import Quick
 from rxncon.visualization.graphML import map_layout2xgmml, XGMML, _get_labels_and_coordinates_dict
-from rxncon.visualization.regulatory_graph import ReactionSpeciesGraph
+from rxncon.visualization.regulatory_graph import SpeciesReactionGraph
 
 
 NODE_LAYOUT_MANIPULATION = os.path.join(os.path.dirname(__file__), 'example_node_layout.xgmml')
@@ -304,7 +304,7 @@ def test_layout_remains_correct_when_adding_node() -> None:
                          C_p+_A_[(c)]; ! C_[d]--D_[c]
                          C_[d]_ppi+_D_[c]""")
 
-    reg_graph = ReactionSpeciesGraph(test_case.rxncon_system)
+    reg_graph = SpeciesReactionGraph(test_case.rxncon_system)
     gml_system = XGMML(reg_graph.to_graph(), "add_node")
     mapped_layout = map_layout2xgmml(gml_system.to_string(), NODE_LAYOUT_MANIPULATION)
     xmldoc_no_layout = minidom.parseString(mapped_layout)
@@ -331,7 +331,7 @@ def test_layout_remains_correct_when_removing_node() -> None:
     """
     test_case = Quick("""A_[b]_ppi+_B_[a]""")
 
-    reg_graph = ReactionSpeciesGraph(test_case.rxncon_system)
+    reg_graph = SpeciesReactionGraph(test_case.rxncon_system)
     gml_system = XGMML(reg_graph.to_graph(), "remove_node")
     mapped_layout = map_layout2xgmml(gml_system.to_string(), NODE_LAYOUT_MANIPULATION)
     xmldoc_no_layout = minidom.parseString(mapped_layout)
@@ -380,7 +380,7 @@ def _digraph_from_quick_str(quick_str: str) -> DiGraph:
 
     """
     actual_system = Quick(quick_str)
-    reg_system = ReactionSpeciesGraph(actual_system.rxncon_system)
+    reg_system = SpeciesReactionGraph(actual_system.rxncon_system)
     return reg_system.to_graph()
 
 
