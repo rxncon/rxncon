@@ -62,7 +62,7 @@ class SpeciesReactionGraph:
     """
     def __init__(self, rxncon_system: RxnConSystem) -> None:
         self.rxncon_system = rxncon_system
-        self.regulatory_graph = DiGraph()
+        self.species_reaction_graph = DiGraph()
 
     def to_graph(self) -> DiGraph:
         """
@@ -80,7 +80,7 @@ class SpeciesReactionGraph:
             else:
                 self.add_degradation_reaction_information_to_graph(reaction, self.rxncon_system.contingencies_for_reaction(reaction))
         self.add_synthesised_or_degraded_components()
-        return self.regulatory_graph
+        return self.species_reaction_graph
 
     def add_synthesised_or_degraded_components(self) -> None:
         """
@@ -654,7 +654,7 @@ class SpeciesReactionGraph:
             None
 
         """
-        self.regulatory_graph.add_node(self._replace_invalid_chars(id), dict(label=self._replace_invalid_chars(label), type=type.value))
+        self.species_reaction_graph.add_node(self._replace_invalid_chars(id), dict(label=self._replace_invalid_chars(label), type=type.value))
 
     def _add_edge(self, source: str, target: str, interaction: EdgeInteractionType) -> None:
         """
@@ -672,8 +672,8 @@ class SpeciesReactionGraph:
             None
 
         """
-        if not self.regulatory_graph.has_edge(self._replace_invalid_chars(source), self._replace_invalid_chars(target)):
-            self.regulatory_graph.add_edge(self._replace_invalid_chars(source), self._replace_invalid_chars(target), interaction=interaction.value)
+        if not self.species_reaction_graph.has_edge(self._replace_invalid_chars(source), self._replace_invalid_chars(target)):
+            self.species_reaction_graph.add_edge(self._replace_invalid_chars(source), self._replace_invalid_chars(target), interaction=interaction.value)
 
     def _replace_invalid_chars(self, name: str) -> str:
         """
