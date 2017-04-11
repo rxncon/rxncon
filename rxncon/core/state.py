@@ -236,8 +236,9 @@ class InteractionState(State):
         return [self.first.to_component_spec(), self.second.to_component_spec()]
 
     def is_subset_of(self, other: 'State') -> bool:
-        return isinstance(other, InteractionState) and self.first.is_subspec_of(other.first) and \
-            self.second.is_subspec_of(other.second)
+        return isinstance(other, InteractionState) and ((self.first.is_subspec_of(other.first) and
+            self.second.is_subspec_of(other.second)) or (self.first.is_subspec_of(other.second) and
+            self.second.is_subspec_of(other.first)))
 
     def is_superset_of(self, other: 'State') -> bool:
         return self == other or other.is_subset_of(self)
