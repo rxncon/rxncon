@@ -47,6 +47,9 @@ def test_no_steady_state():
                            SmoothingStrategy.no_smoothing)
 
 
+### MODIFICATION MOTIFS ###
+
+
 def test_mod_no_reactions():
     motif = {
         'X_syn_A': False,
@@ -270,3 +273,77 @@ def test_mod_syn_deg_pplus_pminus():
     assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
     assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
 
+
+### INTERACTION MOTIFS ###
+
+
+def test_int_no_reactions():
+    motif = {
+        'X_syn_A': False,
+        'A_[b]_ppi+_B_[a]': False,
+        'A_[b]_ppi-_B_[a]': False,
+        'W_deg_A': False
+    }
+
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': True})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': True})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': False}, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
+
+
+def test_int_ppiplus():
+    motif = {
+        'X_syn_A': False,
+        'A_[b]_ppi+_B_[a]': True,
+        'A_[b]_ppi-_B_[a]': False,
+        'W_deg_A': False
+    }
+
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': True})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': True})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': True})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': True})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': False}, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
+
+
+def test_int_ppiminus():
+    motif = {
+        'X_syn_A': False,
+        'A_[b]_ppi+_B_[a]': False,
+        'A_[b]_ppi-_B_[a]': True,
+        'W_deg_A': False
+    }
+
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': False}, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
+
+
+def test_int_ppiplus_ppiminus():
+    motif = {
+        'X_syn_A': False,
+        'A_[b]_ppi+_B_[a]': True,
+        'A_[b]_ppi-_B_[a]': True,
+        'W_deg_A': False
+    }
+
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': True})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': True})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': False}, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False})

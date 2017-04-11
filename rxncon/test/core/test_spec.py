@@ -4,7 +4,6 @@ from collections import namedtuple
 from rxncon.core.spec import Locus, GeneSpec, MRNASpec, ProteinSpec, locus_from_str, LocusResolution, spec_from_str
 
 
-
 def test_loci() -> None:
     LocusTestCase = namedtuple('LocusTestCase',
                                ['locus_str', 'expected_domain', 'expected_subdomain', 'expected_residue'])
@@ -73,3 +72,11 @@ def test_equality() -> None:
     assert struct.to_non_struct_spec() == non_struct
     assert not struct == non_struct
     assert not non_struct == struct
+
+
+def test_colons_dashes() -> None:
+    assert spec_from_str('A_[d:bla]').locus.domain == 'd:bla'
+    assert spec_from_str('A_[d-bla]').locus.domain == 'd-bla'
+    assert spec_from_str('A_[(r:bla)]').locus.residue == 'r:bla'
+    assert spec_from_str('A_[(r-bla)]').locus.residue == 'r-bla'
+
