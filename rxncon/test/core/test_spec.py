@@ -79,4 +79,3 @@ def test_colons_dashes() -> None:
     assert spec_from_str('A_[d-bla]').locus.domain == 'd-bla'
     assert spec_from_str('A_[(r:bla)]').locus.residue == 'r:bla'
     assert spec_from_str('A_[(r-bla)]').locus.residue == 'r-bla'
-

@@ -145,7 +145,7 @@ class Mol:
 
 
 def site_name(spec: Spec) -> str:
-    bad_chars = ['[', ']', '/', '(', ')']
+    bad_chars = ['[', ']', '/', '(', ')', ':', '-']
     spec_str = (spec.locus.domain + 'D' if spec.locus.domain else '') + \
                (spec.locus.subdomain + 'S' if spec.locus.subdomain else '') + \
                (spec.locus.residue + 'R' if spec.locus.residue else '')
