@@ -226,10 +226,10 @@ def test_deg_with_contingency_on_subject() -> None:
     for update_rule in boolean_model.update_rules:
         if update_rule.target == target_from_str('B'):
             found_B = True
-            assert update_rule.factor == venn_from_str('B & ~( A_deg_B )', target_from_str)
+            assert update_rule.factor.is_equivalent_to(venn_from_str('B & ~( A_deg_B )', target_from_str))
         elif update_rule.target == target_from_str('C'):
             found_C = True
-            assert update_rule.factor == venn_from_str('C', target_from_str)
+            assert update_rule.factor.is_equivalent_to(venn_from_str('C', target_from_str))
 
     assert found_B and found_C
 
@@ -370,6 +370,7 @@ def test_deg_with_boolean_NOT() -> None:
     }
 
     for target_str, factor_str in expected_rules.items():
+        print(target_str)
         assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str,
                                                                                             target_from_str))
 

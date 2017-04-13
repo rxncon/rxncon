@@ -9,29 +9,34 @@ from rxncon.venntastic.sets import UniversalSet, EmptySet
 
 
 def check_motif(motif: Dict[str, bool], in_state: Dict[str, bool], out_state: Dict[str, bool],
-                smoothing: SmoothingStrategy=SmoothingStrategy.smooth_production_sources) -> bool:
+                skip_non_smoothed: bool=False) -> bool:
     rxncon_sys = RxnConSystem([reaction_from_str(x) for x, _ in motif.items()], [])
-    boolean_model = boolean_model_from_rxncon(rxncon_sys, smoothing)
 
-    for rxn, val in motif.items():
-        if val:
-            boolean_model.update_rule_by_target(target_from_str(rxn)).factor = UniversalSet()
-        else:
-            boolean_model.update_rule_by_target(target_from_str(rxn)).factor = EmptySet()
+    if skip_non_smoothed:
+        smoothings = [SmoothingStrategy.smooth_production_sources]
+    else:
+        smoothings = [SmoothingStrategy.no_smoothing, SmoothingStrategy.smooth_production_sources]
 
-    for state, val in in_state.items():
-        boolean_model.initial_conditions.set_target(target_from_str(state), val)
+    for smoothing in smoothings:
+        boolean_model = boolean_model_from_rxncon(rxncon_sys, smoothing)
 
-    steady_state = boolean_model.calc_steady_state()
+        for rxn, val in motif.items():
+            if not val:
+                boolean_model.update_rule_by_target(target_from_str(rxn)).factor = EmptySet()
 
-    for state, val in out_state.items():
-        if steady_state[target_from_str(state)] != val:
-            print()
-            print('in  {}'.format(in_state))
-            print('out {}'.format(out_state))
-            print('ss  {}'.format(steady_state.target_to_value))
-            print()
-            return False
+        for state, val in in_state.items():
+            boolean_model.initial_conditions.set_target(target_from_str(state), val)
+
+        steady_state = boolean_model.calc_steady_state()
+
+        for state, val in out_state.items():
+            if steady_state[target_from_str(state)] != val:
+                print()
+                print('in  {}'.format(in_state))
+                print('out {}'.format(out_state))
+                print('ss  {}'.format(steady_state.target_to_value))
+                print()
+                return False
 
     return True
 
@@ -45,12 +50,10 @@ def test_no_steady_state():
     }
 
     with pytest.raises(AssertionError):
-        assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False},
-                           SmoothingStrategy.no_smoothing)
+        assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False})
 
     with pytest.raises(AssertionError):
-        assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True},
-                           SmoothingStrategy.no_smoothing)
+        assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True})
 
 
 def register_targeted_degradation():
@@ -143,8 +146,15 @@ def test_mod_pplus_pminus():
     }
 
     assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
-    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
-    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+
+    assert check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, skip_non_smoothed=True)
+    with pytest.raises(AssertionError):
+        check_motif(motif, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+
+    assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True}, skip_non_smoothed=True)
+    with pytest.raises(AssertionError):
+        check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': True}, {'A_[(r)]-{0}': True, 'A_[(r)]-{p}': True})
+
     assert check_motif(motif, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False}, {'A_[(r)]-{0}': False, 'A_[(r)]-{p}': False})
 
 
@@ -457,10 +467,23 @@ def test_int_ppiplus_ppiminus():
     }
 
     assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
-    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
-    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
-    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
-    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
+
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, skip_non_smoothed=True)
+    with pytest.raises(AssertionError):
+        check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
+
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, skip_non_smoothed=True)
+    with pytest.raises(AssertionError):
+        check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
+
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, skip_non_smoothed=True)
+    with pytest.raises(AssertionError):
+        check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
+
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, skip_non_smoothed=True)
+    with pytest.raises(AssertionError):
+        check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
+
     assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
     assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': False}, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
     assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
@@ -492,14 +515,14 @@ def test_int_deg_ppiplus():
         'W_deg_A': True
     }
 
-    # assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
-    # assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
-    # assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
-    # assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
-    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, smoothing=SmoothingStrategy.no_smoothing)
-    # assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
-    # assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
-    # assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': True}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': True, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
+    assert check_motif(motif, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False}, {'A_[b]--0': False, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
 
 
 def test_int_deg_ppiminus():

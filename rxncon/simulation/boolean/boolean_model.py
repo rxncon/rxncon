@@ -8,7 +8,7 @@ from rxncon.core.reaction import Reaction, OutputReaction
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.spec import Spec
 from rxncon.core.state import State, InteractionState
-from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union, Complement, UniversalSet
+from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Union, Complement, UniversalSet, EmptySet
 
 
 MAX_STEADY_STATE_ITERS = 20
@@ -866,28 +866,22 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 component_factor, reaction_target.contingency_factor).to_simplified_set()))
 
     def calc_state_rules() -> None:
-        """
-        Calculates the rules of state targets.
-
-        Note:
-            The factor for a state target has the from:
-            synthesis OR (components AND NOT degradation AND ((production AND sources) OR (state AND NOT (consumption AND sources))))
-
-        Returns:
-            A list of updating rules for states.
-
-      """
-
-        def reaction_with_sources(reaction_target: ReactionTarget) -> VennSet[Target]:
-            sources = Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
-            return Intersection(ValueSet(reaction_target), sources)
-
-        def indirect_synth_path(state_target: StateTarget) -> VennSet[ReactionTarget]:
-            my_brothers = [x for x in state_targets if state_target.shares_component_with(x) and x != state_target]
-            return Union(*(ValueSet(rxn) for state in my_brothers for rxn in reaction_targets if rxn.synthesises(state)))
-
         def synthesis_factor(state_target: StateTarget) -> VennSet[ReactionTarget]:
-            return Union(*(ValueSet(x) for x in reaction_targets if x.synthesises(state_target)))
+            res = []
+            for c in state_target.components:
+                component_term = EmptySet()
+                for syn_rxn in (x for x in reaction_targets if x.synthesises_component(c)):
+                    syn_state = syn_rxn.synthesised_targets[0]
+
+                    if syn_state == state_target:
+                        component_term = Union(component_term, ValueSet(syn_rxn))
+                    else:
+                        for prod_rxn in (x for x in reaction_targets if x.consumes(syn_state) and x.produces(state_target)):
+                            component_term = Union(component_term, Intersection(ValueSet(syn_rxn), ValueSet(prod_rxn)))
+
+                res.append(component_term)
+
+            return Union(*res)
 
         def component_factor(state_target: StateTarget) -> VennSet[StateTarget]:
             return Intersection(*(component_presence_factor[x] for x in state_target.components))
@@ -895,38 +889,52 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         def degradation_factor(state_target: StateTarget) -> VennSet[ReactionTarget]:
             return Complement(Union(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
 
+        def pi(state_target: StateTarget, level: int) -> VennSet[Target]:
+            res = EmptySet()
+
+            for r in (x for x in reaction_targets if x.produces(state_target)):
+                rxn_term = ValueSet(r)
+                for s in (x for x in state_targets if r.consumes(x)):
+                    if r.degraded_targets:
+                        state_term = ValueSet(s)
+                    else:
+                        state_term = Intersection(ValueSet(s), degradation_factor(s))
+                    for l in range(level):
+                        state_term = Union(state_term, sigma(s, level - 1))
+                    rxn_term = Intersection(rxn_term, state_term)
+                res = Union(res, rxn_term)
+
+            return res
+
+        def kappa(state_target: StateTarget, level: int) -> VennSet[Target]:
+            res = EmptySet()
+
+            for r in (x for x in reaction_targets if x.consumes(state_target)):
+                rxn_term = ValueSet(r)
+                for s in (x for x in state_targets if r.consumes(x)):
+                    rxn_term = Intersection(rxn_term, ValueSet(s), degradation_factor(s))
+                res = Union(res, rxn_term)
+
+            return res
+
+        def sigma(state_target: StateTarget, level: int) -> VennSet[Target]:
+            prod_cons_factor = Union(pi(state_target, level),
+                                     Intersection(ValueSet(state_target), Complement(kappa(state_target, level))))
+
+            return Union(synthesis_factor(state_target),
+                         Intersection(degradation_factor(state_target),
+                                      component_factor(state_target),
+                                      prod_cons_factor))
+
+        if smoothing_strategy == SmoothingStrategy.no_smoothing:
+            level = 0
+        elif smoothing_strategy == SmoothingStrategy.smooth_production_sources:
+            level = 1
+        else:
+            raise AssertionError
+
         for state_target in state_targets:
-            synt_fac = synthesis_factor(state_target)
-            comp_fac = component_factor(state_target)
-            degr_fac = degradation_factor(state_target)
-
-            prod_facs = []  # type: List[VennSet]
-            cons_facs = []  # type: List[VennSet]
-
-            for reaction_target in (target for target in reaction_targets if target.produces(state_target)):
-                if smoothing_strategy == SmoothingStrategy.no_smoothing:
-                    prod_facs.append(reaction_with_sources(reaction_target))
-                elif smoothing_strategy == SmoothingStrategy.smooth_production_sources:
-                    smoothed_prod_facs = []
-                    for primary_source in reaction_target.consumed_targets:
-                        smooth_source = Union(ValueSet(primary_source),
-                                              *(reaction_with_sources(rxn) for rxn in reaction_targets if rxn.produces(primary_source)))
-
-                        smoothed_prod_facs.append(smooth_source)
-                    prod_facs.append(Intersection(ValueSet(reaction_target), *smoothed_prod_facs))
-                else:
-                    raise AssertionError('Unknown smoothing strategy!')
-
-            for reaction_target in (target for target in reaction_targets if target.consumes(state_target)):
-                cons_facs.append(Complement(reaction_with_sources(reaction_target)))
-
-            tot_prod_fac = Intersection(comp_fac, Union(*prod_facs), Union(degr_fac, indirect_synth_path(state_target)))
-            tot_cons_fac = Intersection(comp_fac, ValueSet(state_target), Intersection(*cons_facs), Union(degr_fac, indirect_synth_path(state_target)))
-
-            state_rules.append(UpdateRule(state_target,
-                                          Union(synt_fac,
-                                                tot_prod_fac,
-                                                tot_cons_fac).to_simplified_set()))
+            state_rules.append(UpdateRule(state_target, sigma(state_target, level).to_simplified_set()))
 
     def update_state_rules_with_knockouts(knockout_strategy: KnockoutStrategy) -> None:
         if knockout_strategy == KnockoutStrategy.no_knockout:
