@@ -79,3 +79,10 @@ def test_dynamical_reactions() -> None:
 
     with pytest.raises(SyntaxError):
         rxn = reaction_from_str('A_agex_A_[(r)]')
+
+
+def test():
+    rxn = reaction_from_str('Smp1_bind+_Smp1Target')
+    s = rxn.produced_states[0]
+    print(s)
+    print(state_from_str('Smp1TargetGene--Smp1'))

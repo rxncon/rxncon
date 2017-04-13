@@ -752,6 +752,10 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         for reaction_target in result:
             solutions = reaction_target.contingency_factor.calc_solutions()
 
+            if reaction_target.degraded_targets and len(solutions) == 1 and not solutions[0]:
+                # No contingencies, but targeted degradation. Do not mess with the list of degraded targets.
+                continue
+
             for degraded_component, solution in product(reaction_target.degraded_components, solutions):  # type: ignore
                 reaction_target.degraded_targets.extend(degraded_state_targets(degraded_component, solution))
 
@@ -875,16 +879,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
       """
 
         def reaction_with_sources(reaction_target: ReactionTarget) -> VennSet[Target]:
-            """
-            Calculates the source states of the respective reaction target
-
-            Args:
-                reaction_target: Reaction of the boolean model producing, consuming, degrading or synthesising state targets.
-
-            Returns:
-                VennSet of the reaction target and its source states
-
-            """
             sources = Intersection(*(ValueSet(x) for x in reaction_target.consumed_targets))
             return Intersection(ValueSet(reaction_target), sources)
 
@@ -916,8 +910,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                     smoothed_prod_facs = []
                     for primary_source in reaction_target.consumed_targets:
                         smooth_source = Union(ValueSet(primary_source),
-                                              Intersection(Union(*(reaction_with_sources(rxn) for rxn in reaction_targets if rxn.produces(primary_source))),
-                                                           Union(degradation_factor(primary_source), indirect_synth_path(primary_source))))
+                                              *(reaction_with_sources(rxn) for rxn in reaction_targets if rxn.produces(primary_source)))
 
                         smoothed_prod_facs.append(smooth_source)
                     prod_facs.append(Intersection(ValueSet(reaction_target), *smoothed_prod_facs))
@@ -928,7 +921,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                 cons_facs.append(Complement(reaction_with_sources(reaction_target)))
 
             tot_prod_fac = Intersection(comp_fac, Union(*prod_facs), Union(degr_fac, indirect_synth_path(state_target)))
-            tot_cons_fac = Intersection(comp_fac, ValueSet(state_target), Intersection(*cons_facs), degr_fac)
+            tot_cons_fac = Intersection(comp_fac, ValueSet(state_target), Intersection(*cons_facs), Union(degr_fac, indirect_synth_path(state_target)))
 
             state_rules.append(UpdateRule(state_target,
                                           Union(synt_fac,
