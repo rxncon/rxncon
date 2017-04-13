@@ -7,7 +7,7 @@ import rxncon.input.excel_book.excel_book as excel
 
 import rxncon.visualization.graphML as graphML
 
-from rxncon.visualization.regulatory_graph import ReactionSpeciesGraph, NodeType, EdgeInteractionType, RegulatoryGraph
+from rxncon.visualization.regulatory_graph import SpeciesReactionGraph, NodeType, EdgeInteractionType, RegulatoryGraph
 
 
 RegulatoryGraphTestCase = namedtuple('RegulatoryGraphTestCase',
@@ -1234,7 +1234,7 @@ def _create_regulatory_graph(quick_string: str) -> DiGraph:
 
     """
     actual_system = qui.Quick(quick_string)
-    reg_system = ReactionSpeciesGraph(actual_system.rxncon_system)
+    reg_system = SpeciesReactionGraph(actual_system.rxncon_system)
     return reg_system.to_graph()
 
 
