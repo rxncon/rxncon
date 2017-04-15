@@ -871,17 +871,17 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             for c in state_target.components:
                 component_term = EmptySet()
                 for syn_rxn in (x for x in reaction_targets if x.synthesises_component(c)):
-                    syn_state = syn_rxn.synthesised_targets[0]
-
-                    if syn_state == state_target:
-                        component_term = Union(component_term, ValueSet(syn_rxn))
-                    else:
-                        for prod_rxn in (x for x in reaction_targets if x.consumes(syn_state) and x.produces(state_target)):
-                            component_term = Union(component_term, Intersection(ValueSet(syn_rxn), ValueSet(prod_rxn)))
+                    for syn_state in syn_rxn.synthesised_targets:
+                        if syn_state == state_target:
+                            component_term = Union(component_term, ValueSet(syn_rxn))
+                        else:
+                            for prod_rxn in (x for x in reaction_targets if x.consumes(syn_state) and x.produces(state_target)):
+                                component_term = Union(component_term, Intersection(ValueSet(syn_rxn), ValueSet(prod_rxn)))
 
                 res.append(component_term)
 
-            return Union(*res)
+            synfac = Union(*res).to_simplified_set()
+            return synfac
 
         def component_factor(state_target: StateTarget) -> VennSet[StateTarget]:
             return Intersection(*(component_presence_factor[x] for x in state_target.components))
