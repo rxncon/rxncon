@@ -63,13 +63,3 @@ def test_additional_reactions() -> None:
 
     with pytest.raises(SyntaxError):
         reaction_from_str('A_smurf+_B_[(r)]')
-
-
-def test_ulrike():
-    import rxncon.simulation.boolean.boolean_model as bm
-    filename = os.path.join(os.path.dirname(__file__), 'Cell_Cycle_SBtab_NeutralStateRegeneration.xls')
-
-    rxnconsys = ExcelBook(filename).rxncon_system
-
-    boolmod = bm.boolean_model_from_rxncon(rxnconsys)
-    print('bla')
