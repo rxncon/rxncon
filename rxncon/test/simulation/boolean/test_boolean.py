@@ -366,13 +366,11 @@ def test_deg_with_boolean_NOT() -> None:
     expected_rules = {
         'C_deg_A': '( C & A_[x]--B_[y] & ~( A_[(r)]-{p} ) & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} ))',
         'B_[y]--0': '(( A_[x]--B_[y] & C_deg_A & ( B_[y]--0 | A_[x]--B_[y] )) | ( B_[y]--0 & ( B_[y]--0 | A_[x]--B_[y] ) & ~(( B_[y]--0 & A_[x]_ppi+_B_[y] & A_[x]--0 ))))',
-        'A_[(r)]-{p}': '(( A_[(r)]-{0} & D_p+_A_[(r)] & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )) | ( A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
+        'A_[(r)]-{p}': '(( A_[(r)]-{0} & ~( C_deg_A ) & D_p+_A_[(r)] & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )) | ( A_[(r)]-{p} & ( A_[x]--0 | A_[x]--B_[y] ) & ( A_[(r)]-{0} | A_[(r)]-{p} )))',
     }
 
     for target_str, factor_str in expected_rules.items():
-        print(target_str)
-        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str,
-                                                                                            target_from_str))
+        assert target_to_factor[target_from_str(target_str)].is_equivalent_to(venn_from_str(factor_str,target_from_str))
 
 
 def test_deg_with_interaction() -> None:
@@ -400,7 +398,7 @@ def test_deg_with_interaction() -> None:
 
     expected_rules = {
         'A_[x]--0':     '( A_[x]--0 & ( A_[x]--B_[y] | A_[x]--0 ) & ( A_[(r)]-{p} | A_[(r)]-{0} ) & ~(( A_[x]_ppi+_B_[y] & A_[x]--0 & B_[y]--0 )) & ~( C_deg_A ))',
-        'B_[y]--0':     '(( C_deg_A & A_[x]--B_[y] & ( B_[y]--0 | A_[x]--B_[y] )) | ( B_[y]--0 & ( B_[y]--0 | A_[x]--B_[y] ) & ~(( A_[x]--0 & B_[y]--0 & A_[x]_ppi+_B_[y] ))))',
+        'B_[y]--0':     '(( C_deg_A & A_[x]--B_[y] & ( B_[y]--0 | A_[x]--B_[y] )) | ( B_[y]--0 & ( B_[y]--0 | A_[x]--B_[y] ) & ~(( A_[x]--0 & B_[y]--0 & A_[x]_ppi+_B_[y] & ~( C_deg_A )))))',
         'A_[x]--B_[y]': '{} & ~( C_deg_A ) & (( A_[x]_ppi+_B_[y] & A_[x]--0 & B_[y]--0 ) | ( A_[x]--B_[y] & ~( C_deg_A & A_[x]--B_[y] ) ) )'.format(A)
     }
 
