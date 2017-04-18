@@ -5,7 +5,7 @@ from rxncon.core.state import state_from_str
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, SmoothingStrategy
 from rxncon.test.simulation.boolean.utils import target_from_str
-from rxncon.venntastic.sets import UniversalSet, EmptySet
+from rxncon.venntastic.sets import EmptySet
 
 
 def check_motif(motif: Dict[str, bool], in_state: Dict[str, bool], out_state: Dict[str, bool],
@@ -20,6 +20,9 @@ def check_motif(motif: Dict[str, bool], in_state: Dict[str, bool], out_state: Di
     for smoothing in smoothings:
         boolean_model = boolean_model_from_rxncon(rxncon_sys, smoothing)
 
+        # The reactions that are set to True will be left untouched. They are unregulated, but
+        # contain a term checking for the availability of the reacting components. The reactions
+        # set to False are completely knocked out by setting their UpdateRule to EmptySet.
         for rxn, val in motif.items():
             if not val:
                 boolean_model.update_rule_by_target(target_from_str(rxn)).factor = EmptySet()
