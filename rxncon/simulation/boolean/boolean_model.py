@@ -1,4 +1,5 @@
 from copy import deepcopy
+from collections import defaultdict
 from enum import Enum
 from itertools import product
 from typing import List, Dict, Tuple, Optional
@@ -867,21 +868,27 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
     def calc_state_rules() -> None:
         def synthesis_factor(state_target: StateTarget) -> VennSet[ReactionTarget]:
-            res = []
-            for c in state_target.components:
-                component_term = EmptySet()
-                for syn_rxn in (x for x in reaction_targets if x.synthesises_component(c)):
-                    for syn_state in syn_rxn.synthesised_targets:
-                        if syn_state == state_target:
-                            component_term = Union(component_term, ValueSet(syn_rxn))
-                        else:
-                            for prod_rxn in (x for x in reaction_targets if x.consumes(syn_state) and x.produces(state_target)):
-                                component_term = Union(component_term, Intersection(ValueSet(syn_rxn), ValueSet(prod_rxn)))
+            fac = EmptySet()
+            for rxn in (x for x in reaction_targets if x.synthesises(state_target)):
+                fac = Union(fac, ValueSet(rxn))
 
-                res.append(component_term)
+            for prod_rxn in (x for x in reaction_targets if x.produces(state_target)):
+                sources = []
+                for source in prod_rxn.consumed_targets:
+                    sources.append([source] + [x for x in reaction_targets if x.synthesises(source)])
 
-            synfac = Union(*res).to_simplified_set()
-            return synfac
+                for source_combi in product(*sources):
+                    if all(isinstance(x, StateTarget) for x in source_combi):
+                        continue
+
+                    assert any(isinstance(x, ReactionTarget) and x.synthesised_targets for x in source_combi)
+
+                    fac = Union(fac, Intersection(ValueSet(prod_rxn), *(ValueSet(x) for x in source_combi)))
+
+            return fac
+
+
+
 
         def component_factor(state_target: StateTarget) -> VennSet[StateTarget]:
             return Intersection(*(component_presence_factor[x] for x in state_target.components))
