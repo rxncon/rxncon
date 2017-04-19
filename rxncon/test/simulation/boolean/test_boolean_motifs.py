@@ -749,3 +749,28 @@ def test_int_syn_A_deg_B():
     }
 
     assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
+
+
+def test_int_syn_A_deg_A_deg_B():
+    motif = {
+        'X_syn_A': True,
+        'A_[b]_ppi+_B_[a]': True,
+        'A_[b]_ppi-_B_[a]': False,
+        'V_deg_A': True,
+        'W_deg_B': True
+    }
+
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': False, 'A_[b]--B_[a]': False})
+
+
+def test_int_syn_A_syn_B_deg_A_deg_B():
+    motif = {
+        'X_syn_A': True,
+        'Y_syn_B': True,
+        'A_[b]_ppi+_B_[a]': True,
+        'A_[b]_ppi-_B_[a]': True,
+        'V_deg_A': True,
+        'W_deg_B': True
+    }
+
+    assert check_motif(motif, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True}, {'A_[b]--0': True, 'B_[a]--0': True, 'A_[b]--B_[a]': True})
