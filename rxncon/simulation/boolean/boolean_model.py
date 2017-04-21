@@ -735,7 +735,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             # Disregard input states, since they do not influence which states are degraded.
             soln = {k: v for k, v in soln.items() if not k.is_input()}
             
-            # soln evaluates to False if solution is tautology.
+            # soln evaluates to False if solution is tautology, since when there are no constraints on which
+            # states are required to be true/false, soln is an empty dict. Nicely counterintuitive.
             if not soln and ComponentStateTarget(component) in component_state_targets:
                 return [ComponentStateTarget(component)]
             elif not soln:
@@ -878,17 +879,14 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                     sources.append([source] + [x for x in reaction_targets if x.synthesises(source)])
 
                 for source_combi in product(*sources):
+                    # At least one source should be synthesised.
                     if all(isinstance(x, StateTarget) for x in source_combi):
                         continue
-
                     assert any(isinstance(x, ReactionTarget) and x.synthesised_targets for x in source_combi)
 
                     fac = Union(fac, Intersection(ValueSet(prod_rxn), *(ValueSet(x) for x in source_combi)))
 
             return fac
-
-
-
 
         def component_factor(state_target: StateTarget) -> VennSet[StateTarget]:
             return Intersection(*(component_presence_factor[x] for x in state_target.components))
