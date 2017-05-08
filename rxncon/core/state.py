@@ -56,7 +56,7 @@ def state_modifier_from_str(modifier_str: str) -> StateModifier:
     try:
         return StateModifier(modifier_str.lower())
     except ValueError:
-        valid_modifiers = [modifier.value for modifier in StateModifier.__members__.values()]  # type: ignore, pylint: disable=no-member
+        valid_modifiers = [modifier.value for modifier in StateModifier.__members__.values()]
         raise ValueError('Invalid StateModifier {}, valid modifiers are {}'
                          .format(modifier_str, ', '.join(valid_modifiers)))
 

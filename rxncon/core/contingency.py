@@ -1,12 +1,14 @@
+"""Module containing the classes Contingency and ContingencyType."""
+
 from enum import unique, Enum
 from copy import deepcopy
 from collections import defaultdict
 import logging
-from typing import Any, Callable, Set as TgSet, Dict, List, Optional  # pylint: disable=unused-import
+from typing import Any, Callable, Set as TgSet, Dict, List, Optional
 
 from rxncon.util.utils import current_function_name
-from rxncon.core.effector import Effector, StructEquivalences, QualSpec, StateEffector, TrivialStructEquivalences, NotEffector, \
-    AndEffector, OrEffector, StructCounter
+from rxncon.core.effector import Effector, StructEquivalences, QualSpec, StateEffector, TrivialStructEquivalences, \
+    NotEffector, AndEffector, OrEffector, StructCounter
 from rxncon.core.reaction import Reaction, OutputReaction
 from rxncon.venntastic.sets import Set as VennSet, ValueSet, Intersection, Complement, Union, UniversalSet
 from rxncon.core.state import State
@@ -17,22 +19,28 @@ LOGGER = logging.getLogger(__name__)
 
 @unique
 class ContingencyType(Enum):
+    """The ContingencyTypes requirement, inhibition are known as `strict` contingencies, whereas the
+    positive, negative ContingencyTypes are referred to as quantitative."""
     requirement = '!'
-    inhibition  = 'x'
-    positive    = 'k+'
-    negative    = 'k-'
-    no_effect   = '0'
-    unknown     = '?'
+    inhibition = 'x'
+    positive = 'k+'
+    negative = 'k-'
+    no_effect = '0'
+    unknown = '?'
 
 
 class Contingency:
+    """Contingency holds the triple `reaction`, `type`, `effector` describing a contingency in a rxncon model.
+    Contingency objects are constructed from ContingencyListEntry objects, that live in the module
+    rxncon.input.shared.contingency_list."""
     def __init__(self, reaction: Reaction, contingency_type: ContingencyType, effector: Effector) -> None:
         self.reaction, self.contingency_type, self.effector = reaction, contingency_type, effector
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Contingency):
             return NotImplemented
-        return self.reaction == other.reaction and self.contingency_type == other.contingency_type and self.effector == other.effector
+        return self.reaction == other.reaction and self.contingency_type == other.contingency_type and \
+            self.effector == other.effector
 
     def __repr__(self) -> str:
         return str(self)
@@ -43,8 +51,12 @@ class Contingency:
     def clone(self) -> 'Contingency':
         return deepcopy(self)
 
-    def with_merged_struct_effector(self, equivs: Optional[StructEquivalences]=None, counter: Optional[StructCounter]=None,
+    def with_merged_struct_effector(self, equivs: Optional[StructEquivalences]=None,
+                                    counter: Optional[StructCounter]=None,
                                     namespace: Optional[List[str]]=None) -> 'Contingency':
+        """Returns a Contingency object where the structure information is merged among all Effector objects using
+        `equivs`, an object that holds equivalent molecules: different names referring to the same molecule. For
+        more details, see the `to_global_struct_effector` and `collect_global_equivs` methods in Effector."""
         structured = self.clone()
         equivs, counter = structured.effector.collect_global_equivs(equivs, counter, namespace)
         structured.effector = structured.effector.to_global_struct_effector(equivs, counter, namespace)
@@ -52,13 +64,16 @@ class Contingency:
         return structured
 
     def to_structured(self) -> 'Contingency':
+        """Returns a Contingency object where the structure information is merged among all Effector objects. This
+        method first determines the equivalences, after which it calls the `with_merged_struct_effector` method."""
         LOGGER.debug('{}: {}'.format(current_function_name(), str(self)))
 
         if isinstance(self.effector, StateEffector) and self.effector.is_structured:
             # A fully structured StateEffector is fine.
             if not self.effector.states[0].is_global and not isinstance(self.reaction, OutputReaction):
-                assert any(component in self.reaction.components_lhs_structured for component in self.effector.states[0].components), \
-                    "Non-overlapping contingency: {0} does not match structured reaction : {1} (structured components: {2})"\
+                assert any(component in self.reaction.components_lhs_structured for component in
+                           self.effector.states[0].components), \
+                    "Non-overlapping contingency: {0} does not match structured reaction : {1} (components: {2})" \
                     .format(str(self.effector), str(self.reaction), str(self.reaction.components_lhs_structured))
             return self
         elif isinstance(self.effector, StateEffector) and not self.effector.is_structured:
@@ -85,6 +100,11 @@ class Contingency:
 
     def to_venn_set(self, k_plus_strict: bool=False, k_minus_strict: bool=False, structured: bool=True,
                     state_wrapper: Callable[[State], Any]=lambda x: x) -> VennSet[Any]:
+        """Returns a Venntastic Set object corresponding to the Contingency: requirements are put in a ValueSet,
+        inhibitions in a ValueSet within a Complement. If `k_plus_strict` / `k_minus_strict`, then positive and
+        negative Contingencies are translated into strict requirements resp. strict inhibitions. If `structured`
+        is False, the structure information is discarded. Optionally all States can be wrapped in some other
+        class by providing a `state_wrapper`."""
         def parse_effector(eff: Effector) -> VennSet:
             if isinstance(eff, StateEffector):
                 if structured:
@@ -118,7 +138,7 @@ class Contingency:
             return UniversalSet()
 
     def validate_struct_indices(self) -> None:
-        # Assert that every index is only used once.
+        """Assert that every index is only used once."""
         specs = [spec for state in self.effector.states for spec in state.specs]
         index_to_specs = defaultdict(set)  # type: Dict[int, TgSet]
 
@@ -127,6 +147,3 @@ class Contingency:
             index_to_specs[spec.struct_index].add(spec.to_component_spec())
 
         assert all(len(x) == 1 for _, x in index_to_specs.items())
-
-
-
