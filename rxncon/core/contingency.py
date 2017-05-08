@@ -1,5 +1,6 @@
 """Module containing the classes Contingency and ContingencyType."""
 
+
 from enum import unique, Enum
 from copy import deepcopy
 from collections import defaultdict

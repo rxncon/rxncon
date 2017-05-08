@@ -1,5 +1,9 @@
+"""Module containing the classes Effector, StateEffector, NaryEffector, AndEffector, OrEffector, NotEffector,
+BooleanOperator, BooleanContingencyName, QualSpec, StructEquivalences, TrivialStructEquivalences"""
+
+
 import re
-from abc import ABCMeta, abstractproperty
+from abc import ABCMeta, abstractmethod
 from typing import List, Optional, Dict, Tuple, Any
 from copy import deepcopy
 from enum import Enum, unique
@@ -8,6 +12,7 @@ import logging
 from rxncon.core.spec import spec_from_str, Spec
 from rxncon.core.state import State
 from rxncon.util.utils import current_function_name
+
 
 BOOLEAN_CONTINGENCY_REGEX = '^<.*>$'
 
@@ -18,12 +23,13 @@ LOGGER = logging.getLogger(__name__)
 @unique
 class BooleanOperator(Enum):
     op_and = 'and'
-    op_or  = 'or'
+    op_or = 'or'
     op_not = 'not'
     op_eqv = 'eqv'
 
 
-class BooleanContingencyName:  # pylint: disable=too-few-public-methods
+class BooleanContingencyName:
+    """BooleanContingencyName holds and validates upon construction names such as `<BOOL>`."""
     def __init__(self, name: str) -> None:
         assert re.match(BOOLEAN_CONTINGENCY_REGEX, name)
         self.name = name
@@ -44,10 +50,12 @@ class BooleanContingencyName:  # pylint: disable=too-few-public-methods
 
 
 class QualSpec:
+    """QualSpec holds a Spec that lives in a namespace. The namespace is typically a collection of
+    (stringified) boolean contingencies."""
     def __init__(self, namespace: List[str], spec: Spec) -> None:
         self.namespace = namespace
-        self.spec      = spec
-        self._name     = '.'.join(namespace + [str(spec)])
+        self.spec = spec
+        self._name = '.'.join(namespace + [str(spec)])
 
     def __str__(self) -> str:
         return self._name
@@ -74,12 +82,15 @@ class QualSpec:
 
 def qual_spec_from_str(qualified_spec_str: str) -> QualSpec:
     namespace = [x for x in qualified_spec_str.split('.')[:-1]]
-    spec      = spec_from_str(qualified_spec_str.split('.')[-1])
+    spec = spec_from_str(qualified_spec_str.split('.')[-1])
 
     return QualSpec(namespace, spec)
 
 
 class StructEquivalences:
+    """StructEquivalences holds equivalence classes of QualSpecs. Every element in an equivalence class corresponds
+    to the same physical molecule. Elements within the same equivalence class might be labelled with a different
+    structure index when living in different namespaces."""
     def __init__(self) -> None:
         self.eq_classes = []  # type: List[List[QualSpec]]
 
@@ -87,7 +98,8 @@ class StructEquivalences:
         return '\n'.join(str(x) for x in self.eq_classes)
 
     def add_equivalence(self, first_qual_spec: QualSpec, second_qual_spec: QualSpec) -> None:
-        first_qual_spec, second_qual_spec = first_qual_spec.to_component_qual_spec(), second_qual_spec.to_component_qual_spec()
+        first_qual_spec, second_qual_spec = first_qual_spec.to_component_qual_spec(), \
+                                            second_qual_spec.to_component_qual_spec()
 
         found_first = None
         found_second = None
@@ -110,7 +122,7 @@ class StructEquivalences:
 
     def add_equivalence_class(self, eq_class: List[QualSpec]) -> None:
         for existing_class in self.eq_classes:
-            if next((x for x in existing_class if x.to_component_qual_spec() in eq_class), False):  # type: ignore
+            if next((x for x in existing_class if x.to_component_qual_spec() in eq_class), False):
                 for elem in eq_class:
                     self.add_equivalence(elem.to_component_qual_spec(), existing_class[0])
                 return
@@ -124,7 +136,8 @@ class StructEquivalences:
     def find_unqualified_spec(self, qual_spec: QualSpec) -> Optional[Spec]:
         for eq_class in self.eq_classes:
             if qual_spec.to_component_qual_spec() in eq_class:
-                existing_spec = deepcopy(next((x.spec for x in eq_class if x.is_in_root_namespace), None))  # type: ignore
+                existing_spec = deepcopy(
+                    next((x.spec for x in eq_class if x.is_in_root_namespace), None))  # type: ignore
                 if existing_spec:
                     existing_spec.locus = deepcopy(qual_spec.spec.locus)
                     return existing_spec
@@ -137,7 +150,9 @@ class StructEquivalences:
 
 
 class TrivialStructEquivalences(StructEquivalences):
-    def __init__(self, initial_struct_specs: Dict[Spec, Spec]=None) -> None:  # pylint: disable=super-init-not-called
+    """TrivialStructEquivalences describes a situation in which all molecules are inequivalent:
+    all namespacing information is ignored."""
+    def __init__(self, initial_struct_specs: Dict[Spec, Spec]=None) -> None:
         if not initial_struct_specs:
             self.struct_specs = {}  # type: Dict[Spec, Spec]
         else:
@@ -172,7 +187,9 @@ class TrivialStructEquivalences(StructEquivalences):
         return [x for x in range(self.cur_index)]
 
 
-class StructCounter:  # pylint: disable=too-few-public-methods
+class StructCounter:
+    """StructCounter is a helper class that generates structure indices. It starts counting at 2 since the
+    numbers 0 and 1 are reserved for the reactants."""
     def __init__(self) -> None:
         self.value = 2
 
@@ -181,6 +198,7 @@ class StructCounter:  # pylint: disable=too-few-public-methods
 
 
 class Effector(metaclass=ABCMeta):
+    """Effector is the abstract parent class of the different types of Effector."""
     @property
     def name(self) -> Optional[str]:
         try:
@@ -190,9 +208,10 @@ class Effector(metaclass=ABCMeta):
 
     @name.setter
     def name(self, value: str) -> None:
-        self._name = value  # pylint: disable=attribute-defined-outside-init
+        self._name = value
 
-    @abstractproperty
+    @abstractmethod
+    @property
     def states(self) -> List[State]:
         pass
 
@@ -203,16 +222,19 @@ class Effector(metaclass=ABCMeta):
     def collect_global_equivs(self, glob_equivs: StructEquivalences=None,
                               counter: StructCounter=None,
                               cur_namespace: List[str]=None) -> Tuple[StructEquivalences, StructCounter]:
+        """Recursively collects all StructEquivalences inside the Effector, without mutating anything."""
         raise NotImplementedError
 
     def to_global_struct_effector(self, glob_equivs: StructEquivalences=None,
-                              counter: StructCounter=None,
-                              cur_namespace: List[str]=None) -> 'Effector':
+                                  counter: StructCounter=None,
+                                  cur_namespace: List[str]=None) -> 'Effector':
+        """Returns an effector in which the Specs are recursively re-labelled using a StructEquivalences object."""
         raise NotImplementedError
 
     @staticmethod
     def _init_to_struct_effector_args(glob_equivs: Optional[StructEquivalences], cur_index: Optional[StructCounter],
-                                      cur_namespace: Optional[List[str]]) -> Tuple[StructEquivalences, StructCounter, List[str]]:
+                                      cur_namespace: Optional[List[str]]) \
+            -> Tuple[StructEquivalences, StructCounter, List[str]]:
         if glob_equivs is None:
             glob_equivs = StructEquivalences()
         if cur_index is None:
@@ -224,6 +246,7 @@ class Effector(metaclass=ABCMeta):
 
 
 class StateEffector(Effector):
+    """StateEffector holds a State and therefore is a leaf in the Effector."""
     def __init__(self, expr: State) -> None:
         self.expr = expr
 
@@ -249,20 +272,21 @@ class StateEffector(Effector):
     def is_structured(self) -> bool:
         return self.expr.is_structured
 
-    def collect_global_equivs(self, glob_equivs: StructEquivalences=None,
-                              counter: StructCounter=None,
-                              cur_namespace: List[str]=None) -> Tuple[StructEquivalences, StructCounter]:
+    def collect_global_equivs(self, glob_equivs: StructEquivalences = None,
+                              counter: StructCounter = None,
+                              cur_namespace: List[str] = None) -> Tuple[StructEquivalences, StructCounter]:
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         return glob_equivs, counter
 
-    def to_global_struct_effector(self, glob_equivs: StructEquivalences=None,
-                              counter: StructCounter=None,
-                              cur_namespace: List[str]=None):
+    def to_global_struct_effector(self, glob_equivs: StructEquivalences = None,
+                                  counter: StructCounter = None,
+                                  cur_namespace: List[str] = None):
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         state = deepcopy(self.expr)
         updates = {}
 
-        assert not (state.is_homodimer and not state.is_structured), 'Please provide structure annotation for homodimer {}'.format(state)
+        assert not (state.is_homodimer and not state.is_structured), \
+            'Please provide structure annotation for homodimer {}'.format(state)
 
         LOGGER.debug('{} : Merging {}'.format(current_function_name(), str(self)))
         LOGGER.debug('{} : Equivs {}'.format(current_function_name(), glob_equivs))
@@ -295,6 +319,8 @@ class StateEffector(Effector):
 
 
 class NotEffector(Effector):
+    """NotEffector holds another Effector object, and possibly a name, which it can inherit from the
+    Boolean Contingency from which it was constructed."""
     def __init__(self, expr: Effector, **kwargs: Optional[str]) -> None:
         try:
             self.name = kwargs['name']
@@ -318,20 +344,24 @@ class NotEffector(Effector):
     def is_structured(self) -> bool:
         return self.expr.is_structured
 
-    def collect_global_equivs(self, glob_equivs: StructEquivalences=None,
-                              counter: StructCounter=None,
-                              cur_namespace: List[str]=None) -> Tuple[StructEquivalences, StructCounter]:
+    def collect_global_equivs(self, glob_equivs: StructEquivalences = None,
+                              counter: StructCounter = None,
+                              cur_namespace: List[str] = None) -> Tuple[StructEquivalences, StructCounter]:
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         return self.expr.collect_global_equivs(glob_equivs, counter, cur_namespace + [self.name])
 
-    def to_global_struct_effector(self, glob_equivs: StructEquivalences=None,
-                              counter: StructCounter=None,
-                              cur_namespace: List[str]=None) -> Effector:
+    def to_global_struct_effector(self, glob_equivs: StructEquivalences = None,
+                                  counter: StructCounter = None,
+                                  cur_namespace: List[str] = None) -> Effector:
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
-        return NotEffector(self.expr.to_global_struct_effector(glob_equivs, counter, cur_namespace + [self.name]), name=self.name)
+        return NotEffector(self.expr.to_global_struct_effector(glob_equivs, counter, cur_namespace + [self.name]),
+                           name=self.name)
 
 
-class NaryEffector(Effector):
+class NaryEffector(Effector, metaclass=ABCMeta):
+    """NaryEffector is an abstract parent class for AndEffector and OrEffector. It can also hold a name which is
+    derived from the Boolean Contingency from which it was constructed. It holds StructEquivalences between the
+    Specs in its own namespace and in the namespaces of its member Effectors.."""
     def __init__(self, *exprs: Effector, **kwargs: Any) -> None:
         self.exprs = exprs
 
@@ -353,9 +383,9 @@ class NaryEffector(Effector):
     def is_structured(self) -> bool:
         return all(x.is_structured for x in self.exprs)
 
-    def collect_global_equivs(self, glob_equivs: StructEquivalences=None,
-                              counter: StructCounter=None,
-                              cur_namespace: List[str]=None) -> Tuple[StructEquivalences, StructCounter]:
+    def collect_global_equivs(self, glob_equivs: StructEquivalences = None,
+                              counter: StructCounter = None,
+                              cur_namespace: List[str] = None) -> Tuple[StructEquivalences, StructCounter]:
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         glob_equivs.merge_with(self.equivs, cur_namespace)
 
@@ -367,14 +397,16 @@ class NaryEffector(Effector):
 
         return glob_equivs, counter
 
-    def to_global_struct_effector(self, glob_equivs: StructEquivalences=None,
-                              counter: StructCounter=None,
-                              cur_namespace: List[str]=None) -> Effector:
+    def to_global_struct_effector(self, glob_equivs: StructEquivalences = None,
+                                  counter: StructCounter = None,
+                                  cur_namespace: List[str] = None) -> Effector:
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         return type(self)(*(x.to_global_struct_effector(
             glob_equivs, counter, cur_namespace + [self.name]) for x in self.exprs), name=self.name)
 
+
 class AndEffector(NaryEffector):
+    """AndEffector describes a logical AND between two or more Effectors."""
     def __str__(self) -> str:
         if self.name:
             return 'AndEffector{0}({1})'.format(self.name, ','.join(str(x) for x in self.exprs))
@@ -391,6 +423,7 @@ class AndEffector(NaryEffector):
 
 
 class OrEffector(NaryEffector):
+    """OrEffector describes a logical OR between two or more Effectors."""
     def __str__(self) -> str:
         if self.name:
             return 'OrEffector{0}({1})'.format(self.name, ','.join(str(x) for x in self.exprs))
