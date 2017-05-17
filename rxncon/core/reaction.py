@@ -1,22 +1,31 @@
+"""Module containing the classes ReactionTerm, ReactionDef, Reaction. Also contains the default reaction
+definitions and the list of bidirectional reactions (that get split into two unidirectional ones, but for
+which the contingency is only applied to the forward reaction)."""
+
+
 from typing import Dict, Any, List, Optional, Callable, TypeVar
 import re
 
 from rxncon.core.spec import Spec, MRNASpec, ProteinSpec, LocusResolution, GeneSpec, spec_from_str
 from rxncon.core.state import State, state_from_str
 
+
 T = TypeVar('T')
 
-SPEC_REGEX_MATCHING     = r'([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
+
+SPEC_REGEX_MATCHING = r'([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
 SPEC_REGEX_NON_MATCHING = r'(?:[A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
-
-OUTPUT_REACTION_REGEX   = r'^\[[\w-]*\]$'
-
+OUTPUT_REACTION_REGEX = r'^\[[\w-]*\]$'
+# These reactions get split into two unidirectional ones, i.e. 'ppi' becomes 'ppi+' and 'ppi-'.
+# The contingency then only gets applied on the forward reaction.
 BIDIRECTIONAL_REACTIONS = [
     'ppi', 'ipi', 'i', 'bind'
 ]
 
 
-class ReactionTerm:  # pylint:disable=too-few-public-methods
+class ReactionTerm:
+    """ReactionTerm describes a single term in a reaction rule. The `specs` are the components on which the
+    `states` live. The list `states` could be empty, e.g. for a kinase."""
     def __init__(self, specs: List[Spec], states: List[State]) -> None:
         assert all(spec.is_component_spec for spec in specs)
         self.specs, self.states = specs, states
@@ -27,13 +36,16 @@ class ReactionTerm:  # pylint:disable=too-few-public-methods
         return self.specs == other.specs and self.states == other.states
 
     def __str__(self) -> str:
-        return 'ReactionTerm<{0}:{1}>'.format(','.join(str(spec) for spec in self.specs), ','.join(str(x) for x in self.states))
+        return 'ReactionTerm<{0}:{1}>'.format(','.join(str(spec) for spec in self.specs),
+                                              ','.join(str(x) for x in self.states))
 
     def __repr__(self) -> str:
         return str(self)
 
 
 class ReactionDef:
+    """ReactionDef provides meaning for reaction strings such as A_[x]_ppi+_B_[y]. It contains the parsed
+    data from the reaction string, and the underlying skeleton rule (`rule_def`)."""
     ARROW = '->'
 
     def __init__(self, reaction_class: str, name_def: str, vars_def: Dict[str, Any], rule_def: str) -> None:
@@ -44,13 +56,14 @@ class ReactionDef:
         if not isinstance(other, ReactionDef):
             return NotImplemented
         return self.reaction_class == other.reaction_class and self.name_def == other.name_def \
-            and self.vars_def == other.vars_def and self.rule_def == other.rule_def
+               and self.vars_def == other.vars_def and self.rule_def == other.rule_def
 
     def __repr__(self) -> str:
         return str(self)
 
     def __str__(self) -> str:
-        return 'ReactionDef: {0}; name_def: {1}; rule_def: {2} '.format(self.reaction_class, self.name_def, self.rule_def)
+        return 'ReactionDef: {0}; name_def: {1}; rule_def: {2} '.format(self.reaction_class, self.name_def,
+                                                                        self.rule_def)
 
     def matches_name_def(self, name: str) -> bool:
         return True if re.match(self._to_matching_regex(), name) else False
@@ -82,11 +95,11 @@ class ReactionDef:
     def validate_vars(self, var_to_val: Dict[str, Any]) -> None:
         for var, val in var_to_val.items():
             assert isinstance(val, self.vars_def[var][0]), \
-                'In Reaction {0}: {1} is of type {2}, required to be of type {3}\nVariables: {4}'\
-                .format(self.name_def, var, type(val), self.vars_def[var][0], var_to_val)
+                'In Reaction {0}: {1} is of type {2}, required to be of type {3}\nVariables: {4}' \
+                    .format(self.name_def, var, type(val), self.vars_def[var][0], var_to_val)
             assert val.has_resolution(self.vars_def[var][1]), \
-                'In Reaction {0}: {1} is of resolution {2}, required to be of resolution {3}\nVariables: {4}'\
-                .format(self.name_def, var, val.resolution, self.vars_def[var][1], var_to_val)
+                'In Reaction {0}: {1} is of resolution {2}, required to be of resolution {3}\nVariables: {4}' \
+                    .format(self.name_def, var, val.resolution, self.vars_def[var][1], var_to_val)
 
     def terms_lhs_from_vars(self, var_to_val: Dict[str, Any]) -> List[ReactionTerm]:
         return [self._parse_term(x, var_to_val) for x in self.reactant_defs_lhs]
@@ -155,6 +168,9 @@ class ReactionDef:
         return regex
 
 
+# This array will get filled with the ReactionDefs by the function 'initialize_reaction_defs' (below).
+# In addition to the DEFAULT_REACTION_DEFS, reactions unique to the system under study can be defined
+# in the Excel sheet containing the rxncon system.
 REACTION_DEFS = []
 
 
@@ -361,6 +377,8 @@ DEFAULT_REACTION_DEFS = [
 
 
 def initialize_reaction_defs(additional_defs: List[Dict[str, str]]=None) -> None:
+    """Modifies the module-level variable REACTION_DEFS by adding those reaction definitions inside
+    DEFAULT_REACTION_DEFS and additional ones passed into this function."""
     global REACTION_DEFS
     global DEFAULT_REACTION_DEFS
     global BIDIRECTIONAL_REACTIONS
@@ -406,19 +424,25 @@ initialize_reaction_defs()
 
 
 class Reaction:  # pylint: disable=too-many-instance-attributes
+    """Generic Reaction class. A Reaction is basically a unidirectional rule with terms on the left hand side
+    and terms on the right hand side, which is defined by its ReactionDef. A State is 'consumed' if it is on
+    the LHS, but not on the RHS (and its component does not vanish); it is 'produced' if it is on the RHS but
+    not on the LHS (and its component does not vanish); it is degraded if its component vanishes going from
+    LHS to RHS; it is synthesised if its component appears going from LHS to RHS."""
     def __init__(self, reaction_def: ReactionDef, var_to_val: Dict[str, Any]) -> None:
         self.reaction_class = reaction_def.reaction_class
-        self.reaction_def   = reaction_def
-        self.var_to_val     = var_to_val
+        self.reaction_def = reaction_def
+        self.var_to_val = var_to_val
 
         self.terms_lhs = reaction_def.terms_lhs_from_vars(var_to_val)
         self.terms_rhs = reaction_def.terms_rhs_from_vars(var_to_val)
-        self.name      = reaction_def.name_from_vars(var_to_val)
+        self.name = reaction_def.name_from_vars(var_to_val)
 
-        self._consumed_states    = None  # type: Optional[List[State]]
-        self._produced_states    = None  # type: Optional[List[State]]
+        # This information is cached, and lazily initialised.
+        self._consumed_states = None  # type: Optional[List[State]]
+        self._produced_states = None  # type: Optional[List[State]]
         self._synthesised_states = None  # type: Optional[List[State]]
-        self._degraded_states    = None  # type: Optional[List[State]]
+        self._degraded_states = None  # type: Optional[List[State]]
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -438,10 +462,10 @@ class Reaction:  # pylint: disable=too-many-instance-attributes
         return self.var_to_val[item]
 
     def invalidate_state_cache(self) -> None:
-        self._consumed_states    = None
-        self._produced_states    = None
+        self._consumed_states = None
+        self._produced_states = None
         self._synthesised_states = None
-        self._degraded_states    = None
+        self._degraded_states = None
 
     @property
     def components_lhs(self) -> List[Spec]:
@@ -468,7 +492,7 @@ class Reaction:  # pylint: disable=too-many-instance-attributes
 
     @property
     def produced_states(self) -> List[State]:
-        if self._produced_states  is None:
+        if self._produced_states is None:
             self._produced_states = []
 
             for term in self.terms_rhs:
@@ -527,8 +551,10 @@ class Reaction:  # pylint: disable=too-many-instance-attributes
 
 
 class OutputReaction(Reaction):
+    """OutputReactions do not have an underlying rule: they typically describe something like a change
+    in a global quantity; therefore they cannot be described by the generic Reaction class."""
     def __init__(self, name: str) -> None:  # pylint: disable=super-init-not-called
-        self.name      = name
+        self.name = name
         self.terms_lhs = []
         self.terms_rhs = []
 
@@ -580,11 +606,18 @@ class OutputReaction(Reaction):
 
 
 def matching_reaction_def(name: str) -> Optional[ReactionDef]:
-    return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_name_def(name)), None)  # type: ignore
+    """Given a ReactionDef string, returns the ReactionDef object or None."""
+    return next((reaction_def for reaction_def in REACTION_DEFS if reaction_def.matches_name_def(name)),
+                None)  # type: ignore
 
 
 def reaction_from_str(name: str, standardize: bool=True) -> Reaction:
+    """Given a Reaction string, returns the Reaction object, or throws a SyntaxError if  not parsable.
+    If 'standardize' is True, the parser is more lenient in what it accepts and first calls 'fixed_spec_types'
+    and 'fixed_resolutions'."""
     def fixed_spec_types(reaction_def: ReactionDef, var_to_val: Dict[str, Any]) -> Dict[str, Any]:
+        """When the Specs appearing in a Reaction are not of the required type, e.g. a ProteinSpec is passed
+        instead of a GeneSpec, this this function modifies them into the required type."""
         keys = var_to_val.keys()
         assert len(list(keys)) == 2
 
@@ -601,13 +634,16 @@ def reaction_from_str(name: str, standardize: bool=True) -> Reaction:
         return var_to_val
 
     def fixed_resolutions(reaction_def: ReactionDef, var_to_val: Dict[str, Any]) -> Dict[str, Any]:
+        """When the Specs appearing in a Reaction are not of the required resolution, e.g. a component ('A') 
+        is passed instead of a residue ('A_[(r)]'), this function modifies them into the required resolution."""
         keys = var_to_val.keys()
         assert len(list(keys)) == 2
 
         for key in keys:
             if reaction_def.vars_def[key][1] < var_to_val[key].resolution:
-                raise SyntaxError('In reaction {0}, the specified resolution for variable {1}\n is higher than the required {2}'
-                                  .format(name, str(var_to_val[key]), reaction_def.vars_def[key][1]))
+                raise SyntaxError(
+                    'In reaction {0}, the specified resolution for variable {1}\n is higher than the required {2}'
+                    .format(name, str(var_to_val[key]), reaction_def.vars_def[key][1]))
 
             other = [x for x in keys if x != key][0]
             if not var_to_val[key].has_resolution(reaction_def.vars_def[key][1]):
