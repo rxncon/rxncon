@@ -3,7 +3,7 @@ BooleanOperator, BooleanContingencyName, QualSpec, StructEquivalences, TrivialSt
 
 
 import re
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 from typing import List, Optional, Dict, Tuple, Any
 from copy import deepcopy
 from enum import Enum, unique
@@ -197,7 +197,7 @@ class StructCounter:
         self.value += 1
 
 
-class Effector(metaclass=ABCMeta):
+class Effector(ABC):
     """Effector is the abstract parent class of the different types of Effector."""
     @property
     def name(self) -> Optional[str]:
@@ -210,8 +210,8 @@ class Effector(metaclass=ABCMeta):
     def name(self, value: str) -> None:
         self._name = value
 
-    @abstractmethod
     @property
+    @abstractmethod
     def states(self) -> List[State]:
         pass
 
@@ -358,7 +358,7 @@ class NotEffector(Effector):
                            name=self.name)
 
 
-class NaryEffector(Effector, metaclass=ABCMeta):
+class NaryEffector(Effector, ABC):
     """NaryEffector is an abstract parent class for AndEffector and OrEffector. It can also hold a name which is
     derived from the Boolean Contingency from which it was constructed. It holds StructEquivalences between the
     Specs in its own namespace and in the namespaces of its member Effectors.."""
