@@ -1,3 +1,9 @@
+"""Module containing the class RxnconSystem, which contains all information (reactions, contingencies)
+pertaining to a rxncon system. Some information is inherently non-local, e.g. the neutral states that
+get created by a synthesis reaction; this information is determined here. Also some validation is performed,
+e.g. a check that all States appearing in contingencies are actually appearing in reactions."""
+
+
 from typing import List, Dict, Tuple
 from itertools import product
 from collections import defaultdict
@@ -11,29 +17,35 @@ from rxncon.core.spec import Spec
 from rxncon.util.utils import current_function_name
 from rxncon.venntastic.sets import UniversalSet, Intersection, Set  # pylint: disable=unused-import
 
-
 LOGGER = logging.getLogger(__name__)
 
 
 class RxnConSystem:  # pylint: disable=too-many-instance-attributes
+    """RxnConSystem holds all reactions and contingencies pertaining to a rxncon system."""
     def __init__(self, reactions: List[Reaction], contingencies: List[Contingency]) -> None:
-        self.reactions     = reactions
+        self.reactions = reactions
         self.contingencies = contingencies
 
-        self._components         = []  # type: List[Spec]
-        self._states             = []  # type: List[State]
-        self._produced_states    = []  # type: List[State]
-        self._consumed_states    = []  # type: List[State]
+        self._components = []  # type: List[Spec]
+        self._states = []  # type: List[State]
+        self._produced_states = []  # type: List[State]
+        self._consumed_states = []  # type: List[State]
         self._synthesised_states = []  # type: List[State]
-        self._global_states      = []  # type: List[State]
+        self._global_states = []  # type: List[State]
 
+        # Components get synthesised in a 'fully neutral' state. What this state is depends on all reactions
+        # in the system, so this 'fully neutral' state has to be expanded into the combination of all neutral
+        # states pertaining to the component.
         self._expand_fully_neutral_states()
+        # These states are lazily generated.
         self._calculate_produced_states()
         self._calculate_consumed_states()
         self._calculate_synthesised_states()
         self._calculate_global_states()
         self._calculate_states()
 
+        # Contingencies containing states at a non-elemental resolution are expanded to an OR of elemental
+        # contingencies.
         self._expand_non_elemental_states()
         self._structure_contingencies()
 
@@ -108,12 +120,15 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
         return self._global_states
 
     def states_for_component(self, component: Spec) -> List[State]:
+        """Returns all the States that live on a certain Component."""
         assert component.is_component_spec
         return [x for x in self.states if component.to_non_struct_spec() in x.components]
 
     def states_for_component_grouped(self, component: Spec) -> Dict[Spec, List[State]]:
+        """Returns all the States that live on a certain component, grouped by their Spec.
+        Within a group, each State is mutually exclusive with each other State."""
         states = self.states_for_component(component)  # type: List[State]
-        grouped = defaultdict(list)                    # type: Dict[Spec, List[State]]
+        grouped = defaultdict(list)  # type: Dict[Spec, List[State]]
 
         while states:
             state = states.pop()
@@ -127,6 +142,8 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
         return grouped
 
     def complement_states(self, state: State) -> List[State]:
+        """Returns all States mutually exclusive with the State given. For multi-component States,
+        all components are included."""
         states = []  # type: List[State]
         for component in state.components:
             states += self.complement_states_for_component(component, state)
@@ -134,12 +151,16 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
         return states
 
     def complement_states_for_component(self, component: Spec, state: State) -> List[State]:
+        """Returns all States mutually exclusive with the State given that live on the Component given."""
         if not state.is_structured:
             for group in self.states_for_component_grouped(component).values():
                 if state in group:
                     return [x for x in group if x != state]
         else:
-            complements = self.complement_states_for_component(component.to_non_struct_spec(), state.to_non_structured())
+            # The structure information is first thrown away to determine the mutually exclusive
+            # states, and then applied again (as far as possible).
+            complements = self.complement_states_for_component(component.to_non_struct_spec(),
+                                                               state.to_non_structured())
             return [x.to_structured_from_state(state) for x in complements]
 
     def _calculate_components(self) -> None:
@@ -151,7 +172,8 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
         self._components = list(set(components))
 
     def _calculate_states(self) -> None:
-        self._states = list(set(self.produced_states + self.consumed_states + self.synthesised_states + self.global_states))
+        self._states = list(
+            set(self.produced_states + self.consumed_states + self.synthesised_states + self.global_states))
 
     def _calculate_produced_states(self) -> None:
         states = []  # type: List[State]
@@ -217,9 +239,11 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
                     else:
                         return OrEffector(*(StateEffector(x) for x in elemental_states), name=str(effector.expr))
             elif isinstance(effector, AndEffector):
-                return AndEffector(*(expanded_effector(x) for x in effector.exprs), name=effector.name, equivs=effector.equivs)
+                return AndEffector(*(expanded_effector(x) for x in effector.exprs), name=effector.name,
+                                   equivs=effector.equivs)
             elif isinstance(effector, OrEffector):
-                return OrEffector(*(expanded_effector(x) for x in effector.exprs), name=effector.name, equivs=effector.equivs)
+                return OrEffector(*(expanded_effector(x) for x in effector.exprs), name=effector.name,
+                                  equivs=effector.equivs)
             elif isinstance(effector, NotEffector):
                 return NotEffector(expanded_effector(effector.expr), name=effector.name)
             else:
@@ -234,7 +258,8 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
     def _missing_states(self) -> List[State]:
         required_states = []  # type: List[State]
         for contingency in self.contingencies:
-            required_states += [state.to_non_structured() for state in contingency.effector.states if not state.is_global]
+            required_states += [state.to_non_structured() for state in contingency.effector.states if
+                                not state.is_global]
 
         return [state for state in required_states if state not in self.states]
 
@@ -253,7 +278,8 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
 
             total_set = UniversalSet()  # type: Set[State]
             for contingency in contingencies:
-                total_set = Intersection(total_set, contingency.to_venn_set())  # pylint: disable=redefined-variable-type
+                total_set = Intersection(total_set,
+                                         contingency.to_venn_set())  # pylint: disable=redefined-variable-type
 
             solutions = total_set.calc_solutions()
             if len(solutions) == 0:
@@ -265,8 +291,10 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
             for solution in solutions:
                 trues = [state for state, val in solution.items() if val]
                 if any(state.is_mutually_exclusive_with(other) for state, other in product(trues, trues)):
-                    state, other = next((state, other) for state, other in product(trues, trues) if state.is_mutually_exclusive_with(other))
-                    local_unsatisfiables.append((reaction, 'State {} mutually exclusive with {}.'.format(str(state), str(other))))
+                    state, other = next((state, other) for state, other in product(trues, trues) if
+                                        state.is_mutually_exclusive_with(other))
+                    local_unsatisfiables.append(
+                        (reaction, 'State {} mutually exclusive with {}.'.format(str(state), str(other))))
                 else:
                     at_least_one_consistent_soln = True
 
