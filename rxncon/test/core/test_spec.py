@@ -27,8 +27,8 @@ def test_unstructured_specs() -> None:
     assert protein_spec.has_resolution(LocusResolution.residue)
     assert protein_spec.to_component_spec().has_resolution(LocusResolution.component)
     # DNA
-    assert isinstance(protein_spec.to_dna_component_spec(), GeneSpec)
-    assert protein_spec.to_dna_component_spec().has_resolution(LocusResolution.component)
+    assert isinstance(protein_spec.to_gene_component_spec(), GeneSpec)
+    assert protein_spec.to_gene_component_spec().has_resolution(LocusResolution.component)
     # mRNA
     assert isinstance(protein_spec.to_mrna_component_spec(), MRNASpec)
     assert protein_spec.to_mrna_component_spec().has_resolution(LocusResolution.component)
@@ -45,9 +45,9 @@ def test_structured_specs() -> None:
     assert protein_spec.to_component_spec().has_resolution(LocusResolution.component)
     assert protein_spec.struct_index == 0
     # DNA
-    assert isinstance(protein_spec.to_dna_component_spec(), GeneSpec)
-    assert protein_spec.to_dna_component_spec().has_resolution(LocusResolution.component)
-    assert not protein_spec.to_dna_component_spec().struct_index
+    assert isinstance(protein_spec.to_gene_component_spec(), GeneSpec)
+    assert protein_spec.to_gene_component_spec().has_resolution(LocusResolution.component)
+    assert not protein_spec.to_gene_component_spec().struct_index
     # mRNA
     assert isinstance(protein_spec.to_mrna_component_spec(), MRNASpec)
     assert protein_spec.to_mrna_component_spec().has_resolution(LocusResolution.component)

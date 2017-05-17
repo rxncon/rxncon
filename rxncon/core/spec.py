@@ -1,10 +1,15 @@
+"""Module containing the classes Spec, ProteinSpec, MRNASpec, GeneSpec, Locus, EmptyLocus, 
+LocusResolution and SpecSuffix, as well as the constructor functions spec_from_str and locus_from_str.
+A Spec describes a molecule-like object (be it a Protein, a Gene or an mRNA) at a certain resolution.
+It consists of a component name and a Locus, the latter describing domain / residue information, and
+optionally a 'struct_index', which can be used to fix the topology of complexes."""
+
 from collections import OrderedDict
 from abc import ABC
 from copy import deepcopy
 from typing import Optional, MutableMapping, Type, Tuple  # pylint: disable=unused-import
 from enum import Enum, unique
 import re
-
 
 DOMAIN_SUBDOMAIN_RESIDUE_REGEX = r'^[\w:-]+\/[\w:-]+\([\w:-]+\)$'
 DOMAIN_RESIDUE_REGEX = r'^[\w:-]+\([\w:-]+\)$'
@@ -14,6 +19,8 @@ DOMAIN_REGEX = r'^[\w:-]+$'
 
 
 class Spec(ABC):
+    """Spec is the abstract superclass for ProteinSpec, GeneSpec and MRNASpec."""
+
     def __init__(self, name: str, struct_index: Optional[int], locus: 'Locus') -> None:
         self.name, self.struct_index, self.locus = name, struct_index, locus
         self._validate()
@@ -42,7 +49,7 @@ class Spec(ABC):
         if not isinstance(other, Spec):
             return NotImplemented
         return isinstance(other, type(self)) and self.name == other.name and self.locus == other.locus and \
-            self.struct_index == other.struct_index
+               self.struct_index == other.struct_index
 
     def __lt__(self, other: 'Spec') -> bool:
         return str(self) < str(other)
@@ -51,6 +58,7 @@ class Spec(ABC):
         return deepcopy(self)
 
     def is_subspec_of(self, other: 'Spec') -> bool:
+        """Specs have a subset / superset relation, e.g. A_[(r)] is a subset of A."""
         if self == other:
             return True
 
@@ -66,6 +74,7 @@ class Spec(ABC):
         return True
 
     def is_superspec_of(self, other: 'Spec') -> bool:
+        """Specs have a subset / superset relation, e.g. A is a superset of A_[(r)]."""
         if self == other:
             return True
 
@@ -77,6 +86,7 @@ class Spec(ABC):
 
     @property
     def is_component_spec(self) -> bool:
+        """A ComponentSpec is a Spec without any Locus information."""
         return self.has_resolution(LocusResolution.component)
 
     def with_name_suffix(self, suffix: str) -> 'Spec':
@@ -88,32 +98,41 @@ class Spec(ABC):
             return type(self)(self.name + suffix, self.struct_index, self.locus)
 
     def with_struct_index(self, index: int) -> 'Spec':
+        """Returns a new Spec of the same type with a given struct index."""
         return type(self)(self.name, index, self.locus)
 
     def with_struct_from_spec(self, other: 'Spec') -> 'Spec':
+        """Returns a new Spec of the same type with a struct index matching the one carried by the Spec given."""
         assert other.struct_index is not None
         assert self.name == other.name
         return type(self)(self.name, other.struct_index, self.locus)
 
     def with_locus(self, locus: 'Locus') -> 'Spec':
+        """Returns a new Spec of the same type with a given Locus."""
         return type(self)(self.name, self.struct_index, locus.clone())
 
     def with_domain(self, domain: str) -> 'Spec':
+        """Returns a new Spec of the same type with its domain changed into the one given."""
         return type(self)(self.name, self.struct_index, self.locus.with_domain(domain))
 
     def to_non_struct_spec(self) -> 'Spec':
+        """Returns a new Spec of the same type without struct index."""
         return type(self)(self.name, None, self.locus)
 
     def to_component_spec(self) -> 'Spec':
+        """Returns a new Spec of the same type without Locus."""
         return type(self)(self.name, self.struct_index, EmptyLocus())
 
     def to_protein_component_spec(self) -> 'ProteinSpec':
+        """Returns a new ProteinSpec with the same name, without structure index or Locus."""
         return ProteinSpec(self.name, None, EmptyLocus())
 
-    def to_dna_component_spec(self) -> 'GeneSpec':
+    def to_gene_component_spec(self) -> 'GeneSpec':
+        """Returns a new GeneSpec with the same name, without structure index or Locus."""
         return GeneSpec(self.name, None, EmptyLocus())
 
     def to_mrna_component_spec(self) -> 'MRNASpec':
+        """Returns a new MRNASpec with the same name, without structure index or Locus."""
         return MRNASpec(self.name, None, EmptyLocus())
 
     @property
@@ -143,6 +162,8 @@ class GeneSpec(Spec):
 
 
 class Locus:
+    """Locus contains domain, subdomain and residue information for a Spec."""
+
     def __init__(self, domain: Optional[str], subdomain: Optional[str], residue: Optional[str]) -> None:
         self.domain, self.subdomain, self.residue = domain, subdomain, residue
         self.validate()
@@ -216,9 +237,9 @@ def EmptyLocus() -> Locus:  # pylint: disable=invalid-name
 
 class LocusResolution(Enum):
     component = 'component'
-    domain    = 'domain'
+    domain = 'domain'
     subdomain = 'subdomain'
-    residue   = 'residue'
+    residue = 'residue'
 
     def __lt__(self, other: object) -> bool:
         if not isinstance(other, LocusResolution):
@@ -236,8 +257,8 @@ class LocusResolution(Enum):
 
 @unique
 class SpecSuffix(Enum):
-    mrna    = 'mRNA'
-    dna     = 'Gene'
+    mrna = 'mRNA'
+    dna = 'Gene'
     protein = ''
 
 
@@ -253,29 +274,30 @@ SPEC_TO_SUFFIX = OrderedDict((k, v) for v, k in SUFFIX_TO_SPEC.items())  # type:
 
 
 def locus_from_str(locus_str: str) -> Locus:
+    """Returns a Locus object parsed from the given string, raises SyntaxError if not parsable."""
     def locus_items_from_str(full_locus_str: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
         domain, subdomain, residue = None, None, None  # type: Optional[str], Optional[str], Optional[str]
 
         if re.match(DOMAIN_SUBDOMAIN_RESIDUE_REGEX, full_locus_str):
-            domain    = full_locus_str.split('/')[0]
+            domain = full_locus_str.split('/')[0]
             subdomain = full_locus_str.split('/')[1].split('(')[0]
-            residue   = full_locus_str.split('/')[1].split('(')[1].strip(')')
+            residue = full_locus_str.split('/')[1].split('(')[1].strip(')')
         elif re.match(DOMAIN_RESIDUE_REGEX, full_locus_str):
-            domain    = full_locus_str.split('(')[0]
+            domain = full_locus_str.split('(')[0]
             subdomain = None
-            residue   = full_locus_str.split('(')[1].strip(')')
+            residue = full_locus_str.split('(')[1].strip(')')
         elif re.match(DOMAIN_SUBDOMAIN_REGEX, full_locus_str):
-            domain    = full_locus_str.split('/')[0]
+            domain = full_locus_str.split('/')[0]
             subdomain = full_locus_str.split('/')[1]
-            residue   = None
+            residue = None
         elif re.match(RESIDUE_REGEX, full_locus_str):
-            domain    = None
+            domain = None
             subdomain = None
-            residue   = full_locus_str.strip('()')
+            residue = full_locus_str.strip('()')
         elif re.match(DOMAIN_REGEX, full_locus_str):
-            domain    = full_locus_str
+            domain = full_locus_str
             subdomain = None
-            residue   = None
+            residue = None
         else:
             raise SyntaxError('Could not parse locus string {}'.format(full_locus_str))
 
@@ -285,17 +307,20 @@ def locus_from_str(locus_str: str) -> Locus:
 
 
 def spec_from_str(spec_str: str) -> Spec:
-    def spec_from_suffixed_name_and_locus(name: str, struct_index: Optional[int], locus: Locus) -> Spec:  # pylint: disable=invalid-name
+    """Returns a Spec object parsed from the given string, raises SyntaxError if not parsable."""
+    def spec_from_suffixed_name_and_locus(name: str, struct_index: Optional[int],
+                                          locus: Locus) -> Spec:  # pylint: disable=invalid-name
         for suffix in SUFFIX_TO_SPEC:
             if name.endswith(suffix.value):
                 name = name[:len(name) - len(suffix.value)]
                 return SUFFIX_TO_SPEC[suffix](name, struct_index, locus)
             elif name.lower().endswith(suffix.value.lower()):
-                raise SyntaxError('Please use correct capitalization \'{}\' in component \'{}\'.'.format(suffix.value, name))
+                raise SyntaxError(
+                    'Please use correct capitalization \'{}\' in component \'{}\'.'.format(suffix.value, name))
 
         raise SyntaxError('Could not parse spec component_name {}'.format(name))
 
-    if not re.match(r'[A-Za-z][A-Za-z0-9]*(@[\d]+)*(_\[[[A-Za-z0-9]\/\(\)]+\])*', spec_str):
+    if not re.match(r'[A-Za-z][A-Za-z0-9]*(@[\d]+)*(_\[[[A-Za-z0-9]/\(\)]+\])*', spec_str):
         raise SyntaxError('Spec str {} does not match validating regex.'.format(spec_str))
 
     struct_index = None

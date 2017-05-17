@@ -625,7 +625,7 @@ def reaction_from_str(name: str, standardize: bool=True) -> Reaction:
             required_type = reaction_def.vars_def[key][0]
             if not isinstance(var_to_val[key], required_type) and isinstance(var_to_val[key], ProteinSpec):
                 if required_type is GeneSpec:
-                    var_to_val[key] = var_to_val[key].to_dna_component_spec()
+                    var_to_val[key] = var_to_val[key].to_gene_component_spec()
                 elif required_type is MRNASpec:
                     var_to_val[key] = var_to_val[key].to_mrna_component_spec()
                 else:
