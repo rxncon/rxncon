@@ -266,37 +266,37 @@ def test_properties_fully_neutral() -> None:
     fully_neutral_state = state_from_str('0')
     assert not fully_neutral_state.is_structured
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(NotImplementedError):
         fully_neutral_state.is_subset_of(state_from_str('0'))
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(NotImplementedError):
         fully_neutral_state.is_superset_of(state_from_str('0'))
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(NotImplementedError):
         fully_neutral_state.is_elemental
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(NotImplementedError):
         fully_neutral_state.is_neutral
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(NotImplementedError):
         fully_neutral_state.neutral_states
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(NotImplementedError):
         fully_neutral_state.to_structured_from_spec(spec_from_str('A_[m]'))
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(NotImplementedError):
         fully_neutral_state.is_global
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(NotImplementedError):
         fully_neutral_state.is_mutually_exclusive_with(state_from_str('0'))
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(NotImplementedError):
         fully_neutral_state.to_structured_from_state(state_from_str('A@0_[x]--B@1_[y]'))
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(NotImplementedError):
         fully_neutral_state.specs
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(NotImplementedError):
         fully_neutral_state.is_homodimer
 
 

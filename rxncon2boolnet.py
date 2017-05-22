@@ -14,6 +14,10 @@ from rxncon.simulation.boolean.boolean_model import SmoothingStrategy, KnockoutS
 from rxncon.simulation.boolean.boolnet_from_boolean_model import QuantitativeContingencyStrategy, \
     boolnet_strs_from_rxncon
 
+
+sys.setrecursionlimit(10000)
+
+
 colorama.init()
 LOGGER = logging.getLogger(__name__)
 

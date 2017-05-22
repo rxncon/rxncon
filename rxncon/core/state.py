@@ -7,25 +7,20 @@ from copy import deepcopy
 
 from rxncon.core.spec import Spec, LocusResolution, locus_from_str, spec_from_str
 
-
 LOGGER = logging.getLogger(__name__)
 
+SPEC_REGEX = r'([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
+STR_REGEX = r'([\w]+)'
+LOCUS_REGEX = r'([\w\/\(\)]+)'
 
-SPEC_REGEX          = r'([A-Za-z][A-Za-z0-9]*(?:@[\d]+)*(?:_\[[\w\/\(\)]+\])*)'
-STR_REGEX           = r'([\w]+)'
-LOCUS_REGEX         = r'([\w\/\(\)]+)'
-
-
-FULLY_NEUTRAL_STATE_REGEX    = r'^0$'
-INTERACTION_STATE_REGEX      = r'^{}--{}$'.format(SPEC_REGEX, SPEC_REGEX)
-EMPTY_BINDING_STATE_REGEX    = r'^{}--0$'.format(SPEC_REGEX)
+FULLY_NEUTRAL_STATE_REGEX = r'^0$'
+INTERACTION_STATE_REGEX = r'^{}--{}$'.format(SPEC_REGEX, SPEC_REGEX)
+EMPTY_BINDING_STATE_REGEX = r'^{}--0$'.format(SPEC_REGEX)
 SELF_INTERACTION_STATE_REGEX = r'^{}--\[{}\]$'.format(SPEC_REGEX, LOCUS_REGEX)
-GLOBAL_STATE_REGEX           = r'^\[{}\]$'.format(STR_REGEX)
-MODIFICATION_STATE_REGEX     = r'^' + SPEC_REGEX + r'-{' + STR_REGEX + r'}$'
-
+GLOBAL_STATE_REGEX = r'^\[{}\]$'.format(STR_REGEX)
+MODIFICATION_STATE_REGEX = r'^' + SPEC_REGEX + r'-{' + STR_REGEX + r'}$'
 
 StateModifier = None
-
 
 DEFAULT_STATE_MODIFIERS = {
     'neutral': '0',
@@ -173,7 +168,8 @@ class InteractionState(State):
 
     def _validate(self) -> None:
         if self.first.resolution > LocusResolution.domain or self.second.resolution > LocusResolution.domain:
-            raise SyntaxError('Resolution for InteractionState too high {} {}'.format(str(self.first), str(self.second)))
+            raise SyntaxError(
+                'Resolution for InteractionState too high {} {}'.format(str(self.first), str(self.second)))
 
         if self.first.is_structured and self.second.is_structured:
             assert not self.first.struct_index == self.second.struct_index
@@ -237,8 +233,9 @@ class InteractionState(State):
 
     def is_subset_of(self, other: 'State') -> bool:
         return isinstance(other, InteractionState) and ((self.first.is_subspec_of(other.first) and
-            self.second.is_subspec_of(other.second)) or (self.first.is_subspec_of(other.second) and
-            self.second.is_subspec_of(other.first)))
+                                                         self.second.is_subspec_of(other.second)) or (
+                                                        self.first.is_subspec_of(other.second) and
+                                                        self.second.is_subspec_of(other.first)))
 
     def is_superset_of(self, other: 'State') -> bool:
         return self == other or other.is_subset_of(self)
@@ -257,7 +254,8 @@ class InteractionState(State):
     def to_structured_from_state(self, state: 'State') -> 'State':
         if self.is_homodimer and state.is_homodimer and state.is_structured:
             assert isinstance(state, InteractionState)
-            return InteractionState(self.first.with_struct_from_spec(state.first), self.second.with_struct_from_spec(state.second))
+            return InteractionState(self.first.with_struct_from_spec(state.first),
+                                    self.second.with_struct_from_spec(state.second))
         else:
             return super().to_structured_from_state(state)
 
@@ -384,7 +382,8 @@ class SelfInteractionState(State):
     def _validate(self) -> None:
         assert self.first.to_component_spec() == self.second.to_component_spec()
         if self.first.resolution > LocusResolution.domain or self.second.resolution > LocusResolution.domain:
-            raise SyntaxError('Resolution for SelfInteractionState too high {} {}'.format(str(self.first), str(self.second)))
+            raise SyntaxError(
+                'Resolution for SelfInteractionState too high {} {}'.format(str(self.first), str(self.second)))
 
     @property
     def specs(self) -> List[Spec]:
@@ -397,7 +396,7 @@ class SelfInteractionState(State):
     @property
     def is_elemental(self) -> bool:
         return self.first.has_resolution(LocusResolution.domain) and \
-            self.second.has_resolution(LocusResolution.domain)
+               self.second.has_resolution(LocusResolution.domain)
 
     def is_mutually_exclusive_with(self, state: 'State') -> bool:
         if self == state:
@@ -443,7 +442,7 @@ class SelfInteractionState(State):
 
     def is_subset_of(self, other: 'State') -> bool:
         return isinstance(other, SelfInteractionState) and self.first.is_subspec_of(other.first) and \
-            self.second.is_subspec_of(other.second)
+               self.second.is_subspec_of(other.second)
 
     def is_superset_of(self, other: 'State') -> bool:
         return self == other or other.is_subset_of(self)
@@ -531,7 +530,8 @@ class ModificationState(State):
         return [self.spec.to_component_spec()]
 
     def is_subset_of(self, other: 'State') -> bool:
-        return isinstance(other, ModificationState) and self.spec.is_subspec_of(other.spec) and self.modifier == other.modifier
+        return isinstance(other, ModificationState) and self.spec.is_subspec_of(
+            other.spec) and self.modifier == other.modifier
 
     def is_superset_of(self, other: 'State') -> bool:
         return self == other or other.is_subset_of(self)
@@ -650,11 +650,11 @@ class FullyNeutralState(State):
         return False
 
     def is_subset_of(self, other: 'State') -> bool:
-        raise AssertionError
+        raise NotImplementedError
 
     @property
     def neutral_states(self) -> List['State']:
-        raise AssertionError
+        raise NotImplementedError
 
     @property
     def components(self) -> List[Spec]:
@@ -662,38 +662,38 @@ class FullyNeutralState(State):
 
     @property
     def is_elemental(self) -> bool:
-        raise AssertionError
+        raise NotImplementedError
 
     @property
     def is_neutral(self) -> bool:
-        raise AssertionError
+        raise NotImplementedError
 
     def is_superset_of(self, other: 'State') -> bool:
-        raise AssertionError
+        raise NotImplementedError
 
     def to_structured_from_spec(self, spec: Spec) -> 'State':
-        raise AssertionError
+        raise NotImplementedError
 
     @property
     def is_global(self) -> bool:
-        raise AssertionError
+        raise NotImplementedError
 
     def is_mutually_exclusive_with(self, state: 'State') -> bool:
-        raise AssertionError
+        raise NotImplementedError
 
     def to_structured_from_state(self, state: 'State') -> 'State':
-        raise AssertionError
+        raise NotImplementedError
 
     @property
     def specs(self) -> List[Spec]:
-        raise AssertionError
+        raise NotImplementedError
 
     def update_specs(self, updates: Dict[Spec, Spec]) -> None:
-        raise AssertionError
+        raise NotImplementedError
 
     @property
     def is_homodimer(self) -> bool:
-        raise AssertionError
+        raise NotImplementedError
 
 
 def state_from_str(state_str: str) -> State:  # pylint: disable=too-many-return-statements
