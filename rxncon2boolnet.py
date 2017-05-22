@@ -15,7 +15,7 @@ from rxncon.simulation.boolean.boolnet_from_boolean_model import QuantitativeCon
     boolnet_strs_from_rxncon
 
 
-sys.setrecursionlimit(10000)
+sys.setrecursionlimit(100000)
 
 
 colorama.init()
