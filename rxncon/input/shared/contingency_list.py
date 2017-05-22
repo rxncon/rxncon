@@ -201,9 +201,9 @@ class _BooleanContingencyEffector(Effector):
 
 def _dereference_boolean_contingency_effectors(self: Effector, effector_table: Dict[str, Effector]) -> None:
     if isinstance(self, _BooleanContingencyEffector):
-        LOGGER.debug('{} : {}'.format(current_function_name(), self.expr))
-        LOGGER.debug('{} : {}'.format(current_function_name(), effector_table))
-        LOGGER.debug('{} : {}'.format(current_function_name(), self.equivs))
+        LOGGER.debug('{} : Expr: {}'.format(current_function_name(), self.expr))
+        LOGGER.debug('{} : EffTable: {}'.format(current_function_name(), effector_table))
+        LOGGER.debug('{} : Equivs: {}'.format(current_function_name(), self.equivs))
         name   = self.expr.name
         equivs = self.equivs
         self.__class__ = effector_table[self.expr.name].__class__
