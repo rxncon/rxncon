@@ -50,8 +50,8 @@ class BooleanContingencyName:
 
 
 class QualSpec:
-    """QualSpec holds a Spec that lives in a namespace. The namespace is typically a collection of
-    (stringified) boolean contingencies."""
+    """QualSpec holds a Spec that lives in a namespace. The namespace is a list of
+    (stringified) boolean contingency names."""
     def __init__(self, namespace: List[str], spec: Spec) -> None:
         self.namespace = namespace
         self.spec = spec

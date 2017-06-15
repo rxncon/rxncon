@@ -164,6 +164,7 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
             return [x.to_structured_from_state(state) for x in complements]
 
     def _calculate_components(self) -> None:
+        """Determines all components in the system, and stores it in self._components."""
         components = []  # type: List[Spec]
         for reaction in self.reactions:
             components += [spec.to_non_struct_spec() for spec in reaction.components_lhs] + \
@@ -210,6 +211,8 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
             reaction.invalidate_state_cache()
 
     def _expand_reaction_terms(self, terms: List[ReactionTerm]) -> None:
+        """Expands the reaction rules that contain a FullyNeutralState, which appear in synthesis reactions.
+        This state is expanded in a combination of all neutral states for the component."""
         for term in terms:
             if FullyNeutralState() in term.states:
                 existing_states = [state for state in term.states if state != FullyNeutralState()]
@@ -220,6 +223,8 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
                 term.states = existing_states + new_states
 
     def _expand_non_elemental_states(self) -> None:
+        """Expands the non-elemental States appearing in contingencies, these get expanded into a Union of
+        the elemental States of which the non-elemental State is a superset."""
         def expanded_effector(effector: Effector) -> Effector:
             if isinstance(effector, StateEffector):
                 if effector.expr.is_elemental:
@@ -253,9 +258,12 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
             contingency.effector = expanded_effector(contingency.effector)
 
     def _structure_contingencies(self) -> None:
+        """Structures (i.e. augment with topological data) all contingencies."""
         self.contingencies = [c.to_structured() for c in self.contingencies]
 
     def _missing_states(self) -> List[State]:
+        """Returns the States that appear in contingencies, but which are not produced, consumed, synthesised
+        or degraded by the Reactions."""
         required_states = []  # type: List[State]
         for contingency in self.contingencies:
             required_states += [state.to_non_structured() for state in contingency.effector.states if
@@ -264,6 +272,7 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
         return [state for state in required_states if state not in self.states]
 
     def _missing_reactions(self) -> List[Reaction]:
+        """Returns the Reactions that appear in the contingency list, but which are not in the Reaction list."""
         required_reactions = []
         for contingency in self.contingencies:
             required_reactions.append(contingency.reaction)
@@ -271,6 +280,8 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
         return [reaction for reaction in required_reactions if reaction not in self.reactions]
 
     def _unsatisfiable_contingencies(self) -> List[Tuple[Reaction, str]]:
+        """Determines the contingencies that are not satisfiable, returns a list of (Reaction, str) where
+        the str contains the human-readable reason for the contingency not being satisfiable."""
         unsatisfiable = []
 
         for reaction in self.reactions:
