@@ -1,7 +1,12 @@
+"""Module containing the abstract class State, classes InteractionState, EmptyBindingState, SelfInteractionState,
+ModificationState, GlobalState, FullyNeutralState. Also contains constructor functions state_from_str,
+state_modifier_from_str. The function initialize_state_modifiers allows runtime addition of state modifiers, and
+is initially run when importing the module."""
+
 import re
-from enum import unique, Enum
+from enum import Enum
 from typing import List, Dict
-from abc import ABCMeta, abstractproperty, abstractmethod
+from abc import ABCMeta, abstractmethod
 import logging
 from copy import deepcopy
 
@@ -32,6 +37,10 @@ DEFAULT_STATE_MODIFIERS = {
 
 
 def initialize_state_modifiers(additional_modifiers: Dict[str, str]=None) -> None:
+    """Initializes the StateModifier name to be an Enum. Without passing in additional_modifiers,
+    this function uses just the key-value pairs in DEFAULT_STATE_MODIFIERS. If additional pairs
+    are passed in, for example through the dedicated Excel sheet, they are appended (overwriting
+    possibly, the defaults.)"""
     if not additional_modifiers:
         additional_modifiers = {}
 
@@ -57,6 +66,7 @@ def state_modifier_from_str(modifier_str: str) -> StateModifier:
 
 
 class State(metaclass=ABCMeta):
+    """Abstract Base Class for all States."""
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, State):
             return NotImplemented
@@ -72,7 +82,8 @@ class State(metaclass=ABCMeta):
     def clone(self) -> 'State':
         return deepcopy(self)
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def is_elemental(self) -> bool:
         return False
 
@@ -96,19 +107,23 @@ class State(metaclass=ABCMeta):
     def is_mutually_exclusive_with(self, state: 'State') -> bool:
         return False
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def is_neutral(self) -> bool:
         return False
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def is_homodimer(self) -> bool:
         return False
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def neutral_states(self) -> List['State']:
         return []
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def specs(self) -> List[Spec]:
         return []
 
@@ -131,12 +146,14 @@ class State(metaclass=ABCMeta):
 
         return structured
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def components(self) -> List[Spec]:
         pass
 
 
 class InteractionState(State):
+    """A State A_[x]--B_[y]."""
     def __init__(self, first: Spec, second: Spec) -> None:
         self.first, self.second = sorted([first, second])  # type: Spec, Spec
         self._validate()
@@ -261,6 +278,7 @@ class InteractionState(State):
 
 
 class EmptyBindingState(State):
+    """A State A_[x]--0."""
     def __init__(self, spec: Spec) -> None:
         if spec.resolution > LocusResolution.domain:
             raise SyntaxError('Resolution for EmptyBindingState too high {}'.format(str(spec)))
@@ -350,6 +368,7 @@ class EmptyBindingState(State):
 
 
 class SelfInteractionState(State):
+    """A State A_[x]--[y]."""
     def __init__(self, first: Spec, second: Spec) -> None:
         self.first, self.second = sorted([first, second])  # type: Spec, Spec
         self._validate()
@@ -456,6 +475,7 @@ class SelfInteractionState(State):
 
 
 class ModificationState(State):
+    """A State A_[(r)]-{p}."""
     def __init__(self, spec: Spec, modifier: StateModifier) -> None:
         self.spec, self.modifier = spec, modifier
 
@@ -544,6 +564,7 @@ class ModificationState(State):
 
 
 class GlobalState(State):
+    """A State [Turgor]."""
     def __init__(self, name: str) -> None:
         self.name = '[{}]'.format(name.strip('[]'))
 
@@ -620,6 +641,9 @@ class GlobalState(State):
 
 
 class FullyNeutralState(State):
+    """A State 0. This happens in synthesis reactions, and serves as a placeholder for the actual
+    combination of neutral states it is going to be replaced with. This actual set of states is unknown
+    until the entire system is known."""
     def __init__(self) -> None:
         self.name = 'FullyNeutralState'
 
