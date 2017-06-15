@@ -1,3 +1,5 @@
+"""Module containing the class Quick, a text-based format to read a rxncon system."""
+
 import re
 from typing import List, Optional
 
@@ -5,7 +7,7 @@ from rxncon.input.shared.contingency_list import contingencies_from_contingency_
     contingency_list_entry_from_strs, ContingencyListEntry
 from rxncon.core.reaction import reaction_from_str
 from rxncon.core.rxncon_system import RxnConSystem
-from rxncon.core.reaction import Reaction, OutputReaction
+from rxncon.core.reaction import Reaction
 from rxncon.core.contingency import Contingency
 from rxncon.input.shared.reaction_preprocess import split_bidirectional_reaction_str
 
