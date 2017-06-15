@@ -1,17 +1,22 @@
+"""Module containing the class SBtabData, which can parse data in the tabular SBtab format. Includes classes
+ValidatedSBtabData, which runs postprocessor functions to type-check the data in the table, and EntryBase
+which serves as a parent class for the Entry class that gets dynamically generated based on the field names
+that are presented. Also contains constructor function sbtab_data_from_file."""
+
 from typing import List, Optional, Callable, Union, Dict, Any
 import re
 
 
 class SBtabData:
     def __init__(self, input: List[List[str]]) -> None:
-        self.version       = None  # type: Optional[str]
-        self.entries       = []    # type: List[EntryBase]
+        self.version = None  # type: Optional[str]
+        self.entries = []  # type: List[EntryBase]
         self.document_name = None  # type: Optional[str]
-        self.table_type    = None  # type: Optional[str]
-        self.table_name    = None  # type: Optional[str]
+        self.table_type = None  # type: Optional[str]
+        self.table_name = None  # type: Optional[str]
 
-        self._input        = input
-        self._column_names = []    # type: List[str]
+        self._input = input
+        self._column_names = []  # type: List[str]
 
         self._parse_header()
         self._parse_column_names()
@@ -19,9 +24,9 @@ class SBtabData:
         self._parse_entries()
 
     def _parse_header(self) -> None:
-        REGEX_VERSION_A  = 'SBtabVersion (\'|\").+?(\'|\")'
-        REGEX_VERSION_B  = 'SBtabVersion=(\'|\").+?(\'|\")'
-        REGEX_DOCUMENT   = 'Document=(\'|\").+?(\'|\")'
+        REGEX_VERSION_A = 'SBtabVersion (\'|\").+?(\'|\")'
+        REGEX_VERSION_B = 'SBtabVersion=(\'|\").+?(\'|\")'
+        REGEX_DOCUMENT = 'Document=(\'|\").+?(\'|\")'
         REGEX_TABLE_TYPE = 'TableType=(\'|\").+?(\'|\")'
         REGEX_TABLE_NAME = 'TableName=(\'|\").+?(\'|\")'
 
@@ -71,17 +76,19 @@ class ValidatedSBtabData(SBtabData):
         self._definition = definition
         self._field_postprocessors = {}  # type: Dict[str, Callable[[str], Union[str, float, bool, int]]]
         self._construct_field_postprocessors()
-        self._entry_class.field_postprocessors = {_field_name_from_column_name(col): func               # type: ignore
+        self._entry_class.field_postprocessors = {_field_name_from_column_name(col): func  # type: ignore
                                                   for col, func in self._field_postprocessors.items()}  # type: ignore
         self._postprocess_entries()
 
     def _construct_field_postprocessors(self) -> None:
         if hasattr(self._definition.entries[0], 'ComponentName'):
-            type_definitions = {def_entry.ComponentName: def_entry.Format for def_entry in self._definition.entries  # type: ignore
-                                if def_entry.IsPartOf == self.table_type}                                            # type: ignore
+            type_definitions = {def_entry.ComponentName: def_entry.Format for def_entry in self._definition.entries
+                                # type: ignore
+                                if def_entry.IsPartOf == self.table_type}  # type: ignore
         elif hasattr(self._definition.entries[0], 'Component'):
-            type_definitions = {def_entry.Component: def_entry.Format for def_entry in self._definition.entries      # type: ignore
-                                if def_entry.IsPartOf == self.table_type}                                            # type: ignore
+            type_definitions = {def_entry.Component: def_entry.Format for def_entry in self._definition.entries
+                                # type: ignore
+                                if def_entry.IsPartOf == self.table_type}  # type: ignore
         else:
             raise AssertionError('Could not parse the definition file')
 
@@ -93,7 +100,7 @@ class ValidatedSBtabData(SBtabData):
             entry.postprocess()
 
 
-def sbtab_data_from_file(filename: str, separator: str='\t', definitions: Optional[SBtabData]=None) -> SBtabData:
+def sbtab_data_from_file(filename: str, separator: str = '\t', definitions: Optional[SBtabData] = None) -> SBtabData:
     sbtab_input = []
 
     with open(filename) as f:
@@ -166,6 +173,7 @@ def _field_postprocessor_for_type_string(type_string: str) -> Callable[[str], Un
                 raise ValueError
 
             return x
+
         return str2sign
     else:
         raise TypeError
