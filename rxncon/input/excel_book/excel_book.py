@@ -1,3 +1,5 @@
+"""Module containing the class ExcelBook, which is used to read in a rxncon system from an Excel file."""
+
 from typing import List, Optional
 import os.path
 import xlrd
@@ -14,61 +16,61 @@ from rxncon.util.utils import current_function_name
 
 NOT_APPLICABLE = 'N/A'
 
-SHEET_COMPONENT_LIST          = 'ComponentList'
-SHEET_REACTION_TYPE_LIST      = 'ReactionTypeDefinition'
-SHEET_REACTION_LIST           = 'ReactionList'
-SHEET_CONTINGENCY_LIST        = 'ContingencyList'
-SHEET_MODIFICATION_TYPE_LIST  = 'ModificationTypeDefinition'
+SHEET_COMPONENT_LIST = 'ComponentList'
+SHEET_REACTION_TYPE_LIST = 'ReactionTypeDefinition'
+SHEET_REACTION_LIST = 'ReactionList'
+SHEET_CONTINGENCY_LIST = 'ContingencyList'
+SHEET_MODIFICATION_TYPE_LIST = 'ModificationTypeDefinition'
 
 NECESSARY_SHEETS = [SHEET_REACTION_LIST, SHEET_CONTINGENCY_LIST]
 
 HEADER_ROW = 1
-DATA_ROW   = 2
+DATA_ROW = 2
 
 REACTION_LIST_COLUMN_FULL_NAME = '!UID:Reaction'
 
-CONTINGENCY_LIST_COLUMN_TARGET   = '!Target'
-CONTINGENCY_LIST_COLUMN_TYPE     = '!Contingency'
+CONTINGENCY_LIST_COLUMN_TARGET = '!Target'
+CONTINGENCY_LIST_COLUMN_TYPE = '!Contingency'
 CONTINGENCY_LIST_COLUMN_MODIFIER = '!Modifier'
 
-MODIFICATION_TYPE_LIST_COLUMN_TYPE  = '!UID:ModificationType'
+MODIFICATION_TYPE_LIST_COLUMN_TYPE = '!UID:ModificationType'
 MODIFICATION_TYPE_LIST_COLUMN_LABEL = '!UID:ModificationLabel'
 
-RXN_DEF_LIST_COLUMN_REACTION           = '!UID:Reaction'
-RXN_DEF_LIST_COLUMN_REACTION_KEY       = '!UID:ReactionKey'
+RXN_DEF_LIST_COLUMN_REACTION = '!UID:Reaction'
+RXN_DEF_LIST_COLUMN_REACTION_KEY = '!UID:ReactionKey'
 RXN_DEF_LIST_COLUMN_BIDIRECTIONAL_VERB = '!BidirectionalVerb'
-RXN_DEF_LIST_COLUMN_MOLTYPE_X          = '!MolTypeX'
-RXN_DEF_LIST_COLUMN_RESOLUTION_X       = '!ResolutionX'
-RXN_DEF_LIST_COLUMN_MOLTYPE_Y          = '!MolTypeY'
-RXN_DEF_LIST_COLUMN_RESOLUTION_Y       = '!ResolutionY'
-RXN_DEF_LIST_COLUMN_RULE               = '!SkeletonRule'
-
+RXN_DEF_LIST_COLUMN_MOLTYPE_X = '!MolTypeX'
+RXN_DEF_LIST_COLUMN_RESOLUTION_X = '!ResolutionX'
+RXN_DEF_LIST_COLUMN_MOLTYPE_Y = '!MolTypeY'
+RXN_DEF_LIST_COLUMN_RESOLUTION_Y = '!ResolutionY'
+RXN_DEF_LIST_COLUMN_RULE = '!SkeletonRule'
 
 logger = logging.getLogger(__name__)
 
+
 class ExcelBook:
     def __init__(self, filename: str) -> None:
-        self.filename           = filename
-        self._xlrd_book         = None   # type: Optional[xlrd.Book]
-        self._reactions         = []     # type: List[Reaction]
-        self._cont_list_entries = []     # type: List[ContingencyListEntry]
-        self._contingencies     = []     # type: List[Contingency]
-        self._rxncon_system     = None   # type: Optional[RxnConSystem]
+        self.filename = filename
+        self._xlrd_book = None  # type: Optional[xlrd.Book]
+        self._reactions = []  # type: List[Reaction]
+        self._cont_list_entries = []  # type: List[ContingencyListEntry]
+        self._contingencies = []  # type: List[Contingency]
+        self._rxncon_system = None  # type: Optional[RxnConSystem]
 
-        self._column_modification_type    = None  # type: Optional[int]
-        self._column_modification_label   = None  # type: Optional[int]
-        self._column_reaction_full_name   = None  # type: Optional[int]
-        self._column_contingency_target   = None  # type: Optional[int]
-        self._column_contingency_type     = None  # type: Optional[int]
+        self._column_modification_type = None  # type: Optional[int]
+        self._column_modification_label = None  # type: Optional[int]
+        self._column_reaction_full_name = None  # type: Optional[int]
+        self._column_contingency_target = None  # type: Optional[int]
+        self._column_contingency_type = None  # type: Optional[int]
         self._column_contingency_modifier = None  # type: Optional[int]
-        self._column_rxn_def_reaction     = None
+        self._column_rxn_def_reaction = None
         self._column_rxn_def_reaction_key = None
-        self._column_rxn_def_bi_verb      = None
-        self._column_rxn_def_moltype_x    = None
+        self._column_rxn_def_bi_verb = None
+        self._column_rxn_def_moltype_x = None
         self._column_rxn_def_resolution_x = None
-        self._column_rxn_def_moltype_y    = None
+        self._column_rxn_def_moltype_y = None
         self._column_rxn_def_resolution_y = None
-        self._column_rule                 = None
+        self._column_rule = None
 
         self._open_file()
         self._validate_book()
@@ -98,13 +100,13 @@ class ExcelBook:
 
     def _determine_column_numbers(self) -> None:
         sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_LIST)
-        row   = list(sheet.get_rows())[HEADER_ROW]
+        row = list(sheet.get_rows())[HEADER_ROW]
         for num, header in enumerate(row):
             if header.value == REACTION_LIST_COLUMN_FULL_NAME:
                 self._column_reaction_full_name = num
 
         sheet = self._xlrd_book.sheet_by_name(SHEET_CONTINGENCY_LIST)
-        row   = list(sheet.get_rows())[HEADER_ROW]
+        row = list(sheet.get_rows())[HEADER_ROW]
         for num, header in enumerate(row):
             if header.value == CONTINGENCY_LIST_COLUMN_TARGET:
                 self._column_contingency_target = num
@@ -119,18 +121,19 @@ class ExcelBook:
 
         try:
             sheet = self._xlrd_book.sheet_by_name(SHEET_MODIFICATION_TYPE_LIST)
-            row   = list(sheet.get_rows())[HEADER_ROW]
+            row = list(sheet.get_rows())[HEADER_ROW]
             for num, header in enumerate(row):
                 if header.value == MODIFICATION_TYPE_LIST_COLUMN_TYPE:
                     self._column_modification_type = num
                 elif header.value == MODIFICATION_TYPE_LIST_COLUMN_LABEL:
                     self._column_modification_label = num
         except xlrd.XLRDError:
+            # Skip empty rows.
             pass
 
         try:
             sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_TYPE_LIST)
-            row   = list(sheet.get_rows())[HEADER_ROW]
+            row = list(sheet.get_rows())[HEADER_ROW]
             for num, header in enumerate(row):
                 if header.value == RXN_DEF_LIST_COLUMN_REACTION:
                     self._column_rxn_def_reaction = num
@@ -149,6 +152,7 @@ class ExcelBook:
                 elif header.value == RXN_DEF_LIST_COLUMN_RULE:
                     self._column_rule = num
         except xlrd.XLRDError:
+            # Skip empty rows.
             pass
 
     def _initialize_modification_types(self) -> None:
@@ -171,10 +175,11 @@ class ExcelBook:
                 v = str(int(v))
 
             if not isinstance(v, str):
-                raise SyntaxError('Modiciation label {} needs to be str or number.'.format(v))
+                raise SyntaxError('Modification label {} needs to be str or number.'.format(v))
 
             modifiers[k] = v
 
+        # The new modifiers are loaded using this function.
         initialize_state_modifiers(modifiers)
 
     def _initialize_reaction_defs(self) -> None:
