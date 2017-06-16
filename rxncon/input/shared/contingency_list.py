@@ -1,8 +1,14 @@
+"""Module containing ContingencyListEntry, BooleanContingencyNameWithEquivs and the constructor functions
+contingency_list_entry_from_strs and contingencies_from_contingency_list_entries. ContingencyListEntries
+are the triples (target, type, effector) that appear in the tabular data format used to input rxncon.
+In this code, nested boolean expressions are `dereferenced`, such that at the end of the day we always have
+a Reaction as a target, doing away with the boolean contingencies that appear as targets.
+So-called `equivalences` are structured specs (e.g. A@1) that might have different numerical indices since
+they arised from different boolean contingencies, but actually refer to the same molecule."""
+
 import re
 import logging
 from typing import Dict, List, Union, Tuple, Optional
-from collections import defaultdict
-
 
 from rxncon.core.contingency import ContingencyType, Contingency
 from rxncon.core.effector import StateEffector, NotEffector, OrEffector, Effector, AndEffector, \
@@ -15,13 +21,16 @@ from rxncon.core.spec import spec_from_str
 
 LOGGER = logging.getLogger(__name__)
 
+
 class ContingencyListEntry:
+    """ContingencyListEntry holds the triple (subject, verb, object) or (target, type, effector) appearing
+    in the tabular representation of a rxncon system."""
     def __init__(self, subj: Union[Reaction, BooleanContingencyName],
                  verb: Union[BooleanOperator, ContingencyType],
-                 obj: Union[State, BooleanContingencyName, Tuple[QualSpec, QualSpec]]) -> None:
+                 obj: Union[State, BooleanContingencyName]) -> None:
         self.subj = subj
         self.verb = verb
-        self.obj  = obj
+        self.obj = obj
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ContingencyListEntry):
@@ -44,6 +53,7 @@ class ContingencyListEntry:
 
 
 class BooleanContingencyNameWithEquivs(BooleanContingencyName):
+    """A BooleanContingencyName, carrying with it a set of structure Equivalences."""
     def __init__(self, name: str, equivs: StructEquivalences) -> None:
         super().__init__(name)
         self.equivs = equivs
@@ -52,14 +62,19 @@ class BooleanContingencyNameWithEquivs(BooleanContingencyName):
         return 'BooleanContingencyNameWithEquivs<{} :: {}>'.format(self.name, self.equivs)
 
 
-def contingency_list_entry_from_strs(subject_str: str, verb_str: Union[str, float], object_str: str) -> ContingencyListEntry:
+def contingency_list_entry_from_strs(subject_str: str, verb_str: Union[str, float],
+                                     object_str: str) -> ContingencyListEntry:
+    """Parses a ContingencyListEntry from a triple obtained from a tabular representation of the rxncon system."""
     # The excel parser returns a value of 0, which is used to denote a neutral contingency as a float object.
     if isinstance(verb_str, float):
         verb_str = str(int(verb_str))
+        assert verb_str == '0', 'Unrecognized contingency {}'.format(verb_str)
 
     def _add_reactant_equivs(equivs: StructEquivalences, equivs_strs: List[List[str]]):
-        equivs_dict = {int(lhs_qual_spec_str.split('@')[-1]): qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name])
-                           for lhs_qual_spec_str, rhs_qual_spec_str in equivs_strs}
+        equivs_dict = {int(lhs_qual_spec_str.split('@')[-1]):
+                           qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name])
+                       for lhs_qual_spec_str, rhs_qual_spec_str in equivs_strs}
+
         for index, spec in enumerate(subject.components_lhs):
             try:
                 equivs.add_equivalence(QualSpec([], spec.with_struct_index(index)), equivs_dict[index])
@@ -67,17 +82,7 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: Union[str, floa
                 pass
 
     def _add_root_boolean_equivs(equivs, equivs_strs):
-        """
-        Adding equivalence information of specification which are no reactants.
-
-        Note:
-            Structural information for molecules which are not reactants can be given on the same level as the
-            structural information for reactants. e.g. A_ppi_B; ! <bool>#A@0=A@1#C@2=C@3
-
-        Args:
-            equivs: structured equivalence
-            equivs_strs: information about additional structured equivalence
-        """
+        """Adding equivalence information of specification which are no reactants."""
         for lhs_qual_spec_str, rhs_qual_spec_str in equivs_strs:
             # if the left hand qual specification is not a reactant or the index implies that it is not mentioned as
             # reactant (index > 1)
@@ -87,20 +92,11 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: Union[str, floa
                                        qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name]))
 
     def _add_nested_boolean_equivs(equivs, equivs_strs):
-        """
-        Adding boolean equivalences.
-
-        Args:
-            equivs_strs: list of strings of equivalences
-
-        Returns:
-            equivalences
-
-        """
+        """Adding boolean equivalences."""
         for target_qual_spec_str, source_qual_spec_str in equivs_strs:
-                lhs_qual_spec = qual_spec_from_str(target_qual_spec_str)
-                rhs_qual_spec = qual_spec_from_str(source_qual_spec_str).with_prepended_namespace([name])
-                equivs.add_equivalence(lhs_qual_spec, rhs_qual_spec)
+            lhs_qual_spec = qual_spec_from_str(target_qual_spec_str)
+            rhs_qual_spec = qual_spec_from_str(source_qual_spec_str).with_prepended_namespace([name])
+            equivs.add_equivalence(lhs_qual_spec, rhs_qual_spec)
         return equivs
 
     subject_str, verb_str, object_str = subject_str.strip(), verb_str.lower().strip(), object_str.strip()
@@ -108,8 +104,8 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: Union[str, floa
     LOGGER.debug('{}: {} / {} / {}'.format(current_function_name(), subject_str, verb_str, object_str))
 
     subject = None  # type: Optional[Union[Reaction, BooleanContingencyName]]
-    verb    = None  # type: Optional[Union[BooleanOperator, ContingencyType]]
-    object  = None  # type: Optional[Union[State, BooleanContingencyName, Tuple[QualSpec, QualSpec]]]
+    verb = None  # type: Optional[Union[BooleanOperator, ContingencyType]]
+    object = None  # type: Optional[Union[State, BooleanContingencyName, Tuple[QualSpec, QualSpec]]]
 
     if re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
         # subject: Boolean contingency,
@@ -158,7 +154,7 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: Union[str, floa
 def contingencies_from_contingency_list_entries(entries: List[ContingencyListEntry]) -> List[Contingency]:
     contingencies = []
 
-    boolean_entries  = [x for x in entries if x.is_boolean_entry]
+    boolean_entries = [x for x in entries if x.is_boolean_entry]
     reaction_entries = [x for x in entries if x.is_reaction_entry]
 
     while reaction_entries:
@@ -168,22 +164,22 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
                                          ContingencyType(entry.verb),
                                          _unary_effector_from_boolean_contingency_entry(entry)))
 
-    Effector.dereference = _dereference_boolean_contingency_effectors     # type: ignore
+    Effector.dereference = _dereference_boolean_contingency_effectors  # type: ignore
     Effector.contains_booleans = _contains_boolean_contingency_effectors  # type: ignore
     effectors = _create_boolean_contingency_to_effector(boolean_entries)
 
-    while any(x.effector.contains_booleans() for x in contingencies):     # type: ignore
+    while any(x.effector.contains_booleans() for x in contingencies):  # type: ignore
         for contingency in contingencies:
-            contingency.effector.dereference(effectors)                   # type: ignore
+            contingency.effector.dereference(effectors)  # type: ignore
 
-    del Effector.dereference        # type: ignore
+    del Effector.dereference  # type: ignore
     del Effector.contains_booleans  # type: ignore
 
     return contingencies
 
 
 class _BooleanContingencyEffector(Effector):
-    def __init__(self, expr: BooleanContingencyName, equivs: Optional[StructEquivalences]=None) -> None:
+    def __init__(self, expr: BooleanContingencyName, equivs: Optional[StructEquivalences] = None) -> None:
         self.expr = expr
         if not equivs:
             self.equivs = StructEquivalences()
@@ -204,10 +200,10 @@ def _dereference_boolean_contingency_effectors(self: Effector, effector_table: D
         LOGGER.debug('{} : Expr: {}'.format(current_function_name(), self.expr))
         LOGGER.debug('{} : EffTable: {}'.format(current_function_name(), effector_table))
         LOGGER.debug('{} : Equivs: {}'.format(current_function_name(), self.equivs))
-        name   = self.expr.name
+        name = self.expr.name
         equivs = self.equivs
         self.__class__ = effector_table[self.expr.name].__class__
-        self.__dict__  = effector_table[self.expr.name].__dict__
+        self.__dict__ = effector_table[self.expr.name].__dict__
         self.name = name
         try:
             self.equivs.merge_with(equivs, [])
@@ -261,13 +257,16 @@ def _create_boolean_contingency_to_effector(boolean_contingencies: List[Continge
         effector_terms = [_unary_effector_from_boolean_contingency_entry(x) for x in current_contingencies]
 
         if boolean_operator == BooleanOperator.op_and:
-            assert len(effector_terms) > 1, 'AND operator {} contains < 2 terms.'.format(' & '.join(str(x) for x in effector_terms))
+            assert len(effector_terms) > 1, 'AND operator {} contains < 2 terms.'.format(
+                ' & '.join(str(x) for x in effector_terms))
             effector = AndEffector(*effector_terms)  # type: Effector
         elif boolean_operator == BooleanOperator.op_or:
-            assert len(effector_terms) > 1, 'OR operator {} contains < 2 terms.'.format(' & '.join(str(x) for x in effector_terms))
+            assert len(effector_terms) > 1, 'OR operator {} contains < 2 terms.'.format(
+                ' & '.join(str(x) for x in effector_terms))
             effector = OrEffector(*effector_terms)
         elif boolean_operator == BooleanOperator.op_not:
-            assert len(effector_terms) == 1, 'AND operator {} contains != 1 term.'.format(' & '.join(str(x) for x in effector_terms))
+            assert len(effector_terms) == 1, 'AND operator {} contains != 1 term.'.format(
+                ' & '.join(str(x) for x in effector_terms))
             effector = NotEffector(effector_terms[0])
         else:
             raise AssertionError
