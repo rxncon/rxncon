@@ -17,7 +17,7 @@ from rxncon.core.reaction import Reaction
 from rxncon.core.reaction import reaction_from_str
 from rxncon.core.state import state_from_str, State
 from rxncon.util.utils import current_function_name
-from rxncon.core.spec import spec_from_str
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -70,29 +70,7 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: Union[str, floa
         verb_str = str(int(verb_str))
         assert verb_str == '0', 'Unrecognized contingency {}'.format(verb_str)
 
-    def _add_reactant_equivs(equivs: StructEquivalences, equivs_strs: List[List[str]]):
-        equivs_dict = {int(lhs_qual_spec_str.split('@')[-1]):
-                           qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name])
-                       for lhs_qual_spec_str, rhs_qual_spec_str in equivs_strs}
-
-        for index, spec in enumerate(subject.components_lhs):
-            try:
-                equivs.add_equivalence(QualSpec([], spec.with_struct_index(index)), equivs_dict[index])
-            except KeyError:
-                pass
-
-    def _add_root_boolean_equivs(equivs, equivs_strs):
-        """Adding equivalence information of specification which are no reactants."""
-        for lhs_qual_spec_str, rhs_qual_spec_str in equivs_strs:
-            # if the left hand qual specification is not a reactant or the index implies that it is not mentioned as
-            # reactant (index > 1)
-            if spec_from_str(lhs_qual_spec_str).to_component_spec().to_non_struct_spec() not in subject.components_lhs \
-                    or spec_from_str(lhs_qual_spec_str).struct_index > 1:
-                equivs.add_equivalence(QualSpec([], spec_from_str(lhs_qual_spec_str)),
-                                       qual_spec_from_str(rhs_qual_spec_str).with_prepended_namespace([name]))
-
-    def _add_nested_boolean_equivs(equivs, equivs_strs):
-        """Adding boolean equivalences."""
+    def _add_equivs(equivs: StructEquivalences, equivs_strs: List[List[str]], name: str):
         for target_qual_spec_str, source_qual_spec_str in equivs_strs:
             lhs_qual_spec = qual_spec_from_str(target_qual_spec_str)
             rhs_qual_spec = qual_spec_from_str(source_qual_spec_str).with_prepended_namespace([name])
@@ -131,13 +109,9 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: Union[str, floa
         # object : Boolean contingency + '#' + reactant equivs / Boolean equivs.
         name = object_str.split('#')[0]
         equivs_strs = [s.split('=') for s in object_str.split('#')[1:]]
-
         equivs = StructEquivalences()
-        if isinstance(subject, Reaction):
-            _add_reactant_equivs(equivs, equivs_strs)
-            _add_root_boolean_equivs(equivs, equivs_strs)
-        elif '#' in object_str and re.match(BOOLEAN_CONTINGENCY_REGEX, subject_str):
-            _add_nested_boolean_equivs(equivs, equivs_strs)
+
+        _add_equivs(equivs, equivs_strs, name)
 
         object = BooleanContingencyNameWithEquivs(name, equivs)
         LOGGER.debug('{} : Created {}'.format(current_function_name(), str(object)))
@@ -152,6 +126,8 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: Union[str, floa
 
 
 def contingencies_from_contingency_list_entries(entries: List[ContingencyListEntry]) -> List[Contingency]:
+    """Constructs contingencies from the tabular entries. Will dereference pointers to boolean contingencies
+    into nested expressions."""
     contingencies = []
 
     boolean_entries = [x for x in entries if x.is_boolean_entry]
