@@ -13,7 +13,7 @@ from rxncon.visualization.graphML import XGMML
 from rxncon.visualization.graphML import map_layout2xgmml
 from rxncon.visualization.reaction_graph import rxngraph_from_rxncon_system
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 colorama.init()
 
@@ -104,7 +104,7 @@ def write_xgmml(excel_filename: str, output=None, layout_template_file=None):
 @click.command()
 @click.option('--output', default=None,
               help='Base name for output files. Default: \'fn\' for input file \'fn.xls\'')
-@click.option('--layout', default=None, nargs=1, type=click.Path(exists=True), required=False,
+@click.option('--layout', default=None, nargs=1, type=click.Path(exists=True),
               help='xgmml file containing layout information, which should be transferred to the new file.')
 @click.argument('excel_file')
 @click_log.simple_verbosity_option(default='WARNING')

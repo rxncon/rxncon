@@ -171,7 +171,7 @@ class ReactionDef:
 # This array will get filled with the ReactionDefs by the function 'initialize_reaction_defs' (below).
 # In addition to the DEFAULT_REACTION_DEFS, reactions unique to the system under study can be defined
 # in the Excel sheet containing the rxncon system.
-REACTION_DEFS = []
+REACTION_DEFS = []  # type: List[ReactionDef]
 
 
 DEFAULT_REACTION_DEFS = [
@@ -533,7 +533,7 @@ class Reaction:  # pylint: disable=too-many-instance-attributes
 
     @property
     def modifier_components(self) -> List[Spec]:
-        res = []
+        res = []  # type: List[Spec]
         for term in self.terms_lhs:
             if term in self.terms_rhs:
                 res += term.specs
@@ -542,7 +542,7 @@ class Reaction:  # pylint: disable=too-many-instance-attributes
 
     @property
     def modifier_states(self) -> List[State]:
-        res = []
+        res = []  # type: List[State]
         for term in self.terms_lhs:
             if term in self.terms_rhs:
                 res += term.states

@@ -82,12 +82,12 @@ class ValidatedSBtabData(SBtabData):
 
     def _construct_field_postprocessors(self) -> None:
         if hasattr(self._definition.entries[0], 'ComponentName'):
-            type_definitions = {def_entry.ComponentName: def_entry.Format for def_entry in self._definition.entries
-                                # type: ignore
+            type_definitions = {def_entry.ComponentName: def_entry.Format  # type: ignore
+                                for def_entry in self._definition.entries
                                 if def_entry.IsPartOf == self.table_type}  # type: ignore
         elif hasattr(self._definition.entries[0], 'Component'):
-            type_definitions = {def_entry.Component: def_entry.Format for def_entry in self._definition.entries
-                                # type: ignore
+            type_definitions = {def_entry.Component: def_entry.Format      # type: ignore
+                                for def_entry in self._definition.entries
                                 if def_entry.IsPartOf == self.table_type}  # type: ignore
         else:
             raise AssertionError('Could not parse the definition file')

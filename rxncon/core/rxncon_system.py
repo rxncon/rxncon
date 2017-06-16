@@ -156,6 +156,7 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
             for group in self.states_for_component_grouped(component).values():
                 if state in group:
                     return [x for x in group if x != state]
+            raise AssertionError
         else:
             # The structure information is first thrown away to determine the mutually exclusive
             # states, and then applied again (as far as possible).

@@ -664,7 +664,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
             for state in rxncon_sys.states_for_component(spec):
                 LOGGER.debug(
                     '{} : Applying State {} of type {}'.format(current_function_name(), str(state), type(state)))
-                for func in STATE_TO_MOL_DEF_BUILDER_FN[type(state)]:
+                for func in STATE_TO_MOL_DEF_BUILDER_FN[type(state)]:  # type: ignore
                     func(state, builder)
 
             mol_defs[spec] = builder.build()
@@ -782,7 +782,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
             assert all(x.is_structured for x in states)
 
             for state in states:
-                for func in STATE_TO_COMPLEX_BUILDER_FN[type(state)]:
+                for func in STATE_TO_COMPLEX_BUILDER_FN[type(state)]:  # type: ignore
                     func(state, builder)
 
             return builder.build()
@@ -807,7 +807,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
             assert all(x.is_structured for x in states)
 
             for state in states:
-                for func in STATE_TO_COMPLEX_BUILDER_FN[type(state)]:
+                for func in STATE_TO_COMPLEX_BUILDER_FN[type(state)]:  # type: ignore
                     func(state, builder)
 
             complexes = builder.build(only_reactants=False)

@@ -280,7 +280,7 @@ class StateEffector(Effector):
 
     def to_global_struct_effector(self, glob_equivs: StructEquivalences = None,
                                   counter: StructCounter = None,
-                                  cur_namespace: List[str] = None):
+                                  cur_namespace: List[str] = None) -> Effector:
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         state = deepcopy(self.expr)
         updates = {}
@@ -347,12 +347,18 @@ class NotEffector(Effector):
     def collect_global_equivs(self, glob_equivs: StructEquivalences = None,
                               counter: StructCounter = None,
                               cur_namespace: List[str] = None) -> Tuple[StructEquivalences, StructCounter]:
+        if not self.name:
+            raise AssertionError('Cannot collect_global_equivs nameless NotEffectors.')
+
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         return self.expr.collect_global_equivs(glob_equivs, counter, cur_namespace + [self.name])
 
     def to_global_struct_effector(self, glob_equivs: StructEquivalences = None,
                                   counter: StructCounter = None,
                                   cur_namespace: List[str] = None) -> Effector:
+        if not self.name:
+            raise AssertionError('Cannot to_global_struct_effector nameless NotEffectors.')
+
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         return NotEffector(self.expr.to_global_struct_effector(glob_equivs, counter, cur_namespace + [self.name]),
                            name=self.name)
@@ -386,11 +392,11 @@ class NaryEffector(Effector, ABC):
     def collect_global_equivs(self, glob_equivs: StructEquivalences = None,
                               counter: StructCounter = None,
                               cur_namespace: List[str] = None) -> Tuple[StructEquivalences, StructCounter]:
+        if not self.name:
+            raise AssertionError('Cannot collect_global_equivs nameless NaryEffectors.')
+
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         glob_equivs.merge_with(self.equivs, cur_namespace)
-
-        if not self.name:
-            raise AssertionError('Cannot merge nameless NaryEffectors.')
 
         for expr in self.exprs:
             glob_equivs, counter = expr.collect_global_equivs(glob_equivs, counter, cur_namespace + [self.name])
@@ -400,6 +406,10 @@ class NaryEffector(Effector, ABC):
     def to_global_struct_effector(self, glob_equivs: StructEquivalences = None,
                                   counter: StructCounter = None,
                                   cur_namespace: List[str] = None) -> Effector:
+
+        if not self.name:
+            raise AssertionError('Cannot to_global_struct_effector nameless NaryEffectors.')
+
         glob_equivs, counter, cur_namespace = self._init_to_struct_effector_args(glob_equivs, counter, cur_namespace)
         return type(self)(*(x.to_global_struct_effector(
             glob_equivs, counter, cur_namespace + [self.name]) for x in self.exprs), name=self.name)

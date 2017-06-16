@@ -70,7 +70,7 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: Union[str, floa
         verb_str = str(int(verb_str))
         assert verb_str == '0', 'Unrecognized contingency {}'.format(verb_str)
 
-    def _add_equivs(equivs: StructEquivalences, equivs_strs: List[List[str]], name: str):
+    def _add_equivs(equivs: StructEquivalences, equivs_strs: List[List[str]], name: str) -> StructEquivalences:
         for target_qual_spec_str, source_qual_spec_str in equivs_strs:
             lhs_qual_spec = qual_spec_from_str(target_qual_spec_str)
             rhs_qual_spec = qual_spec_from_str(source_qual_spec_str).with_prepended_namespace([name])

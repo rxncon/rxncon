@@ -13,9 +13,10 @@ from rxncon.visualization.regulatory_graph import SpeciesReactionGraph
 from rxncon.visualization.graphML import XGMML
 from rxncon.visualization.graphML import map_layout2xgmml
 
-logger = logging.Logger(__name__)
+logger = logging.getLogger(__name__)
 
 colorama.init()
+
 
 def _file_path_existence(file_path):
     """
@@ -65,16 +66,15 @@ def write_xgmml(excel_filename: str, output=None, layout_template_file=None):
 
     suffix = '_srg'
     if not output.endswith('.xgmml'):
-        output =  '{0}{1}.xgmml'.format(output,suffix)
+        output = '{0}{1}.xgmml'.format(output, suffix)
     else:
         base_name = output.split('.xgmml')[0]
-        output = "{0}{1}.{2}".format(base_name,suffix,'xgmml')
+        output = "{0}{1}.{2}".format(base_name, suffix, 'xgmml')
 
     graph_filename = os.path.join(base_path, '{0}'.format(output))
 
     print('graph_filename: ', graph_filename)
     _file_path_existence(graph_filename)
-
 
     print('Reading in Excel file [{}] ...'.format(excel_filename))
     excel_book = ExcelBook(excel_filename)
@@ -88,7 +88,8 @@ def write_xgmml(excel_filename: str, output=None, layout_template_file=None):
     graph = reg_system.to_graph()
 
     if layout_template_file:
-        print('Writing layout information from [{0}] to graph file [{1}] ...'.format(layout_template_file, graph_filename))
+        print('Writing layout information from [{0}] to graph file [{1}] ...'.format(layout_template_file,
+                                                                                     graph_filename))
         gml_system = XGMML(graph, "{}".format(output))
         graph = map_layout2xgmml(gml_system.to_string(), layout_template_file)
         print('Writing reaction species graph file [{}] ...'.format(graph_filename))
@@ -104,7 +105,7 @@ def write_xgmml(excel_filename: str, output=None, layout_template_file=None):
 @click.command()
 @click.option('--output', default=None,
               help='Base name for output files. Default: \'fn\' for input file \'fn.xls\'')
-@click.option('--layout', default=None, nargs=1, type=click.Path(exists=True), required=False,
+@click.option('--layout', default=None, nargs=1, type=click.Path(exists=True),
               help='xgmml file containing layout information, which should be transferred to the new file.')
 @click.argument('excel_file')
 @click_log.simple_verbosity_option(default='WARNING')
@@ -153,4 +154,3 @@ if __name__ == '__main__':
         run()
     except Exception as e:
         print('ERROR: {}\n{}\nPlease re-run this command with the \'-v DEBUG\' option.'.format(type(e), e))
-

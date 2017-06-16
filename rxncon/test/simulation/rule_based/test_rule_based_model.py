@@ -1,5 +1,6 @@
 import pytest
 from itertools import combinations
+from typing import Dict, List
 
 from rxncon.input.quick.quick import Quick
 from rxncon.simulation.rule_based.rule_based_model import complex_from_str, rule_from_str, rule_based_model_from_rxncon, calc_state_paths, \

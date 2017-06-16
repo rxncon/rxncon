@@ -14,14 +14,13 @@ from rxncon.simulation.boolean.boolean_model import SmoothingStrategy, KnockoutS
 from rxncon.simulation.boolean.boolnet_from_boolean_model import QuantitativeContingencyStrategy, \
     boolnet_strs_from_rxncon
 
-
 colorama.init()
 LOGGER = logging.getLogger(__name__)
 
 
 def write_boolnet(excel_filename: str, smoothing_strategy: SmoothingStrategy, knockout_strategy: KnockoutStrategy,
                   overexpression_strategy: OverexpressionStrategy, k_plus_strategy: QuantitativeContingencyStrategy,
-                  k_minus_strategy: QuantitativeContingencyStrategy, base_name: Optional[str]=None):
+                  k_minus_strategy: QuantitativeContingencyStrategy, base_name: Optional[str] = None):
     if not base_name:
         base_name = os.path.splitext(os.path.basename(excel_filename))[0]
 
@@ -39,8 +38,10 @@ def write_boolnet(excel_filename: str, smoothing_strategy: SmoothingStrategy, kn
           .format(len(rxncon_system.reactions), len(rxncon_system.contingencies)))
 
     print('Generating BoolNet output using smoothing strategy [{}] ...'.format(smoothing_strategy.name))
-    model_str, symbol_str, initial_val_str = boolnet_strs_from_rxncon(rxncon_system, smoothing_strategy, knockout_strategy,
-                                                                      overexpression_strategy, k_plus_strategy, k_minus_strategy)
+    model_str, symbol_str, initial_val_str = boolnet_strs_from_rxncon(rxncon_system, smoothing_strategy,
+                                                                      knockout_strategy,
+                                                                      overexpression_strategy, k_plus_strategy,
+                                                                      k_minus_strategy)
 
     print('Writing BoolNet model file [{}] ...'.format(boolnet_model_filename))
     with open(boolnet_model_filename, mode='w') as f:
@@ -55,10 +56,12 @@ def write_boolnet(excel_filename: str, smoothing_strategy: SmoothingStrategy, kn
         f.write(initial_val_str)
 
 
-valid_smoothing_strategies      = [strategy.value for strategy in SmoothingStrategy.__members__.values()]
-valid_knockout_strategies       = [strategy.value for strategy in KnockoutStrategy.__members__.values()]
-valid_overexpression_strategies = [strategy.value for strategy in OverexpressionStrategy.__members__.values()]
-valid_quantitative_contingency_strategies = [strategy.value for strategy in QuantitativeContingencyStrategy.__members__.values()]
+valid_smoothing_strategies = [strategy.value for strategy in SmoothingStrategy.__members__.values()]  # type: ignore
+valid_knockout_strategies = [strategy.value for strategy in KnockoutStrategy.__members__.values()]  # type: ignore
+valid_overexpression_strategies = [strategy.value for strategy in OverexpressionStrategy.__members__.values()]  # type: ignore
+valid_quantitative_contingency_strategies = [strategy.value for strategy in
+                                             QuantitativeContingencyStrategy.__members__.values()]  # type: ignore
+
 
 def validate_smoothing_strategy(ctx, param, value):
     try:
@@ -89,24 +92,29 @@ def validate_quantitative_contingency_strategy(ctx, param, value):
         QuantitativeContingencyStrategy(value)
         return value
     except ValueError:
-        raise click.BadParameter('Valid strategies are: {}'.format(', '.join(valid_quantitative_contingency_strategies)))
+        raise click.BadParameter(
+            'Valid strategies are: {}'.format(', '.join(valid_quantitative_contingency_strategies)))
 
 
 @click.command()
 @click.option('--smoothing', default='smooth_production_sources',
-              help='Smoothing strategy. Default: smooth_production_sources. Choices: {}'.format(', '.join(valid_smoothing_strategies)),
+              help='Smoothing strategy. Default: smooth_production_sources. Choices: {}'.format(
+                  ', '.join(valid_smoothing_strategies)),
               callback=validate_smoothing_strategy)
 @click.option('--knockout', default='no_knockout',
               help='Generate knockouts. Default: no_knockout. Choices: {}'.format(', '.join(valid_knockout_strategies)),
               callback=validate_knockout_strategy)
 @click.option('--overexpression', default='no_overexpression',
-              help='Generate overexpressions. Default: no_overexpression. Choices: {}'.format(', '.join(valid_overexpression_strategies)),
+              help='Generate overexpressions. Default: no_overexpression. Choices: {}'.format(
+                  ', '.join(valid_overexpression_strategies)),
               callback=validate_overexpression_strategy)
 @click.option('--k_plus', default='strict',
-              help='Strategy for handling k+ contingencies. Default: strict. Choices: {}'.format(', '.join(valid_quantitative_contingency_strategies)),
+              help='Strategy for handling k+ contingencies. Default: strict. Choices: {}'.format(
+                  ', '.join(valid_quantitative_contingency_strategies)),
               callback=validate_quantitative_contingency_strategy)
 @click.option('--k_minus', default='strict',
-              help='Strategy for handling k- contingencies. Default: strict. Choices: {}'.format(', '.join(valid_quantitative_contingency_strategies)),
+              help='Strategy for handling k- contingencies. Default: strict. Choices: {}'.format(
+                  ', '.join(valid_quantitative_contingency_strategies)),
               callback=validate_quantitative_contingency_strategy)
 @click.option('--output', default=None,
               help='Base name for output files. Default: \'fn\' for input file \'fn.xls\'')
@@ -156,11 +164,10 @@ def setup_logging_colors():
 
     click_log.ColorFormatter.format = format
 
+
 if __name__ == '__main__':
     try:
         setup_logging_colors()
         run()
     except Exception as e:
         print('ERROR: {}\n{}\nPlease re-run this command with the \'-v DEBUG\' option.'.format(type(e), e))
-
-

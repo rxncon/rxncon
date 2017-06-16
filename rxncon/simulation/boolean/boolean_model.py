@@ -27,7 +27,7 @@ class BooleanModel:
         self._validate_update_rules()
         self._validate_initial_conditions()
 
-        self.current_state = None
+        self.current_state = None  # type: Optional[BooleanModelState]
 
     def set_initial_condition(self, target: 'Target', value: bool) -> None:
         self.initial_conditions.set_target(target, value)
@@ -73,6 +73,7 @@ class BooleanModel:
             prev = deepcopy(self.current_state)
             self.step()
             if prev == self.current_state:
+                assert isinstance(prev, BooleanModelState)
                 return prev
 
             iters += 1
@@ -604,8 +605,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
 
     def calc_state_rules() -> None:
         """Calculate the rules of the state targets, includes smoothing. For details see our paper."""
-        def synthesis_factor(state_target: StateTarget) -> VennSet[ReactionTarget]:
-            fac = EmptySet()
+        def synthesis_factor(state_target: StateTarget) -> VennSet[Target]:
+            fac = EmptySet()  # type: VennSet[Target]
             for rxn in (x for x in reaction_targets if x.synthesises(state_target)):
                 fac = Union(fac, ValueSet(rxn))
 
@@ -631,13 +632,13 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             return Complement(Union(*(ValueSet(x) for x in reaction_targets if x.degrades(state_target))))
 
         def pi(state_target: StateTarget, level: int) -> VennSet[Target]:
-            res = EmptySet()
+            res = EmptySet()  # type: VennSet[Target]
 
             for r in (x for x in reaction_targets if x.produces(state_target)):
-                rxn_term = ValueSet(r)
+                rxn_term = ValueSet(r)  # type: VennSet[Target]
                 for s in (x for x in state_targets if r.consumes(x)):
                     if r.degraded_targets:
-                        state_term = ValueSet(s)
+                        state_term = ValueSet(s)  # type: VennSet[Target]
                     else:
                         state_term = Intersection(ValueSet(s), degradation_factor(s))
                     for l in range(level):
@@ -648,10 +649,10 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             return res
 
         def kappa(state_target: StateTarget, level: int) -> VennSet[Target]:
-            res = EmptySet()
+            res = EmptySet()  # type: VennSet[Target]
 
             for r in (x for x in reaction_targets if x.consumes(state_target)):
-                rxn_term = ValueSet(r)
+                rxn_term = ValueSet(r)  # type: VennSet[Target]
                 for s in (x for x in state_targets if r.consumes(x)):
                     rxn_term = Intersection(rxn_term, ValueSet(s), degradation_factor(s))
                 res = Union(res, rxn_term)
@@ -721,8 +722,8 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         to_delete = []  # type: List[UpdateRule]
         for reaction_rule in reaction_rules:
             for state_rule in state_rules:
-                if reaction_rule.target.is_output and state_rule.target.is_input and \
-                                str(reaction_rule.target) == str(state_rule.target):
+                if (reaction_rule.target.is_output and state_rule.target.is_input and   # type: ignore
+                        str(reaction_rule.target) == str(state_rule.target)):
                     state_rule.factor = reaction_rule.factor
                     to_delete.append(reaction_rule)
 
@@ -757,6 +758,6 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
     calc_overexpression_rules()
     update_input_output_rules()
 
-    return BooleanModel(state_targets + reaction_targets + knockout_targets + overexpression_targets,
+    return BooleanModel(state_targets + reaction_targets + knockout_targets + overexpression_targets,  # type: ignore
                         reaction_rules + state_rules + knockout_rules + overexpression_rules,
                         initial_conditions(reaction_targets, state_targets, knockout_targets, overexpression_targets))

@@ -224,6 +224,7 @@ def _get_rxnconID(element: minidom.Element) -> str:
     for child in element.childNodes:
         if child.attributes and child.getAttribute('name') == "rxnconID":
             return child.getAttribute('value')
+    raise AssertionError('Could not find rxnconID for element {}'.format(element))
 
 
 def _get_labels_and_coordinates_dict(xmldoc: minidom.Document) -> Dict[str, Dict[str, str]]:

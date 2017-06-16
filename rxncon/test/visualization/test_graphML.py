@@ -388,3 +388,4 @@ def _get_node_att_type(element: minidom.Element, attribute_name: str) -> str:
     for child in element.childNodes:
         if child.attributes and child.getAttribute('name') == attribute_name:
             return child.getAttribute('type')
+    raise AssertionError

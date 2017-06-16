@@ -273,7 +273,7 @@ class Intersection(NarySet[T], Generic[T]):
         if len(exprs) == 0:
             return UniversalSet()
         else:
-            return NarySet.__new__(cls, *exprs)
+            return NarySet.__new__(cls, *exprs)  # type: ignore
 
     def __deepcopy__(self, memodict: Dict) -> Set[T]:
         return Intersection(*(deepcopy(x) for x in self.exprs))
@@ -304,7 +304,7 @@ class Union(NarySet[T], Generic[T]):
         if len(exprs) == 0:
             return EmptySet()
         else:
-            return NarySet.__new__(cls, *exprs)
+            return NarySet.__new__(cls, *exprs)  # type: ignore
 
     def __deepcopy__(self, memodict: Dict) -> Set[T]:
         return Union(*(deepcopy(x) for x in self.exprs))
@@ -335,7 +335,7 @@ class DisjunctiveUnion(NarySet[T], Generic[T]):
         if len(exprs) == 0:
             return EmptySet()
         else:
-            return super().__new__(cls, *exprs)
+            return super().__new__(cls, *exprs)  # type: ignore
 
     def __deepcopy__(self, memodict: Dict) -> Set[T]:
         return DisjunctiveUnion(*(deepcopy(x) for x in self.exprs))

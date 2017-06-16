@@ -104,7 +104,7 @@ class MonomialFactor:
             return '{0}^({1})'.format(self.symbol, self.power)
         elif self.power == 0:
             return '1'
-        elif self.power > 0:
+        else:
             return '{0}^{1}'.format(self.symbol, self.power)
 
     def _validate(self) -> None:

@@ -63,14 +63,14 @@ class ExcelBook:
         self._column_contingency_target = None  # type: Optional[int]
         self._column_contingency_type = None  # type: Optional[int]
         self._column_contingency_modifier = None  # type: Optional[int]
-        self._column_rxn_def_reaction = None
-        self._column_rxn_def_reaction_key = None
-        self._column_rxn_def_bi_verb = None
-        self._column_rxn_def_moltype_x = None
-        self._column_rxn_def_resolution_x = None
-        self._column_rxn_def_moltype_y = None
-        self._column_rxn_def_resolution_y = None
-        self._column_rule = None
+        self._column_rxn_def_reaction = None  # type: Optional[int]
+        self._column_rxn_def_reaction_key = None  # type: Optional[int]
+        self._column_rxn_def_bi_verb = None  # type: Optional[int]
+        self._column_rxn_def_moltype_x = None  # type: Optional[int]
+        self._column_rxn_def_resolution_x = None  # type: Optional[int]
+        self._column_rxn_def_moltype_y = None  # type: Optional[int]
+        self._column_rxn_def_resolution_y = None  # type: Optional[int]
+        self._column_rule = None  # type: Optional[int]
 
         self._open_file()
         self._validate_book()
@@ -95,17 +95,18 @@ class ExcelBook:
         self._xlrd_book = xlrd.open_workbook(self.filename)
 
     def _validate_book(self) -> None:
-        if not all(sheet in self._xlrd_book.sheet_names() for sheet in NECESSARY_SHEETS):
+        assert isinstance(self._xlrd_book, xlrd.Book)
+        if not all(sheet in self._xlrd_book.sheet_names() for sheet in NECESSARY_SHEETS):  # type: ignore
             raise SyntaxError('Excel book does not contain expected sheets')
 
     def _determine_column_numbers(self) -> None:
-        sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_LIST)
+        sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_LIST)  # type: ignore
         row = list(sheet.get_rows())[HEADER_ROW]
         for num, header in enumerate(row):
             if header.value == REACTION_LIST_COLUMN_FULL_NAME:
                 self._column_reaction_full_name = num
 
-        sheet = self._xlrd_book.sheet_by_name(SHEET_CONTINGENCY_LIST)
+        sheet = self._xlrd_book.sheet_by_name(SHEET_CONTINGENCY_LIST)  # type: ignore
         row = list(sheet.get_rows())[HEADER_ROW]
         for num, header in enumerate(row):
             if header.value == CONTINGENCY_LIST_COLUMN_TARGET:
@@ -120,7 +121,7 @@ class ExcelBook:
             assert col_num is not None
 
         try:
-            sheet = self._xlrd_book.sheet_by_name(SHEET_MODIFICATION_TYPE_LIST)
+            sheet = self._xlrd_book.sheet_by_name(SHEET_MODIFICATION_TYPE_LIST)  # type: ignore
             row = list(sheet.get_rows())[HEADER_ROW]
             for num, header in enumerate(row):
                 if header.value == MODIFICATION_TYPE_LIST_COLUMN_TYPE:
@@ -132,7 +133,7 @@ class ExcelBook:
             pass
 
         try:
-            sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_TYPE_LIST)
+            sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_TYPE_LIST)  # type: ignore
             row = list(sheet.get_rows())[HEADER_ROW]
             for num, header in enumerate(row):
                 if header.value == RXN_DEF_LIST_COLUMN_REACTION:
@@ -159,7 +160,7 @@ class ExcelBook:
         if self._column_modification_type is None or self._column_modification_label is None:
             return
 
-        sheet = self._xlrd_book.sheet_by_name(SHEET_MODIFICATION_TYPE_LIST)
+        sheet = self._xlrd_book.sheet_by_name(SHEET_MODIFICATION_TYPE_LIST)  # type: ignore
         modifier_rows = [row for row in sheet.get_rows()][DATA_ROW:]
 
         modifiers = {}
@@ -186,7 +187,7 @@ class ExcelBook:
         if self._column_rxn_def_reaction is None:
             return
 
-        sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_TYPE_LIST)
+        sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_TYPE_LIST)  # type: ignore
         rxn_def_rows = [row for row in sheet.get_rows()][DATA_ROW:]
 
         rxn_defs = []
@@ -206,7 +207,7 @@ class ExcelBook:
         initialize_reaction_defs(rxn_defs)
 
     def _load_reaction_list(self) -> None:
-        sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_LIST)
+        sheet = self._xlrd_book.sheet_by_name(SHEET_REACTION_LIST)  # type: ignore
         reaction_rows = [row for row in sheet.get_rows()][DATA_ROW:]
 
         for row in reaction_rows:
@@ -222,7 +223,7 @@ class ExcelBook:
             self._reactions += [reaction_from_str(x) for x in reaction_strs]
 
     def _load_contingency_list_entries(self) -> None:
-        sheet = self._xlrd_book.sheet_by_name(SHEET_CONTINGENCY_LIST)
+        sheet = self._xlrd_book.sheet_by_name(SHEET_CONTINGENCY_LIST)  # type: ignore
         contingency_rows = [row for row in sheet.get_rows()][DATA_ROW:]
 
         for row in contingency_rows:

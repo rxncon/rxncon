@@ -50,7 +50,7 @@ def initialize_state_modifiers(additional_modifiers: Dict[str, str]=None) -> Non
         **{k.lower(): v.lower() for k, v in additional_modifiers.items()}
     }
 
-    StateModifier = Enum('StateModifier', modifiers)
+    StateModifier = Enum('StateModifier', modifiers)  # type: ignore
 
 
 initialize_state_modifiers()
@@ -60,7 +60,7 @@ def state_modifier_from_str(modifier_str: str) -> StateModifier:
     try:
         return StateModifier(modifier_str.lower())
     except ValueError:
-        valid_modifiers = [modifier.value for modifier in StateModifier.__members__.values()]
+        valid_modifiers = [modifier.value for modifier in StateModifier.__members__.values()]  # type: ignore
         raise ValueError('Invalid StateModifier {}, valid modifiers are {}'
                          .format(modifier_str, ', '.join(valid_modifiers)))
 
@@ -526,7 +526,7 @@ class ModificationState(State):
 
     @property
     def is_neutral(self) -> bool:
-        return self.modifier == StateModifier.neutral
+        return self.modifier == StateModifier.neutral  # type: ignore
 
     @property
     def is_homodimer(self) -> bool:
@@ -534,7 +534,7 @@ class ModificationState(State):
 
     @property
     def neutral_states(self) -> List['State']:
-        return [ModificationState(self.spec, StateModifier.neutral)]
+        return [ModificationState(self.spec, StateModifier.neutral)]  # type: ignore
 
     def update_specs(self, updates: Dict[Spec, Spec]) -> None:
         try:

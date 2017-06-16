@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Union
+from typing import Union, Type
 from enum import Enum
 from networkx import DiGraph
 from rxncon.core.reaction import Reaction, OutputReaction
@@ -11,31 +11,32 @@ from rxncon.core.state import ModificationState, InteractionState, SelfInteracti
 
 logger = logging.getLogger(__name__)
 
+
 class EdgeWith(Enum):
     internal = '0'
     external = '10'
 
 
 class EdgeType(Enum):
-    interaction    = 'interaction'
-    modification   = 'modification'
+    interaction = 'interaction'
+    modification = 'modification'
     bimodification = 'bimodification'
-    synthesis      = 'synthesis'
-    degradation    = 'degradation'
-    unknown        = 'unknown'
+    synthesis = 'synthesis'
+    degradation = 'degradation'
+    unknown = 'unknown'
 
 
 class NodeType(Enum):
     component = '80'
-    domain    = '40'
-    residue   = '20'
+    domain = '40'
+    residue = '20'
 
 
 STATES = {
-    InteractionState:     EdgeType.interaction,
-    EmptyBindingState:    EdgeType.interaction,
+    InteractionState: EdgeType.interaction,
+    EmptyBindingState: EdgeType.interaction,
     SelfInteractionState: EdgeType.interaction,
-    ModificationState:    EdgeType.modification
+    ModificationState: EdgeType.modification
 }
 
 
@@ -47,8 +48,8 @@ class ReactionGraph:
         reaction_graph: A DiGraph with reaction information.
 
     """
-    def __init__(self, reaction_graph: DiGraph) -> None:
 
+    def __init__(self, reaction_graph: DiGraph) -> None:
         self.reaction_graph = reaction_graph
         self._validate_graph()
 
@@ -75,6 +76,7 @@ class GraphBuilder():
     """
     A class for building the reaction graph.
     """
+
     def __init__(self) -> None:
         self._reaction_graph = DiGraph()
 
@@ -120,10 +122,12 @@ class GraphBuilder():
                                                                                                         width))
             self._reaction_graph.add_edge(source, target, interaction=interaction.value, width=width.value)
         elif width == EdgeWith.external:
-            logger.debug('Adding replace inner edge with external edge source: {0} target: {1}, interaction: {2}, width: {3}'.format(source,
-                                                                                                                                      target,
-                                                                                                                                      interaction.value,
-                                                                                                                                      width))
+            logger.debug(
+                'Adding replace inner edge with external edge source: {0} target: {1}, interaction: {2}, width: {3}'.format(
+                    source,
+                    target,
+                    interaction.value,
+                    width))
             self._reaction_graph.add_edge(source, target, interaction=interaction.value, width=width.value)
 
     def add_external_edge(self, source: Spec, target: Spec, type: EdgeType) -> None:
@@ -142,9 +146,10 @@ class GraphBuilder():
             None
 
         """
-        logger.info('Adding external edge source: {0} target: {1}, interaction: {2}'.format(get_node_id(source, source.resolution),
-                                                                                            get_node_id(target, target.resolution),
-                                                                                            type))
+        logger.info('Adding external edge source: {0} target: {1}, interaction: {2}'.format(
+            get_node_id(source, source.resolution),
+            get_node_id(target, target.resolution),
+            type))
         self._add_edge(get_node_id(source, source.resolution), get_node_id(target, target.resolution),
                        interaction=type, width=EdgeWith.external)
 
@@ -161,19 +166,23 @@ class GraphBuilder():
         """
 
         def _add_spec_nodes() -> None:
-            logger.info('Adding component node -> id: {0}, label: {1}'.format(get_node_id(specification, NodeType.component),
-                                                                              get_node_label(specification, NodeType.component)))
+            logger.info(
+                'Adding component node -> id: {0}, label: {1}'.format(get_node_id(specification, NodeType.component),
+                                                                      get_node_label(specification,
+                                                                                     NodeType.component)))
             self._add_node(node_id=get_node_id(specification, NodeType.component), type=NodeType.component,
                            label=get_node_label(specification, NodeType.component))
 
             if specification.locus.domain:
-                logger.info('Adding domain node -> id: {0}, label: {1}'.format(get_node_id(specification, NodeType.domain),
-                                                                               get_node_label(specification, NodeType.domain)))
+                logger.info(
+                    'Adding domain node -> id: {0}, label: {1}'.format(get_node_id(specification, NodeType.domain),
+                                                                       get_node_label(specification, NodeType.domain)))
                 self._add_node(get_node_id(specification, NodeType.domain), type=NodeType.domain,
                                label=get_node_label(specification, NodeType.domain))
             if specification.locus.residue:
-                logger.info('Adding residue node id: {0}, label: {1}'.format(get_node_id(specification, NodeType.residue),
-                                                                             get_node_label(specification, NodeType.residue)))
+                logger.info(
+                    'Adding residue node id: {0}, label: {1}'.format(get_node_id(specification, NodeType.residue),
+                                                                     get_node_label(specification, NodeType.residue)))
                 self._add_node(get_node_id(specification, NodeType.residue), type=NodeType.residue,
                                label=get_node_label(specification, NodeType.residue))
 
@@ -190,22 +199,28 @@ class GraphBuilder():
             """
 
             if specification.locus.domain:
-                logger.info('Adding internal edge component -> domain source: {} target: {}'.format(get_node_id(specification, NodeType.component),
-                                                                                           get_node_id(specification, NodeType.domain)))
+                logger.info('Adding internal edge component -> domain source: {} target: {}'.format(
+                    get_node_id(specification, NodeType.component),
+                    get_node_id(specification, NodeType.domain)))
                 self._add_edge(get_node_id(specification, NodeType.component),
                                get_node_id(specification, NodeType.domain), interaction=EdgeType.interaction,
                                width=EdgeWith.internal)
 
                 if specification.locus.residue:
-                    logger.info('Adding internal edge domain -> residue source: {} target: {}'.format(get_node_id(specification, NodeType.domain),
-                                                                                             get_node_id(specification, NodeType.residue)))
-                    self._add_edge(get_node_id(specification, NodeType.domain), get_node_id(specification, NodeType.residue),
+                    logger.info('Adding internal edge domain -> residue source: {} target: {}'.format(
+                        get_node_id(specification, NodeType.domain),
+                        get_node_id(specification, NodeType.residue)))
+                    self._add_edge(get_node_id(specification, NodeType.domain),
+                                   get_node_id(specification, NodeType.residue),
                                    interaction=EdgeType.interaction, width=EdgeWith.internal)
             elif specification.locus.residue:
-                logger.info('Adding internal edge component -> residue source: {} target: {}'.format(get_node_id(specification, NodeType.component),
-                                                                       get_node_id(specification, NodeType.residue)))
-                self._add_edge(get_node_id(specification, NodeType.component), get_node_id(specification, NodeType.residue),
+                logger.info('Adding internal edge component -> residue source: {} target: {}'.format(
+                    get_node_id(specification, NodeType.component),
+                    get_node_id(specification, NodeType.residue)))
+                self._add_edge(get_node_id(specification, NodeType.component),
+                               get_node_id(specification, NodeType.residue),
                                interaction=EdgeType.interaction, width=EdgeWith.internal)
+
         logger.info('Adding nodes for {}'.format(specification))
         _add_spec_nodes()
         logger.info('Adding internal edges for {}'.format(specification))
@@ -233,6 +248,7 @@ def rxngraph_from_rxncon_system(rxncon_system: RxnConSystem) -> ReactionGraph:
         The reaction graph (ReactionGraph)
 
     """
+
     def get_reaction_type(rxn: Reaction) -> EdgeType:
         """
         Getting the type of a reaction.
@@ -249,11 +265,13 @@ def rxngraph_from_rxncon_system(rxncon_system: RxnConSystem) -> ReactionGraph:
         elif len(rxn.components_lhs) < len(rxn.components_rhs):
             return EdgeType.synthesis
         elif len(rxn.produced_states) == 1:
-            return STATES[type(rxn.produced_states[0])]
+            return STATES[type(rxn.produced_states[0])]  # type: ignore
         elif len(rxn.produced_states) == 2:
-            if all(STATES[type(produced_state)] == EdgeType.modification for produced_state in rxn.produced_states):
+            if all(STATES[type(produced_state)] == EdgeType.modification  # type: ignore
+                   for produced_state in rxn.produced_states):
                 return EdgeType.bimodification
-            elif all(STATES[type(produced_state)] == EdgeType.interaction for produced_state in rxn.produced_states):
+            elif all(STATES[type(produced_state)] == EdgeType.interaction  # type: ignore
+                     for produced_state in rxn.produced_states):
                 return EdgeType.interaction
             else:
                 return EdgeType.unknown
@@ -317,7 +335,7 @@ def get_node_id(specification: Spec, node_type: Union[NodeType, LocusResolution]
         return '{0}_[{1}]'.format(specification.name, specification.locus.domain)
 
     if node_type in [NodeType.residue, LocusResolution.residue] and specification.locus.residue:
-            return str(specification)
+        return str(specification)
 
     raise AssertionError
 
@@ -340,6 +358,6 @@ def get_node_label(specification: Spec, node_type: NodeType) -> str:
         return specification.locus.domain
 
     if node_type == NodeType.residue and specification.locus.residue:
-            return specification.locus.residue
+        return specification.locus.residue
 
     raise AssertionError
