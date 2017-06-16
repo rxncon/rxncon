@@ -7,20 +7,63 @@ import logging
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reaction, ReactionTerm, OutputReaction
-from rxncon.core.state import State, StateModifier, ModificationState, InteractionState, SelfInteractionState, GlobalState, \
+from rxncon.core.state import State, StateModifier, ModificationState, InteractionState, SelfInteractionState, \
+    GlobalState, \
     EmptyBindingState
 from rxncon.core.spec import Spec
 from rxncon.core.contingency import Contingency, ContingencyType
-from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet, DisjunctiveUnion
+from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet, \
+    DisjunctiveUnion
 from rxncon.util.utils import current_function_name
-
 
 LOGGER = logging.getLogger(__name__)
 
-
-NEUTRAL_MOD            = '0'
+NEUTRAL_MOD = '0'
 INITIAL_MOLECULE_COUNT = 1000
-SITE_NAME_REGEX        = r'^[a-zA-Z0-9]+$'
+SITE_NAME_REGEX = r'^[a-zA-Z0-9]+$'
+
+
+STATE_TO_COMPLEX_BUILDER_FN = {
+    ModificationState: [
+        lambda state, builder: builder.add_mol(state.spec),
+        lambda state, builder: builder.set_mod(state.spec, state.modifier)
+    ],
+    InteractionState: [
+        lambda state, builder: builder.add_mol(state.first),
+        lambda state, builder: builder.add_mol(state.second),
+        lambda state, builder: builder.set_bond(state.first, state.second)
+    ],
+    SelfInteractionState: [
+        lambda state, builder: builder.add_mol(state.first),
+        lambda state, builder: builder.set_bond(state.first, state.second)
+    ],
+    EmptyBindingState: [
+        lambda state, builder: builder.add_mol(state.spec),
+        lambda state, builder: builder.set_half_bond(state.spec, None)
+    ],
+    GlobalState: [
+        lambda state, builder: LOGGER.warning(
+            '{} : IGNORING INPUT STATE {}'.format(current_function_name(), str(state)))
+    ]
+}  # type: ignore
+
+STATE_TO_MOL_DEF_BUILDER_FN = {
+    ModificationState: [
+        lambda state, builder: builder.add_site(state.spec),
+        lambda state, builder: builder.add_mod(state.spec, state.modifier)
+    ],
+    InteractionState: [
+        lambda state, builder: builder.add_site(state.first) if builder.spec == state.first.to_component_spec()
+        else builder.add_site(state.second),
+    ],
+    SelfInteractionState: [
+        lambda state, builder: builder.add_site(state.first),
+        lambda state, builder: builder.add_site(state.second)
+    ],
+    EmptyBindingState: [
+        lambda state, builder: builder.add_site(state.spec)
+    ]
+}  # type: ignore
 
 
 class MolDef:
@@ -48,7 +91,7 @@ class MolDef:
         return list(self.site_defs.keys())
 
     def create_neutral_complex(self) -> 'Complex':
-        site_to_mod  = {}  # type: Dict[str, str]
+        site_to_mod = {}  # type: Dict[str, str]
         site_to_bond = {}  # type: Dict[str, Optional[int]]
         for site, mods in self.site_defs.items():
             if mods:
@@ -61,9 +104,9 @@ class MolDef:
 
 class MolDefBuilder:
     def __init__(self, spec: Spec) -> None:
-        self.spec      = spec
-        self.name      = str(spec.to_non_struct_spec())  # type: str
-        self.site_defs = {}                              # type: Dict[str, List[str]]
+        self.spec = spec
+        self.name = str(spec.to_non_struct_spec())  # type: str
+        self.site_defs = {}  # type: Dict[str, List[str]]
 
     def build(self) -> MolDef:
         return MolDef(self.name, self.site_defs)
@@ -77,16 +120,17 @@ class MolDefBuilder:
 
 
 class Mol:
-    def __init__(self, name: str, site_to_mod: Dict[str, str], site_to_bond: Dict[str, Optional[int]], is_reactant: bool) -> None:
-        self.name         = name
-        self.site_to_mod  = site_to_mod
+    def __init__(self, name: str, site_to_mod: Dict[str, str], site_to_bond: Dict[str, Optional[int]],
+                 is_reactant: bool) -> None:
+        self.name = name
+        self.site_to_mod = site_to_mod
         self.site_to_bond = site_to_bond
-        self.is_reactant  = is_reactant
+        self.is_reactant = is_reactant
         self._assert_valid_site_names()
 
     def __str__(self) -> str:
-        mod_str  = ','.join('{}{}'.format(site, '~' + mod)
-                            for site, mod in sorted(self.site_to_mod.items()))
+        mod_str = ','.join('{}{}'.format(site, '~' + mod)
+                           for site, mod in sorted(self.site_to_mod.items()))
         bond_str = ','.join('{}{}'.format(site, '!' + str(bond) if bond is not None else '')
                             for site, bond in sorted(self.site_to_bond.items()))
 
@@ -106,7 +150,7 @@ class Mol:
             return NotImplemented
         # This equality skips checking the is_reactant property, since it does not appear
         # in the BNGL representation.
-        return self.name  == other.name and self.site_to_mod == other.site_to_mod and self.site_to_bond == other.site_to_bond
+        return self.name == other.name and self.site_to_mod == other.site_to_mod and self.site_to_bond == other.site_to_bond
 
     def __lt__(self, other: object) -> bool:
         if not isinstance(other, Mol):
@@ -157,11 +201,11 @@ def site_name(spec: Spec) -> str:
 
 
 class MolBuilder:
-    def __init__(self, spec: Spec, is_reactant: bool=False) -> None:
-        self.name         = str(spec.to_non_struct_spec())
-        self.site_to_mod  = {}  # type: Dict[str, str]
+    def __init__(self, spec: Spec, is_reactant: bool = False) -> None:
+        self.name = str(spec.to_non_struct_spec())
+        self.site_to_mod = {}  # type: Dict[str, str]
         self.site_to_bond = {}  # type: Dict[str, Optional[int]]
-        self.is_reactant  = is_reactant
+        self.is_reactant = is_reactant
 
     def build(self) -> Mol:
         return Mol(self.name, self.site_to_mod, self.site_to_bond, self.is_reactant)
@@ -228,8 +272,8 @@ class Complex:
         if self == other:
             return True
         if len(self.mols) != len(other.mols) or \
-                sorted(mol.name for mol in self.mols) != sorted(mol.name for mol in other.mols) or \
-                len(self.bonds) != len(other.bonds):
+                        sorted(mol.name for mol in self.mols) != sorted(mol.name for mol in other.mols) or \
+                        len(self.bonds) != len(other.bonds):
             return False
 
         my_bonds = self.bonds
@@ -250,7 +294,7 @@ class Complex:
 
     def _assert_mols_connected(self) -> None:
         connected = []  # type: List[Mol]
-        to_visit  = [self.mols[0]]
+        to_visit = [self.mols[0]]
         while to_visit:
             current = to_visit.pop()
             neighbors = self.neighbors(current)
@@ -271,22 +315,25 @@ class Complex:
 
         non_doubly_connected_bonds = [bond for bond, site_count in bond_to_site_count.items() if site_count % 2 != 0]
         if non_doubly_connected_bonds:
-            raise AssertionError('Non doubly connected bonds {} in complex: {}'.format(non_doubly_connected_bonds, str(self)))
+            raise AssertionError(
+                'Non doubly connected bonds {} in complex: {}'.format(non_doubly_connected_bonds, str(self)))
 
 
 class ComplexExprBuilder:
-    def __init__(self, reaction: Optional[Reaction]=None) -> None:
+    def __init__(self, reaction: Optional[Reaction] = None) -> None:
         self._mol_builders = {}  # type: Dict[Spec, MolBuilder]
         self._current_bond = 0
-        self._bonds        = []  # type: List[Tuple[Spec, Spec]]
-        self.reaction      = reaction
+        self._bonds = []  # type: List[Tuple[Spec, Spec]]
+        self.reaction = reaction
 
-    def build(self, only_reactants: bool=True) -> List[Complex]:
+    def build(self, only_reactants: bool = True) -> List[Complex]:
         complexes = []
 
         LOGGER.debug('{} : Building complex with molecules {}'.format(current_function_name(),
-                                                                      ' & '.join(str(spec) for spec in self._mol_builders.keys())))
-        LOGGER.debug('{} : Grouped specs are {}'.format(current_function_name(), ', '.join(str(x) for x in self._grouped_specs())))
+                                                                      ' & '.join(str(spec) for spec in
+                                                                                 self._mol_builders.keys())))
+        LOGGER.debug('{} : Grouped specs are {}'.format(current_function_name(),
+                                                        ', '.join(str(x) for x in self._grouped_specs())))
         for group in self._grouped_specs():
             possible_complex = Complex([self._mol_builders[spec].build() for spec in group])
 
@@ -299,7 +346,7 @@ class ComplexExprBuilder:
 
         return complexes
 
-    def add_mol(self, spec: Spec, is_reactant: bool=False) -> None:
+    def add_mol(self, spec: Spec, is_reactant: bool = False) -> None:
         if spec.to_component_spec() not in self._mol_builders:
             self._mol_builders[spec.to_component_spec()] = MolBuilder(spec.to_component_spec(), is_reactant)
 
@@ -323,7 +370,8 @@ class ComplexExprBuilder:
                 if bond[0].to_component_spec() in group:
                     grouped_specs.pop(i)
                     try:
-                        other_group = next(other_group for other_group in grouped_specs if bond[1].to_component_spec() in other_group)
+                        other_group = next(
+                            other_group for other_group in grouped_specs if bond[1].to_component_spec() in other_group)
                         other_group += group
                         break
                     except StopIteration:
@@ -333,50 +381,7 @@ class ComplexExprBuilder:
         return grouped_specs
 
 
-STATE_TO_COMPLEX_BUILDER_FN = {
-    ModificationState: [
-        lambda state, builder: builder.add_mol(state.spec),
-        lambda state, builder: builder.set_mod(state.spec, state.modifier)
-    ],
-    InteractionState: [
-        lambda state, builder: builder.add_mol(state.first),
-        lambda state, builder: builder.add_mol(state.second),
-        lambda state, builder: builder.set_bond(state.first, state.second)
-    ],
-    SelfInteractionState: [
-        lambda state, builder: builder.add_mol(state.first),
-        lambda state, builder: builder.set_bond(state.first, state.second)
-    ],
-    EmptyBindingState: [
-        lambda state, builder: builder.add_mol(state.spec),
-        lambda state, builder: builder.set_half_bond(state.spec, None)
-    ],
-    GlobalState: [
-        lambda state, builder: LOGGER.warning('{} : IGNORING INPUT STATE {}'.format(current_function_name(), str(state)))
-    ]
-}  # type: ignore
-
-
-STATE_TO_MOL_DEF_BUILDER_FN = {
-    ModificationState: [
-        lambda state, builder: builder.add_site(state.spec),
-        lambda state, builder: builder.add_mod(state.spec, state.modifier)
-    ],
-    InteractionState: [
-        lambda state, builder: builder.add_site(state.first) if builder.spec == state.first.to_component_spec()
-        else builder.add_site(state.second),
-    ],
-    SelfInteractionState: [
-        lambda state, builder: builder.add_site(state.first),
-        lambda state, builder: builder.add_site(state.second)
-    ],
-    EmptyBindingState: [
-        lambda state, builder: builder.add_site(state.spec)
-    ]
-}  # type: ignore
-
-
-class Parameter:  # pylint: disable=too-few-public-methods
+class Parameter:
     def __init__(self, name: str, value: Optional[str]) -> None:
         self.name, self.value = name, value
 
@@ -395,8 +400,8 @@ class Parameter:  # pylint: disable=too-few-public-methods
         return str(self)
 
 
-class InitialCondition:  # pylint: disable=too-few-public-methods
-    def __init__(self, complex: Complex, value: Parameter) -> None:  # pylint: disable=redefined-builtin
+class InitialCondition:
+    def __init__(self, complex: Complex, value: Parameter) -> None:
         self.complex, self.value = complex, value
 
     def __str__(self) -> str:
@@ -409,8 +414,8 @@ class InitialCondition:  # pylint: disable=too-few-public-methods
         return self.complex.is_equivalent_to(other.complex) and self.value.name == other.value.name
 
 
-class Observable:  # pylint: disable=too-few-public-methods
-    def __init__(self, name: str, complex: Complex) -> None:  # pylint: disable=redefined-builtin
+class Observable:
+    def __init__(self, name: str, complex: Complex) -> None:
         self.name, self.complex = name, complex
 
     def __str__(self) -> str:
@@ -420,8 +425,9 @@ class Observable:  # pylint: disable=too-few-public-methods
         return 'Observable<{}>'.format(str(self))
 
 
-class Rule:  # pylint: disable=too-few-public-methods
-    def __init__(self, lhs: List[Complex], rhs: List[Complex], rate: Parameter, parent_reaction: Reaction=None) -> None:
+class Rule:
+    def __init__(self, lhs: List[Complex], rhs: List[Complex], rate: Parameter,
+                 parent_reaction: Reaction = None) -> None:
         self.lhs, self.rhs, self.rate = sorted(lhs), sorted(rhs), rate
         self.parent_reaction = parent_reaction
 
@@ -460,28 +466,28 @@ class Rule:  # pylint: disable=too-few-public-methods
         for my_complex in my_lhs:
             for other_complex in other_lhs:
                 if my_complex.is_equivalent_to(other_complex) and not other_complex.visited:  # type: ignore
-                    my_complex.found = True       # type: ignore
+                    my_complex.found = True  # type: ignore
                     other_complex.visited = True  # type: ignore
                     break
 
         for my_complex in my_rhs:
             for other_complex in other_rhs:
                 if my_complex.is_equivalent_to(other_complex) and not other_complex.visited:  # type: ignore
-                    my_complex.found = True       # type: ignore
+                    my_complex.found = True  # type: ignore
                     other_complex.visited = True  # type: ignore
                     break
 
-        all_found   = all(complex.found for complex in my_lhs + my_rhs)            # type: ignore
+        all_found = all(complex.found for complex in my_lhs + my_rhs)  # type: ignore
         all_visited = all(complex.visited for complex in other_lhs and other_rhs)  # type: ignore
 
         return all_found and all_visited
 
 
-class RuleBasedModel:  # pylint: disable=too-few-public-methods
-    def __init__(self, mol_defs: List[MolDef], initial_conditions: List[InitialCondition], parameters: List[Parameter],  # pylint: disable=too-many-arguments
-                 observables: List[Observable], rules: List[Rule]) -> None:   # pylint: disable=too-many-arguments
+class RuleBasedModel:
+    def __init__(self, mol_defs: List[MolDef], initial_conditions: List[InitialCondition], parameters: List[Parameter],
+                 observables: List[Observable], rules: List[Rule]) -> None:
         self.mol_defs, self.initial_conditions, self.parameters, self.observables, self.rules = mol_defs, initial_conditions, \
-            parameters, observables, rules
+                                                                                                parameters, observables, rules
 
     @property
     def rate_parameters(self) -> List[Parameter]:
@@ -489,15 +495,18 @@ class RuleBasedModel:  # pylint: disable=too-few-public-methods
 
 
 def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
-    specs = sorted(set(spec.to_component_spec() for state in states for spec in state.specs), key=lambda x: x.struct_index)
+    specs = sorted(set(spec.to_component_spec() for state in states for spec in state.specs),
+                   key=lambda x: x.struct_index)
 
     def spec_to_bond_states(spec: Spec) -> List[State]:
         assert spec.is_component_spec and spec.is_structured
-        return [state for state in states if spec in (s.to_component_spec() for s in state.specs) if len(state.components) == 2]
+        return [state for state in states if spec in (s.to_component_spec() for s in state.specs) if
+                len(state.components) == 2]
 
     def neighbor(spec: Spec, state: State) -> Spec:
         assert spec.is_component_spec and spec.is_structured and len(state.components) == 2
-        return [neigh_spec.to_component_spec() for neigh_spec in state.specs if neigh_spec.to_component_spec() != spec][0]
+        return [neigh_spec.to_component_spec() for neigh_spec in state.specs if neigh_spec.to_component_spec() != spec][
+            0]
 
     spec_paths = {spec: [] for spec in specs}  # type: Dict[Spec, List[List[State]]]
 
@@ -508,7 +517,8 @@ def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
 
     def visit_nodes(current_path: List[State], current_spec: Spec, current_num: int) -> None:
         spec_paths[current_spec].append(current_path)
-        bonds_to_visit = [state for state in spec_to_bond_states(current_spec) if current_num not in state.visited]  # type: ignore
+        bonds_to_visit = [state for state in spec_to_bond_states(current_spec) if
+                          current_num not in state.visited]  # type: ignore
         for i, state in enumerate(bonds_to_visit):
             if i == 0:
                 next_num = current_num
@@ -605,7 +615,8 @@ def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
         complex_constraints.append(constraint.to_simplified_set())
 
     if complex_constraints:
-        LOGGER.debug('{} : Complex constraints {}'.format(current_function_name(), ' XOR '.join(str(x) for x in complex_constraints)))
+        LOGGER.debug('{} : Complex constraints {}'.format(current_function_name(),
+                                                          ' XOR '.join(str(x) for x in complex_constraints)))
         return Intersection(cont_set, DisjunctiveUnion(*complex_constraints))
     else:
         return cont_set
@@ -619,7 +630,8 @@ class QuantContingencyConfigs(Iterator[VennSet[State]]):  # pylint: disable=too-
         for contingency in self.q_contingencies:
             new_combis = []
             for combi in combis:
-                new_combis.append(combi + [Contingency(contingency.reaction, ContingencyType.inhibition, contingency.effector)])
+                new_combis.append(
+                    combi + [Contingency(contingency.reaction, ContingencyType.inhibition, contingency.effector)])
                 combi.append(Contingency(contingency.reaction, ContingencyType.requirement, contingency.effector))
             combis.extend(new_combis)
 
@@ -650,7 +662,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
             LOGGER.debug('{} : Creating MolDefBuilder for {}'.format(current_function_name(), str(spec)))
             builder = MolDefBuilder(spec)
             for state in rxncon_sys.states_for_component(spec):
-                LOGGER.debug('{} : Applying State {} of type {}'.format(current_function_name(), str(state), type(state)))
+                LOGGER.debug(
+                    '{} : Applying State {} of type {}'.format(current_function_name(), str(state), type(state)))
                 for func in STATE_TO_MOL_DEF_BUILDER_FN[type(state)]:
                     func(state, builder)
 
@@ -664,7 +677,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
             cleaned_solution = {}
             for state, val in soln.items():
                 if state.is_global:
-                    LOGGER.warning('{} : REMOVING INPUT STATE {} from contingencies.'.format(current_function_name(), state))
+                    LOGGER.warning(
+                        '{} : REMOVING INPUT STATE {} from contingencies.'.format(current_function_name(), state))
                 else:
                     cleaned_solution[state] = val
 
@@ -704,7 +718,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
                         continue
 
                     try:
-                        state = state.to_structured_from_spec(spec.with_struct_index(spec_to_index[spec.to_component_spec()]))
+                        state = state.to_structured_from_spec(
+                            spec.with_struct_index(spec_to_index[spec.to_component_spec()]))
                     except KeyError:
                         cur_index += 1
                         state = state.to_structured_from_spec(spec.with_struct_index(cur_index))
@@ -716,7 +731,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
 
         ordered_solution = OrderedDict(sorted(solution.items(), key=lambda x: x[0]))
 
-        trues  = [state for state, val in ordered_solution.items() if val]
+        trues = [state for state, val in ordered_solution.items() if val]
         falses = [state for state, val in ordered_solution.items() if not val
                   and not any(state.is_mutually_exclusive_with(x) for x in trues)]
 
@@ -747,7 +762,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
                                      .format(str(reaction), ', '.join(str(x) for x in unstructs)))
 
             if not is_satisfiable(cont_soln):
-                raise AssertionError('Cannot satisfy contingencies {} simultaneously'.format(' & '.join(str(s) for s in cont_soln)))
+                raise AssertionError(
+                    'Cannot satisfy contingencies {} simultaneously'.format(' & '.join(str(s) for s in cont_soln)))
 
             states = copy(states)
             builder = ComplexExprBuilder(reaction=reaction)
@@ -781,7 +797,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
     def calc_initial_conditions(mol_defs: List[MolDef]) -> List[InitialCondition]:
         return \
             [InitialCondition(mol_def.create_neutral_complex(),
-                              Parameter('Num{}'.format(mol_def.name), str(INITIAL_MOLECULE_COUNT))) for mol_def in mol_defs]
+                              Parameter('Num{}'.format(mol_def.name), str(INITIAL_MOLECULE_COUNT))) for mol_def in
+             mol_defs]
 
     def calc_observables(rxncon_sys: RxnConSystem) -> List[Observable]:
         def observable_complex(states: List[State]) -> Complex:
@@ -817,7 +834,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
     LOGGER.debug('{} : Entered function'.format(current_function_name()))
 
     mol_defs = mol_defs_from_rxncon(rxncon_sys)
-    LOGGER.debug('{} : Generated MolDefs: {}'.format(current_function_name(), ', '.join(str(mol_def) for mol_def in mol_defs)))
+    LOGGER.debug(
+        '{} : Generated MolDefs: {}'.format(current_function_name(), ', '.join(str(mol_def) for mol_def in mol_defs)))
 
     rules = []  # type: List[Rule]
 
@@ -829,7 +847,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
         LOGGER.debug('{} : Strict contingencies {}'.format(current_function_name(), str(strict_cont_set)))
 
         for quant_contingency_set in quant_contingencies:
-            LOGGER.debug('{} : quantitative contingency config: {}'.format(current_function_name(), str(quant_contingency_set)))
+            LOGGER.debug(
+                '{} : quantitative contingency config: {}'.format(current_function_name(), str(quant_contingency_set)))
 
             cont_set = Intersection(strict_cont_set, quant_contingency_set)  # type: VennSet[State]
             cont_set = with_connectivity_constraints(cont_set)
@@ -856,7 +875,7 @@ def mol_from_str(mol_str: str) -> Mol:
     assert config_str[-1] == ')'
     site_strs = config_str[:-1].split(',')
 
-    site_to_mod  = {}  # type: Dict[str, str]
+    site_to_mod = {}  # type: Dict[str, str]
     site_to_bond = {}  # type: Dict[str, Optional[int]]
 
     for site_str in site_strs:
@@ -881,9 +900,9 @@ def complex_from_str(complex_str: str) -> Complex:
 
 
 def rule_from_str(rule_str: str) -> Rule:
-    lhs_strs = []    # type: List[str]
-    rhs_strs = []    # type: List[str]
-    rate     = None  # type: Optional[Parameter]
+    lhs_strs = []  # type: List[str]
+    rhs_strs = []  # type: List[str]
+    rate = None  # type: Optional[Parameter]
 
     current = lhs_strs
     done = False
