@@ -119,7 +119,7 @@ class Contingency:
             elif isinstance(eff, AndEffector):
                 return Intersection(*(parse_effector(x) for x in eff.exprs))
             else:
-                raise AssertionError
+                raise AssertionError('Unknown Effector {}'.format(str(eff)))
 
         if k_plus_strict:
             positive = (ContingencyType.requirement, ContingencyType.positive)
@@ -144,7 +144,9 @@ class Contingency:
         index_to_specs = defaultdict(set)  # type: Dict[int, TgSet]
 
         for spec in specs:
-            assert spec.struct_index is not None
+            assert spec.struct_index is not None, 'Struct index not assigned in spec {}, ' \
+                                                  'contingency {}'.format(spec, self)
             index_to_specs[spec.struct_index].add(spec.to_component_spec())
 
-        assert all(len(x) == 1 for _, x in index_to_specs.items())
+        assert all(len(x) == 1 for _, x in index_to_specs.items()), 'Structure indices not uniquely assigned in {}'\
+            .format(index_to_specs)

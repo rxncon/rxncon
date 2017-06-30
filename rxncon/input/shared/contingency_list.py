@@ -118,9 +118,9 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: Union[str, floa
     else:
         object = state_from_str(object_str)
 
-    assert subject is not None
-    assert verb is not None
-    assert object is not None
+    assert subject is not None, 'Could not parse subject in {} {} {}'.format(subject_str, verb_str, object_str)
+    assert verb is not None, 'Could not parse verb in {} {} {}'.format(subject_str, verb_str, object_str)
+    assert object is not None, 'Could not parse object in {} {} {}'.format(subject_str, verb_str, object_str)
 
     return ContingencyListEntry(subject, verb, object)
 
@@ -135,7 +135,6 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
 
     while reaction_entries:
         entry = reaction_entries.pop()
-        assert isinstance(entry.subj, Reaction)
         contingencies.append(Contingency(entry.subj,
                                          ContingencyType(entry.verb),
                                          _unary_effector_from_boolean_contingency_entry(entry)))
@@ -195,7 +194,7 @@ def _dereference_boolean_contingency_effectors(self: Effector, effector_table: D
         for expr in self.exprs:
             _dereference_boolean_contingency_effectors(expr, effector_table)
     else:
-        raise AssertionError
+        raise AssertionError('Unknown effector type {} in {}'.format(self, current_function_name()))
 
 
 def _contains_boolean_contingency_effectors(self: Effector) -> bool:

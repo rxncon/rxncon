@@ -31,7 +31,8 @@ class BooleanOperator(Enum):
 class BooleanContingencyName:
     """BooleanContingencyName holds and validates upon construction names such as `<BOOL>`."""
     def __init__(self, name: str) -> None:
-        assert re.match(BOOLEAN_CONTINGENCY_REGEX, name)
+        assert re.match(BOOLEAN_CONTINGENCY_REGEX, name), 'BooleanContingencyName {} does not match ' \
+                                                          'regex.'.format(name)
         self.name = name
 
     def __eq__(self, other: object) -> bool:

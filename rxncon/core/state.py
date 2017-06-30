@@ -189,7 +189,8 @@ class InteractionState(State):
                 'Resolution for InteractionState too high {} {}'.format(str(self.first), str(self.second)))
 
         if self.first.is_structured and self.second.is_structured:
-            assert not self.first.struct_index == self.second.struct_index
+            assert not self.first.struct_index == self.second.struct_index, \
+                'Interaction state {} has identical struct indices!'.format(self)
 
     @property
     def specs(self) -> List[Spec]:

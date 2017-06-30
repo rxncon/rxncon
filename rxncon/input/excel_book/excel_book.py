@@ -86,7 +86,7 @@ class ExcelBook:
 
     @property
     def rxncon_system(self) -> RxnConSystem:
-        assert self._rxncon_system is not None
+        assert self._rxncon_system is not None, 'Could not construct rxncon system!'
         return self._rxncon_system
 
     def _open_file(self) -> None:
@@ -96,7 +96,7 @@ class ExcelBook:
         self._xlrd_book = xlrd.open_workbook(self.filename)
 
     def _validate_book(self) -> None:
-        assert isinstance(self._xlrd_book, xlrd.Book)
+        assert isinstance(self._xlrd_book, xlrd.Book), 'Could not instantiate Excel workbook!'
         if not all(sheet in self._xlrd_book.sheet_names() for sheet in NECESSARY_SHEETS):  # type: ignore
             raise SyntaxError('Excel book does not contain expected sheets')
 
@@ -119,7 +119,7 @@ class ExcelBook:
 
         for col_num in (self._column_reaction_full_name, self._column_contingency_target,
                         self._column_contingency_type, self._column_contingency_modifier):
-            assert col_num is not None
+            assert col_num is not None, 'Missing column!'
 
         try:
             sheet = self._xlrd_book.sheet_by_name(SHEET_MODIFICATION_TYPE_LIST)  # type: ignore
