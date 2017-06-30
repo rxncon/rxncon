@@ -10,6 +10,7 @@ from rxncon.input.shared.contingency_list import contingencies_from_contingency_
     contingency_list_entry_from_strs, ContingencyListEntry
 from rxncon.input.shared.reaction_preprocess import split_bidirectional_reaction_str
 from rxncon.core.reaction import Reaction, reaction_from_str, OutputReaction, initialize_reaction_defs
+import rxncon.core.state as st
 from rxncon.core.state import initialize_state_modifiers
 from rxncon.core.contingency import Contingency
 from rxncon.util.utils import current_function_name

@@ -5,9 +5,10 @@ which the contingency is only applied to the forward reaction)."""
 
 from typing import Dict, Any, List, Optional, Callable, TypeVar
 import re
+from copy import deepcopy
 
 from rxncon.core.spec import Spec, MRNASpec, ProteinSpec, LocusResolution, GeneSpec, spec_from_str
-from rxncon.core.state import State, state_from_str
+from rxncon.core.state import State, state_from_str, FullyNeutralState
 
 
 T = TypeVar('T')
@@ -25,9 +26,15 @@ BIDIRECTIONAL_REACTIONS = [
 
 class ReactionTerm:
     """ReactionTerm describes a single term in a reaction rule. The `specs` are the components on which the
-    `states` live. The list `states` could be empty, e.g. for a kinase."""
+    `states` live. The list `states` could be empty, e.g. for a kinase. However, the specs should all be
+    components, and the states should all be elemental."""
     def __init__(self, specs: List[Spec], states: List[State]) -> None:
-        assert all(spec.is_component_spec for spec in specs)
+        if not all(spec.is_component_spec for spec in specs):
+            raise SyntaxError('ReactionTerm contains non-component specs. Specs: {}; States: {}'.format(specs, states))
+
+        if not all(state.is_elemental for state in states if not isinstance(state, FullyNeutralState)):
+            raise SyntaxError('ReactionTerm contains non-elemental states. Specs: {}; States: {}'.format(specs, states))
+
         self.specs, self.states = specs, states
 
     def __eq__(self, other: object) -> bool:
@@ -56,7 +63,7 @@ class ReactionDef:
         if not isinstance(other, ReactionDef):
             return NotImplemented
         return self.reaction_class == other.reaction_class and self.name_def == other.name_def \
-               and self.vars_def == other.vars_def and self.rule_def == other.rule_def
+            and self.vars_def == other.vars_def and self.rule_def == other.rule_def
 
     def __repr__(self) -> str:
         return str(self)
@@ -154,7 +161,10 @@ class ReactionDef:
 
         specs_str, states_str = term_def.split('#')
 
-        return ReactionTerm(parse_specs_str(specs_str), parse_states_str(states_str))
+        try:
+            return ReactionTerm(parse_specs_str(specs_str), parse_states_str(states_str))
+        except SyntaxError as e:
+            raise SyntaxError('Could not parse reaction {}, {}'.format(term_def, e.msg))
 
     def _to_base_regex(self) -> str:
         # The (?i) makes the regex case insensitive.
@@ -402,7 +412,7 @@ def initialize_reaction_defs(additional_defs: List[Dict[str, str]]=None) -> None
     parsed_defs = []
 
     for additional_def in additional_defs:
-        rxn_def = ReactionDef(
+        raw_rxn_def = ReactionDef(
             additional_def['!UID:Reaction'],
             '$x_{}_$y'.format(additional_def['!UID:ReactionKey']),
             {
@@ -413,9 +423,20 @@ def initialize_reaction_defs(additional_defs: List[Dict[str, str]]=None) -> None
         )
 
         if additional_def['!BidirectionalVerb'] == 'yes':
-            BIDIRECTIONAL_REACTIONS.append(additional_def['!UID:ReactionKey'])
+            assert additional_def['!UID:ReactionKey'][-1] not in ('+', '-'), \
+                'The verb string for a bidirectional reaction cannot end in + or -, error in ReactionDef:' \
+                ' {}'.format(additional_def['!UID:Reaction'])
 
-        parsed_defs.append(rxn_def)
+            BIDIRECTIONAL_REACTIONS.append(additional_def['!UID:ReactionKey'])
+            forward_def, reverse_def = deepcopy(raw_rxn_def), deepcopy(raw_rxn_def)
+            forward_def.name_def = '$x_{}+_$y'.format(additional_def['!UID:ReactionKey'])
+            reverse_def.name_def = '$x_{}-_$y'.format(additional_def['!UID:ReactionKey'])
+            processed_defs = [forward_def, reverse_def]
+        else:
+            processed_defs = [raw_rxn_def]
+
+
+        parsed_defs += processed_defs
 
     REACTION_DEFS = DEFAULT_REACTION_DEFS + parsed_defs
 
