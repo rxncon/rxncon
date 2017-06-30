@@ -428,9 +428,20 @@ def initialize_reaction_defs(additional_defs: List[Dict[str, str]]=None) -> None
                 ' {}'.format(additional_def['!UID:Reaction'])
 
             BIDIRECTIONAL_REACTIONS.append(additional_def['!UID:ReactionKey'])
+
             forward_def, reverse_def = deepcopy(raw_rxn_def), deepcopy(raw_rxn_def)
+            # Relabel the classes.
+            forward_def.reaction_class += '-forward'
+            reverse_def.reaction_class += '-reverse'
+
+            # Split the verb into forward / reverse.
             forward_def.name_def = '$x_{}+_$y'.format(additional_def['!UID:ReactionKey'])
             reverse_def.name_def = '$x_{}-_$y'.format(additional_def['!UID:ReactionKey'])
+
+            # Reverse the arrow for the reverse rule.
+            rev_rule_rhs, rev_rule_lhs = forward_def.rule_def.split('->')
+            reverse_def.rule_def = '{} -> {}'.format(rev_rule_lhs, rev_rule_rhs)
+
             processed_defs = [forward_def, reverse_def]
         else:
             processed_defs = [raw_rxn_def]
