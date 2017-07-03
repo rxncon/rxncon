@@ -499,7 +499,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         """For degradation reactions, add their contingent states to the list of targets they degrade."""
         def degraded_state_targets(component: Spec, soln: Dict[StateTarget, bool]) -> List[StateTarget]:
             # Disregard input states, since they do not influence which states are degraded.
-            soln = {k: v for k, v in soln.items() if not k.is_input()}
+            soln = {k: v for k, v in soln.items() if not k.is_input() and component in k.components}
 
             # soln evaluates to False if solution is tautology, since when there are no constraints on which
             # states are required to be true/false, soln is an empty dict. Nicely counterintuitive.
@@ -545,7 +545,9 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
                                              for component in neutral_target.components)]
 
                 if interaction_target.is_homodimer:
-                    assert len(empty_partners) == 0, 'update_degs_add_interaction_state_partner::homodimer error.'
+                    assert len(empty_partners) == 0, 'update_degs_add_interaction_state_partner::homodimer error, ' \
+                                                     'reaction_target: {}, interaction_target: {}, empty_partners: {}' \
+                                                     ''.format(reaction_target, interaction_target, empty_partners)
                     continue
 
                 if len(empty_partners) != 1:
