@@ -854,3 +854,16 @@ def test_degradation_boolean_AND_required_input_state() -> None:
                                                                      target_from_str))
             rules_found += 1
     assert rules_found == 2
+
+
+def test_degradation_bond_to_homodimer() -> None:
+    rxncon_sys = Quick("""A_[b]_ppi_B_[a]
+                          B_[b]_ppi_B_[b]
+                          C_deg_A; ! <x>
+                          <x>; AND A@1--B@2
+                          <x>; AND B@2--B@3""").rxncon_system
+
+    boolean_model = boolean_model_from_rxncon(rxncon_sys)
+
+    assert boolean_model.reaction_target_by_name('C_deg_A').consumed_targets == [target_from_str('A_[b]--B_[a]')]
+    assert boolean_model.reaction_target_by_name('C_deg_A').produced_targets == [target_from_str('B_[a]--0')]
