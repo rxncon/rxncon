@@ -240,10 +240,12 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
                     LOGGER.info('{}: {} -> {}'.format(current_function_name(), str(effector.expr),
                                                       ' | '.join(str(x) for x in elemental_states)))
 
-                    if len(elemental_states) == 1:
-                        return StateEffector(elemental_states[0])
-                    else:
-                        return OrEffector(*(StateEffector(x) for x in elemental_states), name=str(effector.expr))
+                    return OrEffector(*(StateEffector(x) for x in elemental_states), name=str(effector.expr))
+
+                    # if len(elemental_states) == 1:
+                    #     return StateEffector(elemental_states[0])
+                    # else:
+                    #     return OrEffector(*(StateEffector(x) for x in elemental_states), name=str(effector.expr))
             elif isinstance(effector, AndEffector):
                 return AndEffector(*(expanded_effector(x) for x in effector.exprs), name=effector.name,
                                    equivs=effector.equivs)

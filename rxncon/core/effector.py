@@ -368,7 +368,21 @@ class NotEffector(Effector):
 class NaryEffector(Effector, ABC):
     """NaryEffector is an abstract parent class for AndEffector and OrEffector. It can also hold a name which is
     derived from the Boolean Contingency from which it was constructed. It holds StructEquivalences between the
-    Specs in its own namespace and in the namespaces of its member Effectors.."""
+    Specs in its own namespace and in the namespaces of its member Effectors."""
+    def __new__(cls, *exprs: Effector, **kwargs):
+        assert len(exprs) != 0
+
+        if len(exprs) == 1:
+            res = deepcopy(exprs[0])
+            try:
+                res.name = kwargs['name']
+            except KeyError:
+                res.name = None
+
+            return res
+        else:
+            return super().__new__(cls)
+
     def __init__(self, *exprs: Effector, **kwargs: Any) -> None:
         self.exprs = exprs
 
@@ -417,7 +431,18 @@ class NaryEffector(Effector, ABC):
 
 
 class AndEffector(NaryEffector):
-    """AndEffector describes a logical AND between two or more Effectors."""
+    """AndEffector describes a logical AND between two or more Effectors. If the AndEffector
+    contains only a single effector, we replace the AndEffector's construction with that
+    single effector."""
+    def __deepcopy__(self, memodict: Dict) -> 'AndEffector':
+        """It is required to override __deepcopy__ since we are overriding __new__ with the
+        functionality to return an object of a different class."""
+        res = AndEffector(*(deepcopy(x) for x in self.exprs))
+        res.name = self.name
+        res.equivs = deepcopy(self.equivs)
+
+        return res
+
     def __str__(self) -> str:
         if self.name:
             return 'AndEffector{0}({1})'.format(self.name, ','.join(str(x) for x in self.exprs))
@@ -434,7 +459,18 @@ class AndEffector(NaryEffector):
 
 
 class OrEffector(NaryEffector):
-    """OrEffector describes a logical OR between two or more Effectors."""
+    """OrEffector describes a logical OR between two or more Effectors. If the OrEffector
+    contains only a single effector, we replace the OrEffector's construction with that
+    single effector."""
+    def __deepcopy__(self, memodict: Dict) -> 'OrEffector':
+        """It is required to override __deepcopy__ since we are overriding __new__ with the
+        functionality to return an object of a different class."""
+        res = OrEffector(*(deepcopy(x) for x in self.exprs))
+        res.name = self.name
+        res.equivs = deepcopy(self.equivs)
+
+        return res
+
     def __str__(self) -> str:
         if self.name:
             return 'OrEffector{0}({1})'.format(self.name, ','.join(str(x) for x in self.exprs))

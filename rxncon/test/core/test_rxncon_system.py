@@ -83,6 +83,18 @@ def test_non_elemental_contingency() -> None:
     assert contingencies[0].effector.name == 'B-{p}'
 
 
+def test_non_elemental_contingency_single_state() -> None:
+    rxncon_sys = Quick('''A_trsl_BmRNA
+                       C_p+_B_[(r1)]
+                       D_[x]_ppi_B_[y] ; ! B-{p}''').rxncon_system
+
+    contingencies = rxncon_sys.contingencies_for_reaction(reaction_from_str('D_[x]_ppi+_B_[y]'))
+
+    assert len(contingencies) == 1
+    assert contingencies[0].effector.name == 'B-{p}'
+
+
+
 def test_inconsistent_system() -> None:
     with pytest.raises(AssertionError):
         Quick('''A_ppi_B ; ! <X>

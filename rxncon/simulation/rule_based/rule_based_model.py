@@ -804,7 +804,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
         def observable_complex(states: List[State]) -> Complex:
             builder = ComplexExprBuilder()
 
-            assert all(x.is_structured for x in states)
+            assert all(x.is_structured for x in states), 'Unstructured states appearing in observable ' \
+                                                         '{}'.format(states)
 
             for state in states:
                 for func in STATE_TO_COMPLEX_BUILDER_FN[type(state)]:  # type: ignore
@@ -812,7 +813,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
 
             complexes = builder.build(only_reactants=False)
 
-            assert len(complexes) == 1
+            assert len(complexes) == 1, 'Multiple complexes appearing in observable {}'.format(states)
             return complexes[0]
 
         observables = []

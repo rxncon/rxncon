@@ -170,3 +170,21 @@ def test_single_structured_state_spec_not_in_reaction() -> None:
     ]
     with pytest.raises(AssertionError):
         contingencies_from_contingency_list_entries(cles)[0].to_structured().effector.states
+
+
+def test_unary_and_contingency() -> None:
+    cles = [
+        cle_from_str('A_[b]_ppi+_B_[a]', '!', '<x>'),
+        cle_from_str('<x>', 'AND', 'A-{p}')
+    ]
+
+    assert isinstance(contingencies_from_contingency_list_entries(cles)[0].effector, StateEffector)
+
+
+def test_unary_or_contingency() -> None:
+    cles = [
+        cle_from_str('A_[b]_ppi+_B_[a]', '!', '<x>'),
+        cle_from_str('<x>', 'OR', 'A-{p}')
+    ]
+
+    assert isinstance(contingencies_from_contingency_list_entries(cles)[0].effector, StateEffector)

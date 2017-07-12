@@ -232,12 +232,12 @@ def _create_boolean_contingency_to_effector(boolean_contingencies: List[Continge
         effector_terms = [_unary_effector_from_boolean_contingency_entry(x) for x in current_contingencies]
 
         if boolean_operator == BooleanOperator.op_and:
-            assert len(effector_terms) > 1, 'AND operator {} contains < 2 terms.'.format(
-                ' & '.join(str(x) for x in effector_terms))
+            # assert len(effector_terms) > 1, 'AND operator {} contains < 2 terms.'.format(
+            #     ' & '.join(str(x) for x in effector_terms))
             effector = AndEffector(*effector_terms)  # type: Effector
         elif boolean_operator == BooleanOperator.op_or:
-            assert len(effector_terms) > 1, 'OR operator {} contains < 2 terms.'.format(
-                ' & '.join(str(x) for x in effector_terms))
+            # assert len(effector_terms) > 1, 'OR operator {} contains < 2 terms.'.format(
+            #     ' & '.join(str(x) for x in effector_terms))
             effector = OrEffector(*effector_terms)
         elif boolean_operator == BooleanOperator.op_not:
             assert len(effector_terms) == 1, 'AND operator {} contains != 1 term.'.format(
