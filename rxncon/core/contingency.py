@@ -34,8 +34,12 @@ class Contingency:
     """Contingency holds the triple `reaction`, `type`, `effector` describing a contingency in a rxncon model.
     Contingency objects are constructed from ContingencyListEntry objects, that live in the module
     rxncon.input.shared.contingency_list."""
-    def __init__(self, reaction: Reaction, contingency_type: ContingencyType, effector: Effector) -> None:
+    def __init__(self, reaction: Reaction, contingency_type: ContingencyType,
+                 effector: Effector, validate_equivs_specs: bool=True) -> None:
         self.reaction, self.contingency_type, self.effector = reaction, contingency_type, effector
+
+        if validate_equivs_specs:
+            self.validate_equivs_specs()
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Contingency):
@@ -62,6 +66,7 @@ class Contingency:
         equivs, counter = structured.effector.collect_global_equivs(equivs, counter, namespace)
         structured.effector = structured.effector.to_global_struct_effector(equivs, counter, namespace)
         structured.validate_struct_indices()
+        structured.validate_equivs_specs()
         return structured
 
     def to_structured(self) -> 'Contingency':
@@ -150,3 +155,20 @@ class Contingency:
 
         assert all(len(x) == 1 for _, x in index_to_specs.items()), 'Structure indices not uniquely assigned in {}'\
             .format(index_to_specs)
+
+    def validate_equivs_specs(self) -> None:
+        """Assert that the component Specs appearing in the struct equivalences are appearing either
+        in the States of the Effector or in the Reaction."""
+        from_equivs = [spec.to_non_struct_spec() for spec in self.effector.equivs_specs]
+        from_states = [spec.to_non_struct_spec() for state in self.effector.states for spec in state.components]
+        from_reaction = [spec.to_non_struct_spec() for spec in self.reaction.components]
+
+        for spec in from_equivs:
+            assert spec in from_states or spec in from_reaction, \
+                'Unknown Spec {} appearing in equivalences for reaction {}'.format(spec, self.reaction)
+
+
+
+
+
+

@@ -91,8 +91,8 @@ def test_non_elemental_contingency_single_state() -> None:
     contingencies = rxncon_sys.contingencies_for_reaction(reaction_from_str('D_[x]_ppi+_B_[y]'))
 
     assert len(contingencies) == 1
+    print(contingencies[0].effector)
     assert contingencies[0].effector.name == 'B-{p}'
-
 
 
 def test_inconsistent_system() -> None:

@@ -13,8 +13,8 @@ from typing import Dict, List, Union, Tuple, Optional
 from rxncon.core.contingency import ContingencyType, Contingency
 from rxncon.core.effector import StateEffector, NotEffector, OrEffector, Effector, AndEffector, \
     BOOLEAN_CONTINGENCY_REGEX, BooleanOperator, BooleanContingencyName, QualSpec, qual_spec_from_str, StructEquivalences
-from rxncon.core.reaction import Reaction
-from rxncon.core.reaction import reaction_from_str
+from rxncon.core.reaction import Reaction, reaction_from_str
+from rxncon.core.spec import Spec
 from rxncon.core.state import state_from_str, State
 from rxncon.util.utils import current_function_name
 
@@ -137,7 +137,8 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
         entry = reaction_entries.pop()
         contingencies.append(Contingency(entry.subj,
                                          ContingencyType(entry.verb),
-                                         _unary_effector_from_boolean_contingency_entry(entry)))
+                                         _unary_effector_from_boolean_contingency_entry(entry),
+                                         validate_equivs_specs=False))
 
     Effector.dereference = _dereference_boolean_contingency_effectors  # type: ignore
     Effector.contains_booleans = _contains_boolean_contingency_effectors  # type: ignore
@@ -149,6 +150,9 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
 
     del Effector.dereference  # type: ignore
     del Effector.contains_booleans  # type: ignore
+
+    for contingency in contingencies:
+        contingency.validate_equivs_specs()
 
     return contingencies
 
@@ -166,7 +170,14 @@ class _BooleanContingencyEffector(Effector):
             return NotImplemented
         return isinstance(other, _BooleanContingencyEffector) and self.expr == other.expr
 
+    @property
+    def equivs_specs(self) -> List[Spec]:
+        return self.equivs.specs
+
+    @property
     def states(self) -> List[State]:
+        print('self.name')
+        print(self.__class__)
         return []
 
 
@@ -240,7 +251,7 @@ def _create_boolean_contingency_to_effector(boolean_contingencies: List[Continge
             #     ' & '.join(str(x) for x in effector_terms))
             effector = OrEffector(*effector_terms)
         elif boolean_operator == BooleanOperator.op_not:
-            assert len(effector_terms) == 1, 'AND operator {} contains != 1 term.'.format(
+            assert len(effector_terms) == 1, 'NOT operator {} contains != 1 term.'.format(
                 ' & '.join(str(x) for x in effector_terms))
             effector = NotEffector(effector_terms[0])
         else:

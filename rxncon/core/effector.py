@@ -98,6 +98,11 @@ class StructEquivalences:
     def __str__(self) -> str:
         return '\n'.join(str(x) for x in self.eq_classes)
 
+    @property
+    def specs(self):
+        return list(set(qual_spec.spec.to_component_spec().to_non_struct_spec()
+                        for eq_class in self.eq_classes for qual_spec in eq_class))
+
     def add_equivalence(self, first_qual_spec: QualSpec, second_qual_spec: QualSpec) -> None:
         first_qual_spec, second_qual_spec = first_qual_spec.to_component_qual_spec(), \
                                             second_qual_spec.to_component_qual_spec()
@@ -164,6 +169,10 @@ class TrivialStructEquivalences(StructEquivalences):
     def __str__(self) -> str:
         return 'TrivialStructEquivalences'
 
+    @property
+    def specs(self):
+        return list(set(spec.to_component_spec().to_non_struct_spec() for spec in self.struct_specs.keys()))
+
     def add_equivalence(self, first_qual_spec: QualSpec, second_qual_spec: QualSpec) -> None:
         pass
 
@@ -201,17 +210,6 @@ class StructCounter:
 class Effector(ABC):
     """Effector is the abstract parent class of the different types of Effector."""
     @property
-    def name(self) -> Optional[str]:
-        try:
-            return self._name
-        except AttributeError:
-            return None
-
-    @name.setter
-    def name(self, value: str) -> None:
-        self._name = value
-
-    @property
     @abstractmethod
     def states(self) -> List[State]:
         pass
@@ -219,6 +217,10 @@ class Effector(ABC):
     @property
     def is_structured(self) -> bool:
         raise NotImplementedError
+
+    @property
+    def equivs_specs(self) -> List[Spec]:
+        return []
 
     def collect_global_equivs(self, glob_equivs: StructEquivalences=None,
                               counter: StructCounter=None,
@@ -248,8 +250,9 @@ class Effector(ABC):
 
 class StateEffector(Effector):
     """StateEffector holds a State and therefore is a leaf in the Effector."""
-    def __init__(self, expr: State) -> None:
+    def __init__(self, expr: State, name: Optional[str]=None) -> None:
         self.expr = expr
+        self.name = name
 
     def __hash__(self) -> int:
         return hash(str(self))
@@ -307,7 +310,7 @@ class StateEffector(Effector):
         state.update_specs(updates)
         LOGGER.debug('{} : Result {}'.format(current_function_name(), str(state)))
 
-        return StateEffector(state)
+        return StateEffector(state, name=self.name)
 
     @staticmethod
     def _generate_index(glob_equivs: StructEquivalences, cur_index: StructCounter) -> int:
@@ -326,7 +329,7 @@ class NotEffector(Effector):
         try:
             self.name = kwargs['name']
         except KeyError:
-            pass
+            self.name = None
         self.expr = expr
 
     def __str__(self) -> str:
@@ -344,6 +347,10 @@ class NotEffector(Effector):
     @property
     def is_structured(self) -> bool:
         return self.expr.is_structured
+
+    @property
+    def equivs_specs(self) -> List[Spec]:
+        return self.expr.equivs_specs
 
     def collect_global_equivs(self, glob_equivs: StructEquivalences = None,
                               counter: StructCounter = None,
@@ -389,7 +396,7 @@ class NaryEffector(Effector, ABC):
         try:
             self.name = kwargs['name']
         except KeyError:
-            pass
+            self.name = None
 
         try:
             self.equivs = kwargs['equivs']
@@ -403,6 +410,10 @@ class NaryEffector(Effector, ABC):
     @property
     def is_structured(self) -> bool:
         return all(x.is_structured for x in self.exprs)
+
+    @property
+    def equivs_specs(self) -> List[Spec]:
+        return self.equivs.specs + [spec for expr in self.exprs for spec in expr.equivs_specs]
 
     def collect_global_equivs(self, glob_equivs: StructEquivalences = None,
                               counter: StructCounter = None,

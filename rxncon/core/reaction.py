@@ -508,6 +508,10 @@ class Reaction:  # pylint: disable=too-many-instance-attributes
         return [spec for term in self.terms_rhs for spec in term.specs]
 
     @property
+    def components(self) -> List[Spec]:
+        return list(set(self.components_lhs + self.components_rhs))
+
+    @property
     def components_lhs_structured(self) -> List[Spec]:
         return [spec.with_struct_index(i) for i, spec in enumerate(self.components_lhs)]
 
