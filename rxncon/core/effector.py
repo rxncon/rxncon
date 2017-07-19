@@ -96,7 +96,11 @@ class StructEquivalences:
         self.eq_classes = []  # type: List[List[QualSpec]]
 
     def __str__(self) -> str:
-        return '\n'.join(str(x) for x in self.eq_classes)
+        s = ''
+        for num, eq_class in enumerate(self.eq_classes):
+            s = s + 'EqClass {}: {}\n'.format(num, str(eq_class))
+
+        return s
 
     @property
     def specs(self):
