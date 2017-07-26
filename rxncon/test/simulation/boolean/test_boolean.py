@@ -1,4 +1,5 @@
 from rxncon.input.quick.quick import Quick
+from rxncon.input.excel_book.excel_book import ExcelBook
 from rxncon.simulation.boolean.boolean_model import boolean_model_from_rxncon, ReactionTarget, \
     StateTarget, SmoothingStrategy
 from rxncon.simulation.boolean.boolnet_from_boolean_model import boolnet_from_boolean_model

@@ -464,7 +464,7 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
         Degradation reactions are handled differently then other reactions. An OR contingency will lead to a
         split of the degradation reaction in as many reactions as OR statements. Each OR will be assigned to one
         instance of the reaction."""
-        reaction_targets = []
+        reaction_targets = set()
 
         for reaction in rxncon_sys.reactions:
             factors = (x.to_venn_set(k_plus_strict=k_plus_strict, k_minus_strict=k_minus_strict, structured=False,
@@ -473,16 +473,16 @@ def boolean_model_from_rxncon(rxncon_sys: RxnConSystem,
             cont = Intersection(*factors).to_simplified_set()  # type: VennSet[StateTarget]
             # The reaction is not a degradation reaction or the DNF has just one term.
             if not reaction.degraded_components or len(cont.to_dnf_list()) == 1:
-                reaction_targets.append(ReactionTarget(reaction, contingency_factor=cont))
+                reaction_targets.add(ReactionTarget(reaction, contingency_factor=cont))
             # The reaction is a degradation reaction
             else:
                 # The reaction is split into separated entities according to the number of minterms of the
                 # disjunctive normal form (dnf). Each minterm will be assigned to a entity of the degradation reaction.
                 for index, factor in enumerate(cont.to_dnf_list()):
-                    reaction_targets.append(
+                    reaction_targets.add(
                         ReactionTarget(reaction, contingency_variant=index, contingency_factor=factor))
 
-        return reaction_targets
+        return list(reaction_targets)
 
     def update_degs_add_component_states(reaction_targets: List[ReactionTarget],
                                          component_state_targets: List[ComponentStateTarget]) -> List[ReactionTarget]:

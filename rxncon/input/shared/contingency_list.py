@@ -176,8 +176,6 @@ class _BooleanContingencyEffector(Effector):
 
     @property
     def states(self) -> List[State]:
-        print('self.name')
-        print(self.__class__)
         return []
 
 

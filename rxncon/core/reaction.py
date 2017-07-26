@@ -594,6 +594,9 @@ class OutputReaction(Reaction):
         self.terms_lhs = []
         self.terms_rhs = []
 
+    def __hash__(self) -> int:
+        return hash(str(self))
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Reaction):
             return NotImplemented
