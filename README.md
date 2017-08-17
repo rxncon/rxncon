@@ -2,6 +2,13 @@
 
 The purpose of rxncon is to provide a framework to collect, visualise and model experimental data on cellular networks. In the rxncon framework, cellular signal transduction networks are described at the same granularity as empirical data. The key feature is strict separation of elemental reactions from contingencies, which define contextual constrains on these reactions, and this separation minimises the combinatorial complexity. The user defines the network as one reaction list and one contingency list. From these data mathematical and graphical representation can be generated. The network can be easily modified and extended, and both visualization and mathematical models can be generated automatically at any time.
 
+For more details we refer to the following publications:
+
+* Tiger, C.-F., Krause, F., Cedersund, G., Palmér, R., Klipp. E., Hohmann, S., Kitano, H. & Krantz, M. (2012)
+A framework for mapping, visualisation and automatic model creation of signal transduction networks. [Molecular Systems Biology 8, 578](http://www.nature.com/msb/journal/v8/n1/full/msb201212.html).
+
+* Romers, J.C. & Krantz, M. (2017) rxncon 2.0: a language for executable molecular systems biology. [bioRxiv:107136](https://doi.org/10.1101/107136)
+
 ## Installation
 
 This software requires Python 3.5 or higher. Installation is straightforward
@@ -13,6 +20,10 @@ This should install all libraries and the command-line tools to interface with t
 on your machine.
 
 ## Usage
+
+Please clone our [models repository](https://github.com/rxncon/models) to find
+an example model describing the insulin pathway, as well as an example Excel
+sheet that you can use to create your own models.
 
 ## For devs
 
