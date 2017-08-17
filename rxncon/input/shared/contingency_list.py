@@ -135,6 +135,7 @@ def contingencies_from_contingency_list_entries(entries: List[ContingencyListEnt
 
     while reaction_entries:
         entry = reaction_entries.pop()
+        assert isinstance(entry.subj, Reaction)
         contingencies.append(Contingency(entry.subj,
                                          ContingencyType(entry.verb),
                                          _unary_effector_from_boolean_contingency_entry(entry),

@@ -213,6 +213,11 @@ class StructCounter:
 
 class Effector(ABC):
     """Effector is the abstract parent class of the different types of Effector."""
+    def __init__(self):
+        """All children have the `name` attribute, this code will never be called but exists purely to
+        satisy the type checker."""
+        self.name = None  # type: Optional[str]
+
     @property
     @abstractmethod
     def states(self) -> List[State]:

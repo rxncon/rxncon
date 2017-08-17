@@ -409,7 +409,7 @@ def initialize_reaction_defs(additional_defs: List[Dict[str, str]]=None) -> None
         'residue': LocusResolution.residue
     }
 
-    parsed_defs = []
+    parsed_defs = []  # type: List[ReactionDef]
 
     for additional_def in additional_defs:
         raw_rxn_def = ReactionDef(
