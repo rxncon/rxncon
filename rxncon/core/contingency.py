@@ -69,7 +69,7 @@ class Contingency:
         structured.validate_equivs_specs()
         return structured
 
-    def to_structured(self) -> 'Contingency':
+    def to_structured(self, counter_start: Optional[int]=None) -> 'Contingency':
         """Returns a Contingency object where the structure information is merged among all Effector objects. This
         method first determines the equivalences, after which it calls the `with_merged_struct_effector` method."""
         LOGGER.debug('{}: {}'.format(current_function_name(), str(self)))
@@ -94,7 +94,7 @@ class Contingency:
                 except KeyError:
                     pass
 
-            return self.with_merged_struct_effector(equivs, None, [str(self.reaction)])
+            return self.with_merged_struct_effector(equivs, StructCounter(counter_start), [str(self.reaction)])
         elif self.effector.is_structured:
             # A fully structured Boolean Effector needs to have its structure indices merged.
             return self.with_merged_struct_effector()

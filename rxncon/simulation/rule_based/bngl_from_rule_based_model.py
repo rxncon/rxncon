@@ -97,7 +97,7 @@ def _str_from_observable(observable: Observable) -> str:
 
 
 def _str_from_rule(rule: Rule) -> str:
-    return '# {3}\n{0} -> {1}   {2}'.format(' + '.join(_str_from_complex(x) for x in rule.lhs),
+    return '# {3}, {4}\n{0} -> {1}   {2}\n'.format(' + '.join(_str_from_complex(x) for x in rule.lhs),
                                             ' + '.join(_str_from_complex(x) for x in rule.rhs),
-                                            rule.rate.name if rule.rate.name else rule.rate.value,
-                                            str(rule.parent_reaction))
+                                                 rule.rate.name if rule.rate.name else rule.rate.value,
+                                                 str(rule.parent_reaction), str(rule.quant_cont))

@@ -256,7 +256,15 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
 
     def _structure_contingencies(self) -> None:
         """Structures (i.e. augment with topological data) all contingencies."""
-        self.contingencies = [c.to_structured() for c in self.contingencies]
+        structured_conts = []
+
+        for rxn in self.reactions:
+            counter_start = 2
+            for con in self.contingencies_for_reaction(rxn):
+                structured_conts.append(con.to_structured(counter_start))
+                counter_start += 100
+
+        self.contingencies = structured_conts
 
     def _missing_states(self) -> List[State]:
         """Returns the States that appear in contingencies, but which are not produced, consumed, synthesised

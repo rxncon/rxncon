@@ -427,9 +427,10 @@ class Observable:
 
 class Rule:
     def __init__(self, lhs: List[Complex], rhs: List[Complex], rate: Parameter,
-                 parent_reaction: Reaction = None) -> None:
+                 parent_reaction: Reaction = None, quant_cont: Optional[VennSet[State]]=None) -> None:
         self.lhs, self.rhs, self.rate = sorted(lhs), sorted(rhs), rate
         self.parent_reaction = parent_reaction
+        self.quant_cont = quant_cont
 
     def __str__(self) -> str:
         return ' + '.join(str(x) for x in self.lhs) + ' -> ' + ' + '.join(str(x) for x in self.rhs) + \
@@ -597,6 +598,7 @@ def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
     complex_constraints = []
 
     for complex in complexes:  # pylint: disable=redefined-builtin
+        LOGGER.debug('{} : Complex {}'.format(current_function_name(), complex))
         state_paths = calc_state_paths(complex)
         constraint = UniversalSet()  # type:  VennSet[State]
 
@@ -610,9 +612,10 @@ def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
             for path in state_paths[state]:
                 state_constraints.append(Intersection(*(ValueSet(x) for x in path)))
 
-            constraint = Intersection(constraint, Union(*state_constraints))  # pylint: disable=redefined-variable-type
+            constraint = Intersection(constraint, Union(*state_constraints)).to_simplified_set()
 
-        complex_constraints.append(constraint.to_simplified_set())
+            if constraint not in complex_constraints:
+                complex_constraints.append(constraint)
 
     if complex_constraints:
         LOGGER.debug('{} : Complex constraints {}'.format(current_function_name(),
@@ -861,11 +864,15 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
             for solution in solutions:
                 positive_solutions += calc_positive_solutions(rxncon_sys, solution)
 
+            if not positive_solutions:
+                LOGGER.debug('{} : could not find positive solutions'.format(current_function_name()))
+
             for positive_solution in positive_solutions:
                 LOGGER.debug('{} : positivized contingency solution {}'
                              .format(current_function_name(), ' & '.join(str(x) for x in positive_solution)))
                 rule = calc_rule(reaction, positive_solution)
                 if not any(rule.is_equivalent_to(existing) for existing in rules):
+                    rule.quant_cont = quant_contingency_set
                     rules.append(rule)
 
     return RuleBasedModel(mol_defs, calc_initial_conditions(mol_defs), [], calc_observables(rxncon_sys), rules)

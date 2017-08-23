@@ -202,10 +202,12 @@ class TrivialStructEquivalences(StructEquivalences):
 
 
 class StructCounter:
-    """StructCounter is a helper class that generates structure indices. It starts counting at 2 since the
+    """StructCounter is a helper class that generates structure indices. By default it starts counting at 2 since the
     numbers 0 and 1 are reserved for the reactants."""
-    def __init__(self) -> None:
-        self.value = 2
+    def __init__(self, counter_start: Optional[int]=2) -> None:
+        if counter_start is None:
+            counter_start = 2
+        self.value = counter_start
 
     def increment(self) -> None:
         self.value += 1

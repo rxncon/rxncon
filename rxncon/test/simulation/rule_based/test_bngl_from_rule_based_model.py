@@ -2,6 +2,7 @@ from rxncon.input.quick.quick import Quick
 from rxncon.simulation.rule_based.rule_based_model import rule_based_model_from_rxncon
 from rxncon.simulation.rule_based.bngl_from_rule_based_model import bngl_from_rule_based_model
 
+
 def test_simple_system() -> None:
     rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p}
                                              A_[b]_ppi-_B_[a]
@@ -36,14 +37,18 @@ begin observables
 end observables
 
 begin reaction rules
-# A_[b]_ppi+_B_[a]
+# A_[b]_ppi+_B_[a], UniversalSet
 A(bD,rR~p) + B(aD) -> A(bD!1,rR~p).B(aD!1)   k
-# A_[b]_ppi-_B_[a]
+
+# A_[b]_ppi-_B_[a], UniversalSet
 A(bD!1).B(aD!1) -> A(bD) + B(aD)   k
-# C_p+_A_[(r)]
+
+# C_p+_A_[(r)], UniversalSet
 A(rR~0) + C() -> A(rR~p) + C()   k
-# D_p-_A_[(r)]
+
+# D_p-_A_[(r)], UniversalSet
 A(rR~p) + D() -> A(rR~0) + D()   k
+
 end reaction rules
 
 end model
