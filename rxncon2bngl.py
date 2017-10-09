@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/Users/jcr/anaconda/bin/python3
 
 import os, logging
 import click
@@ -27,8 +27,9 @@ def write_bngl(excel_filename: str, base_name=None):
     excel_book = ExcelBook(excel_filename)
 
     rxncon_system = excel_book.rxncon_system
-    print('Constructed rxncon system: [{} reactions], [{} contingencies]'
-          .format(len(rxncon_system.reactions), len(rxncon_system.contingencies)))
+    print('Constructed rxncon system: [{} reactions], [{} contingencies], [{} components], [{} elemental states]'
+          .format(len(rxncon_system.reactions), len(rxncon_system.contingencies), len(rxncon_system.components()),
+                  len(rxncon_system.states)))
 
     print('Generating BNGL output ...')
     rbm = rule_based_model_from_rxncon(rxncon_system)
