@@ -283,40 +283,39 @@ def test_single_inhibition_interaction() -> None:
         assert any(initial_condition_from_str(ic).is_equivalent_to(actual_ic) for ic in expected_ics)
 
 
-# def test_boolean_requirement_interaction() -> None:
-#     rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
-#                                              C_ppi+_D
-#                                              B_ppi+_E
-#                                              B_ppi+_F
-#                                              A_ppi+_B; ! <comp1>
-#                                              <comp1>; OR <comp1C1>
-#                                              <comp1>; OR <comp2C1>
-#                                              <comp1C1>; AND A--C
-#                                              <comp1C1>; AND C--D
-#                                              <comp2C1>; AND B--F
-#                                              <comp2C1>; AND B--E''').rxncon_system)
-#
-#     expected_rules = [
-#         'A(CD) + C(AD) -> A(CD!1).C(AD!1) k',
-#         'C(DD) + D(CD) -> C(DD!1).D(CD!1) k',
-#         'B(ED) + E(BD) -> B(ED!1).E(BD!1) k',
-#         'B(FD) + F(BD) -> B(FD!1).F(BD!1) k',
-#         'A(BD,CD) + B(AD,ED!2,FD!1).E(BD!2).F(BD!1) -> A(BD!3,CD).B(AD!3,ED!2,FD!1).E(BD!2).F(BD!1) k',
-#
-#         'A(BD,CD!2).C(AD!2,DD) + B(AD,ED!3,FD!1).E(BD!3).F(BD!1) -> '
-#         'A(BD!4,CD!2).B(AD!4,ED!3,FD!1).C(AD!2,DD).E(BD!3).F(BD!1) k',
-#
-#         'A(BD,CD!1).C(AD!1,DD!2).D(CD!2) + B(AD,FD) -> A(BD!3,CD!1).B(AD!3, FD).C(AD!1,DD!2).D(CD!2) k',
-#
-#         'A(BD,CD!1).C(AD!1,DD!2).D(CD!2) + B(AD,FD!4).F(BD!4) -> '
-#         'A(BD!3,CD!1).B(AD!3,FD!4).F(BD!4).C(AD!1,DD!2).D(CD!2) k'
-#     ]
-#
-#     assert len(rbm.rules) == len(expected_rules)
-#
-#     for actual_rule in rbm.rules:
-#         print(actual_rule)
-#         assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
+def test_boolean_requirement_interaction() -> None:
+    rbm = rule_based_model_from_rxncon(Quick('''A_ppi+_C
+                                             C_ppi+_D
+                                             B_ppi+_E
+                                             B_ppi+_F
+                                             A_ppi+_B; ! <comp1>
+                                             <comp1>; OR <comp1C1>
+                                             <comp1>; OR <comp2C1>
+                                             <comp1C1>; AND A--C
+                                             <comp1C1>; AND C--D
+                                             <comp2C1>; AND B--F
+                                             <comp2C1>; AND B--E''').rxncon_system)
+
+    expected_rules = [
+        'A(CD) + C(AD) -> A(CD!1).C(AD!1) k',
+        'C(DD) + D(CD) -> C(DD!1).D(CD!1) k',
+        'B(ED) + E(BD) -> B(ED!1).E(BD!1) k',
+        'B(FD) + F(BD) -> B(FD!1).F(BD!1) k',
+        'A(BD,CD) + B(AD,ED!2,FD!1).E(BD!2).F(BD!1) -> A(BD!3,CD).B(AD!3,ED!2,FD!1).E(BD!2).F(BD!1) k',
+
+        'A(BD,CD!2).C(AD!2,DD) + B(AD,ED!3,FD!1).E(BD!3).F(BD!1) -> '
+        'A(BD!4,CD!2).B(AD!4,ED!3,FD!1).C(AD!2,DD).E(BD!3).F(BD!1) k',
+
+        'A(BD,CD!1).C(AD!1,DD!2).D(CD!2) + B(AD,FD) -> A(BD!3,CD!1).B(AD!3,FD).C(AD!1,DD!2).D(CD!2) k',
+
+        'A(BD,CD!1).C(AD!1,DD!2).D(CD!2) + B(AD,FD!4).F(BD!4) -> '
+        'A(BD!3,CD!1).B(AD!3,FD!4).F(BD!4).C(AD!1,DD!2).D(CD!2) k'
+    ]
+
+    assert len(rbm.rules) == len(expected_rules)
+
+    for actual_rule in rbm.rules:
+        assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
 
 
 def test_boolean_inhibition_interaction() -> None:
