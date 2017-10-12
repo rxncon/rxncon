@@ -382,8 +382,8 @@ class ComplexExprBuilder:
 
 
 class Parameter:
-    def __init__(self, name: str, value: Optional[str]) -> None:
-        self.name, self.value = name, value
+    def __init__(self, name: str, value: Optional[str], description: Optional[str]='') -> None:
+        self.name, self.value, self.description = name, value, description
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Parameter):
@@ -446,7 +446,10 @@ class Rule:
                self.rate == other.rate and self.parent_reaction == other.parent_reaction
 
     def is_equivalent_to(self, other: 'Rule') -> bool:
-        if len(self.lhs) != len(other.lhs) or len(self.rhs) != len(other.rhs) or self.rate.name != other.rate.name:
+        # "Loosely" equates rules. Skips checks on rate name,
+        # checks whether the complexes on both sides
+        # of both rules are the same. Used for testing.
+        if len(self.lhs) != len(other.lhs) or len(self.rhs) != len(other.rhs):
             return False
 
         if self == other:
@@ -661,7 +664,12 @@ class QuantContingencyConfigs(Iterator[VennSet[State]]):  # pylint: disable=too-
     def __next__(self) -> VennSet[State]:
         try:
             self.current_combi_set += 1
-            return self.combi_sets[self.current_combi_set]
+            the_set = self.combi_sets[self.current_combi_set]
+            if len(self.combi_sets) == 1:
+                the_set.rate_constant_desc = ''
+            else:
+                the_set.rate_constant_desc = '_{}'.format(self.current_combi_set + 1)
+            return the_set
         except IndexError:
             raise StopIteration
 
@@ -765,7 +773,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
 
         return solutions
 
-    def calc_rule(reaction: Reaction, cont_soln: List[State]) -> Rule:
+    def calc_rule(reaction: Reaction, cont_soln: List[State], quant_cont: VennSet[State]) -> Rule:
         def calc_complexes(terms: List[ReactionTerm], states: List[State]) -> List[Complex]:
             if not all(x.is_structured for x in states):
                 unstructs = [x for x in states if not x.is_structured]
@@ -801,9 +809,10 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
         lhs = calc_complexes(reaction.terms_lhs, cont_soln)
         rhs = calc_complexes(reaction.terms_rhs, cont_soln)
 
-        rate = Parameter('k', '1.0')
+        rate = Parameter('k_{}{}'.format(rxncon_sys.reaction_number(reaction) + 1, quant_cont.rate_constant_desc), '1.0',
+                         description=str(reaction))
 
-        return Rule(lhs, rhs, rate, parent_reaction=reaction)
+        return Rule(lhs, rhs, rate, parent_reaction=reaction, quant_cont=quant_cont)
 
     def calc_initial_conditions(mol_defs: List[MolDef]) -> List[InitialCondition]:
         return \
@@ -858,6 +867,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
         quant_contingencies = QuantContingencyConfigs(rxncon_sys.q_contingencies_for_reaction(reaction))
         LOGGER.debug('{} : Strict contingencies {}'.format(current_function_name(), str(strict_cont_set)))
 
+        found_solution = False
+
         for quant_contingency_set in quant_contingencies:
             LOGGER.debug(
                 '{} : quantitative contingency config: {}'.format(current_function_name(), str(quant_contingency_set)))
@@ -872,16 +883,16 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
             for solution in solutions:
                 positive_solutions += calc_positive_solutions(rxncon_sys, solution)
 
-            if not positive_solutions:
-                LOGGER.error('{} : could not find positive solutions'.format(current_function_name()))
-
             for positive_solution in positive_solutions:
+                found_solution = True
                 LOGGER.debug('{} : positivized contingency solution {}'
                              .format(current_function_name(), ' & '.join(str(x) for x in positive_solution)))
-                rule = calc_rule(reaction, positive_solution)
+                rule = calc_rule(reaction, positive_solution, quant_contingency_set)
                 if not any(rule.is_equivalent_to(existing) for existing in rules):
-                    rule.quant_cont = quant_contingency_set
                     rules.append(rule)
+
+        if not found_solution:
+            LOGGER.error('{} : could not find positive solutions'.format(current_function_name()))
 
     return RuleBasedModel(mol_defs, calc_initial_conditions(mol_defs), [], calc_observables(rxncon_sys), rules)
 

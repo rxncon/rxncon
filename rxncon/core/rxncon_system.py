@@ -51,6 +51,9 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
 
         self.validate()
 
+    def reaction_number(self, reaction: Reaction) -> int:
+        return self.reactions.index(reaction)
+
     def validate(self) -> None:
         if not self.reactions:
             raise AssertionError('No reactions, boring!')

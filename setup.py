@@ -85,7 +85,7 @@ setup(
         'scipy',
         'pyeda',
         'click',
-        'click_log',
+        'click_log==0.1.8',
         'colorama',
         'xlrd',
         'networkx',

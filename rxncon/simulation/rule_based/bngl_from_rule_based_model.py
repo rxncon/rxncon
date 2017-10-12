@@ -31,7 +31,7 @@ def bngl_from_rule_based_model(rule_based_model: RuleBasedModel) -> str:
         return 'begin observables\n{0}\nend observables\n'.format('\n'.join(sorted(observables)))
 
     def reaction_rules_str() -> str:
-        rules = [_str_from_rule(rule) for rule in rule_based_model.rules]
+        rules = [_str_from_rule(rule, i) for i, rule in enumerate(rule_based_model.rules)]
         return 'begin reaction rules\n{0}\nend reaction rules\n'.format('\n'.join(rules))
 
     def footer_str() -> str:
@@ -81,8 +81,10 @@ def _str_from_initial_condition(initial_condition: InitialCondition) -> str:
 
 def _str_from_parameter(parameter: Parameter) -> str:
     assert parameter.name and parameter.value
-
-    return '{0}\t\t{1}'.format(parameter.name, parameter.value)
+    if parameter.description:
+        return '{0:<10}{1}\t\t#  {2}'.format(parameter.name, parameter.value, parameter.description)
+    else:
+        return '{0:<10}{1}'.format(parameter.name, parameter.value)
 
 
 def _str_from_observable(observable: Observable) -> str:
@@ -96,8 +98,8 @@ def _str_from_observable(observable: Observable) -> str:
     return 'Molecules\t{0}\t{1}'.format(clean(observable.name), _str_from_complex(observable.complex))
 
 
-def _str_from_rule(rule: Rule) -> str:
-    return '# {3}, {4}\n{0} -> {1}   {2}\n'.format(' + '.join(_str_from_complex(x) for x in rule.lhs),
-                                            ' + '.join(_str_from_complex(x) for x in rule.rhs),
-                                                 rule.rate.name if rule.rate.name else rule.rate.value,
-                                                 str(rule.parent_reaction), str(rule.quant_cont))
+def _str_from_rule(rule: Rule, index: int) -> str:
+    return '# Rule {5}. rxn: {3}, quant_cont: {4}\n{0} -> {1}   {2}\n'.format(' + '.join(_str_from_complex(x) for x in rule.lhs),
+                                                   ' + '.join(_str_from_complex(x) for x in rule.rhs),
+                                                   rule.rate.name if rule.rate.name else rule.rate.value,
+                                                   str(rule.parent_reaction), str(rule.quant_cont), index + 1)
