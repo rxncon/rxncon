@@ -517,6 +517,10 @@ def calc_physical_basis(states: List[State]) -> List[Dict[State, bool]]:
             self.states = states
             self.connected_bonds = []
 
+        def __str__(self) -> str:
+            return 'MolConfig({}: {})'.format(str(self.component),
+                                              ', '.join('{} {}'.format(str(s), str(v)) for s, v in self.states.items()))
+
         def is_valid(self) -> bool:
             for state, val in self.states.items():
                 if val and any(state.is_mutually_exclusive_with(other)
@@ -530,6 +534,13 @@ def calc_physical_basis(states: List[State]) -> List[Dict[State, bool]]:
             self.components = [mol_config.component]
             self.states = mol_config.states
             self.connected_bonds = []
+
+        def __eq__(self, other):
+            return set(self.components) == set(other.components) and self.states == other.states and \
+                set(self.connected_bonds) == set(other.connected_bonds)
+
+        def __str__(self) -> str:
+            return 'ComplexConfig({})'.format(', '.join('{} {}'.format(str(s), str(v)) for s, v in self.states.items()))
 
         def can_connect_with(self, mol_config: MolConfig) -> bool:
             return mol_config.component not in self.components and \
@@ -565,27 +576,34 @@ def calc_physical_basis(states: List[State]) -> List[Dict[State, bool]]:
 
     # This will contain a list of all complex configurations rooted at at least one of the reactants.
     complexes = []  # type: List[ComplexConfig]
+    molecules = []  # type: List[MolConfig]
 
     for component in components:
-        mols = [MolConfig(component, {state: val for state, val in zip(comp_to_states[component], combi)})
-                for combi in product((True, False), repeat=len(comp_to_states[component]))]
+        new_mols = [MolConfig(component, {state: val for state, val in zip(comp_to_states[component], combi)})
+                    for combi in product((True, False), repeat=len(comp_to_states[component]))]
 
-        mols = [m for m in mols if m.is_valid()]
+        new_mols = [m for m in new_mols if m.is_valid()]
 
         if component.struct_index in (0, 1):
-            complexes += [ComplexConfig(m) for m in mols]
+            complexes += [ComplexConfig(m) for m in new_mols]
 
-        new_complexes = []  # type: List[ComplexConfig]
+        molecules += new_mols
 
-        for (comp, mol) in product(complexes, mols):
+    finished = False
+    while not finished:
+        finished = True
+        for (comp, mol) in product(complexes, molecules):
             if comp.can_connect_with(mol):
-                new_complexes.append(comp.connected_with(mol))
+                new_comp = comp.connected_with(mol)
+                if new_comp not in complexes:
+                    complexes.append(new_comp)
+                    finished = False
 
-        complexes += new_complexes
+    complexes = [c for c in complexes if c.is_valid()]
 
-    both_reactants = [c for c in complexes if c.contains_first_reactant() and c.contains_second_reactant() and c.is_valid()]
-    first_reactant = [c for c in complexes if c.contains_first_reactant() and not c.contains_second_reactant() and c.is_valid()]
-    second_reactant = [c for c in complexes if not c.contains_first_reactant() and c.contains_second_reactant() and c.is_valid()]
+    both_reactants = [c for c in complexes if c.contains_first_reactant() and c.contains_second_reactant()]
+    first_reactant = [c for c in complexes if c.contains_first_reactant() and not c.contains_second_reactant()]
+    second_reactant = [c for c in complexes if not c.contains_first_reactant() and c.contains_second_reactant()]
 
     if first_reactant and second_reactant:
         all_complexes = [c1.combined_with(c2) for c1 in first_reactant for c2 in second_reactant] + both_reactants
@@ -853,7 +871,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
                 positive_solutions += calc_positive_solutions(rxncon_sys, solution)
 
             if not positive_solutions:
-                LOGGER.debug('{} : could not find positive solutions'.format(current_function_name()))
+                LOGGER.error('{} : could not find positive solutions'.format(current_function_name()))
 
             for positive_solution in positive_solutions:
                 LOGGER.debug('{} : positivized contingency solution {}'

@@ -80,115 +80,28 @@ def test_calc_physical_basis() -> None:
     states = [state_from_str(x) for x in ('A@0_[C]--C@2_[A]', 'C@2_[(r)]-{p}', 'B@1_[(s)]-{ub}',
                                           'A@0_[C]--0', 'C@2_[A]--0', 'C@2_[(r)]-{0}', 'B@1_[(s)]-{0}')]
 
-    basis = calc_physical_basis(states)
+    actual_basis = calc_physical_basis(states)
 
-    for vec in basis:
-        print(vec)
+    expected_basis = [
+        {'A@0_[C]--0': 1, 'A@0_[C]--C@2_[A]': 0, 'B@1_[(s)]-{ub}': 1, 'B@1_[(s)]-{0}': 0},
+        {'A@0_[C]--0': 1, 'A@0_[C]--C@2_[A]': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 1},
+        {'A@0_[C]--0': 1, 'A@0_[C]--C@2_[A]': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 0},
+        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 0, 'B@1_[(s)]-{ub}': 1, 'B@1_[(s)]-{0}': 0},
+        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 1},
+        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 0},
+        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 1, 'C@2_[(r)]-{0}': 0, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 1, 'B@1_[(s)]-{0}': 0},
+        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 1, 'C@2_[(r)]-{0}': 0, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 1},
+        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 1, 'C@2_[(r)]-{0}': 0, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 0},
+        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 0, 'C@2_[(r)]-{0}': 1, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 1, 'B@1_[(s)]-{0}': 0},
+        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 0, 'C@2_[(r)]-{0}': 1, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 1},
+        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 0, 'C@2_[(r)]-{0}': 1, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 0},
+        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 0, 'C@2_[(r)]-{0}': 0, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 1, 'B@1_[(s)]-{0}': 0},
+        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 0, 'C@2_[(r)]-{0}': 0, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 1},
+        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 0, 'C@2_[(r)]-{0}': 0, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 0},
+    ]
 
-#
-# # Test some of the rule_based_model_from_rxncon parts.
-# def test_calc_state_paths_simply_connected() -> None:
-#     #  E
-#     #  |
-#     #  D   C
-#     #   \ /
-#     #    B
-#     #    |
-#     #    A
-#     states = [state_from_str(x) for x in ('A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'B@2_[bbb]--D@4_[d]',
-#                                           'D@4_[dd]--E@5_[e]', 'E@5_[(r)]-{p}', 'A@0_[(x)]-{p}', 'B@2_[(z)]-{p}')]
-#
-#     actual_state_to_paths = calc_state_paths(states)
-#
-#     expected_state_to_paths = {
-#         'A@0_[(x)]-{p}':      [[]],
-#         'A@0_[a]--B@2_[b]':   [[]],
-#         'B@2_[(z)]-{p}':      [['A@0_[a]--B@2_[b]']],
-#         'B@2_[bb]--C@3_[c]':  [['A@0_[a]--B@2_[b]']],
-#         'B@2_[bbb]--D@4_[d]': [['A@0_[a]--B@2_[b]']],
-#         'D@4_[dd]--E@5_[e]':  [['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]']],
-#         'E@5_[(r)]-{p}':      [['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'D@4_[dd]--E@5_[e]']],
-#     }  # type: Dict[str, List[List[str]]]
-#
-#     for state, paths in expected_state_to_paths.items():
-#         assert len(actual_state_to_paths[state_from_str(state)]) == len(paths)
-#         for path in paths:
-#             assert [state_from_str(x) for x in path] in actual_state_to_paths[state_from_str(state)]
-#
-#
-# def test_calc_state_paths_non_simply_connected() -> None:
-#         #  D---C
-#         #   \ /
-#         #    B
-#         #    |
-#         #    A
-#         states = [state_from_str(x) for x in ('A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'B@2_[bbb]--D@4_[d]',
-#                                               'C@3_[cc]--D@4_[dd]', 'D@4_[(x)]-{p}', 'C@3_[(x)]-{p}',
-#                                               'A@0_[(x)]-{p}', 'B@2_[(x)]-{p}')]
-#
-#         actual_state_to_paths = calc_state_paths(states)
-#
-#         expected_state_to_paths = {
-#             'A@0_[(x)]-{p}': [[]],
-#             'A@0_[a]--B@2_[b]': [
-#                 [],
-#                 ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bbb]--D@4_[d]'],
-#                 ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bb]--C@3_[c]']
-#             ],
-#             'B@2_[(x)]-{p}': [
-#                 ['A@0_[a]--B@2_[b]'],
-#                 ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bbb]--D@4_[d]'],
-#                 ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bb]--C@3_[c]']
-#             ],
-#             'B@2_[bb]--C@3_[c]': [
-#                 ['A@0_[a]--B@2_[b]'],
-#                 ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bbb]--D@4_[d]'],
-#                 ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]']
-#             ],
-#             'B@2_[bbb]--D@4_[d]': [
-#                 ['A@0_[a]--B@2_[b]'],
-#                 ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]', 'B@2_[bb]--C@3_[c]'],
-#                 ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]']
-#             ],
-#             'C@3_[(x)]-{p}': [
-#                 ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]'],
-#                 ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]', 'C@3_[cc]--D@4_[dd]']
-#             ],
-#             'C@3_[cc]--D@4_[dd]': [
-#                 ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]'],
-#                 ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]']
-#             ],
-#             'D@4_[(x)]-{p}': [
-#                 ['A@0_[a]--B@2_[b]', 'B@2_[bb]--C@3_[c]', 'C@3_[cc]--D@4_[dd]'],
-#                 ['A@0_[a]--B@2_[b]', 'B@2_[bbb]--D@4_[d]']
-#             ]
-#         }  # type: Dict[str, List[List[str]]]
-#
-#         for state, paths in expected_state_to_paths.items():
-#             assert len(actual_state_to_paths[state_from_str(state)]) == len(paths)
-#             for path in paths:
-#                 assert [state_from_str(x) for x in path] in actual_state_to_paths[state_from_str(state)]
-#
-#
-# def test_with_connectivity_constraints() -> None:
-#     first_states  = [ValueSet(state_from_str(x)) for x in ('A@0_[ac]--C@2_[ca]', 'C@2_[ce]--E@4_[ec]')]
-#     second_states = [ValueSet(state_from_str(x)) for x in ('B@1_[bd]--D@3_[db]', 'D@3_[df]--F@5_[fd]')]
-#
-#     contingency = Union(Intersection(*first_states), Intersection(*second_states))
-#
-#     connected = with_connectivity_constraints(contingency)
-#
-#     print(connected)
-#
-#     print('Not connected:')
-#     for soln in contingency.calc_solutions():
-#         print(soln)
-#
-#     print()
-#
-#     print('Connected:')
-#     for soln in connected.calc_solutions():
-#         print(soln)
+    for expected_vec in ({state_from_str(state): bool(val) for state, val in vec.items()} for vec in expected_basis):
+        assert expected_vec in actual_basis
 
 
 # Test simple rxncon systems.
