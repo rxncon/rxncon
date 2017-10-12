@@ -495,134 +495,122 @@ class RuleBasedModel:
         return sorted(set(rule.rate for rule in self.rules), key=lambda x: x.name)
 
 
-def calc_state_paths(states: List[State]) -> Dict[State, List[List[State]]]:
-    specs = sorted(set(spec.to_component_spec() for state in states for spec in state.specs),
-                   key=lambda x: x.struct_index)
+def calc_physical_basis(states: List[State]) -> List[Dict[State, bool]]:
+    states = list(set(states))
 
-    def spec_to_bond_states(spec: Spec) -> List[State]:
-        assert spec.is_component_spec and spec.is_structured
-        return [state for state in states if spec in (s.to_component_spec() for s in state.specs) if
-                len(state.components) == 2]
+    components = sorted(set(c for state in states for c in state.components), key=lambda x: x.struct_index)
+    comp_to_states = {c: [s for s in states if c in s.components] for c in components}
 
-    def neighbor(spec: Spec, state: State) -> Spec:
-        assert spec.is_component_spec and spec.is_structured and len(state.components) == 2
-        return [neigh_spec.to_component_spec() for neigh_spec in state.specs if neigh_spec.to_component_spec() != spec][
-            0]
+    class StateConfig:
+        def dangling_bonds(self) -> List[State]:
+            return [state for state in self.states_true() if len(state.components) == 2 and state not in self.connected_bonds]
 
-    spec_paths = {spec: [] for spec in specs}  # type: Dict[Spec, List[List[State]]]
+        def states_true(self) -> List[State]:
+            return [state for state, val in self.states.items() if val]
 
-    for state in states:
-        state.visited = []  # type: ignore
+        def states_false(self) -> List[State]:
+            return [state for state, val in self.states.items() if not val]
 
-    nums = count(1)
+    class MolConfig(StateConfig):
+        def __init__(self, component: Spec, states: Dict[State, bool]):
+            self.component = component
+            self.states = states
+            self.connected_bonds = []
 
-    def visit_nodes(current_path: List[State], current_spec: Spec, current_num: int) -> None:
-        spec_paths[current_spec].append(current_path)
-        bonds_to_visit = [state for state in spec_to_bond_states(current_spec) if
-                          current_num not in state.visited]  # type: ignore
-        for i, state in enumerate(bonds_to_visit):
-            if i == 0:
-                next_num = current_num
-            else:
-                next_num = next(nums)
+        def is_valid(self) -> bool:
+            for state, val in self.states.items():
+                if val and any(state.is_mutually_exclusive_with(other)
+                               for other, other_val in self.states.items() if other_val):
+                    return False
 
-            for visited_state in current_path + [state]:
-                visited_state.visited.append(next_num)  # type: ignore
+            return True
 
-            visit_nodes(current_path + [state], neighbor(current_spec, state), next_num)
+    class ComplexConfig(StateConfig):
+        def __init__(self, mol_config: MolConfig):
+            self.components = [mol_config.component]
+            self.states = mol_config.states
+            self.connected_bonds = []
 
-    for spec in specs:
-        assert spec.struct_index is not None
-        if spec.struct_index > 1:
-            break
-        visit_nodes([], spec, 0)
+        def can_connect_with(self, mol_config: MolConfig) -> bool:
+            return mol_config.component not in self.components and \
+                   any(bond in mol_config.dangling_bonds() for bond in self.dangling_bonds())
 
-    for spec, paths in spec_paths.items():
-        if not paths:
-            raise AssertionError('Could not find path to {}'.format(str(spec)))
+        def connected_with(self, mol_config: MolConfig) -> 'ComplexConfig':
+            assert mol_config.component not in self.components
+            assert self.can_connect_with(mol_config)
+            comp = deepcopy(self)
+            comp.components.append(mol_config.component)
+            comp.states.update(mol_config.states)
+            comp.connected_bonds += [bond for bond in mol_config.dangling_bonds() if bond in comp.dangling_bonds()]
+            return comp
 
-    state_paths = {state: [] for state in states}  # type: Dict[State, List[List[State]]]
-    for state in states:
-        for component in state.components:
-            for spec_path in spec_paths[component]:
-                if len(spec_path) > 0 and spec_path[-1] == state:
-                    path = spec_path[:-1]
-                else:
-                    path = spec_path
+        def contains_first_reactant(self) -> bool:
+            return 0 in [c.struct_index for c in self.components]
 
-                if path not in state_paths[state]:
-                    state_paths[state].append(path)
+        def contains_second_reactant(self) -> bool:
+            return 1 in [c.struct_index for c in self.components]
 
-    for state in states:
-        del state.visited  # type: ignore
+        def is_valid(self) -> bool:
+            return not self.dangling_bonds()
 
-    return state_paths
+        def combined_with(self, other: 'ComplexConfig') -> 'ComplexConfig':
+            assert self.is_valid()
+            assert other.is_valid()
+            assert not any(comp in other.components for comp in self.components)
+            comp = deepcopy(self)
+            comp.components += other.components
+            comp.states.update(other.states)
+            comp.connected_bonds = self.connected_bonds + other.connected_bonds
+            return comp
 
+    # This will contain a list of all complex configurations rooted at at least one of the reactants.
+    complexes = []  # type: List[ComplexConfig]
 
-def calc_connected_complexes(states: List[State]) -> List[List[State]]:
-    complexes = [[]]  # type: List[List[State]]
+    for component in components:
+        mols = [MolConfig(component, {state: val for state, val in zip(comp_to_states[component], combi)})
+                for combi in product((True, False), repeat=len(comp_to_states[component]))]
 
-    while states:
-        state = states.pop()
+        mols = [m for m in mols if m.is_valid()]
 
-        if state.is_global:
-            continue
+        if component.struct_index in (0, 1):
+            complexes += [ComplexConfig(m) for m in mols]
 
-        for complex in complexes:  # pylint: disable=redefined-builtin
-            if state in complex:
-                continue
-            elif not any(state.is_mutually_exclusive_with(other) for other in complex):
-                complex.append(state)
-            else:
-                other = next(other for other in complex if state.is_mutually_exclusive_with(other))
-                new_complex = deepcopy(complex)
-                new_complex.remove(other)
-                new_complex.append(state)
-                complexes.append(new_complex)
+        new_complexes = []  # type: List[ComplexConfig]
 
-    # Make sure that the complexes are completely connected to the reactants.
-    # The function calc_state_paths raises an exception if it's not.
-    connected_complexes = []
-    for complex in complexes:
-        try:
-            calc_state_paths(complex)
-            connected_complexes.append(complex)
-        except AssertionError:
-            pass
+        for (comp, mol) in product(complexes, mols):
+            if comp.can_connect_with(mol):
+                new_complexes.append(comp.connected_with(mol))
 
-    return connected_complexes
+        complexes += new_complexes
+
+    both_reactants = [c for c in complexes if c.contains_first_reactant() and c.contains_second_reactant() and c.is_valid()]
+    first_reactant = [c for c in complexes if c.contains_first_reactant() and not c.contains_second_reactant() and c.is_valid()]
+    second_reactant = [c for c in complexes if not c.contains_first_reactant() and c.contains_second_reactant() and c.is_valid()]
+
+    if first_reactant and second_reactant:
+        all_complexes = [c1.combined_with(c2) for c1 in first_reactant for c2 in second_reactant] + both_reactants
+    elif first_reactant and not second_reactant:
+        all_complexes = first_reactant + both_reactants
+    else:
+        all_complexes = second_reactant + both_reactants
+
+    return [comp.states for comp in all_complexes]
 
 
 def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
-    complexes = calc_connected_complexes(cont_set.values)
-    complex_constraints = []
-
-    for complex in complexes:  # pylint: disable=redefined-builtin
-        LOGGER.debug('{} : Complex {}'.format(current_function_name(), complex))
-        state_paths = calc_state_paths(complex)
-        constraint = UniversalSet()  # type:  VennSet[State]
-
-        for state in complex:
-            assert not state.is_global, 'Global state {} appearing in connectivity constraints.'.format(state)
-
-            if any(path == [] for path in state_paths[state]):
-                continue
-
-            state_constraints = [Complement(ValueSet(state))]  # type: List[VennSet[State]]
-            for path in state_paths[state]:
-                state_constraints.append(Intersection(*(ValueSet(x) for x in path)))
-
-            constraint = Intersection(constraint, Union(*state_constraints)).to_simplified_set()
-
-            if constraint not in complex_constraints:
-                complex_constraints.append(constraint)
-
-    if complex_constraints:
-        LOGGER.debug('{} : Complex constraints {}'.format(current_function_name(),
-                                                          ' XOR '.join(str(x) for x in complex_constraints)))
-        return Intersection(cont_set, DisjunctiveUnion(*complex_constraints))
-    else:
+    if cont_set.is_equivalent_to(UniversalSet()):
         return cont_set
+
+    basis_vecs = calc_physical_basis(cont_set.values)
+
+    constraints = []
+    for vec in basis_vecs:
+        constraint = [ValueSet(s) for s, v in vec.items() if v] + \
+                     [Complement(ValueSet(s)) for s, v in vec.items() if not v]
+
+        constraints.append(Intersection(*constraint))
+
+    return Intersection(cont_set, DisjunctiveUnion(*constraints))
 
 
 class QuantContingencyConfigs(Iterator[VennSet[State]]):  # pylint: disable=too-few-public-methods
