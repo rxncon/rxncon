@@ -104,6 +104,21 @@ def test_calc_physical_basis() -> None:
         assert expected_vec in actual_basis
 
 
+def test_calc_physical_basis_unordered() -> None:
+    states = [state_from_str(x) for x in ('A@0_[C]--C@5_[A]', 'C@5_[B]--B@3_[C]', 'B@3_[D]--D@2_[B]')]
+
+    actual_basis = calc_physical_basis(states)
+
+    expected_basis = [
+        {'A@0_[C]--C@5_[A]': False},
+        {'A@0_[C]--C@5_[A]': True, 'B@3_[C]--C@5_[B]': True},
+        {'A@0_[C]--C@5_[A]': True, 'B@3_[C]--C@5_[B]': False}
+    ]
+
+    for expected_vec in ({state_from_str(state): bool(val) for state, val in vec.items()} for vec in expected_basis):
+        assert expected_vec in actual_basis
+
+
 # Test simple rxncon systems.
 def test_single_requirement_modification() -> None:
     rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p}

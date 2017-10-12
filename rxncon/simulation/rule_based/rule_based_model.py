@@ -576,6 +576,8 @@ def calc_physical_basis(states: List[State]) -> List[Dict[State, bool]]:
 
     # This will contain a list of all complex configurations rooted at at least one of the reactants.
     complexes = []  # type: List[ComplexConfig]
+
+    # This will contain a list of all molecule configurations.
     molecules = []  # type: List[MolConfig]
 
     for component in components:
