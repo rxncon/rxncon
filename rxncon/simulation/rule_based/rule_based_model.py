@@ -892,7 +892,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
                     rules.append(rule)
 
         if not found_solution:
-            LOGGER.error('{} : could not find positive solutions'.format(current_function_name()))
+            LOGGER.error('{} : could not find positive solutions for rxn {}'
+                         .format(current_function_name(), str(reaction)))
 
     return RuleBasedModel(mol_defs, calc_initial_conditions(mol_defs), [], calc_observables(rxncon_sys), rules)
 
