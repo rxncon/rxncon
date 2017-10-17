@@ -633,7 +633,7 @@ def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
 
         constraints.append(Intersection(*constraint))
 
-    return Intersection(cont_set, DisjunctiveUnion(*constraints))
+    return Intersection(cont_set, Union(*constraints))
 
 
 class QuantContingencyConfigs(Iterator[VennSet[State]]):  # pylint: disable=too-few-public-methods
