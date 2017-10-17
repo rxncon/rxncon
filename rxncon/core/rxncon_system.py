@@ -14,7 +14,6 @@ from rxncon.core.effector import Effector, AndEffector, OrEffector, NotEffector,
 from rxncon.core.reaction import Reaction, ReactionTerm
 from rxncon.core.state import State, FullyNeutralState
 from rxncon.core.spec import Spec
-from rxncon.util.utils import current_function_name
 from rxncon.venntastic.sets import UniversalSet, Intersection, Set  # pylint: disable=unused-import
 
 LOGGER = logging.getLogger(__name__)
@@ -240,8 +239,8 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
                                              'state {}'.format(effector.expr)
                     assert all(state.is_elemental for state in elemental_states)
 
-                    LOGGER.info('{}: {} -> {}'.format(current_function_name(), str(effector.expr),
-                                                      ' | '.join(str(x) for x in elemental_states)))
+                    LOGGER.info('expanded_effector: {} -> {}'
+                                .format(str(effector.expr), ' | '.join(str(x) for x in elemental_states)))
                     return OrEffector(*(StateEffector(x) for x in elemental_states), name=str(effector.expr))
             elif isinstance(effector, AndEffector):
                 return AndEffector(*(expanded_effector(x) for x in effector.exprs), name=effector.name,

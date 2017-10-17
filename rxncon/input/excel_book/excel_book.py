@@ -10,10 +10,8 @@ from rxncon.input.shared.contingency_list import contingencies_from_contingency_
     contingency_list_entry_from_strs, ContingencyListEntry
 from rxncon.input.shared.reaction_preprocess import split_bidirectional_reaction_str
 from rxncon.core.reaction import Reaction, reaction_from_str, OutputReaction, initialize_reaction_defs
-import rxncon.core.reaction as rxn
 from rxncon.core.state import initialize_state_modifiers
 from rxncon.core.contingency import Contingency
-from rxncon.util.utils import current_function_name
 
 NOT_APPLICABLE = 'N/A'
 
@@ -213,10 +211,10 @@ class ExcelBook:
 
         for row in reaction_rows:
             if not row[self._column_reaction_full_name].value:
-                logger.debug('{}: Empty row'.format(current_function_name()))
+                logger.debug('_load_reaction_list: Empty row')
                 continue
 
-            logger.debug('{}: {}'.format(current_function_name(), row[self._column_reaction_full_name].value))
+            logger.debug('_load_reaction_list: {}'.format(row[self._column_reaction_full_name].value))
 
             # When a verb such as 'ppi' is encountered, the function 'preprocessed_reaction_strs'
             # will split it into 'ppi+' and 'ppi-'.
@@ -236,8 +234,8 @@ class ExcelBook:
             target = row[self._column_contingency_target].value
             if split_bidirectional_reaction_str(target) != [target]:
                 target = split_bidirectional_reaction_str(target)[0]
-                logger.info('{0}: applying contingency {1} to forward target {2}'
-                            .format(current_function_name(), row[self._column_contingency_modifier].value, target))
+                logger.info('_load_contingency_list_entries: applying contingency {} to forward target {}'
+                            .format(row[self._column_contingency_modifier].value, target))
 
             entry = contingency_list_entry_from_strs(
                 target, row[self._column_contingency_type].value,

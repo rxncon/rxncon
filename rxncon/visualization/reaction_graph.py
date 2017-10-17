@@ -6,7 +6,6 @@ from networkx import DiGraph
 from rxncon.core.reaction import Reaction, OutputReaction
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.spec import Spec, LocusResolution
-from rxncon.util.utils import current_function_name
 from rxncon.core.state import ModificationState, InteractionState, SelfInteractionState, EmptyBindingState
 
 logger = logging.getLogger(__name__)
@@ -306,7 +305,7 @@ def rxngraph_from_rxncon_system(rxncon_system: RxnConSystem) -> ReactionGraph:
 
     for reaction in rxncon_system.reactions:
         if not isinstance(reaction, OutputReaction):
-            logger.debug('{}: {}'.format(current_function_name(), str(reaction)))
+            logger.debug('rxngraph_from_rxncon_system: {}'.format(str(reaction)))
             add_reaction_to_graph(reaction)
 
     return ReactionGraph(builder.get_graph())

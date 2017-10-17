@@ -16,7 +16,6 @@ from rxncon.core.effector import StateEffector, NotEffector, OrEffector, Effecto
 from rxncon.core.reaction import Reaction, reaction_from_str
 from rxncon.core.spec import Spec
 from rxncon.core.state import state_from_str, State
-from rxncon.util.utils import current_function_name
 
 
 LOGGER = logging.getLogger(__name__)
@@ -79,7 +78,7 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: Union[str, floa
 
     subject_str, verb_str, object_str = subject_str.strip(), verb_str.lower().strip(), object_str.strip()
 
-    LOGGER.debug('{}: {} / {} / {}'.format(current_function_name(), subject_str, verb_str, object_str))
+    LOGGER.debug('contingency_list_entry_from_strs: {} / {} / {}'.format(subject_str, verb_str, object_str))
 
     subject = None  # type: Optional[Union[Reaction, BooleanContingencyName]]
     verb = None  # type: Optional[Union[BooleanOperator, ContingencyType]]
@@ -114,7 +113,7 @@ def contingency_list_entry_from_strs(subject_str: str, verb_str: Union[str, floa
         _add_equivs(equivs, equivs_strs, name)
 
         object = BooleanContingencyNameWithEquivs(name, equivs)
-        LOGGER.debug('{} : Created {}'.format(current_function_name(), str(object)))
+        LOGGER.debug('contingency_list_entry_from_strs : Created {}'.format(str(object)))
     else:
         object = state_from_str(object_str)
 
@@ -182,9 +181,9 @@ class _BooleanContingencyEffector(Effector):
 
 def _dereference_boolean_contingency_effectors(self: Effector, effector_table: Dict[str, Effector]) -> None:
     if isinstance(self, _BooleanContingencyEffector):
-        LOGGER.debug('{} : Expr: {}'.format(current_function_name(), self.expr))
-        LOGGER.debug('{} : EffTable: {}'.format(current_function_name(), effector_table))
-        LOGGER.debug('{} : Equivs: {}'.format(current_function_name(), self.equivs))
+        LOGGER.debug('_dereference_boolean_contingency_effectors : Expr: {}'.format(self.expr))
+        LOGGER.debug('_dereference_boolean_contingency_effectors : EffTable: {}'.format(effector_table))
+        LOGGER.debug('_dereference_boolean_contingency_effectors : Equivs: {}'.format(self.equivs))
         name = self.expr.name
         equivs = self.equivs
         self.__class__ = effector_table[self.expr.name].__class__
@@ -192,10 +191,10 @@ def _dereference_boolean_contingency_effectors(self: Effector, effector_table: D
         self.name = name
         try:
             self.equivs.merge_with(equivs, [])
-            LOGGER.debug('{} : Merged structure information.'.format(current_function_name()))
+            LOGGER.debug('_dereference_boolean_contingency_effectors : Merged structure information.')
         except AttributeError:
             self.equivs = equivs
-            LOGGER.debug('{} : Initialized structure information.'.format(current_function_name()))
+            LOGGER.debug('_dereference_boolean_contingency_effectors : Initialized structure information.')
     elif isinstance(self, StateEffector):
         pass
     elif isinstance(self, NotEffector):
@@ -204,7 +203,7 @@ def _dereference_boolean_contingency_effectors(self: Effector, effector_table: D
         for expr in self.exprs:
             _dereference_boolean_contingency_effectors(expr, effector_table)
     else:
-        raise AssertionError('Unknown effector type {} in {}'.format(self, current_function_name()))
+        raise AssertionError('Unknown effector type {} in _dereference_boolean_contingency_effectors'.format(self))
 
 
 def _contains_boolean_contingency_effectors(self: Effector) -> bool:

@@ -1,5 +1,5 @@
 from typing import Dict, List, Optional, Tuple, Iterable, Iterator  # pylint: disable=unused-import
-from itertools import combinations, product, chain, permutations, count
+from itertools import combinations, product, chain, permutations
 from copy import copy, deepcopy
 from collections import defaultdict, OrderedDict
 from re import match
@@ -12,9 +12,7 @@ from rxncon.core.state import State, StateModifier, ModificationState, Interacti
     EmptyBindingState
 from rxncon.core.spec import Spec
 from rxncon.core.contingency import Contingency, ContingencyType
-from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet, \
-    DisjunctiveUnion
-from rxncon.util.utils import current_function_name
+from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet
 
 LOGGER = logging.getLogger(__name__)
 
@@ -43,7 +41,7 @@ STATE_TO_COMPLEX_BUILDER_FN = {
     ],
     GlobalState: [
         lambda state, builder: LOGGER.warning(
-            '{} : IGNORING INPUT STATE {}'.format(current_function_name(), str(state)))
+            'STATE_TO_COMPLEX_BUILDER_FN : IGNORING INPUT STATE {}'.format(str(state)))
     ]
 }  # type: ignore
 
@@ -329,20 +327,18 @@ class ComplexExprBuilder:
     def build(self, only_reactants: bool = True) -> List[Complex]:
         complexes = []
 
-        LOGGER.debug('{} : Building complex with molecules {}'.format(current_function_name(),
-                                                                      ' & '.join(str(spec) for spec in
-                                                                                 self._mol_builders.keys())))
-        LOGGER.debug('{} : Grouped specs are {}'.format(current_function_name(),
-                                                        ', '.join(str(x) for x in self._grouped_specs())))
+        LOGGER.debug('build : Building complex with molecules {}'
+                     .format(' & '.join(str(spec) for spec in self._mol_builders.keys())))
+        LOGGER.debug('build : Grouped specs are {}'.format(', '.join(str(x) for x in self._grouped_specs())))
         for group in self._grouped_specs():
             possible_complex = Complex([self._mol_builders[spec].build() for spec in group])
 
             if not only_reactants or (only_reactants and possible_complex.is_reactant):
                 complexes.append(possible_complex)
-                LOGGER.debug('{} : Adding complex {}'.format(current_function_name(), possible_complex))
+                LOGGER.debug('build : Adding complex {}'.format(possible_complex))
             else:
-                LOGGER.info('{} : DISCONNECTED CONTINGENCY Reaction {} / Not adding complex {}'
-                            .format(current_function_name(), self.reaction, possible_complex))
+                LOGGER.info('build : DISCONNECTED CONTINGENCY Reaction {} / Not adding complex {}'
+                            .format(self.reaction, possible_complex))
 
         return complexes
 
@@ -678,11 +674,11 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
     def mol_defs_from_rxncon(rxncon_sys: RxnConSystem) -> List[MolDef]:
         mol_defs = {}
         for spec in rxncon_sys.components():
-            LOGGER.debug('{} : Creating MolDefBuilder for {}'.format(current_function_name(), str(spec)))
+            LOGGER.debug('mol_defs_from_rxncon : Creating MolDefBuilder for {}'.format(str(spec)))
             builder = MolDefBuilder(spec)
             for state in rxncon_sys.states_for_component(spec):
-                LOGGER.debug(
-                    '{} : Applying State {} of type {}'.format(current_function_name(), str(state), type(state)))
+                LOGGER.debug('mol_defs_from_rxncon : Applying State {} of type {}'
+                             .format(str(state), type(state)))
                 for func in STATE_TO_MOL_DEF_BUILDER_FN[type(state)]:  # type: ignore
                     func(state, builder)
 
@@ -696,8 +692,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
             cleaned_solution = {}
             for state, val in soln.items():
                 if state.is_global:
-                    LOGGER.warning(
-                        '{} : REMOVING INPUT STATE {} from contingencies.'.format(current_function_name(), state))
+                    LOGGER.warning('remove_global_states : REMOVING INPUT STATE {} from contingencies.'
+                                   .format(state))
                 else:
                     cleaned_solution[state] = val
 
@@ -839,7 +835,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
         observables = []
         output_rxns = [rxn for rxn in rxncon_sys.reactions if isinstance(rxn, OutputReaction)]
         for rxn in output_rxns:
-            LOGGER.debug('{} : calculating observable {}'.format(current_function_name(), str(rxn)))
+            LOGGER.debug('calc_observables : calculating observable {}'.format(str(rxn)))
             solns = Intersection(*(x.to_venn_set() for x
                                    in rxncon_sys.contingencies_for_reaction(rxn))).calc_solutions()
             positive_solns = []  # type: List[List[State]]
@@ -847,53 +843,51 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
                 positive_solns += calc_positive_solutions(rxncon_sys, soln)
 
             for index, positive_soln in enumerate(positive_solns):
-                LOGGER.debug('{} : solution {} : {}'.format(current_function_name(), index, positive_soln))
+                LOGGER.debug('calc_observables : solution {} : {}'.format(index, positive_soln))
                 observables.append(Observable('{}{}'.format(rxn.name, index), observable_complex(positive_soln)))
 
         return observables
 
-    LOGGER.debug('{} : Entered function'.format(current_function_name()))
-
     mol_defs = mol_defs_from_rxncon(rxncon_sys)
     LOGGER.debug(
-        '{} : Generated MolDefs: {}'.format(current_function_name(), ', '.join(str(mol_def) for mol_def in mol_defs)))
+        'rule_based_model_from_rxncon : Generated MolDefs: {}'.format(', '.join(str(mol_def) for mol_def in mol_defs)))
 
     rules = []  # type: List[Rule]
 
     for reaction in (x for x in rxncon_sys.reactions if not isinstance(x, OutputReaction)):
-        LOGGER.debug('{} : Generating rules for reaction {}'.format(current_function_name(), str(reaction)))
+        LOGGER.debug('rule_based_model_from_rxncon : Generating rules for reaction {}'.format(str(reaction)))
         strict_cont_set = Intersection(*(x.to_venn_set() for x in
                                          rxncon_sys.s_contingencies_for_reaction(reaction)))  # type: VennSet[State]
         quant_contingencies = QuantContingencyConfigs(rxncon_sys.q_contingencies_for_reaction(reaction))
-        LOGGER.debug('{} : Strict contingencies {}'.format(current_function_name(), str(strict_cont_set)))
+        LOGGER.debug('rule_based_model_from_rxncon : Strict contingencies {}'.format(str(strict_cont_set)))
 
         found_solution = False
 
         for quant_contingency_set in quant_contingencies:
-            LOGGER.debug(
-                '{} : quantitative contingency config: {}'.format(current_function_name(), str(quant_contingency_set)))
+            LOGGER.debug('rule_based_model_from_rxncon : quantitative contingency config: {}'
+                         .format(str(quant_contingency_set)))
 
             cont_set = Intersection(strict_cont_set, quant_contingency_set)  # type: VennSet[State]
             cont_set = with_connectivity_constraints(cont_set)
             solutions = cont_set.calc_solutions()
             solutions = remove_global_states(solutions)
 
-            LOGGER.debug('{} : contingency solutions {}'.format(current_function_name(), str(solutions)))
+            LOGGER.debug('rule_based_model_from_rxncon : contingency solutions {}'.format(str(solutions)))
             positive_solutions = []  # type: List[List[State]]
             for solution in solutions:
                 positive_solutions += calc_positive_solutions(rxncon_sys, solution)
 
             for positive_solution in positive_solutions:
                 found_solution = True
-                LOGGER.debug('{} : positivized contingency solution {}'
-                             .format(current_function_name(), ' & '.join(str(x) for x in positive_solution)))
+                LOGGER.debug('rule_based_model_from_rxncon : positivized contingency solution {}'
+                             .format(' & '.join(str(x) for x in positive_solution)))
                 rule = calc_rule(reaction, positive_solution, quant_contingency_set)
                 if not any(rule.is_equivalent_to(existing) for existing in rules):
                     rules.append(rule)
 
         if not found_solution:
-            LOGGER.error('{} : could not find positive solutions for rxn {}'
-                         .format(current_function_name(), str(reaction)))
+            LOGGER.error('rule_based_model_from_rxncon : could not find positive solutions for rxn {}'
+                         .format(str(reaction)))
 
     return RuleBasedModel(mol_defs, calc_initial_conditions(mol_defs), [], calc_observables(rxncon_sys), rules)
 

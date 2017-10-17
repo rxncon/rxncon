@@ -7,7 +7,6 @@ from collections import defaultdict
 import logging
 from typing import Any, Callable, Set as TgSet, Dict, List, Optional
 
-from rxncon.util.utils import current_function_name
 from rxncon.core.effector import Effector, StructEquivalences, QualSpec, StateEffector, TrivialStructEquivalences, \
     NotEffector, AndEffector, OrEffector, StructCounter
 from rxncon.core.reaction import Reaction, OutputReaction
@@ -72,7 +71,7 @@ class Contingency:
     def to_structured(self, counter_start: Optional[int]=None) -> 'Contingency':
         """Returns a Contingency object where the structure information is merged among all Effector objects. This
         method first determines the equivalences, after which it calls the `with_merged_struct_effector` method."""
-        LOGGER.debug('{}: {}'.format(current_function_name(), str(self)))
+        LOGGER.debug('to_structured: {}'.format(str(self)))
 
         if isinstance(self.effector, StateEffector) and self.effector.is_structured:
             # A fully structured StateEffector is fine.
