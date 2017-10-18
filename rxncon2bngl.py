@@ -84,6 +84,7 @@ def setup_logging_colors():
 
     click_log.ColorFormatter.format = format
 
+
 if __name__ == '__main__':
     try:
         setup_logging_colors()

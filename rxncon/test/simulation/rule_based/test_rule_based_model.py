@@ -364,3 +364,16 @@ def test_trslprocat() -> None:
         assert any(rule_from_str(rule).is_equivalent_to(actual_rule) for rule in expected_rules)
 
     reaction.REACTION_DEFS = reaction.DEFAULT_REACTION_DEFS
+
+
+def test_kplus_overlaps_with_reaction() -> None:
+    rxncon_system = Quick("""A_p+_B_[(s)]; ! <Aphos> ; k+ A_[(r1)]-{p} ; k+ A_[(r2)]-{p}
+                          <Aphos>; OR A_[(r1)]-{p}
+                          <Aphos>; OR A_[(r2)]-{p}
+                          C_p+_A_[(r1)]
+                          D_p+_A_[(r2)]""").rxncon_system
+
+    rbm = rule_based_model_from_rxncon(rxncon_system)
+
+    for rule in rbm.rules:
+        print(rule)

@@ -497,7 +497,7 @@ class RuleBasedModel:
 def calc_physical_basis(states: List[State]) -> List[Dict[State, bool]]:
     states = list(set(states))
 
-    components = sorted(set(c for state in states for c in state.components), key=lambda x: x.struct_index)
+    components = set(c for state in states for c in state.components)
     comp_to_states = {c: [s for s in states if c in s.components] for c in components}
 
     class StateConfig:
@@ -530,12 +530,12 @@ def calc_physical_basis(states: List[State]) -> List[Dict[State, bool]]:
 
     class ComplexConfig(StateConfig):
         def __init__(self, mol_config: MolConfig):
-            self.components = [mol_config.component]
+            self.components = {mol_config.component}
             self.states = mol_config.states
             self.connected_bonds = []
 
         def __eq__(self, other):
-            return set(self.components) == set(other.components) and self.states == other.states and \
+            return self.components == other.components and self.states == other.states and \
                 set(self.connected_bonds) == set(other.connected_bonds)
 
         def __str__(self) -> str:
@@ -546,10 +546,12 @@ def calc_physical_basis(states: List[State]) -> List[Dict[State, bool]]:
                    any(bond in mol_config.dangling_bonds() for bond in self.dangling_bonds())
 
         def connected_with(self, mol_config: MolConfig) -> 'ComplexConfig':
-            assert mol_config.component not in self.components
-            assert self.can_connect_with(mol_config)
+            assert mol_config.component not in self.components, \
+                'ComplexConfig.connected_with : component already in complex'
+            assert self.can_connect_with(mol_config), \
+                'ComplexConfig.connected_with : component cannot be connected to complex'
             comp = deepcopy(self)
-            comp.components.append(mol_config.component)
+            comp.components.add(mol_config.component)
             comp.states.update(mol_config.states)
             comp.connected_bonds += [bond for bond in mol_config.dangling_bonds() if bond in comp.dangling_bonds()]
             return comp
@@ -564,11 +566,10 @@ def calc_physical_basis(states: List[State]) -> List[Dict[State, bool]]:
             return not self.dangling_bonds()
 
         def combined_with(self, other: 'ComplexConfig') -> 'ComplexConfig':
-            assert self.is_valid()
-            assert other.is_valid()
-            assert not any(comp in other.components for comp in self.components)
+            assert self.is_valid(), 'ComplexConfig.combined_with : self not valid'
+            assert other.is_valid(), 'ComplexConfig.combined_with : other not valid'
             comp = deepcopy(self)
-            comp.components += other.components
+            comp.components.update(other.components)
             comp.states.update(other.states)
             comp.connected_bonds = self.connected_bonds + other.connected_bonds
             return comp
