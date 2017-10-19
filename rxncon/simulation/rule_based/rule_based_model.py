@@ -879,8 +879,11 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
                          .format(str(quant_contingency_set)))
 
             cont_set = Intersection(strict_cont_set, quant_contingency_set)  # type: VennSet[State]
+            LOGGER.debug('rule_based_model_from_rxncon : adding constraints...')
             cont_set = with_connectivity_constraints(cont_set)
+            LOGGER.debug('rule_based_model_from_rxncon : calculating solutions...')
             solutions = cont_set.calc_solutions()
+            LOGGER.debug('rule_based_model_from_rxncon : removing global states...')
             solutions = remove_global_states(solutions)
 
             LOGGER.debug('rule_based_model_from_rxncon : contingency solutions {}'.format(str(solutions)))
