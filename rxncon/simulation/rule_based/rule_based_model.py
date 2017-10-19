@@ -602,6 +602,7 @@ def bond_complexes(cont_set: VennSet[State]) -> List[BondComplex]:
     complexes = [bc for bc in single_components
                  if bc.contains_first_reactant() or bc.contains_second_reactant()]
 
+    LOGGER.debug('bond_complexes : building complexes')
     finished = False
     while not finished:
         finished = True
@@ -618,6 +619,7 @@ def bond_complexes(cont_set: VennSet[State]) -> List[BondComplex]:
     first_reactant = [c for c in complexes if c.contains_first_reactant() and not c.contains_second_reactant()]
     second_reactant = [c for c in complexes if not c.contains_first_reactant() and c.contains_second_reactant()]
 
+    LOGGER.debug('bond_complexes : combining complexes')
     if first_reactant and second_reactant:
         all_complexes = [c1.combined_with(c2) for c1 in first_reactant for c2 in second_reactant] + both_reactants
     elif first_reactant and not second_reactant:
@@ -632,7 +634,9 @@ def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
     if cont_set.is_equivalent_to(UniversalSet()):
         return cont_set
 
+    LOGGER.debug('with_connectivity_constraints : calculating molecular microstates')
     components = components_microstate(cont_set)
+    LOGGER.debug('with_connectivity_constraints : calculating complexes')
     complexes = bond_complexes(cont_set)
 
     constraints = []
