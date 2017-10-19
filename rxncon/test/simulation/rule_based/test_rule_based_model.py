@@ -4,11 +4,11 @@ from typing import Dict, List
 
 from rxncon.input.quick.quick import Quick
 from rxncon.simulation.rule_based.rule_based_model import complex_from_str, rule_from_str, rule_based_model_from_rxncon,\
-    with_connectivity_constraints, initial_condition_from_str, calc_physical_basis
+    with_connectivity_constraints, initial_condition_from_str, bond_complexes, components_microstate, BondComplex
 from rxncon.core.state import state_from_str
 from rxncon.venntastic.sets import ValueSet, Union, Intersection
 import rxncon.core.reaction as reaction
-from rxncon.core.spec import Spec, LocusResolution, MRNASpec
+from rxncon.core.spec import Spec, LocusResolution, MRNASpec, spec_from_str
 
 
 # Test the *_from_str functions.
@@ -76,47 +76,54 @@ def test_rule_from_str_inequivalent() -> None:
             assert rule_from_str(second_rule).is_equivalent_to(rule_from_str(first_rule))
 
 
-def test_calc_physical_basis() -> None:
-    states = [state_from_str(x) for x in ('A@0_[C]--C@2_[A]', 'C@2_[(r)]-{p}', 'B@1_[(s)]-{ub}',
-                                          'A@0_[C]--0', 'C@2_[A]--0', 'C@2_[(r)]-{0}', 'B@1_[(s)]-{0}')]
+def test_bond_complex_class() -> None:
+    first_complex = BondComplex(spec_from_str('A@0'), {state_from_str('A@0_[C]--C@2_[A]'): True})
+    second_complex = BondComplex(spec_from_str('C@2'), {state_from_str('A@0_[C]--C@2_[A]'): True})
 
-    actual_basis = calc_physical_basis(states)
+    assert first_complex.dangling_bonds() == {state_from_str('A@0_[C]--C@2_[A]')}
+    assert second_complex.dangling_bonds() == {state_from_str('A@0_[C]--C@2_[A]')}
+    assert first_complex.can_connect_with(second_complex)
 
-    expected_basis = [
-        {'A@0_[C]--0': 1, 'A@0_[C]--C@2_[A]': 0, 'B@1_[(s)]-{ub}': 1, 'B@1_[(s)]-{0}': 0},
-        {'A@0_[C]--0': 1, 'A@0_[C]--C@2_[A]': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 1},
-        {'A@0_[C]--0': 1, 'A@0_[C]--C@2_[A]': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 0},
-        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 0, 'B@1_[(s)]-{ub}': 1, 'B@1_[(s)]-{0}': 0},
-        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 1},
-        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 0},
-        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 1, 'C@2_[(r)]-{0}': 0, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 1, 'B@1_[(s)]-{0}': 0},
-        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 1, 'C@2_[(r)]-{0}': 0, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 1},
-        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 1, 'C@2_[(r)]-{0}': 0, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 0},
-        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 0, 'C@2_[(r)]-{0}': 1, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 1, 'B@1_[(s)]-{0}': 0},
-        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 0, 'C@2_[(r)]-{0}': 1, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 1},
-        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 0, 'C@2_[(r)]-{0}': 1, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 0},
-        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 0, 'C@2_[(r)]-{0}': 0, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 1, 'B@1_[(s)]-{0}': 0},
-        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 0, 'C@2_[(r)]-{0}': 0, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 1},
-        {'A@0_[C]--0': 0, 'A@0_[C]--C@2_[A]': 1, 'C@2_[(r)]-{p}': 0, 'C@2_[(r)]-{0}': 0, 'C@2_[A]--0': 0, 'B@1_[(s)]-{ub}': 0, 'B@1_[(s)]-{0}': 0},
-    ]
-
-    for expected_vec in ({state_from_str(state): bool(val) for state, val in vec.items()} for vec in expected_basis):
-        assert expected_vec in actual_basis
+    first_and_second = first_complex.combined_with(second_complex)
+    assert first_complex.dangling_bonds() == {state_from_str('A@0_[C]--C@2_[A]')}
+    assert second_complex.dangling_bonds() == {state_from_str('A@0_[C]--C@2_[A]')}
+    assert first_and_second.is_connected()
+    assert not first_and_second.dangling_bonds()
 
 
-def test_calc_physical_basis_unordered() -> None:
-    states = [state_from_str(x) for x in ('A@0_[C]--C@5_[A]', 'C@5_[B]--B@3_[C]', 'B@3_[D]--D@2_[B]')]
+def test_bond_complexes_calculation() -> None:
+    states = Union(*(ValueSet(state_from_str(x))
+                     for x in ('A@0_[C]--C@2_[A]', 'C@2_[(r)]-{p}',
+                               'A@0_[C]--0', 'C@2_[A]--0', 'C@2_[(r)]-{0}')))
 
-    actual_basis = calc_physical_basis(states)
+    z = bond_complexes(states)
 
-    expected_basis = [
-        {'A@0_[C]--C@5_[A]': False},
-        {'A@0_[C]--C@5_[A]': True, 'B@3_[C]--C@5_[B]': True},
-        {'A@0_[C]--C@5_[A]': True, 'B@3_[C]--C@5_[B]': False}
-    ]
+    for c in z:
+        print()
+        print(c)
 
-    for expected_vec in ({state_from_str(state): bool(val) for state, val in vec.items()} for vec in expected_basis):
-        assert expected_vec in actual_basis
+
+def test_bond_complexes_calculation_unordered() -> None:
+    states = Union(*(ValueSet(state_from_str(x))
+                     for x in ('A@0_[C]--C@5_[A]', 'C@5_[B]--B@3_[C]', 'B@3_[D]--D@2_[B]')))
+
+    z = bond_complexes(states)
+
+    for c in z:
+        print()
+        print(c)
+
+
+def test_components_microstate() -> None:
+    states = Union(*(ValueSet(state_from_str(x))
+                     for x in ('A@0_[(r)]-{p}', 'A@0_[(r)]-{0}', 'A@0_[(r)]-{ub}', 'C@3_[(s)]-{p}')))
+
+    z = components_microstate(states)
+
+    for c, s in z.items():
+        print()
+        print(c)
+        print(s)
 
 
 # Test simple rxncon systems.

@@ -195,6 +195,11 @@ class Locus:
             return NotImplemented
         return self.domain == other.domain and self.subdomain == other.subdomain and self.residue == other.residue
 
+    def __lt__(self, other):
+        if not isinstance(other, Locus):
+            return NotImplemented
+        return str(self) < str(other)
+
     def validate(self) -> None:
         if self.domain:
             assert re.match(r'\w+', self.domain)

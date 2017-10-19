@@ -1,5 +1,5 @@
-from typing import Dict, List, Optional, Tuple, Iterable, Iterator  # pylint: disable=unused-import
-from itertools import combinations, product, chain, permutations
+from typing import Dict, List, Optional, Tuple, Iterable, Iterator, Set  # pylint: disable=unused-import
+from itertools import combinations, product, chain, permutations, groupby
 from copy import copy, deepcopy
 from collections import defaultdict, OrderedDict
 from re import match
@@ -10,7 +10,7 @@ from rxncon.core.reaction import Reaction, ReactionTerm, OutputReaction
 from rxncon.core.state import State, StateModifier, ModificationState, InteractionState, SelfInteractionState, \
     GlobalState, \
     EmptyBindingState
-from rxncon.core.spec import Spec
+from rxncon.core.spec import Spec, Locus
 from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet
 
@@ -494,114 +494,125 @@ class RuleBasedModel:
         return sorted(set(rule.rate for rule in self.rules), key=lambda x: x.name)
 
 
-def calc_physical_basis(states: List[State]) -> List[Dict[State, bool]]:
-    states = list(set(states))
+def components_microstate(cont_set: VennSet[State]) -> Dict[Spec, VennSet[State]]:
+    comp_to_states = {c: {s for s in cont_set.values if c in s.components
+                          and not isinstance(s, EmptyBindingState) and not isinstance(s, InteractionState)}
+                      for c in {c for state in cont_set.values for c in state.components}}
 
-    components = set(c for state in states for c in state.components)
-    comp_to_states = {c: [s for s in states if c in s.components] for c in components}
+    constraints = dict()
 
-    class StateConfig:
-        def dangling_bonds(self) -> List[State]:
-            return [state for state in self.states_true() if len(state.components) == 2 and state not in self.connected_bonds]
+    for comp, states in comp_to_states.items():
+        def state_to_locus(state: State) -> Locus:
+            return state.specs[0].locus
 
-        def states_true(self) -> List[State]:
-            return [state for state, val in self.states.items() if val]
+        comp_constraint = Intersection()
 
-        def states_false(self) -> List[State]:
-            return [state for state, val in self.states.items() if not val]
+        for _, locus_states in groupby(sorted(states, key=state_to_locus), state_to_locus):
+            locus_constraint = Union()
+            for s in locus_states:
+                locus_constraint = Union(locus_constraint, ValueSet(s), Complement(ValueSet(s)))
 
-    class MolConfig(StateConfig):
-        def __init__(self, component: Spec, states: Dict[State, bool]):
-            self.component = component
-            self.states = states
-            self.connected_bonds = []
+            comp_constraint = Intersection(comp_constraint, locus_constraint)
 
-        def __str__(self) -> str:
-            return 'MolConfig({}: {})'.format(str(self.component),
-                                              ', '.join('{} {}'.format(str(s), str(v)) for s, v in self.states.items()))
+        constraints[comp] = comp_constraint
 
-        def is_valid(self) -> bool:
-            for state, val in self.states.items():
-                if val and any(state.is_mutually_exclusive_with(other)
-                               for other, other_val in self.states.items() if other_val):
-                    return False
+    return constraints
 
-            return True
 
-    class ComplexConfig(StateConfig):
-        def __init__(self, mol_config: MolConfig):
-            self.components = {mol_config.component}
-            self.states = mol_config.states
-            self.connected_bonds = []
+class BondComplex:
+    def __init__(self, component: Spec, states: Dict[State, bool]):
+        self.components = {component}
+        self.states = states
+        self.connected_bonds = set()  # type: Set[State]
 
-        def __eq__(self, other):
-            return self.components == other.components and self.states == other.states and \
-                set(self.connected_bonds) == set(other.connected_bonds)
+    def __eq__(self, other):
+        return self.components == other.components and self.states == other.states \
+            and self.connected_bonds == other.connected_bonds
 
-        def __str__(self) -> str:
-            return 'ComplexConfig({})'.format(', '.join('{} {}'.format(str(s), str(v)) for s, v in self.states.items()))
+    def __str__(self) -> str:
+        return 'BondComplex(C: {} ; T: {} ; F: {} ; D: {})'\
+            .format(', '.join(str(x) for x in self.components),
+                    ', '.join(str(x) for x in self.true_states()),
+                    ', '.join(str(x) for x in self.false_states()),
+                    ', '.join(str(x) for x in self.dangling_bonds()))
 
-        def can_connect_with(self, mol_config: MolConfig) -> bool:
-            return mol_config.component not in self.components and \
-                   any(bond in mol_config.dangling_bonds() for bond in self.dangling_bonds())
+    def true_states(self) -> Set[State]:
+        return {state for state, val in self.states.items() if val}
 
-        def connected_with(self, mol_config: MolConfig) -> 'ComplexConfig':
-            assert mol_config.component not in self.components, \
-                'ComplexConfig.connected_with : component already in complex'
-            assert self.can_connect_with(mol_config), \
-                'ComplexConfig.connected_with : component cannot be connected to complex'
-            comp = deepcopy(self)
-            comp.components.add(mol_config.component)
-            comp.states.update(mol_config.states)
-            comp.connected_bonds += [bond for bond in mol_config.dangling_bonds() if bond in comp.dangling_bonds()]
-            return comp
+    def false_states(self) -> Set[State]:
+        return {state for state, val in self.states.items() if not val}
 
-        def contains_first_reactant(self) -> bool:
-            return 0 in [c.struct_index for c in self.components]
+    def dangling_bonds(self) -> Set[State]:
+        return {s for s, v in self.states.items() if isinstance(s, InteractionState)
+                and v and s not in self.connected_bonds}
 
-        def contains_second_reactant(self) -> bool:
-            return 1 in [c.struct_index for c in self.components]
+    def can_connect_with(self, other: 'BondComplex') -> bool:
+        return not self.components.intersection(other.components) \
+            and self.dangling_bonds().intersection(other.dangling_bonds())
 
-        def is_valid(self) -> bool:
-            return not self.dangling_bonds()
+    def combined_with(self, other: 'BondComplex') -> 'BondComplex':
+        cx = deepcopy(self)
+        connection = cx.dangling_bonds().intersection(other.dangling_bonds())
 
-        def combined_with(self, other: 'ComplexConfig') -> 'ComplexConfig':
-            assert self.is_valid(), 'ComplexConfig.combined_with : self not valid'
-            assert other.is_valid(), 'ComplexConfig.combined_with : other not valid'
-            comp = deepcopy(self)
-            comp.components.update(other.components)
-            comp.states.update(other.states)
-            comp.connected_bonds = self.connected_bonds + other.connected_bonds
-            return comp
+        cx.components.update(other.components)
+        cx.states.update(other.states)
+        cx.connected_bonds.update(other.connected_bonds)
+        cx.connected_bonds.update(connection)
+        return cx
 
-    # This will contain a list of all complex configurations rooted at at least one of the reactants.
-    complexes = []  # type: List[ComplexConfig]
+    def contains_first_reactant(self) -> bool:
+        return 0 in (c.struct_index for c in self.components)
 
-    # This will contain a list of all molecule configurations.
-    molecules = []  # type: List[MolConfig]
+    def contains_second_reactant(self) -> bool:
+        return 1 in (c.struct_index for c in self.components)
 
-    for component in components:
-        new_mols = [MolConfig(component, {state: val for state, val in zip(comp_to_states[component], combi)})
-                    for combi in product((True, False), repeat=len(comp_to_states[component]))]
+    def is_valid(self) -> bool:
+        return self.is_connected() and self.is_consistent()
 
-        new_mols = [m for m in new_mols if m.is_valid()]
+    def is_connected(self) -> bool:
+        return not self.dangling_bonds()
 
-        if component.struct_index in (0, 1):
-            complexes += [ComplexConfig(m) for m in new_mols]
+    def is_consistent(self) -> bool:
+        # No two mutually exclusive states can be true at the same time.
+        for state, val in self.states.items():
+            if val and any(state.is_mutually_exclusive_with(other)
+                           for other, other_val in self.states.items() if other_val):
+                return False
+        return True
 
-        molecules += new_mols
+    def to_venn_set(self) -> VennSet[State]:
+        return Intersection(
+            *(ValueSet(s) for s in self.true_states()),
+            *(Complement(ValueSet(s)) for s in self.false_states())
+        )
+
+
+def bond_complexes(cont_set: VennSet[State]) -> List[BondComplex]:
+    comp_to_bonds = {c: {state for state in cont_set.values if c in state.components
+                         if isinstance(state, EmptyBindingState) or isinstance(state, InteractionState)}
+                     for c in {c for state in cont_set.values for c in state.components}}
+
+    single_components = []  # type: List[BondComplex]
+
+    for comp, bonds in comp_to_bonds.items():
+        cur_component = (BondComplex(comp, {state: val for state, val in zip(bonds, combi)})
+                         for combi in product((True, False), repeat=len(bonds)))
+        single_components += [bc for bc in cur_component if bc.is_consistent()]
+
+    complexes = [bc for bc in single_components
+                 if bc.contains_first_reactant() or bc.contains_second_reactant()]
 
     finished = False
     while not finished:
         finished = True
-        for (comp, mol) in product(complexes, molecules):
+        for (comp, mol) in product(complexes, single_components):
             if comp.can_connect_with(mol):
-                new_comp = comp.connected_with(mol)
+                new_comp = comp.combined_with(mol)
                 if new_comp not in complexes:
                     complexes.append(new_comp)
                     finished = False
 
-    complexes = [c for c in complexes if c.is_valid()]
+    complexes = [bc for bc in complexes if bc.is_connected()]
 
     both_reactants = [c for c in complexes if c.contains_first_reactant() and c.contains_second_reactant()]
     first_reactant = [c for c in complexes if c.contains_first_reactant() and not c.contains_second_reactant()]
@@ -614,21 +625,20 @@ def calc_physical_basis(states: List[State]) -> List[Dict[State, bool]]:
     else:
         all_complexes = second_reactant + both_reactants
 
-    return [comp.states for comp in all_complexes]
+    return all_complexes
 
 
 def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
     if cont_set.is_equivalent_to(UniversalSet()):
         return cont_set
 
-    basis_vecs = calc_physical_basis(cont_set.values)
+    components = components_microstate(cont_set)
+    complexes = bond_complexes(cont_set)
 
     constraints = []
-    for vec in basis_vecs:
-        constraint = [ValueSet(s) for s, v in vec.items() if v] + \
-                     [Complement(ValueSet(s)) for s, v in vec.items() if not v]
 
-        constraints.append(Intersection(*constraint))
+    for cx in complexes:
+        constraints.append(Intersection(cx.to_venn_set(), *(components[cp] for cp in cx.components)))
 
     return Intersection(cont_set, Union(*constraints))
 
