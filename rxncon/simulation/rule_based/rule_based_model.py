@@ -494,10 +494,25 @@ class RuleBasedModel:
         return sorted(set(rule.rate for rule in self.rules), key=lambda x: x.name)
 
 
+def group_states(cont_set: VennSet[State], filter_func=lambda s: True) -> Dict[Spec, Set[State]]:
+    return {c: {s for s in cont_set.values if c in s.components and filter_func(s)}
+            for c in {c for state in cont_set.values for c in state.components}}
+
+
+def make_bond_filter(cont_set: VennSet[State]):
+    # returns a function that evaluates to True if the state is a "true" bond state,
+    # that is, it needs to be in the microstate enumeration.
+    bond_domains = [spec for state in cont_set.values for spec in state.specs if isinstance(state, InteractionState)]
+
+    def bond_filter(s: State) -> bool:
+        return isinstance(s, InteractionState) or isinstance(s, EmptyBindingState) and s.specs[0] in bond_domains
+
+    return bond_filter
+
+
 def components_microstate(cont_set: VennSet[State]) -> Dict[Spec, VennSet[State]]:
-    comp_to_states = {c: {s for s in cont_set.values if c in s.components
-                          and not isinstance(s, EmptyBindingState) and not isinstance(s, InteractionState)}
-                      for c in {c for state in cont_set.values for c in state.components}}
+    bond_filter = make_bond_filter(cont_set)
+    comp_to_states = group_states(cont_set, lambda s: not bond_filter(s))
 
     constraints = dict()
 
@@ -588,12 +603,12 @@ class BondComplex:
 
 
 def bond_complexes(cont_set: VennSet[State]) -> List[BondComplex]:
-    comp_to_bonds = {c: {state for state in cont_set.values if c in state.components
-                         if isinstance(state, EmptyBindingState) or isinstance(state, InteractionState)}
-                     for c in {c for state in cont_set.values for c in state.components}}
+    bond_filter = make_bond_filter(cont_set)
+    comp_to_bonds = group_states(cont_set, lambda s: bond_filter(s))
 
     single_components = []  # type: List[BondComplex]
 
+    LOGGER.debug('bond_complexes : building single-molecule bond states')
     for comp, bonds in comp_to_bonds.items():
         cur_component = (BondComplex(comp, {state: val for state, val in zip(bonds, combi)})
                          for combi in product((True, False), repeat=len(bonds)))
@@ -602,6 +617,8 @@ def bond_complexes(cont_set: VennSet[State]) -> List[BondComplex]:
     complexes = [bc for bc in single_components
                  if bc.contains_first_reactant() or bc.contains_second_reactant()]
 
+    LOGGER.debug('bond_complexes : built {} single-molecule bond states, {} connected to reactants'
+                 .format(len(single_components), len(complexes)))
     LOGGER.debug('bond_complexes : building complexes')
     finished = False
     while not finished:

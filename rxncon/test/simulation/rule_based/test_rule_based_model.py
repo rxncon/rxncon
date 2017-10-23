@@ -96,22 +96,30 @@ def test_bond_complexes_calculation() -> None:
                      for x in ('A@0_[C]--C@2_[A]', 'C@2_[(r)]-{p}',
                                'A@0_[C]--0', 'C@2_[A]--0', 'C@2_[(r)]-{0}')))
 
-    z = bond_complexes(states)
+    assert len(bond_complexes(states)) == 3
 
-    for c in z:
-        print()
-        print(c)
+
+def test_bond_complexes_ring_calculation() -> None:
+    states = Union(*(ValueSet(state_from_str(x))
+                     for x in ('A@0_[B]--B@2_[A]', 'B@2_[C]--C@3_[B]',
+                               'C@3_[D]--D@4_[C]', 'D@4_[A]--A@0_[D]')))
+
+    assert len(bond_complexes(states)) == 11
+
+
+def test_bond_complexes_poly_calculation() -> None:
+    states = Union(*(ValueSet(state_from_str(x))
+                     for x in ('R@1_[Y]--Y@2_[R]', 'Y@2_[Y]--Y@3_[Y]',
+                               'Y@3_[R]--R@4_[Y]', 'R@4_[Ras]--Ras@5_[R]')))
+
+    assert len(bond_complexes(states)) == 5
 
 
 def test_bond_complexes_calculation_unordered() -> None:
     states = Union(*(ValueSet(state_from_str(x))
                      for x in ('A@0_[C]--C@5_[A]', 'C@5_[B]--B@3_[C]', 'B@3_[D]--D@2_[B]')))
 
-    z = bond_complexes(states)
-
-    for c in z:
-        print()
-        print(c)
+    assert len(bond_complexes(states)) == 4
 
 
 def test_components_microstate() -> None:
