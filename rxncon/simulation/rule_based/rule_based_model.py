@@ -617,7 +617,7 @@ def bond_complexes(cont_set: VennSet[State]) -> List[BondComplex]:
     complexes = [bc for bc in single_components
                  if bc.contains_first_reactant() or bc.contains_second_reactant()]
 
-    LOGGER.debug('bond_complexes : built {} single-molecule bond states, {} connected to reactants'
+    LOGGER.debug('bond_complexes : built {} single-molecule bond states, {} on reactants'
                  .format(len(single_components), len(complexes)))
     LOGGER.debug('bond_complexes : building complexes')
     finished = False
