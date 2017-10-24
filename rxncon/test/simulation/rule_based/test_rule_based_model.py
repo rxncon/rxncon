@@ -1,12 +1,11 @@
 import pytest
 from itertools import combinations
-from typing import Dict, List
 
 from rxncon.input.quick.quick import Quick
 from rxncon.simulation.rule_based.rule_based_model import complex_from_str, rule_from_str, rule_based_model_from_rxncon,\
-    with_connectivity_constraints, initial_condition_from_str, bond_complexes, components_microstate, BondComplex
+    initial_condition_from_str, bond_complexes, components_microstate, BondComplex
 from rxncon.core.state import state_from_str
-from rxncon.venntastic.sets import ValueSet, Union, Intersection
+from rxncon.venntastic.sets import ValueSet, Union, venn_from_str
 import rxncon.core.reaction as reaction
 from rxncon.core.spec import Spec, LocusResolution, MRNASpec, spec_from_str
 
@@ -77,8 +76,8 @@ def test_rule_from_str_inequivalent() -> None:
 
 
 def test_bond_complex_class() -> None:
-    first_complex = BondComplex(spec_from_str('A@0'), {state_from_str('A@0_[C]--C@2_[A]'): True})
-    second_complex = BondComplex(spec_from_str('C@2'), {state_from_str('A@0_[C]--C@2_[A]'): True})
+    first_complex = BondComplex({spec_from_str('A@0')}, {state_from_str('A@0_[C]--C@2_[A]'): True}, set(), set())
+    second_complex = BondComplex({spec_from_str('C@2')}, {state_from_str('A@0_[C]--C@2_[A]'): True}, set(), set())
 
     assert first_complex.dangling_bonds() == {state_from_str('A@0_[C]--C@2_[A]')}
     assert second_complex.dangling_bonds() == {state_from_str('A@0_[C]--C@2_[A]')}
@@ -123,15 +122,18 @@ def test_bond_complexes_calculation_unordered() -> None:
 
 
 def test_components_microstate() -> None:
-    states = Union(*(ValueSet(state_from_str(x))
-                     for x in ('A@0_[(r)]-{p}', 'A@0_[(r)]-{0}', 'A@0_[(r)]-{ub}', 'C@3_[(s)]-{p}')))
+    microstates = components_microstate(Union(*(ValueSet(state_from_str(x))
+                                                for x in ('A@0_[(r)]-{p}', 'A@0_[(r)]-{0}',
+                                                          'A@0_[(r)]-{ub}', 'C@3_[(s)]-{p}'))))
 
-    z = components_microstate(states)
+    assert microstates[spec_from_str('C@3')].is_equivalent_to(
+        venn_from_str('C@3_[(s)]-{p} | ~ ( C@3_[(s)]-{p} )', state_from_str)
+    )
 
-    for c, s in z.items():
-        print()
-        print(c)
-        print(s)
+    assert microstates[spec_from_str('A@0')].is_equivalent_to(
+        venn_from_str('A@0_[(r)]-{0} | ~ ( A@0_[(r)]-{0} ) | A@0_[(r)]-{p} | ~ ( A@0_[(r)]-{p} ) | '
+                      'A@0_[(r)]-{ub} | ~ ( A@0_[(r)]-{ub} )', state_from_str)
+    )
 
 
 # Test simple rxncon systems.

@@ -66,6 +66,8 @@ STATE_TO_MOL_DEF_BUILDER_FN = {
 
 
 class MolDef:
+    """MolDef holds a RBM molecule definition, i.e. a name with a list of sites and their
+    possible values."""
     def __init__(self, name: str, site_defs: Dict[str, List[str]]) -> None:
         self.name, self.site_defs = name, site_defs
 
@@ -90,6 +92,8 @@ class MolDef:
         return list(self.site_defs.keys())
 
     def create_neutral_complex(self) -> 'Complex':
+        """Returns a Complex based on this MolDef that is Fully Neutral; i.e. with all
+        bond sites empty and the neutral modifiers at modification sites."""
         site_to_mod = {}  # type: Dict[str, str]
         site_to_bond = {}  # type: Dict[str, Optional[int]]
         for site, mods in self.site_defs.items():
@@ -102,12 +106,14 @@ class MolDef:
 
 
 class MolDefBuilder:
+    """MolDefBuilder is used to iteratively collect the different states a molecule can have."""
     def __init__(self, spec: Spec) -> None:
         self.spec = spec
         self.name = str(spec.to_non_struct_spec())  # type: str
         self.site_defs = {}  # type: Dict[str, List[str]]
 
     def build(self) -> MolDef:
+        """Actually builds the MolDef."""
         return MolDef(self.name, self.site_defs)
 
     def add_site(self, site: Spec) -> None:
@@ -119,6 +125,7 @@ class MolDefBuilder:
 
 
 class Mol:
+    """Mol represents a molecule in a particular state."""
     def __init__(self, name: str, site_to_mod: Dict[str, str], site_to_bond: Dict[str, Optional[int]],
                  is_reactant: bool) -> None:
         self.name = name
@@ -188,6 +195,7 @@ class Mol:
 
 
 def site_name(spec: Spec) -> str:
+    """Returns a BNGL compatible string for the site name described by spec."""
     bad_chars = ['[', ']', '/', '(', ')', ':', '-']
     spec_str = (spec.locus.domain + 'D' if spec.locus.domain else '') + \
                (spec.locus.subdomain + 'S' if spec.locus.subdomain else '') + \
@@ -200,7 +208,9 @@ def site_name(spec: Spec) -> str:
 
 
 class MolBuilder:
-    def __init__(self, spec: Spec, is_reactant: bool = False) -> None:
+    """MolBuilder iteratively builds up the state of a molecule. The is_reactant flag is used
+    later by Complex to determine whether the reactant molecule is part of the complex."""
+    def __init__(self, spec: Spec, is_reactant: bool=False) -> None:
         self.name = str(spec.to_non_struct_spec())
         self.site_to_mod = {}  # type: Dict[str, str]
         self.site_to_bond = {}  # type: Dict[str, Optional[int]]
@@ -217,6 +227,9 @@ class MolBuilder:
 
 
 class Complex:
+    """Complex holds a bag of molecules in a particular state. The bonds between them are stored
+    in the Mol objects. Every inter-molecule bond should therefore appear twice: once in either
+    binding partner."""
     def __init__(self, mols: List[Mol]) -> None:
         self.mols = sorted(mols)
 
@@ -319,7 +332,9 @@ class Complex:
 
 
 class ComplexExprBuilder:
-    def __init__(self, reaction: Optional[Reaction] = None) -> None:
+    """ComplexExprBuilder builds mathematical expressions made up of Complex objects.
+    These are used as LHS and RHS of rules."""
+    def __init__(self, reaction: Optional[Reaction]=None) -> None:
         self._mol_builders = {}  # type: Dict[Spec, MolBuilder]
         self._current_bond = 0
         self._bonds = []  # type: List[Tuple[Spec, Spec]]
@@ -379,6 +394,7 @@ class ComplexExprBuilder:
 
 
 class Parameter:
+    """Parameter holds a BNGL parameter, such as a rate constant."""
     def __init__(self, name: str, value: Optional[str], description: Optional[str]='') -> None:
         self.name, self.value, self.description = name, value, description
 
@@ -398,6 +414,7 @@ class Parameter:
 
 
 class InitialCondition:
+    """InitialCondition holds a BNGL initial condition."""
     def __init__(self, complex: Complex, value: Parameter) -> None:
         self.complex, self.value = complex, value
 
@@ -412,6 +429,7 @@ class InitialCondition:
 
 
 class Observable:
+    """Observable holds a BNGL observable."""
     def __init__(self, name: str, complex: Complex) -> None:
         self.name, self.complex = name, complex
 
@@ -423,8 +441,10 @@ class Observable:
 
 
 class Rule:
+    """Rule holds a BNGL rule. The parent_reaction and quant_cont are remembered so they can appear
+    as remarks in the BNGL output."""
     def __init__(self, lhs: List[Complex], rhs: List[Complex], rate: Parameter,
-                 parent_reaction: Reaction = None, quant_cont: Optional[VennSet[State]]=None) -> None:
+                 parent_reaction: Reaction=None, quant_cont: Optional[VennSet[State]]=None) -> None:
         self.lhs, self.rhs, self.rate = sorted(lhs), sorted(rhs), rate
         self.parent_reaction = parent_reaction
         self.quant_cont = quant_cont
@@ -485,6 +505,7 @@ class Rule:
 
 
 class RuleBasedModel:
+    """RuleBasedModel holds everything that is necessary to define a full RBM."""
     def __init__(self, mol_defs: List[MolDef], initial_conditions: List[InitialCondition], parameters: List[Parameter],
                  observables: List[Observable], rules: List[Rule]) -> None:
         self.mol_defs, self.initial_conditions, self.parameters, self.observables, self.rules = mol_defs, initial_conditions, \
@@ -496,13 +517,15 @@ class RuleBasedModel:
 
 
 def group_states(cont_set: VennSet[State], filter_func=lambda s: True) -> Dict[Spec, Set[State]]:
+    """Returns the states appearing in a VennSet contingency expression grouped by Spec.
+    Optionally filter_func can determine which states to select and which to discard."""
     return {c: {s for s in cont_set.values if c in s.components and filter_func(s)}
             for c in {c for state in cont_set.values for c in state.components}}
 
 
 def make_bond_filter(cont_set: VennSet[State]):
-    # returns a function that evaluates to True if the state is a "true" bond state,
-    # that is, it needs to be in the microstate enumeration.
+    """Returns a function that evaluates to True if the state is a "true" bond state,
+    that is, it needs to be included in the microstate enumeration."""
     bond_domains = [spec for state in cont_set.values for spec in state.specs if isinstance(state, InteractionState)]
 
     def bond_filter(s: State) -> bool:
@@ -512,19 +535,20 @@ def make_bond_filter(cont_set: VennSet[State]):
 
 
 def components_microstate(cont_set: VennSet[State]) -> Dict[Spec, VennSet[State]]:
+    """Returns, for each component, the VennSet expression for the modification states."""
     bond_filter = make_bond_filter(cont_set)
     comp_to_states = group_states(cont_set, lambda s: not bond_filter(s))
 
-    constraints = dict()
+    constraints = dict()  # type: Dict[Spec, VennSet[State]]
 
     for comp, states in comp_to_states.items():
         def state_to_locus(state: State) -> Locus:
             return state.specs[0].locus
 
-        comp_constraint = Intersection()
+        comp_constraint = Intersection()  # type: VennSet[State]
 
         for _, locus_states in groupby(sorted(states, key=state_to_locus), state_to_locus):
-            locus_constraint = Union()
+            locus_constraint = Union()  # type: VennSet[State]
             for s in locus_states:
                 locus_constraint = Union(locus_constraint, ValueSet(s), Complement(ValueSet(s)))
 
@@ -536,8 +560,11 @@ def components_microstate(cont_set: VennSet[State]) -> Dict[Spec, VennSet[State]
 
 
 class BondComplex:
+    """BondComplex is used to enumerate the different complexes that can be constructed.
+    Logically this object is immutable, it is just the "caches" cannot_connect_with
+    and already_combined_with that change, but these do not change the hash value."""
     def __init__(self, components: Set[Spec], states: Dict[State, bool], connected_bonds: Set[State],
-                 contained_complexes: Set['BondComplex']):
+                 contained_complexes: Set['BondComplex']) -> None:
         # These values determine the object's hash and are immutable.
         self.components = components
         self.states = states
@@ -629,6 +656,8 @@ class BondComplex:
 
 
 def bond_complexes(cont_set: VennSet[State]) -> List[BondComplex]:
+    """Returns a list of BondComplex objects, describing the valid complexes
+    that could be built out of a contingency."""
     bond_filter = make_bond_filter(cont_set)
     comp_to_bonds = group_states(cont_set, lambda s: bond_filter(s))
 
@@ -650,7 +679,7 @@ def bond_complexes(cont_set: VennSet[State]) -> List[BondComplex]:
     LOGGER.debug('bond_complexes {} : building complexes'.format(datetime.now()))
     finished = False
     while not finished:
-        print('num of complexes {}'.format(len(complexes)))
+        LOGGER.debug('num of complexes {}'.format(len(complexes)))
         finished = True
         new_complexes = set()
         for (comp, mol) in product(complexes, single_components):
@@ -661,7 +690,7 @@ def bond_complexes(cont_set: VennSet[State]) -> List[BondComplex]:
 
     LOGGER.debug('bond_complexes {} : built {} complexes (including non fully-connected)'
                  .format(datetime.now(), len(complexes)))
-    complexes = [bc for bc in complexes if bc.is_connected()]
+    complexes = {bc for bc in complexes if bc.is_connected()}
     LOGGER.debug('bond_complexes {} : built {} complexes (only fully-connected)'.format(datetime.now(), len(complexes)))
 
     both_reactants = [c for c in complexes if c.contains_first_reactant() and c.contains_second_reactant()]
@@ -683,6 +712,7 @@ def bond_complexes(cont_set: VennSet[State]) -> List[BondComplex]:
 
 
 def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
+    """Intersect the contingencies with the connectivity constraints."""
     if cont_set.is_equivalent_to(UniversalSet()):
         return cont_set
 
@@ -700,6 +730,7 @@ def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
 
 
 class QuantContingencyConfigs(Iterator[VennSet[State]]):  # pylint: disable=too-few-public-methods
+    """QuantContingencyConfigs is used to iterate over the quantitative contingency configurations."""
     def __init__(self, q_contingencies: List[Contingency]) -> None:
         self.q_contingencies = deepcopy(q_contingencies)
 
@@ -738,6 +769,7 @@ class QuantContingencyConfigs(Iterator[VennSet[State]]):  # pylint: disable=too-
 
 
 def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  # pylint: disable=too-many-locals
+    """Returns a RBM given a rxncon system."""
     def mol_defs_from_rxncon(rxncon_sys: RxnConSystem) -> List[MolDef]:
         mol_defs = {}
         for spec in rxncon_sys.components():
@@ -964,6 +996,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
 
 
 def mol_from_str(mol_str: str) -> Mol:
+    """Constructs a Mol object from a BNGL molecule string."""
     name, config_str = mol_str.split('(')
     assert config_str[-1] == ')'
     site_strs = config_str[:-1].split(',')
@@ -989,10 +1022,12 @@ def mol_from_str(mol_str: str) -> Mol:
 
 
 def complex_from_str(complex_str: str) -> Complex:
+    """Constructs a Complex object from a BNGL complex string."""
     return Complex([mol_from_str(x) for x in complex_str.split('.')])
 
 
 def rule_from_str(rule_str: str) -> Rule:
+    """Constructs a Rule object from a BNGL rule string."""
     lhs_strs = []  # type: List[str]
     rhs_strs = []  # type: List[str]
     rate = None  # type: Optional[Parameter]
@@ -1018,5 +1053,6 @@ def rule_from_str(rule_str: str) -> Rule:
 
 
 def initial_condition_from_str(ic_str: str) -> InitialCondition:
+    """Constructs an InitialCondition object from a BNGL initial condition string."""
     complex_str, param = ic_str.split()
     return InitialCondition(complex_from_str(complex_str), Parameter(param, None))
