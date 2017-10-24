@@ -4,6 +4,7 @@ from copy import copy, deepcopy
 from collections import defaultdict, OrderedDict
 from re import match
 import logging
+from datetime import datetime
 
 from rxncon.core.rxncon_system import RxnConSystem
 from rxncon.core.reaction import Reaction, ReactionTerm, OutputReaction
@@ -535,14 +536,25 @@ def components_microstate(cont_set: VennSet[State]) -> Dict[Spec, VennSet[State]
 
 
 class BondComplex:
-    def __init__(self, component: Spec, states: Dict[State, bool]):
-        self.components = {component}
+    def __init__(self, components: Set[Spec], states: Dict[State, bool], connected_bonds: Set[State],
+                 contained_complexes: Set['BondComplex']):
+        # These values determine the object's hash and are immutable.
+        self.components = components
         self.states = states
-        self.connected_bonds = set()  # type: Set[State]
+        self.connected_bonds = connected_bonds
+        self.contained_complexes = contained_complexes
+        self._hash_value = hash(frozenset(self.states.items()))
+
+        #  These values are mutated as we run through the building algo.
+        self.cannot_connect_with = set()  # type: Set[BondComplex]
+        self.already_combined_with = set()   # type: Set[BondComplex]
 
     def __eq__(self, other):
         return self.components == other.components and self.states == other.states \
             and self.connected_bonds == other.connected_bonds
+
+    def __hash__(self):
+        return self._hash_value
 
     def __str__(self) -> str:
         return 'BondComplex(C: {} ; T: {} ; F: {} ; D: {})'\
@@ -550,6 +562,9 @@ class BondComplex:
                     ', '.join(str(x) for x in self.true_states()),
                     ', '.join(str(x) for x in self.false_states()),
                     ', '.join(str(x) for x in self.dangling_bonds()))
+
+    def contains(self, other: 'BondComplex') -> bool:
+        return other in self.contained_complexes
 
     def true_states(self) -> Set[State]:
         return {state for state, val in self.states.items() if val}
@@ -562,17 +577,28 @@ class BondComplex:
                 and v and s not in self.connected_bonds}
 
     def can_connect_with(self, other: 'BondComplex') -> bool:
-        return not self.components.intersection(other.components) \
-            and self.dangling_bonds().intersection(other.dangling_bonds())
+        if other in self.cannot_connect_with:
+            return False
+        elif not self.components.intersection(other.components) and \
+                 self.dangling_bonds().intersection(other.dangling_bonds()):
+            return True
+        else:
+            self.cannot_connect_with.add(other)
+            other.cannot_connect_with.add(self)
+            return False
+
+    def has_been_combined_with(self, other: 'BondComplex') -> bool:
+        return other in self.already_combined_with
 
     def combined_with(self, other: 'BondComplex') -> 'BondComplex':
-        cx = deepcopy(self)
-        connection = cx.dangling_bonds().intersection(other.dangling_bonds())
+        cx = BondComplex(self.components | other.components,
+                         {**self.states, **other.states},
+                         self.connected_bonds | other.connected_bonds | (self.dangling_bonds() & other.dangling_bonds()),
+                         self.contained_complexes | other.contained_complexes | {self, other})
 
-        cx.components.update(other.components)
-        cx.states.update(other.states)
-        cx.connected_bonds.update(other.connected_bonds)
-        cx.connected_bonds.update(connection)
+        self.already_combined_with.add(other)
+        other.already_combined_with.add(self)
+
         return cx
 
     def contains_first_reactant(self) -> bool:
@@ -606,43 +632,52 @@ def bond_complexes(cont_set: VennSet[State]) -> List[BondComplex]:
     bond_filter = make_bond_filter(cont_set)
     comp_to_bonds = group_states(cont_set, lambda s: bond_filter(s))
 
-    single_components = []  # type: List[BondComplex]
+    single_components = set()  # type: Set[BondComplex]
 
-    LOGGER.debug('bond_complexes : building single-molecule bond states')
+    LOGGER.debug('bond_complexes {} : building single-molecule bond configurations'.format(datetime.now()))
     for comp, bonds in comp_to_bonds.items():
-        cur_component = (BondComplex(comp, {state: val for state, val in zip(bonds, combi)})
+        LOGGER.debug('bond_complexes : component {} carries {} elemental states...'.format(comp, len(bonds)))
+        cur_component = (BondComplex({comp}, {state: val for state, val in zip(bonds, combi)},
+                                     set(), set())
                          for combi in product((True, False), repeat=len(bonds)))
-        single_components += [bc for bc in cur_component if bc.is_consistent()]
+        single_components |= {bc for bc in cur_component if bc.is_consistent()}
 
-    complexes = [bc for bc in single_components
-                 if bc.contains_first_reactant() or bc.contains_second_reactant()]
+    complexes = {bc for bc in single_components
+                 if bc.contains_first_reactant() or bc.contains_second_reactant()}
 
-    LOGGER.debug('bond_complexes : built {} single-molecule bond states, {} on reactants'
-                 .format(len(single_components), len(complexes)))
-    LOGGER.debug('bond_complexes : building complexes')
+    LOGGER.debug('bond_complexes {} : built {} single-molecule bond configurations, {} on reactants'
+                 .format(datetime.now(), len(single_components), len(complexes)))
+    LOGGER.debug('bond_complexes {} : building complexes'.format(datetime.now()))
     finished = False
     while not finished:
+        print('num of complexes {}'.format(len(complexes)))
         finished = True
+        new_complexes = set()
         for (comp, mol) in product(complexes, single_components):
-            if comp.can_connect_with(mol):
-                new_comp = comp.combined_with(mol)
-                if new_comp not in complexes:
-                    complexes.append(new_comp)
-                    finished = False
+            if not comp.has_been_combined_with(mol) and not comp.contains(mol) and comp.can_connect_with(mol):
+                new_complexes.add(comp.combined_with(mol))
+                finished = False
+        complexes |= new_complexes
 
+    LOGGER.debug('bond_complexes {} : built {} complexes (including non fully-connected)'
+                 .format(datetime.now(), len(complexes)))
     complexes = [bc for bc in complexes if bc.is_connected()]
+    LOGGER.debug('bond_complexes {} : built {} complexes (only fully-connected)'.format(datetime.now(), len(complexes)))
 
     both_reactants = [c for c in complexes if c.contains_first_reactant() and c.contains_second_reactant()]
     first_reactant = [c for c in complexes if c.contains_first_reactant() and not c.contains_second_reactant()]
     second_reactant = [c for c in complexes if not c.contains_first_reactant() and c.contains_second_reactant()]
 
-    LOGGER.debug('bond_complexes : combining complexes')
+    LOGGER.debug('bond_complexes {} : combining complexes'.format(datetime.now()))
     if first_reactant and second_reactant:
         all_complexes = [c1.combined_with(c2) for c1 in first_reactant for c2 in second_reactant] + both_reactants
     elif first_reactant and not second_reactant:
         all_complexes = first_reactant + both_reactants
     else:
         all_complexes = second_reactant + both_reactants
+
+    LOGGER.debug('bond_complexes {} : found total of {} complexes connected to either reactant'
+                 .format(datetime.now(), len(all_complexes)))
 
     return all_complexes
 
@@ -902,9 +937,10 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
             cont_set = Intersection(strict_cont_set, quant_contingency_set)  # type: VennSet[State]
             LOGGER.debug('rule_based_model_from_rxncon : adding constraints...')
             cont_set = with_connectivity_constraints(cont_set)
-            LOGGER.debug('rule_based_model_from_rxncon : calculating solutions...')
+            LOGGER.debug('rule_based_model_from_rxncon {} : calculating solutions...'.format(datetime.now()))
             solutions = cont_set.calc_solutions()
-            LOGGER.debug('rule_based_model_from_rxncon : removing global states...')
+            LOGGER.debug('rule_based_model_from_rxncon {} : found {} non-positivized solutions...'
+                         .format(datetime.now(), len(solutions)))
             solutions = remove_global_states(solutions)
 
             LOGGER.debug('rule_based_model_from_rxncon : contingency solutions {}'.format(str(solutions)))
