@@ -69,8 +69,8 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
 
         unsatisfiable_contingencies = self._unsatisfiable_contingencies()
         if unsatisfiable_contingencies:
-            reason_str = ', '.join('{} : {}'.format(rxn, reason) for rxn, reason in unsatisfiable_contingencies)
-            raise AssertionError('Unsatisfiable reaction contingencies: {}'.format(reason_str))
+            reason_str = '\n'.join('{} : {}'.format(rxn, reason) for rxn, reason in unsatisfiable_contingencies)
+            raise AssertionError('Unsatisfiable reaction contingencies:\n{}'.format(reason_str))
 
     def components(self) -> List[Spec]:
         if not self._components:
@@ -294,6 +294,22 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
         for reaction in self.reactions:
             contingencies = self.s_contingencies_for_reaction(reaction)
 
+            # Make sure the contingency does not contain the states produced / consumed by the reaction.
+            states = (state for contingency in contingencies
+                      for state in contingency.effector.states)
+
+            for state in states:
+                if not all(spec.struct_index in (0, 1) for spec in state.specs):
+                    continue
+
+                state = state.to_non_structured()
+
+                if state in reaction.produced_states:
+                    unsatisfiable.append((reaction, 'Produced state {} appears in contingencies'.format(str(state))))
+                if state in reaction.consumed_states:
+                    unsatisfiable.append((reaction, 'Consumed state {} appears in contingencies'.format(str(state))))
+
+            # Make sure at least one solution is there (this might still contain mutually exclusive states)
             total_set = UniversalSet()  # type: Set[State]
             for contingency in contingencies:
                 total_set = Intersection(total_set,
@@ -303,6 +319,7 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
             if len(solutions) == 0:
                 unsatisfiable.append((reaction, 'Zero consistent solutions found.'))
 
+            # Make sure that at least one solution doesn't contain mutually exclusive states.
             local_unsatisfiables = []
             at_least_one_consistent_soln = False
 
