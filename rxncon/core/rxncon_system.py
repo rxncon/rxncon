@@ -6,7 +6,7 @@ e.g. a check that all States appearing in contingencies are actually appearing i
 
 from typing import List, Dict, Tuple
 from itertools import product
-from collections import defaultdict
+from collections import defaultdict, Counter
 import logging
 
 from rxncon.core.contingency import ContingencyType, Contingency
@@ -299,14 +299,19 @@ class RxnConSystem:  # pylint: disable=too-many-instance-attributes
                       for state in contingency.effector.states)
 
             for state in states:
+                # We need to be talking about the states mentioning the reactants.
                 if not all(spec.struct_index in (0, 1) for spec in state.specs):
                     continue
 
+                if any(count > 1 for count in Counter(reaction.components_rhs).values()):
+                    continue
+
+                # States appear non-structured in the '.produced_states' etc. properties.
                 state = state.to_non_structured()
 
-                if state in reaction.produced_states:
+                if state in reaction.produced_states and state not in reaction.synthesised_states:
                     unsatisfiable.append((reaction, 'Produced state {} appears in contingencies'.format(str(state))))
-                if state in reaction.consumed_states:
+                if state in reaction.consumed_states and state not in reaction.degraded_states:
                     unsatisfiable.append((reaction, 'Consumed state {} appears in contingencies'.format(str(state))))
 
             # Make sure at least one solution is there (this might still contain mutually exclusive states)

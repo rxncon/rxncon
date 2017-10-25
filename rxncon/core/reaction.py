@@ -516,6 +516,10 @@ class Reaction:  # pylint: disable=too-many-instance-attributes
         return [spec.with_struct_index(i) for i, spec in enumerate(self.components_lhs)]
 
     @property
+    def components_rhs_structured(self) -> List[Spec]:
+        return [spec.with_struct_index(i) for i, spec in enumerate(self.components_rhs)]
+
+    @property
     def consumed_states(self) -> List[State]:
         if self._consumed_states is None:
             self._consumed_states = []
