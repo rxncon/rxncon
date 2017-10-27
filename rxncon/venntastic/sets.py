@@ -7,7 +7,7 @@ import re
 from copy import deepcopy
 
 from pyeda.inter import And, Or, Not, Xor, expr
-from pyeda.boolalg.expr import AndOp, OrOp, NotOp, Variable, Implies, Expression, Literal, \
+from pyeda.boolalg.expr import XorOp, AndOp, OrOp, NotOp, Variable, Implies, Expression, Literal, \
     Complement as pyedaComplement, One, Zero
 
 SYMS = [''.join(tup) for tup in product('ABCDEFGHIJKLMNOPQRSTUVWXYZ', repeat=2)]
@@ -382,6 +382,8 @@ def venn_from_pyeda(pyeda_expr: Expression, sym_to_val: MutableMapping[str, T]) 
         return Complement(venn_from_pyeda(pyeda_expr.x, sym_to_val))
     elif isinstance(pyeda_expr, pyedaComplement):
         return Complement(ValueSet(sym_to_val[pyeda_expr.inputs[0].name]))
+    elif isinstance(pyeda_expr, XorOp):
+        return DisjunctiveUnion(*(venn_from_pyeda(x, sym_to_val) for x in pyeda_expr.xs))
     else:
         raise Exception
 
