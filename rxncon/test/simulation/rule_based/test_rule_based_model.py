@@ -121,21 +121,6 @@ def test_bond_complexes_calculation_unordered() -> None:
     assert len(bond_complexes(states)) == 4
 
 
-def test_components_microstate() -> None:
-    microstates = components_microstate(Union(*(ValueSet(state_from_str(x))
-                                                for x in ('A@0_[(r)]-{p}', 'A@0_[(r)]-{0}',
-                                                          'A@0_[(r)]-{ub}', 'C@3_[(s)]-{p}'))))
-
-    assert microstates[spec_from_str('C@3')].is_equivalent_to(
-        venn_from_str('C@3_[(s)]-{p} | ~ ( C@3_[(s)]-{p} )', state_from_str)
-    )
-
-    assert microstates[spec_from_str('A@0')].is_equivalent_to(
-        venn_from_str('A@0_[(r)]-{0} | ~ ( A@0_[(r)]-{0} ) | A@0_[(r)]-{p} | ~ ( A@0_[(r)]-{p} ) | '
-                      'A@0_[(r)]-{ub} | ~ ( A@0_[(r)]-{ub} )', state_from_str)
-    )
-
-
 # Test simple rxncon systems.
 def test_single_requirement_modification() -> None:
     rbm = rule_based_model_from_rxncon(Quick("""A_[b]_ppi+_B_[a]; ! A_[(r)]-{p}

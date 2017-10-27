@@ -13,7 +13,7 @@ from rxncon.core.state import State, StateModifier, ModificationState, Interacti
     EmptyBindingState
 from rxncon.core.spec import Spec, Locus
 from rxncon.core.contingency import Contingency, ContingencyType
-from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet
+from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet, DisjunctiveUnion
 
 LOGGER = logging.getLogger(__name__)
 
@@ -534,7 +534,7 @@ def make_bond_filter(cont_set: VennSet[State]):
     return bond_filter
 
 
-def components_microstate(cont_set: VennSet[State]) -> Dict[Spec, VennSet[State]]:
+def components_microstate(cont_set: VennSet[State], rxncon_system: RxnConSystem) -> Dict[Spec, VennSet[State]]:
     """Returns, for each component, the VennSet expression for the modification states."""
     bond_filter = make_bond_filter(cont_set)
     comp_to_states = group_states(cont_set, lambda s: not bond_filter(s))
@@ -545,14 +545,17 @@ def components_microstate(cont_set: VennSet[State]) -> Dict[Spec, VennSet[State]
         def state_to_locus(state: State) -> Locus:
             return state.specs[0].locus
 
+        complement_states = set()
+        for state in states:
+            complement_states |= set(rxncon_system.complement_states_for_component(comp, state))
+
+        states = set(states) | complement_states
+
         comp_constraint = Intersection()  # type: VennSet[State]
 
         for _, locus_states in groupby(sorted(states, key=state_to_locus), state_to_locus):
-            locus_constraint = Union()  # type: VennSet[State]
-            for s in locus_states:
-                locus_constraint = Union(locus_constraint, ValueSet(s), Complement(ValueSet(s)))
-
-            comp_constraint = Intersection(comp_constraint, locus_constraint)
+            comp_constraint = Intersection(comp_constraint,
+                                           DisjunctiveUnion(*(ValueSet(s) for s in locus_states)))
 
         constraints[comp] = comp_constraint
 
@@ -711,13 +714,13 @@ def bond_complexes(cont_set: VennSet[State]) -> List[BondComplex]:
     return all_complexes
 
 
-def with_connectivity_constraints(cont_set: VennSet[State]) -> VennSet:
+def with_connectivity_constraints(cont_set: VennSet[State], rxncon_system: RxnConSystem) -> VennSet:
     """Intersect the contingencies with the connectivity constraints."""
     if cont_set.is_equivalent_to(UniversalSet()):
         return cont_set
 
     LOGGER.debug('with_connectivity_constraints : calculating molecular microstates')
-    components = components_microstate(cont_set)
+    components = components_microstate(cont_set, rxncon_system)
     LOGGER.debug('with_connectivity_constraints : calculating complexes')
     complexes = bond_complexes(cont_set)
 
@@ -968,7 +971,7 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
 
             cont_set = Intersection(strict_cont_set, quant_contingency_set)  # type: VennSet[State]
             LOGGER.debug('rule_based_model_from_rxncon : adding constraints...')
-            cont_set = with_connectivity_constraints(cont_set)
+            cont_set = with_connectivity_constraints(cont_set, rxncon_sys)
             LOGGER.debug('rule_based_model_from_rxncon {} : calculating solutions...'.format(datetime.now()))
             solutions = cont_set.calc_solutions()
             LOGGER.debug('rule_based_model_from_rxncon {} : found {} non-positivized solutions...'

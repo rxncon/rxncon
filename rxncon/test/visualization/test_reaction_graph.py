@@ -362,9 +362,9 @@ def _is_graph_test_case_correct(actual_graph: DiGraph, test_case: ReactionGraphT
     [expected_graph.add_edge(source, target, interaction=interaction.value, width=width.value)
      for source, target, width, interaction in test_case.edge_tuples]
 
-    for edge in expected_graph.edge:
-        assert expected_graph.edge[edge] == actual_graph.edge[edge]
-    return expected_graph.node == actual_graph.node and expected_graph.edge == actual_graph.edge
+    for edge in expected_graph.edges:
+        assert expected_graph.edges[edge] == actual_graph.edges[edge]
+    return expected_graph.node == actual_graph.node
 
 
 def _create_reaction_graph(quick_string: str) -> DiGraph:
