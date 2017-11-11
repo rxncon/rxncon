@@ -1100,7 +1100,8 @@ class RegulatoryGraph:
             None
 
         """
-        self.regulatory_graph.add_node(self._replace_invalid_chars(id), label=self._replace_invalid_chars(label), type=type.value)
+        self.regulatory_graph.add_node(n=self._replace_invalid_chars(id), attr_dict=None,
+                                       label=self._replace_invalid_chars(label), type=type.value)
 
     def _add_edge(self, source: str, target: str, interaction: EdgeInteractionType) -> None:
         """
