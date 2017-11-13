@@ -71,7 +71,7 @@ setup(
         'rxncon2regulatorygraph.py',
         'rxncon2srgraph.py'
     ],
-    version='2.0b16',
+    version='2.0b17',
     description='The reaction-contingency framework for cellular signalling processes.',
     author='The rxncon group @ Humboldt University Berlin',
     author_email='jesper.romers@hu-berlin.de',
