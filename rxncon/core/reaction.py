@@ -559,17 +559,31 @@ class Reaction:  # pylint: disable=too-many-instance-attributes
 
             for term in self.terms_rhs:
                 if not any(spec in self.components_lhs for spec in term.specs):
+                    # if none of the components from the lhs are in termn_rhs do:
                     self._synthesised_states += term.states
+
 
         return self._synthesised_states
 
     @property
     def degraded_components(self) -> List[Spec]:
-        return [component for component in self.components_lhs if component not in self.components_rhs]
+        structured_components = [component for component in self.components_lhs_structured if component not in self.components_rhs_structured]
+        components = []
+        for component in structured_components:
+            # destructurize
+            component.struct_index = None
+            components.append(component)
+        return components
 
     @property
     def synthesised_components(self) -> List[Spec]:
-        return [component for component in self.components_rhs if component not in self.components_lhs]
+        structured_components= [component for component in self.components_rhs_structured if component not in self.components_lhs_structured]
+        components = []
+        for component in structured_components:
+            # destructurize
+            component.struct_index = None
+            components.append(component)
+        return components
 
     @property
     def modifier_components(self) -> List[Spec]:
