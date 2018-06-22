@@ -543,7 +543,10 @@ def components_microstate(cont_set: VennSet[State], rxncon_system: RxnConSystem)
 
     for comp, states in comp_to_states.items():
         def state_to_locus(state: State) -> Locus:
-            return state.specs[0].locus
+            if state.specs[0].name == comp.name and state.specs[0].struct_index == comp.struct_index:
+                return state.specs[0].locus
+            elif state.specs[1].name == comp.name and state.specs[1].struct_index == comp.struct_index:
+                return state.specs[1].locus
 
         complement_states = set()
         for state in states:
