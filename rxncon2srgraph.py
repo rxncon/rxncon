@@ -83,7 +83,7 @@ def write_xgmml(excel_filename: str, output=None, layout_template_file=None):
     print('Constructed rxncon system: [{} reactions], [{} contingencies]'
           .format(len(rxncon_system.reactions), len(rxncon_system.contingencies)))
 
-    print('Generating reaction species graph output...')
+    print('Generating elemental species-reaction graph output...')
     reg_system = SpeciesReactionGraph(rxncon_system)
     graph = reg_system.to_graph()
 
@@ -92,12 +92,12 @@ def write_xgmml(excel_filename: str, output=None, layout_template_file=None):
                                                                                      graph_filename))
         gml_system = XGMML(graph, "{}".format(output))
         graph = map_layout2xgmml(gml_system.to_string(), layout_template_file)
-        print('Writing reaction species graph file [{}] ...'.format(graph_filename))
+        print('Writing elemental species-reaction graph file [{}] ...'.format(graph_filename))
 
         with open(graph_filename, "w") as graph_handle:
             graph_handle.write(graph)
     else:
-        print('Writing reaction species graph file [{}] ...'.format(graph_filename))
+        print('Writing elemental species-reaction graph file [{}] ...'.format(graph_filename))
         gml_system = XGMML(graph, "{}".format(output))
         gml_system.to_file(graph_filename)
 
