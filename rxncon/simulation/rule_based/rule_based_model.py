@@ -953,6 +953,30 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
 
         return observables
 
+    def add_structure_to_negative_interaction_states(states):
+        """adding structure index to components connected through complements to empty domains"""
+        m = 0
+        unstructured = []
+        for sol in positive_solutions:
+                for s in sol:
+                    if isinstance(s, InteractionState):
+                        if s.first.is_structured:
+                            m = max(m, s.first.struct_index)
+                        else:
+                            if s.first not in unstructured:
+                                unstructured.append(s.first)
+                        if s.second.is_structured:
+                            m = max(m, s.second.struct_index)
+                        else:
+                            if s.second not in unstructured:
+                                unstructured.append(s.second)
+        
+        for comp in unstructured:
+            m += 1
+            comp.struct_index = m
+        
+        return(states)
+
     mol_defs = mol_defs_from_rxncon(rxncon_sys)
     LOGGER.debug(
         'rule_based_model_from_rxncon : Generated MolDefs: {}'.format(', '.join(str(mol_def) for mol_def in mol_defs)))
@@ -985,6 +1009,9 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
             positive_solutions = []  # type: List[List[State]]
             for solution in solutions:
                 positive_solutions += calc_positive_solutions(rxncon_sys, solution)
+
+            positive_solutions = add_structure_to_negative_interaction_states(positive_solutions)
+            """added to add structure to binding partners of empty domains"""
 
             for positive_solution in positive_solutions:
                 found_solution = True
