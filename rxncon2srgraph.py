@@ -9,9 +9,9 @@ import click_log
 import colorama
 
 from rxncon.input.excel_book.excel_book import ExcelBook
-from rxncon.visualization.regulatory_graph import SpeciesReactionGraph
 from rxncon.visualization.graphML import XGMML
 from rxncon.visualization.graphML import map_layout2xgmml
+from rxncon.visualization.regulatory_graph import SpeciesReactionGraph
 
 logger = logging.getLogger(__name__)
 

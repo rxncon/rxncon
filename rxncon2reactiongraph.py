@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 colorama.init()
 
+
 def _file_path_existence(file_path):
     """
     Checking if the file path already exists.
@@ -65,16 +66,15 @@ def write_xgmml(excel_filename: str, output=None, layout_template_file=None):
 
     suffix = '_rg'
     if not output.endswith('.xgmml'):
-        output =  '{0}{1}.xgmml'.format(output,suffix)
+        output = '{0}{1}.xgmml'.format(output, suffix)
     else:
         base_name = output.split('.xgmml')[0]
-        output = "{0}{1}.{2}".format(base_name,suffix,'xgmml')
+        output = "{0}{1}.{2}".format(base_name, suffix, 'xgmml')
 
     graph_filename = os.path.join(base_path, '{0}'.format(output))
 
     print('graph_filename: ', graph_filename)
     _file_path_existence(graph_filename)
-
 
     print('Reading in Excel file [{}] ...'.format(excel_filename))
     excel_book = ExcelBook(excel_filename)
@@ -88,7 +88,8 @@ def write_xgmml(excel_filename: str, output=None, layout_template_file=None):
     graph = rxngraph_system.reaction_graph
 
     if layout_template_file:
-        print('Writing layout information from [{0}] to graph file [{1}] ...'.format(layout_template_file, graph_filename))
+        print('Writing layout information from [{0}] to graph file [{1}] ...'.format(layout_template_file,
+                                                                                     graph_filename))
         gml_system = XGMML(graph, "{}".format(output))
         graph = map_layout2xgmml(gml_system.to_string(), layout_template_file)
         print('Writing reaction graph file [{}] ...'.format(graph_filename))
@@ -152,5 +153,4 @@ if __name__ == '__main__':
         setup_logging_colors()
         run()
     except Exception as e:
-       print('ERROR: {}\n{}\nPlease re-run this command with the \'-v DEBUG\' option.'.format(type(e), e))
-
+        print('ERROR: {}\n{}\nPlease re-run this command with the \'-v DEBUG\' option.'.format(type(e), e))

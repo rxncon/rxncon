@@ -1,26 +1,26 @@
-from typing import Dict, List, Optional, Tuple, Iterable, Iterator, Set  # pylint: disable=unused-import
-from itertools import combinations, product, chain, permutations, groupby
-from copy import copy, deepcopy
-from collections import defaultdict, OrderedDict
-from re import match
 import logging
+from collections import defaultdict, OrderedDict
+from copy import copy, deepcopy
 from datetime import datetime
+from itertools import combinations, product, chain, permutations, groupby
+from re import match
+from typing import Dict, List, Optional, Tuple, Iterable, Iterator, Set  # pylint: disable=unused-import
 
-from rxncon.core.rxncon_system import RxnConSystem
+from rxncon.core.contingency import Contingency, ContingencyType
 from rxncon.core.reaction import Reaction, ReactionTerm, OutputReaction
+from rxncon.core.rxncon_system import RxnConSystem
+from rxncon.core.spec import Spec, Locus
 from rxncon.core.state import State, StateModifier, ModificationState, InteractionState, SelfInteractionState, \
     GlobalState, \
     EmptyBindingState
-from rxncon.core.spec import Spec, Locus
-from rxncon.core.contingency import Contingency, ContingencyType
-from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet, DisjunctiveUnion
+from rxncon.venntastic.sets import Set as VennSet, Intersection, Union, Complement, ValueSet, UniversalSet, \
+    DisjunctiveUnion
 
 LOGGER = logging.getLogger(__name__)
 
 NEUTRAL_MOD = '0'
 INITIAL_MOLECULE_COUNT = 1000
 SITE_NAME_REGEX = r'^[a-zA-Z0-9]+$'
-
 
 STATE_TO_COMPLEX_BUILDER_FN = {
     ModificationState: [
@@ -68,6 +68,7 @@ STATE_TO_MOL_DEF_BUILDER_FN = {
 class MolDef:
     """MolDef holds a RBM molecule definition, i.e. a name with a list of sites and their
     possible values."""
+
     def __init__(self, name: str, site_defs: Dict[str, List[str]]) -> None:
         self.name, self.site_defs = name, site_defs
 
@@ -107,6 +108,7 @@ class MolDef:
 
 class MolDefBuilder:
     """MolDefBuilder is used to iteratively collect the different states a molecule can have."""
+
     def __init__(self, spec: Spec) -> None:
         self.spec = spec
         self.name = str(spec.to_non_struct_spec())  # type: str
@@ -126,6 +128,7 @@ class MolDefBuilder:
 
 class Mol:
     """Mol represents a molecule in a particular state."""
+
     def __init__(self, name: str, site_to_mod: Dict[str, str], site_to_bond: Dict[str, Optional[int]],
                  is_reactant: bool) -> None:
         self.name = name
@@ -210,7 +213,8 @@ def site_name(spec: Spec) -> str:
 class MolBuilder:
     """MolBuilder iteratively builds up the state of a molecule. The is_reactant flag is used
     later by Complex to determine whether the reactant molecule is part of the complex."""
-    def __init__(self, spec: Spec, is_reactant: bool=False) -> None:
+
+    def __init__(self, spec: Spec, is_reactant: bool = False) -> None:
         self.name = str(spec.to_non_struct_spec())
         self.site_to_mod = {}  # type: Dict[str, str]
         self.site_to_bond = {}  # type: Dict[str, Optional[int]]
@@ -230,6 +234,7 @@ class Complex:
     """Complex holds a bag of molecules in a particular state. The bonds between them are stored
     in the Mol objects. Every inter-molecule bond should therefore appear twice: once in either
     binding partner."""
+
     def __init__(self, mols: List[Mol]) -> None:
         self.mols = sorted(mols)
 
@@ -334,7 +339,8 @@ class Complex:
 class ComplexExprBuilder:
     """ComplexExprBuilder builds mathematical expressions made up of Complex objects.
     These are used as LHS and RHS of rules."""
-    def __init__(self, reaction: Optional[Reaction]=None) -> None:
+
+    def __init__(self, reaction: Optional[Reaction] = None) -> None:
         self._mol_builders = {}  # type: Dict[Spec, MolBuilder]
         self._current_bond = 0
         self._bonds = []  # type: List[Tuple[Spec, Spec]]
@@ -395,7 +401,8 @@ class ComplexExprBuilder:
 
 class Parameter:
     """Parameter holds a BNGL parameter, such as a rate constant."""
-    def __init__(self, name: str, value: Optional[str], description: Optional[str]='') -> None:
+
+    def __init__(self, name: str, value: Optional[str], description: Optional[str] = '') -> None:
         self.name, self.value, self.description = name, value, description
 
     def __eq__(self, other: object) -> bool:
@@ -415,6 +422,7 @@ class Parameter:
 
 class InitialCondition:
     """InitialCondition holds a BNGL initial condition."""
+
     def __init__(self, complex: Complex, value: Parameter) -> None:
         self.complex, self.value = complex, value
 
@@ -430,6 +438,7 @@ class InitialCondition:
 
 class Observable:
     """Observable holds a BNGL observable."""
+
     def __init__(self, name: str, complex: Complex) -> None:
         self.name, self.complex = name, complex
 
@@ -443,8 +452,9 @@ class Observable:
 class Rule:
     """Rule holds a BNGL rule. The parent_reaction and quant_cont are remembered so they can appear
     as remarks in the BNGL output."""
+
     def __init__(self, lhs: List[Complex], rhs: List[Complex], rate: Parameter,
-                 parent_reaction: Reaction=None, quant_cont: Optional[VennSet[State]]=None) -> None:
+                 parent_reaction: Reaction = None, quant_cont: Optional[VennSet[State]] = None) -> None:
         self.lhs, self.rhs, self.rate = sorted(lhs), sorted(rhs), rate
         self.parent_reaction = parent_reaction
         self.quant_cont = quant_cont
@@ -506,6 +516,7 @@ class Rule:
 
 class RuleBasedModel:
     """RuleBasedModel holds everything that is necessary to define a full RBM."""
+
     def __init__(self, mol_defs: List[MolDef], initial_conditions: List[InitialCondition], parameters: List[Parameter],
                  observables: List[Observable], rules: List[Rule]) -> None:
         self.mol_defs, self.initial_conditions, self.parameters, self.observables, self.rules = mol_defs, initial_conditions, \
@@ -569,6 +580,7 @@ class BondComplex:
     """BondComplex is used to enumerate the different complexes that can be constructed.
     Logically this object is immutable, it is just the "caches" cannot_connect_with
     and already_combined_with that change, but these do not change the hash value."""
+
     def __init__(self, components: Set[Spec], states: Dict[State, bool], connected_bonds: Set[State],
                  contained_complexes: Set['BondComplex']) -> None:
         # These values determine the object's hash and are immutable.
@@ -580,17 +592,17 @@ class BondComplex:
 
         #  These values are mutated as we run through the building algo.
         self.cannot_connect_with = set()  # type: Set[BondComplex]
-        self.already_combined_with = set()   # type: Set[BondComplex]
+        self.already_combined_with = set()  # type: Set[BondComplex]
 
     def __eq__(self, other):
         return self.components == other.components and self.states == other.states \
-            and self.connected_bonds == other.connected_bonds
+               and self.connected_bonds == other.connected_bonds
 
     def __hash__(self):
         return self._hash_value
 
     def __str__(self) -> str:
-        return 'BondComplex(C: {} ; T: {} ; F: {} ; D: {})'\
+        return 'BondComplex(C: {} ; T: {} ; F: {} ; D: {})' \
             .format(', '.join(str(x) for x in self.components),
                     ', '.join(str(x) for x in self.true_states()),
                     ', '.join(str(x) for x in self.false_states()),
@@ -613,7 +625,7 @@ class BondComplex:
         if other in self.cannot_connect_with:
             return False
         elif not self.components.intersection(other.components) and \
-                 self.dangling_bonds().intersection(other.dangling_bonds()):
+                self.dangling_bonds().intersection(other.dangling_bonds()):
             return True
         else:
             self.cannot_connect_with.add(other)
@@ -626,7 +638,8 @@ class BondComplex:
     def combined_with(self, other: 'BondComplex') -> 'BondComplex':
         cx = BondComplex(self.components | other.components,
                          {**self.states, **other.states},
-                         self.connected_bonds | other.connected_bonds | (self.dangling_bonds() & other.dangling_bonds()),
+                         self.connected_bonds | other.connected_bonds | (
+                         self.dangling_bonds() & other.dangling_bonds()),
                          self.contained_complexes | other.contained_complexes | {self, other})
 
         self.already_combined_with.add(other)
@@ -737,6 +750,7 @@ def with_connectivity_constraints(cont_set: VennSet[State], rxncon_system: RxnCo
 
 class QuantContingencyConfigs(Iterator[VennSet[State]]):  # pylint: disable=too-few-public-methods
     """QuantContingencyConfigs is used to iterate over the quantitative contingency configurations."""
+
     def __init__(self, q_contingencies: List[Contingency]) -> None:
         self.q_contingencies = deepcopy(q_contingencies)
 
@@ -776,6 +790,7 @@ class QuantContingencyConfigs(Iterator[VennSet[State]]):  # pylint: disable=too-
 
 def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  # pylint: disable=too-many-locals
     """Returns a RBM given a rxncon system."""
+
     def mol_defs_from_rxncon(rxncon_sys: RxnConSystem) -> List[MolDef]:
         mol_defs = {}
         for spec in rxncon_sys.components():
@@ -910,7 +925,8 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
         lhs = calc_complexes(reaction.terms_lhs, cont_soln)
         rhs = calc_complexes(reaction.terms_rhs, cont_soln)
 
-        rate = Parameter('k_{}{}'.format(rxncon_sys.reaction_number(reaction) + 1, quant_cont.rate_constant_desc), '1.0',
+        rate = Parameter('k_{}{}'.format(rxncon_sys.reaction_number(reaction) + 1, quant_cont.rate_constant_desc),
+                         '1.0',
                          description=str(reaction))
 
         return Rule(lhs, rhs, rate, parent_reaction=reaction, quant_cont=quant_cont)
@@ -958,24 +974,24 @@ def rule_based_model_from_rxncon(rxncon_sys: RxnConSystem) -> RuleBasedModel:  #
         m = 0
         unstructured = []
         for sol in positive_solutions:
-                for s in sol:
-                    if isinstance(s, InteractionState):
-                        if s.first.is_structured:
-                            m = max(m, s.first.struct_index)
-                        else:
-                            if s.first not in unstructured:
-                                unstructured.append(s.first)
-                        if s.second.is_structured:
-                            m = max(m, s.second.struct_index)
-                        else:
-                            if s.second not in unstructured:
-                                unstructured.append(s.second)
-        
+            for s in sol:
+                if isinstance(s, InteractionState):
+                    if s.first.is_structured:
+                        m = max(m, s.first.struct_index)
+                    else:
+                        if s.first not in unstructured:
+                            unstructured.append(s.first)
+                    if s.second.is_structured:
+                        m = max(m, s.second.struct_index)
+                    else:
+                        if s.second not in unstructured:
+                            unstructured.append(s.second)
+
         for comp in unstructured:
             m += 1
             comp.struct_index = m
-        
-        return(states)
+
+        return (states)
 
     mol_defs = mol_defs_from_rxncon(rxncon_sys)
     LOGGER.debug(

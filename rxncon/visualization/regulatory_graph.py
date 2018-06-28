@@ -1,15 +1,16 @@
-from typing import Union, List, Optional, Tuple
 import re
 from enum import Enum, unique
+from typing import Union, List, Optional, Tuple
+
 from networkx import DiGraph
 
-from rxncon.venntastic.sets import Union as VennUnion, Complement, ValueSet, Set as VennSet, Intersection
 from rxncon.core.contingency import ContingencyType
-from rxncon.core.state import State, InteractionState
-from rxncon.core.reaction import OutputReaction
-from rxncon.core.spec import Spec
-from rxncon.core.rxncon_system import RxnConSystem, Reaction, ReactionTerm, Contingency
 from rxncon.core.effector import StateEffector, AndEffector, NotEffector, OrEffector, Effector
+from rxncon.core.reaction import OutputReaction
+from rxncon.core.rxncon_system import RxnConSystem, Reaction, ReactionTerm, Contingency
+from rxncon.core.spec import Spec
+from rxncon.core.state import State, InteractionState
+from rxncon.venntastic.sets import Union as VennUnion, Complement, ValueSet, Set as VennSet, Intersection
 
 
 @unique
@@ -46,12 +47,14 @@ class EdgeInteractionType(Enum):
     mutually_exclusive = 'mutually_exclusive'
     modify = "modifiy"
 
+
 edge_type_mapping = {ContingencyType.requirement: EdgeInteractionType.required,
                      ContingencyType.inhibition: EdgeInteractionType.inhibited,
                      ContingencyType.positive: EdgeInteractionType.positive,
                      ContingencyType.negative: EdgeInteractionType.negative,
                      ContingencyType.no_effect: EdgeInteractionType.no_effect,
                      ContingencyType.unknown: EdgeInteractionType.unknown_effect}
+
 
 class SpeciesReactionGraph:
     """
@@ -60,6 +63,7 @@ class SpeciesReactionGraph:
     Args:
         rxncon_system: The rxncon system.
     """
+
     def __init__(self, rxncon_system: RxnConSystem) -> None:
         self.rxncon_system = rxncon_system
         self.species_reaction_graph = DiGraph()
@@ -78,7 +82,9 @@ class SpeciesReactionGraph:
                 self.add_reaction_information_to_graph(reaction)
                 self.add_contingency_information_to_graph(self.rxncon_system.contingencies_for_reaction(reaction))
             else:
-                self.add_degradation_reaction_information_to_graph(reaction, self.rxncon_system.contingencies_for_reaction(reaction))
+                self.add_degradation_reaction_information_to_graph(reaction,
+                                                                   self.rxncon_system.contingencies_for_reaction(
+                                                                       reaction))
         self.add_synthesised_or_degraded_components()
         return self.species_reaction_graph
 
@@ -93,6 +99,7 @@ class SpeciesReactionGraph:
             None
 
         """
+
         def calc_components_without_states() -> List[Spec]:
             """
             Calculating the components without states:
@@ -101,7 +108,8 @@ class SpeciesReactionGraph:
                 List of components which do not belong to at least one state in the system.
 
             """
-            return [comp for comp in self.rxncon_system.components() if not self.rxncon_system.states_for_component(comp)]
+            return [comp for comp in self.rxncon_system.components() if
+                    not self.rxncon_system.states_for_component(comp)]
 
         def add_synthesised_components_and_reactions() -> None:
             """
@@ -119,8 +127,10 @@ class SpeciesReactionGraph:
             nonlocal components_by_reactions
             for synthesised_component in reaction.synthesised_components:
                 if synthesised_component in components_without_states:
-                    self._add_node(id=str(synthesised_component), label=str(synthesised_component), type=NodeType.component)
-                    self._add_edge(source=str(reaction), target=str(synthesised_component), interaction=EdgeInteractionType.synthesis)
+                    self._add_node(id=str(synthesised_component), label=str(synthesised_component),
+                                   type=NodeType.component)
+                    self._add_edge(source=str(reaction), target=str(synthesised_component),
+                                   interaction=EdgeInteractionType.synthesis)
                     components_by_reactions.append(synthesised_component)
 
         def get_degraded_components_and_reactions() -> None:
@@ -140,7 +150,8 @@ class SpeciesReactionGraph:
             for degraded_component in reaction.degraded_components:
                 if degraded_component in components_without_states:
                     self._add_node(id=str(degraded_component), label=str(degraded_component), type=NodeType.component)
-                    self._add_edge(source=str(reaction), target=str(degraded_component), interaction=EdgeInteractionType.degrade)
+                    self._add_edge(source=str(reaction), target=str(degraded_component),
+                                   interaction=EdgeInteractionType.degrade)
                     components_by_reactions.append(degraded_component)
 
         def connect_components_and_reactions() -> None:
@@ -160,9 +171,11 @@ class SpeciesReactionGraph:
             for component in components_by_reactions:
                 for reaction in self.rxncon_system.reactions:
                     if component in reaction.components_lhs and not component in reaction.components_rhs:
-                        self._add_edge(source=str(component), target=str(reaction), interaction=EdgeInteractionType.source_state)
+                        self._add_edge(source=str(component), target=str(reaction),
+                                       interaction=EdgeInteractionType.source_state)
                     elif component in reaction.components_lhs:
-                        self._add_edge(source=str(component), target=str(reaction), interaction=EdgeInteractionType.input_state)
+                        self._add_edge(source=str(component), target=str(reaction),
+                                       interaction=EdgeInteractionType.input_state)
 
         components_by_reactions = []  # type: List[Spec]
         components_without_states = calc_components_without_states()
@@ -173,7 +186,8 @@ class SpeciesReactionGraph:
 
         connect_components_and_reactions()
 
-    def add_degradation_reaction_information_to_graph(self, reaction: Reaction, contingencies: List[Contingency]) -> None:
+    def add_degradation_reaction_information_to_graph(self, reaction: Reaction,
+                                                      contingencies: List[Contingency]) -> None:
         """
         Adding degradation information to the graph.
 
@@ -189,7 +203,7 @@ class SpeciesReactionGraph:
 
         """
 
-        def _effector_to_vennset(eff: Effector, con_type: Optional[ContingencyType]=None) -> VennSet:
+        def _effector_to_vennset(eff: Effector, con_type: Optional[ContingencyType] = None) -> VennSet:
             """
             Preprocessing effector. Save information in leafs.
 
@@ -231,7 +245,8 @@ class SpeciesReactionGraph:
             else:
                 raise AssertionError
 
-        def _add_interaction_state_for_degradation(state: State, reaction: Reaction, edge_type: EdgeInteractionType) ->None:
+        def _add_interaction_state_for_degradation(state: State, reaction: Reaction,
+                                                   edge_type: EdgeInteractionType) -> None:
             """
             Adds interaction state for degradation.
 
@@ -265,7 +280,8 @@ class SpeciesReactionGraph:
                                            if not any(component in reaction.degraded_components
                                                       for component in neutral_state.components)]
                 for neutral_state in produced_neutral_states:
-                    self._add_edge(source=boolean_node_id, target=str(neutral_state), interaction=EdgeInteractionType.produce)
+                    self._add_edge(source=boolean_node_id, target=str(neutral_state),
+                                   interaction=EdgeInteractionType.produce)
 
         def _update_no_contingency_case() -> None:
             """
@@ -310,11 +326,13 @@ class SpeciesReactionGraph:
                                if x not in positive_states and x not in negative_states]
 
             for state in degraded_states:
-                if not any(positive_state for positive_state in positive_states if state.is_mutually_exclusive_with(positive_state)):
+                if not any(positive_state for positive_state in positive_states if
+                           state.is_mutually_exclusive_with(positive_state)):
                     if isinstance(state, InteractionState):
                         _add_interaction_state_for_degradation(state, reaction, EdgeInteractionType.maybe_degraded)
                     else:
-                        self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.maybe_degraded)
+                        self._add_edge(source=str(reaction), target=str(state),
+                                       interaction=EdgeInteractionType.maybe_degraded)
 
         def _add_complement_of_state_for_degradation_reaction(state: State) -> None:
             """
@@ -335,11 +353,13 @@ class SpeciesReactionGraph:
                     complements = self.rxncon_system.complement_states_for_component(degraded_component, state)
                     # If we have one unique complement of a state we know what gets degraded.
                     if len(complements) == 1:
-                        self._add_edge(source=str(reaction), target=str(complements[0]), interaction=EdgeInteractionType.degrade)
+                        self._add_edge(source=str(reaction), target=str(complements[0]),
+                                       interaction=EdgeInteractionType.degrade)
                     # If we have more than one complement of a state. We say that its a possible degradation.
                     else:
                         for state in complements:
-                            self._add_edge(source=str(reaction), target=str(state), interaction=EdgeInteractionType.maybe_degraded)
+                            self._add_edge(source=str(reaction), target=str(state),
+                                           interaction=EdgeInteractionType.maybe_degraded)
 
         def _update_contingency_information(value_set: ValueSet[State]) -> None:
             """
@@ -387,7 +407,8 @@ class SpeciesReactionGraph:
             state = complement_value.values[0]
             _add_complement_of_state_for_degradation_reaction(state)
 
-        def _get_positive_and_negative_states(nested_list: List[VennSet[State]], dnf_of_cont: List[List[VennSet[State]]])\
+        def _get_positive_and_negative_states(nested_list: List[VennSet[State]],
+                                              dnf_of_cont: List[List[VennSet[State]]]) \
                 -> Tuple[List[Complement[State]], List[ValueSet[State]]]:
             """
             Calculating a list of negative states (complements) and positive states (not complements).
@@ -420,7 +441,9 @@ class SpeciesReactionGraph:
         if contingencies:
             self.add_contingency_information_to_graph(contingencies)
 
-            cont = Intersection(*(_effector_to_vennset(contingency.effector, contingency.contingency_type) for contingency in contingencies)).to_simplified_set()
+            cont = Intersection(
+                *(_effector_to_vennset(contingency.effector, contingency.contingency_type) for contingency in
+                  contingencies)).to_simplified_set()
             dnf_of_cont = cont.to_dnf_nested_list()
 
             for index, nested_list in enumerate(dnf_of_cont):
@@ -458,6 +481,7 @@ class SpeciesReactionGraph:
             None
 
         """
+
         def _add_reaction_reactant_to_graph(reaction: Reaction, reactants: ReactionTerm,
                                             edge_type: EdgeInteractionType) -> None:
 
@@ -504,7 +528,8 @@ class SpeciesReactionGraph:
             """
 
             for reactant_state in reactants.states:
-                self._add_edge(source=str(reactant_state), target=str(reaction), interaction=EdgeInteractionType.source_state)
+                self._add_edge(source=str(reactant_state), target=str(reaction),
+                               interaction=EdgeInteractionType.source_state)
 
         def _add_reactant_states() -> None:
             """
@@ -523,13 +548,12 @@ class SpeciesReactionGraph:
             for reactant_pre in reaction.terms_lhs:
                 _add_reaction_reactant_to_graph(reaction, reactant_pre, EdgeInteractionType.consume)
                 _add_reaction_source_state_edges_to_graph(reaction, reactant_pre)
+
         if isinstance(reaction, OutputReaction):
             self._add_node(id=str(reaction), type=NodeType.output, label=str(reaction))
         else:
             self._add_node(id=str(reaction), type=NodeType.reaction, label=str(reaction))
             _add_reactant_states()
-
-
 
     def add_contingency_information_to_graph(self, contingencies: List[Contingency]) -> None:
         """
@@ -542,6 +566,7 @@ class SpeciesReactionGraph:
             None
 
         """
+
         def _target_name_from_reaction_or_effector(target: Union[Effector, Reaction]) -> str:
             """
             Creates a valid target name, which can be used in xgmml files.
@@ -564,7 +589,8 @@ class SpeciesReactionGraph:
             else:
                 raise AssertionError
 
-        def _add_information_from_effector_to_graph(effector: Effector, edge_type: EdgeInteractionType, target_name: str) -> None:
+        def _add_information_from_effector_to_graph(effector: Effector, edge_type: EdgeInteractionType,
+                                                    target_name: str) -> None:
             """
             Adds the effector information of the contingency to the graph.
 
@@ -583,7 +609,9 @@ class SpeciesReactionGraph:
                 AssertionError: If the Effector type is not known, or if the object is not of type effector.
 
             """
-            def add_node_and_edge(name: str, node_type: NodeType, edge_type: EdgeInteractionType, target_name: str) -> None:
+
+            def add_node_and_edge(name: str, node_type: NodeType, edge_type: EdgeInteractionType,
+                                  target_name: str) -> None:
                 """
                 Adds a node or edge to the regulatory graph.
 
@@ -635,7 +663,8 @@ class SpeciesReactionGraph:
                 raise AssertionError
 
         for contingency in contingencies:
-            _add_information_from_effector_to_graph(contingency.effector, edge_type_mapping[contingency.contingency_type],
+            _add_information_from_effector_to_graph(contingency.effector,
+                                                    edge_type_mapping[contingency.contingency_type],
                                                     _target_name_from_reaction_or_effector(contingency.reaction))
 
     def _add_node(self, id: str, label: str, type: NodeType) -> None:
@@ -654,7 +683,8 @@ class SpeciesReactionGraph:
             None
 
         """
-        self.species_reaction_graph.add_node(self._replace_invalid_chars(id), label=self._replace_invalid_chars(label), type=type.value)
+        self.species_reaction_graph.add_node(self._replace_invalid_chars(id), label=self._replace_invalid_chars(label),
+                                             type=type.value)
 
     def _add_edge(self, source: str, target: str, interaction: EdgeInteractionType) -> None:
         """
@@ -672,8 +702,10 @@ class SpeciesReactionGraph:
             None
 
         """
-        if not self.species_reaction_graph.has_edge(self._replace_invalid_chars(source), self._replace_invalid_chars(target)):
-            self.species_reaction_graph.add_edge(self._replace_invalid_chars(source), self._replace_invalid_chars(target), interaction=interaction.value)
+        if not self.species_reaction_graph.has_edge(self._replace_invalid_chars(source),
+                                                    self._replace_invalid_chars(target)):
+            self.species_reaction_graph.add_edge(self._replace_invalid_chars(source),
+                                                 self._replace_invalid_chars(target), interaction=interaction.value)
 
     def _replace_invalid_chars(self, name: str) -> str:
         """
@@ -691,7 +723,6 @@ class SpeciesReactionGraph:
         return name
 
 
-
 class RegulatoryGraph:
     """
     Definition of the regulatory Graph.
@@ -699,6 +730,7 @@ class RegulatoryGraph:
     Args:
         rxncon_system: The rxncon system.
     """
+
     def __init__(self, rxncon_system: RxnConSystem) -> None:
         self.rxncon_system = rxncon_system
         self.regulatory_graph = DiGraph()
@@ -742,7 +774,8 @@ class RegulatoryGraph:
                 List of components which do not belong to at least one state in the system.
 
             """
-            return [comp for comp in self.rxncon_system.components() if not self.rxncon_system.states_for_component(comp)]
+            return [comp for comp in self.rxncon_system.components() if
+                    not self.rxncon_system.states_for_component(comp)]
 
         ######## END no use in regulatory graph
         def add_synthesised_components_and_reactions() -> None:
@@ -762,7 +795,8 @@ class RegulatoryGraph:
             for synthesised_component in reaction.synthesised_components:
                 # if synthesised_component in components_without_states:
                 self._add_node(id=str(synthesised_component), label=str(synthesised_component), type=NodeType.component)
-                self._add_edge(source=str(reaction), target=str(synthesised_component), interaction=EdgeInteractionType.synthesis)
+                self._add_edge(source=str(reaction), target=str(synthesised_component),
+                               interaction=EdgeInteractionType.synthesis)
                 components_by_reactions.append(synthesised_component)
 
         def get_degraded_components_and_reactions() -> None:
@@ -782,13 +816,14 @@ class RegulatoryGraph:
             for degraded_component in reaction.degraded_components:
                 # if degraded_component in components_without_states:
                 self._add_node(id=str(degraded_component), label=str(degraded_component), type=NodeType.component)
-                self._add_edge(source=str(reaction), target=str(degraded_component), interaction=EdgeInteractionType.degrade)
+                self._add_edge(source=str(reaction), target=str(degraded_component),
+                               interaction=EdgeInteractionType.degrade)
                 components_by_reactions.append(degraded_component)
 
         def component_in_conts(comp, reaction):
 
             cont = Intersection(*(x.to_venn_set() for x
-                                in self.rxncon_system.contingencies_for_reaction(reaction)))
+                                  in self.rxncon_system.contingencies_for_reaction(reaction)))
 
             for state in cont.values:
                 if comp in state.to_non_structured().components:
@@ -803,7 +838,7 @@ class RegulatoryGraph:
                     assert len(state.components) == 1
                     if not component_in_conts(state.components[0], reaction):
                         self._add_edge(source=str(state.components[0]), target=str(reaction),
-                                   interaction=EdgeInteractionType.input_state)
+                                       interaction=EdgeInteractionType.input_state)
                     # mutually exclusivity test:
                     complements = self.rxncon_system.complement_states(state)
                     if len(complements) > 1:
@@ -818,9 +853,6 @@ class RegulatoryGraph:
                 if mod in components_by_reactions:
                     self._add_node(id=str(mod), type=NodeType.component, label=str(mod))
                     self._add_edge(source=str(mod), target=str(reaction), interaction=EdgeInteractionType.modify)
-
-
-
 
         def connect_components_and_reactions() -> None:
             """
@@ -839,9 +871,12 @@ class RegulatoryGraph:
             for component in components_by_reactions:
                 for reaction in self.rxncon_system.reactions:
                     if component in reaction.components_lhs and not component in reaction.components_rhs:
-                        self._add_edge(source=str(component), target=str(reaction), interaction=EdgeInteractionType.source_state)
-                    elif component in reaction.components_lhs :
-                        if any(state.is_neutral and component in state.components and not component_in_conts(component, reaction) for state in reaction.consumed_states):
+                        self._add_edge(source=str(component), target=str(reaction),
+                                       interaction=EdgeInteractionType.source_state)
+                    elif component in reaction.components_lhs:
+                        if any(state.is_neutral and component in state.components and not component_in_conts(component,
+                                                                                                             reaction)
+                               for state in reaction.consumed_states):
                             self._add_edge(source=str(component), target=str(reaction),
                                            interaction=EdgeInteractionType.input_state)
 
@@ -855,7 +890,6 @@ class RegulatoryGraph:
             get_component_for_neutral_states(reaction)
             _add_modifier_components(reaction)
         connect_components_and_reactions()
-
 
     def add_reaction_information_to_graph(self, reaction: Reaction) -> None:
         """
@@ -871,6 +905,7 @@ class RegulatoryGraph:
             None
 
         """
+
         def _add_reaction_reactant_to_graph(reaction: Reaction, reactants: ReactionTerm,
                                             edge_type: EdgeInteractionType) -> None:
 
@@ -917,7 +952,8 @@ class RegulatoryGraph:
             """
 
             for reactant_state in reactants.states:
-                self._add_edge(source=str(reactant_state), target=str(reaction), interaction=EdgeInteractionType.source_state)
+                self._add_edge(source=str(reactant_state), target=str(reaction),
+                               interaction=EdgeInteractionType.source_state)
 
         def _add_reactant_states() -> None:
             """
@@ -947,8 +983,6 @@ class RegulatoryGraph:
             self._add_node(id=str(reaction), type=NodeType.reaction, label=str(reaction))
             _add_reactant_states()
 
-
-
     def add_contingency_information_to_graph(self, contingencies: List[Contingency]) -> None:
         """
         Adds contingency information to the regulatory graph.
@@ -960,6 +994,7 @@ class RegulatoryGraph:
             None
 
         """
+
         def _target_name_from_reaction_or_effector(target: Union[Effector, Reaction]) -> str:
             """
             Creates a valid target name, which can be used in xgmml files.
@@ -986,12 +1021,13 @@ class RegulatoryGraph:
 
             output = []
             for state in states:
-                assert(isinstance(state, State))
+                assert (isinstance(state, State))
                 if state.is_neutral:
                     output.append(state)
             return output
 
-        def _add_information_from_effector_to_graph(effector: Effector, edge_type: EdgeInteractionType, target_name: str) -> None:
+        def _add_information_from_effector_to_graph(effector: Effector, edge_type: EdgeInteractionType,
+                                                    target_name: str) -> None:
             """
             Adds the effector information of the contingency to the graph.
 
@@ -1010,7 +1046,9 @@ class RegulatoryGraph:
                 AssertionError: If the Effector type is not known, or if the object is not of type effector.
 
             """
-            def add_node_and_edge(name: str, node_type: NodeType, edge_type: EdgeInteractionType, target_name: str) -> None:
+
+            def add_node_and_edge(name: str, node_type: NodeType, edge_type: EdgeInteractionType,
+                                  target_name: str) -> None:
                 """
                 Adds a node or edge to the regulatory graph.
 
@@ -1042,7 +1080,7 @@ class RegulatoryGraph:
                     add_node_and_edge(name, NodeType.input, edge_type, target_name)
 
                 elif neutrals_in_cont:
-                    add_node_and_edge('<'+name+'>', NodeType.NOT, edge_type, target_name)
+                    add_node_and_edge('<' + name + '>', NodeType.NOT, edge_type, target_name)
                     # check if single
 
                     complementary_states = self.rxncon_system.complement_states(effector.expr)
@@ -1051,9 +1089,10 @@ class RegulatoryGraph:
                                           target_name='<' + name + '>')
                         for state in complementary_states:
                             add_node_and_edge(name=str(state.to_non_structured()), node_type=NodeType.state,
-                                              edge_type= EdgeInteractionType.OR, target_name='not <'+name+'>')
+                                              edge_type=EdgeInteractionType.OR, target_name='not <' + name + '>')
                     else:
-                        add_node_and_edge(name=str(complementary_states[0].to_non_structured()), node_type=NodeType.state,
+                        add_node_and_edge(name=str(complementary_states[0].to_non_structured()),
+                                          node_type=NodeType.state,
                                           edge_type=EdgeInteractionType.NOT, target_name='<' + name + '>')
 
 
@@ -1081,7 +1120,8 @@ class RegulatoryGraph:
                 raise AssertionError
 
         for contingency in contingencies:
-            _add_information_from_effector_to_graph(contingency.effector, edge_type_mapping[contingency.contingency_type],
+            _add_information_from_effector_to_graph(contingency.effector,
+                                                    edge_type_mapping[contingency.contingency_type],
                                                     _target_name_from_reaction_or_effector(contingency.reaction))
 
     def _add_node(self, id: str, label: str, type: NodeType) -> None:
@@ -1120,7 +1160,8 @@ class RegulatoryGraph:
 
         """
         if not self.regulatory_graph.has_edge(self._replace_invalid_chars(source), self._replace_invalid_chars(target)):
-            self.regulatory_graph.add_edge(self._replace_invalid_chars(source), self._replace_invalid_chars(target), interaction=interaction.value)
+            self.regulatory_graph.add_edge(self._replace_invalid_chars(source), self._replace_invalid_chars(target),
+                                           interaction=interaction.value)
 
     def _replace_invalid_chars(self, name: str) -> str:
         """
@@ -1136,6 +1177,3 @@ class RegulatoryGraph:
         name = re.sub('[<>]', '', name)
         name = re.sub('[&]', 'AND', name)
         return name
-
-
-

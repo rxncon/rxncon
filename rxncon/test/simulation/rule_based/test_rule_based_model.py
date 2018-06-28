@@ -406,5 +406,4 @@ def test_structure_to_negative_interaction_states() -> None:
 
     for rule_of_interest in rules_of_interest:
         identities = [rule.is_equivalent_to(rule_of_interest) for rule in rbm.rules]
-        assert identities.count(True) == 1
-        print(identities.count(True) == 1)
+        assert identities.count(True) == 1  # exactly once
