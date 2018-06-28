@@ -1,13 +1,14 @@
-import pytest
 from itertools import combinations
 
-from rxncon.input.quick.quick import Quick
-from rxncon.simulation.rule_based.rule_based_model import complex_from_str, rule_from_str, rule_based_model_from_rxncon,\
-    initial_condition_from_str, bond_complexes, components_microstate, BondComplex
-from rxncon.core.state import state_from_str
-from rxncon.venntastic.sets import ValueSet, Union, venn_from_str
+import pytest
+
 import rxncon.core.reaction as reaction
 from rxncon.core.spec import Spec, LocusResolution, MRNASpec, spec_from_str
+from rxncon.core.state import state_from_str
+from rxncon.input.quick.quick import Quick
+from rxncon.simulation.rule_based.rule_based_model import complex_from_str, rule_from_str, rule_based_model_from_rxncon, \
+    initial_condition_from_str, bond_complexes, BondComplex
+from rxncon.venntastic.sets import ValueSet, Union
 
 
 # Test the *_from_str functions.
@@ -380,6 +381,7 @@ def test_kplus_overlaps_with_reaction() -> None:
     for rule in rbm.rules:
         print(rule)
 
+
 def test_structure_to_negative_interaction_states() -> None:
     rxncon_system = Quick("""Cdc28_P+_Bem2_[(cdc28)]; ! <Cdc28Cln13>
                         <Cdc28Cln13>; OR <Cdc28Cln1>; OR <Cdc28Cln3>
@@ -393,7 +395,16 @@ def test_structure_to_negative_interaction_states() -> None:
                         Cdc28_[cyclin]_ppi_Cln3_[cdc28]
                         Cdc28_[whi3]_ppi_Whi3_[cdc28]""").rxncon_system
 
-    state_of_interest = state_from_str("Cdc28@0_[whi3]--0")
+    rbm = rule_based_model_from_rxncon(rxncon_system)
 
-    assert state_of_interest in rxncon_system.contingencies[0].effector.states
-    pass
+    rules_of_interest = [
+        rule_from_str(
+            "Cdc28(whi3D) + Whi3(cdc28D) -> Cdc28(whi3D!1).Whi3(cdc28D!1) k_13 Cdc28_[whi3]_ppi+_Whi3_[cdc28]"),
+        rule_from_str(
+            "Cdc28(whi3D!1).Whi3(cdc28D!1) -> Cdc28(whi3D) + Whi3(cdc28D) k_14 Cdc28_[whi3]_ppi-_Whi3_[cdc28]")
+    ]
+
+    for rule_of_interest in rules_of_interest:
+        identities = [rule.is_equivalent_to(rule_of_interest) for rule in rbm.rules]
+        assert identities.count(True) == 1
+        print(identities.count(True) == 1)
