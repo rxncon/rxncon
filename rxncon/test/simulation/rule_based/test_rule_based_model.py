@@ -379,3 +379,21 @@ def test_kplus_overlaps_with_reaction() -> None:
 
     for rule in rbm.rules:
         print(rule)
+
+def test_structure_to_negative_interaction_states() -> None:
+    rxncon_system = Quick("""Cdc28_P+_Bem2_[(cdc28)]; ! <Cdc28Cln13>
+                        <Cdc28Cln13>; OR <Cdc28Cln1>; OR <Cdc28Cln3>
+                        <Cdc28Cln1>; AND Cdc28_[cyclin]--Cln1_[cdc28]
+                        <Cdc28Cln3>; AND Cdc28_[cyclin]--Cln3_[cdc28]; AND Cdc28_[whi3]--0
+                        Cdc28_[cyclin]_ppi_Cln1_[cdc28]
+                        Cdc28_[far1]_ppi_Far1_[cdc28]
+                        Cdc28_[cks1]_ppi_Cks1_[cdc28]
+                        Cak1_P+_Cdc28_[Tloop(T169)]
+                        Cdc28_[cyclin]_ppi_Cln2_[cdc28]
+                        Cdc28_[cyclin]_ppi_Cln3_[cdc28]
+                        Cdc28_[whi3]_ppi_Whi3_[cdc28]""").rxncon_system
+
+    state_of_interest = state_from_str("Cdc28@0_[whi3]--0")
+
+    assert state_of_interest in rxncon_system.contingencies[0].effector.states
+    pass
