@@ -84,7 +84,7 @@ def _str_from_parameter(parameter: Parameter) -> str:
     if parameter.description:
         return '{0:<10}{1}\t\t#  {2}'.format(parameter.name, parameter.value, parameter.description)
     else:
-        return '{0:<10}{1}'.format(parameter.name, parameter.value)
+        return '{0:<10}\t{1}'.format(parameter.name, parameter.value)
 
 
 def _str_from_observable(observable: Observable) -> str:
