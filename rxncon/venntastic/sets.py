@@ -258,7 +258,7 @@ class NarySet(Set[T], Generic[T]):
         if len(exprs) == 1:
             return deepcopy(exprs[0])
         else:
-            return super().__new__(cls, *exprs)  # type: ignore
+            return super().__new__(cls)  # type: ignore
 
     def __init__(self, *exprs: Set[T]) -> None:
         self.exprs = exprs
