@@ -87,7 +87,7 @@ setup(
         'click',
         'click_log==0.1.8',
         'colorama',
-        'xlrd',
+        'xlrd==1.2.0',
         'networkx',
     ]
 )
